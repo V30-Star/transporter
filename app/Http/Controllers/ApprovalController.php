@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Tr_pod;
 use App\Models\Tr_poh;
 use App\Models\Tr_prd;
@@ -181,79 +180,6 @@ class ApprovalController extends Controller
         $pr = Tr_poh::where('fpono', $fpono)->firstOrFail();
 
         return view('infoApprovalPagePO', compact('pr'));
-    }
-
-    public function showProductApprovalPage(Request $request, int $fprdid)
-    {
-        $token = trim((string) $request->query('token', ''));
-        $product = Product::findOrFail($fprdid);
-        $stage = $this->resolveStageByToken($product, $token);
-
-        if ($token === '' || $stage === null) {
-            return redirect()->route('product.index')->with('error', 'Link approval tidak valid.');
-        }
-
-        return view('approvalGenericPage', [
-            'record' => $product,
-            'title' => 'Approval Produk',
-            'documentNo' => $product->fprdcode,
-            'detailRows' => [],
-            'fields' => [
-                ['label' => 'Kode Produk', 'value' => $product->fprdcode ?? '-'],
-                ['label' => 'Nama Produk', 'value' => $product->fprdname ?? '-'],
-                ['label' => 'Satuan', 'value' => $product->fsatuankecil ?? '-'],
-                ['label' => 'Min. Stok', 'value' => number_format((float) ($product->fminstock ?? 0), 2, ',', '.')],
-            ],
-            'approveRoute' => route('approval.product.submit', $product->fprdid),
-            'rejectRoute' => route('approval.product.reject', $product->fprdid),
-            'token' => $token,
-            'locked' => $this->isApprovalProcessed($product, $stage),
-            'approvedMessage' => 'Produk ini sudah disetujui.',
-            'rejectedMessage' => 'Produk ini sudah ditolak.',
-        ]);
-    }
-
-    public function approveProduct(Request $request, int $fprdid)
-    {
-        $product = Product::findOrFail($fprdid);
-        $stage = $this->resolveStageByToken($product, trim((string) $request->input('token')));
-        if ($stage === null) {
-            return back()->with('error', 'Link approval tidak valid.');
-        }
-        if ($this->isApprovalProcessed($product, $stage)) {
-            return redirect()->route('approval.product.info', $product->fprdid)->with('error', 'Produk ini sudah pernah diproses sebelumnya.');
-        }
-
-        $this->markApproved($product, $stage);
-
-        return redirect()->route('approval.product.info', $product->fprdid);
-    }
-
-    public function rejectProduct(Request $request, int $fprdid)
-    {
-        $product = Product::findOrFail($fprdid);
-        $stage = $this->resolveStageByToken($product, trim((string) $request->input('token')));
-        if ($stage === null) {
-            return back()->with('error', 'Link approval tidak valid.');
-        }
-        if ($this->isApprovalProcessed($product, $stage)) {
-            return redirect()->route('approval.product.info', $product->fprdid)->with('error', 'Produk ini sudah pernah diproses sebelumnya.');
-        }
-
-        $this->markRejected($product, $stage, (string) $request->input('note', ''));
-
-        return redirect()->route('approval.product.info', $product->fprdid);
-    }
-
-    public function productInfo(int $fprdid)
-    {
-        $product = Product::findOrFail($fprdid);
-
-        return view('infoApprovalGenericPage', [
-            'record' => $product,
-            'documentNo' => $product->fprdcode,
-            'title' => 'Status Approval Produk',
-        ]);
     }
 
     public function showSalesOrderApprovalPage(Request $request, string $fsono)

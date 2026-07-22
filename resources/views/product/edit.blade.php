@@ -1558,7 +1558,7 @@
                                             <span>Approve</span>
                                             <label class="switch" style="margin:0">
                                                 <input type="checkbox" name="approve_now" id="approvalToggle"
-                                                    {{ old('approve_now', $product->fapproval) == '1' || $product->fapproval == '1' ? 'checked' : '' }}>
+                                                    {{ old('approve_now', \App\Support\ApprovalState::isApprovedRecord($product) ? '1' : '0') ? 'checked' : '' }}>
                                                 <span class="slider round"></span>
                                             </label>
                                         </label>

@@ -768,15 +768,6 @@ Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO']
 Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
     ->name('approval.po.info');
 
-Route::get('/approval-product/{fprdid}', [ApprovalController::class, 'showProductApprovalPage'])
-    ->name('approval.product.page');
-Route::post('/approve-product/{fprdid}', [ApprovalController::class, 'approveProduct'])
-    ->name('approval.product.submit');
-Route::post('/reject-product/{fprdid}', [ApprovalController::class, 'rejectProduct'])
-    ->name('approval.product.reject');
-Route::get('/approval-product/info/{fprdid}', [ApprovalController::class, 'productInfo'])
-    ->name('approval.product.info');
-
 Route::get('/approval-salesorder/{fsono}', [ApprovalController::class, 'showSalesOrderApprovalPage'])
     ->name('approval.salesorder.page');
 Route::post('/approve-salesorder/{fsono}', [ApprovalController::class, 'approveSalesOrder'])

@@ -1542,6 +1542,13 @@
             });
         </script>
     @endif
+    @if (session('warning'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                window.showAppWarningAlert('Warning', @json((string) session('warning')));
+            });
+        </script>
+    @endif
     @if ($transactionErrorMessages->isNotEmpty())
         <script>
             (() => {

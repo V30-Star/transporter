@@ -24,7 +24,7 @@ use App\Support\ApprovalState;
 class InvoiceController extends Controller
 {
     private const MEMO_DEBIT_ACCOUNT = '11300';
-    private const MEMO_CREDIT_ACCOUNT = '41000';
+    private const MEMO_CREDIT_ACCOUNT = '11401';
 
     private ?bool $tranmtHasInternalNoteColumn = null;
 

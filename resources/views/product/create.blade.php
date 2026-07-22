@@ -835,18 +835,14 @@
 
                         {{-- BARIS 1: Kontrol Status (Non Aktif & Approve) --}}
                         <div class="flex items-center justify-center gap-2 mb-4">
-                            @php $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', ''))); @endphp
-                            @if ($canApproval)
-                                <label
-                                    class="flex items-center gap-2 text-sm font-semibold cursor-pointer border rounded-lg px-3 py-2 hover:bg-gray-50">
-                                    <span>Approve</span>
-                                    <label class="switch" style="margin:0">
-                                        <input type="checkbox" name="fapproval" id="approvalToggle"
-                                            {{ session('fapproval') ? 'checked' : '' }}>
-                                        <span class="slider round"></span>
-                                    </label>
+                            <label
+                                class="flex items-center gap-2 text-sm font-semibold cursor-not-allowed border rounded-lg px-3 py-2 bg-gray-50 text-gray-500">
+                                <span>Approve</span>
+                                <label class="switch" style="margin:0">
+                                    <input type="checkbox" id="approvalToggle" disabled>
+                                    <span class="slider round"></span>
                                 </label>
-                            @endif
+                            </label>
                         </div>
 
                         {{-- BARIS 2: Aksi/Tombol (Keluar & Simpan) --}}

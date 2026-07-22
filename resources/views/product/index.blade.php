@@ -641,6 +641,7 @@
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
             const canViewHpp = {{ $canViewHpp ? 'true' : 'false' }};
+            const canApproval = {{ $canApproval ? 'true' : 'false' }};
 
             const isApprovedValue = (value) => {
                 const normalized = (value ?? '').toString().trim();
@@ -780,7 +781,7 @@
                     searchable: false,
                     render: function(fprdid, type, row) {
                         let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
-                        const editBlocked = isEditBlockedApproval(row);
+                        const editBlocked = !canApproval && isEditBlockedApproval(row);
 
                         const viewUrl = `{{ config('app.url') }}/master/product/${fprdid}/view`;
 
