@@ -150,7 +150,7 @@ class ListingJurnalController extends Controller
                 $sheet->setCellValue('G' . $row, $balanceRp);
                 $sheet->setCellValue('H' . $row, $dt->flineno);
                 $sheet->setCellValue('I' . $row, $dt->faccount);
-                $sheet->setCellValue('J' . $row, $dt->faccname);
+                $sheet->setCellValue('J' . $row, $dt->faccount_name);
                 $sheet->setCellValue('K' . $row, $dt->frefno);
                 $sheet->setCellValue('L' . $row, $dt->fsubaccount);
                 $sheet->setCellValue('M' . $row, $dt->fdk);
@@ -209,25 +209,25 @@ class ListingJurnalController extends Controller
         $jurnalUmum = DB::table('jurnalmt as m')
             ->leftJoin('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
             ->leftJoin('set_account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccount_name, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
 
         // 2. Tambah placeholder fnote di Kas Header
         $kasHeader = DB::table('trkasmt as m')
             ->leftJoin('set_account as acc', 'm.faccountheader', '=', 'acc.faccount')
-            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccname, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccount_name, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
 
         // 3. Ambil fnote asli dari trkasdt (alias d) di Kas Detail
         $kasDetail = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('set_account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote, d.fkasdtid, m.fbranchcode, d.fnote AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccount_name, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote, d.fkasdtid, m.fbranchcode, d.fnote AS fnote"); // <--- Tambah ini
 
         $union = $jurnalUmum->unionAll($kasHeader)->unionAll($kasDetail);
 
         // 4. Panggil a.fnote di query select pembungkusnya
         $query = DB::query()
             ->fromSub($union, 'a')
-            ->selectRaw("a.fjurnalno, a.fjurnaldate, a.fjurnaltype, a.fjurnalnote, a.fbalance, a.fbalance_rp, a.fdatetime, a.fuserid, a.flineno, a.faccount, a.faccname, a.frefno, a.fsubaccount, a.fdk, a.frate, a.famount, a.famount_rp, a.faccountnote, a.fbranchcode, a.fnote, CASE WHEN a.fdk = 'D' THEN a.famount END AS debet, CASE WHEN a.fdk = 'K' THEN a.famount END AS kredit") // <--- Tambah a.fnote di sini
+            ->selectRaw("a.fjurnalno, a.fjurnaldate, a.fjurnaltype, a.fjurnalnote, a.fbalance, a.fbalance_rp, a.fdatetime, a.fuserid, a.flineno, a.faccount, a.faccount_name, a.frefno, a.fsubaccount, a.fdk, a.frate, a.famount, a.famount_rp, a.faccountnote, a.fbranchcode, a.fnote, CASE WHEN a.fdk = 'D' THEN a.famount END AS debet, CASE WHEN a.fdk = 'K' THEN a.famount END AS kredit") // <--- Tambah a.fnote di sini
             ->whereDate('a.fjurnaldate', '>=', $dateFrom)
             ->whereDate('a.fjurnaldate', '<=', $dateTo);
 

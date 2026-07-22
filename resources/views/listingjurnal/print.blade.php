@@ -413,7 +413,7 @@
                     @endphp
                     <div class="po-detail">
                         <div>{{ $dt->faccount }}</div>
-                        <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
+                        <div class="truncate" title="{{ $dt->faccount_name }}">{{ $dt->faccount_name }}</div>
                         <div class="truncate" title="{{ $dt->fnote }}">{{ $dt->fnote }}</div>
                         <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
                         <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
