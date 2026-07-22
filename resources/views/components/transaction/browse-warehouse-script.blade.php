@@ -101,9 +101,25 @@
             open: false,
             table: null,
 
+            focusSearch() {
+                const focus = (attempt = 0) => {
+                    const input = document.querySelector('#{{ $controlsId }} .dt-search .dt-input, #{{ $controlsId }} .dataTables_filter input, #{{ $tableId }}_wrapper .dt-search .dt-input, #{{ $tableId }}_wrapper .dataTables_filter input');
+                    if (!input && attempt < 10) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                        return;
+                    }
+
+                    input?.focus();
+                    input?.select?.();
+                };
+
+                focus();
+            },
+
             initDataTable() {
                 if (this.table) {
                     this.table.columns.adjust().draw(false);
+                    this.focusSearch();
                     return;
                 }
 
@@ -183,7 +199,7 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
-                        }).focus();
+                        });
                         $c.find('.dt-length select, .dataTables_length select').css({
                             padding: '6px 32px 6px 10px',
                             border: '2px solid #e5e7eb',
@@ -221,6 +237,12 @@
                             if ($info.length) $info.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(pagination);
                             if ($paginate.length) $paginate.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(pagination);
                         }
+
+                        setTimeout(() => {
+                            const input = document.querySelector('#{{ $controlsId }} .dt-search .dt-input, #{{ $controlsId }} .dataTables_filter input, #{{ $tableId }}_wrapper .dt-search .dt-input, #{{ $tableId }}_wrapper .dataTables_filter input');
+                            input?.focus();
+                            input?.select?.();
+                        }, 100);
                     }
                 });
 
@@ -256,10 +278,14 @@
                 this.$nextTick(() => {
                     const delay = Number(@json($openDelay)) || 0;
                     if (delay > 0) {
-                        setTimeout(() => this.initDataTable(), delay);
+                        setTimeout(() => {
+                            this.initDataTable();
+                            this.focusSearch();
+                        }, delay);
                         return;
                     }
                     this.initDataTable();
+                    this.focusSearch();
                 });
             },
 

@@ -1808,6 +1808,21 @@
                 pendingHeader: null,
                 pendingUniques: [],
 
+                focusSearch() {
+                    const focus = (attempt = 0) => {
+                        const input = document.querySelector('#poTable_wrapper .dt-search .dt-input, #poTable_wrapper .dataTables_filter input');
+                        if (!input && attempt < 10) {
+                            setTimeout(() => focus(attempt + 1), 100);
+                            return;
+                        }
+
+                        input?.focus();
+                        input?.select?.();
+                    };
+
+                    focus();
+                },
+
                 initDataTable() {
                     if (this.table) {
                         this.table.destroy();
@@ -1913,7 +1928,12 @@
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
                                 fontSize: '14px'
-                            }).focus();
+                            });
+                            setTimeout(() => {
+                                const input = document.querySelector('#poTable_wrapper .dt-search .dt-input, #poTable_wrapper .dataTables_filter input');
+                                input?.focus();
+                                input?.select?.();
+                            }, 100);
                             $c.find('.dt-length select, .dataTables_length select').css({
                                 padding: '6px 32px 6px 10px',
                                 border: '2px solid #e5e7eb',
@@ -1932,7 +1952,10 @@
 
                 openModal() {
                     this.show = true;
-                    this.$nextTick(() => setTimeout(() => this.initDataTable(), 50));
+                    this.$nextTick(() => setTimeout(() => {
+                        this.initDataTable();
+                        this.focusSearch();
+                    }, 50));
                 },
                 closeModal() {
                     this.show = false;
