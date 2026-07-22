@@ -132,10 +132,19 @@
                 });
             },
 
+            focusSearch() {
+                setTimeout(() => {
+                    const input = document.querySelector('#prTable_wrapper .dt-search .dt-input, #prTable_wrapper .dataTables_filter input');
+                    input?.focus();
+                    input?.select?.();
+                }, 100);
+            },
+
             openModal() {
                 this.show = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    this.focusSearch();
                 });
             },
 

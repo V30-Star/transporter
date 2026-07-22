@@ -1147,7 +1147,9 @@
                     </form>
                 </div>
             @endif
-
+<x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
+        <x-transaction.browse-warehouse-modal />
+                <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
     </div>
 
     {{-- ============================================ --}}
@@ -2058,10 +2060,19 @@
                 });
             },
 
+            focusSearch() {
+                setTimeout(() => {
+                    const input = document.querySelector('#warehouseTable_wrapper .dt-search .dt-input, #warehouseTable_wrapper .dataTables_filter input');
+                    input?.focus();
+                    input?.select?.();
+                }, 100);
+            },
+
             openModal() {
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    this.focusSearch();
                 });
             },
 
@@ -2265,6 +2276,14 @@
                     this.close();
                 },
 
+                focusSearch() {
+                    setTimeout(() => {
+                        const input = document.querySelector('#productTable_wrapper .dt-search .dt-input, #productTable_wrapper .dataTables_filter input');
+                        input?.focus();
+                        input?.select?.();
+                    }, 100);
+                },
+
                 init() {
                     window.addEventListener('browse-open', (e) => {
                         this.open = true;
@@ -2273,6 +2292,7 @@
                         // Initialize DataTable setelah modal terbuka
                         this.$nextTick(() => {
                             this.initDataTable();
+                            this.focusSearch();
                         });
                     }, {
                         passive: true
@@ -2422,10 +2442,19 @@
                     });
                 },
 
+                focusSearch() {
+                    setTimeout(() => {
+                        const input = document.querySelector('#supplierBrowseTable_wrapper .dt-search .dt-input, #supplierBrowseTable_wrapper .dataTables_filter input');
+                        input?.focus();
+                        input?.select?.();
+                    }, 100);
+                },
+
                 openBrowse() {
                     this.open = true;
                     this.$nextTick(() => {
                         this.initDataTable();
+                        this.focusSearch();
                     });
                 },
 
