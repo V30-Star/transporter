@@ -1838,6 +1838,13 @@
             dupSample: [],
             pendingHeader: null,
             pendingUniques: [],
+            focusSearch() {
+                setTimeout(() => {
+                    const input = document.querySelector('#prTable_wrapper .dt-search .dt-input, #prTable_wrapper .dataTables_filter input');
+                    input?.focus();
+                    input?.select?.();
+                }, 100);
+            },
             initDataTable() {
                 if (this.table) this.table.destroy();
                 this.table = $('#prTable').DataTable({
@@ -1926,7 +1933,12 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
-                        }).focus();
+                        });
+                        setTimeout(() => {
+                            const input = document.querySelector('#prTable_wrapper .dt-search .dt-input, #prTable_wrapper .dataTables_filter input');
+                            input?.focus();
+                            input?.select?.();
+                        }, 100);
                         $c.find('.dt-length select, .dataTables_length select').css({
                             padding: '6px 32px 6px 10px',
                             border: '2px solid #e5e7eb',
@@ -1946,7 +1958,10 @@
                     return;
                 }
                 this.show = true;
-                this.$nextTick(() => this.initDataTable());
+                this.$nextTick(() => {
+                    this.initDataTable();
+                    this.focusSearch();
+                });
             },
             closeModal() {
                 this.show = false;

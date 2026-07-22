@@ -34,6 +34,21 @@
             table: null,
             productCodeFilter: '',
 
+            focusSearch() {
+                const focus = (attempt = 0) => {
+                    const input = document.querySelector('#{{ $controlsId }} .dt-search .dt-input, #{{ $controlsId }} .dataTables_filter input, #{{ $tableId }}_wrapper .dt-search .dt-input, #{{ $tableId }}_wrapper .dataTables_filter input');
+                    if (!input && attempt < 10) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                        return;
+                    }
+
+                    input?.focus();
+                    input?.select?.();
+                };
+
+                focus();
+            },
+
             initDataTable() {
                 if (this.table) {
                     this.table.destroy();
@@ -130,7 +145,7 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
-                        }).focus();
+                        });
 
                         $searchWrap.css({
                             marginRight: 'auto'
@@ -187,6 +202,12 @@
                                 }
                             }
                         @endif
+
+                        setTimeout(() => {
+                            const input = document.querySelector('#{{ $controlsId }} .dt-search .dt-input, #{{ $controlsId }} .dataTables_filter input, #{{ $tableId }}_wrapper .dt-search .dt-input, #{{ $tableId }}_wrapper .dataTables_filter input');
+                            input?.focus();
+                            input?.select?.();
+                        }, 100);
                     }
                 });
 
@@ -262,11 +283,15 @@
                         const openDelay = Number(@json($openDelay)) || 0;
 
                         if (openDelay > 0) {
-                            setTimeout(() => this.initDataTable(), openDelay);
+                            setTimeout(() => {
+                                this.initDataTable();
+                                this.focusSearch();
+                            }, openDelay);
                             return;
                         }
 
                         this.initDataTable();
+                        this.focusSearch();
                     });
                 }, {
                     passive: true
