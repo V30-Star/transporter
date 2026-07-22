@@ -451,7 +451,11 @@
                             return data;
                         }
 
-                        return (data ?? '0').toString().trim() === '1' ? 'Ya' : 'Tidak';
+                        const isFinished = (data ?? '0').toString().trim() === '1';
+                        
+                        return isFinished 
+                            ? '<span class="font-bold text-center block">✓</span>' 
+                            : '';
                     }
                 },
                 {
