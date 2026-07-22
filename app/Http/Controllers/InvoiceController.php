@@ -1816,7 +1816,7 @@ class InvoiceController extends Controller
         }
     }
 
-    // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
+    //  TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
     private function parseDiscount($discInput)
     {
         if ($discInput === null || $discInput === '') {
