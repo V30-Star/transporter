@@ -3147,6 +3147,11 @@ class InvoiceController extends Controller
         $fjurnalno = $prefix . str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
         $now = now();
         $subaccount = $customerCode !== '' ? $customerCode : null;
+        $invoiceAmount = DB::table('tranmt')
+            ->where('fsono', $fsono)
+            ->first(['famountso', 'famountso_rp']);
+        $famount = (float) ($invoiceAmount->famountso ?? 0);
+        $famountRp = (float) ($invoiceAmount->famountso_rp ?? 0);
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
@@ -3172,8 +3177,8 @@ class InvoiceController extends Controller
                 'fsubaccount' => $subaccount,
                 'frefno' => $fsono,
                 'frate' => 1,
-                'famount' => 0,
-                'famount_rp' => 0,
+                'famount' => $famount,
+                'famount_rp' => $famountRp,
                 'faccountnote' => 'Memo Invoice ' . $fsono,
                 'fusercreate' => $userName,
                 'fdatetime' => $now,
@@ -3189,8 +3194,8 @@ class InvoiceController extends Controller
                 'fsubaccount' => $subaccount,
                 'frefno' => $fsono,
                 'frate' => 1,
-                'famount' => 0,
-                'famount_rp' => 0,
+                'famount' => $famount,
+                'famount_rp' => $famountRp,
                 'faccountnote' => 'Memo Invoice ' . $fsono,
                 'fusercreate' => $userName,
                 'fdatetime' => $now,
