@@ -294,7 +294,7 @@ class PemakaianbarangController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
@@ -625,7 +625,7 @@ class PemakaianbarangController extends Controller
             $fstockmtcode = 'PBR';
 
             if (empty($fstockmtno)) {
-                $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
                 $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);

@@ -2653,7 +2653,7 @@ class FakturpembelianController extends Controller
         $fjurnaltype = 'SLS';
         $yy = $fstockmtdate->format('y');
         $mm = $fstockmtdate->format('m');
-        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $yy, $mm);
+        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

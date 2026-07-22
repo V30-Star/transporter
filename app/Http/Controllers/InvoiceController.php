@@ -1191,7 +1191,7 @@ class InvoiceController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan)  TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -1670,9 +1670,9 @@ class InvoiceController extends Controller
 
                     // Tentukan prefix berdasarkan jenis penjualan
                     if ($isAdvancePayment) {
-                        $prefix = sprintf('UM.%s.%s.%s.00.', $branchCode, $year, $month);
+                        $prefix = sprintf('UM.%s.%s%s.', $branchCode, $year, $month);
                     } else {
-                        $prefix = sprintf('INV.%s.%s.%s.00.', $branchCode, $year, $month);
+                        $prefix = sprintf('INV.%s.%s%s.', $branchCode, $year, $month);
                     }
 
                     // Ambil 1 record terakhir dengan nomor suffix terbesar & kunci barisnya (FOR UPDATE)
@@ -3123,7 +3123,7 @@ class InvoiceController extends Controller
         $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
         $customerCode = trim($customerCode);
         $fjurnaltype = 'SLS';
-        $prefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $prefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));

@@ -437,7 +437,7 @@ class MutasiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('MUT.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('MUT.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('MUT|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -775,7 +775,7 @@ class MutasiController extends Controller
                     }
                     $kodeCabang = $kodeCabang ?: 'NA';
 
-                    $prefix = sprintf('MUT.%s.%s.%s.00.', $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
+                    $prefix = sprintf('MUT.%s.%s%s.', $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
 
                     $lockKey = crc32('STOCKMT|MUT|' . $kodeCabang . '|' . $headerData['fstockmtdate']->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);

@@ -410,7 +410,7 @@ class JurnalTransaksiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PBR.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PBR.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $driver = DB::getDriverName();
@@ -763,7 +763,7 @@ class JurnalTransaksiController extends Controller
             $fjurnalno = trim((string) $request->input('fjurnalno', ''));
 
             if (empty($fjurnalno)) {
-                $prefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
                 $driver = DB::getDriverName();
                 if ($driver === 'pgsql') {
                     $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('y-m'));

@@ -616,7 +616,7 @@ class ReturPenjualanController extends Controller
     {
         $date = $onDate ?: now();
         $branchCode = trim((string) ($branchCode ?: 'NA')) ?: 'NA';
-        $prefix = sprintf('REJ.%s.%s.%s.00.', $branchCode, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('REJ.%s.%s%s.', $branchCode, $date->format('y'), $date->format('m'));
 
         $last = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
@@ -1033,7 +1033,7 @@ class ReturPenjualanController extends Controller
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
-                    $prefix = sprintf('REJ.%s.%s.%s.00.', $branchCode, $fsodate->format('y'), $fsodate->format('m'));
+                    $prefix = sprintf('REJ.%s.%s%s.', $branchCode, $fsodate->format('y'), $fsodate->format('m'));
 
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix . '%')
@@ -2546,7 +2546,7 @@ class ReturPenjualanController extends Controller
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG', '21181');
 
         $fjurnaltype = 'JRJ';
-        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));

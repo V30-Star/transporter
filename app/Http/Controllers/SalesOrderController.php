@@ -945,7 +945,7 @@ class SalesOrderController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -1300,7 +1300,7 @@ class SalesOrderController extends Controller
 
                     $yy = $fsodate->format('y');
                     $mm = $fsodate->format('m');
-                    $prefix = sprintf('SO.%s.%s.%s.00.', $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('SO.%s.%s%s.', $kodeCabang, $yy, $mm);
 
                     $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);

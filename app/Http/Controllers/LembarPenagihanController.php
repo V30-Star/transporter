@@ -476,7 +476,7 @@ class LembarPenagihanController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('LPT.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('LPT.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
         $last = DB::table('trtagihanmt')
             ->where('ftagihanno', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(ftagihanno, '.', 6) AS int)) AS lastno")

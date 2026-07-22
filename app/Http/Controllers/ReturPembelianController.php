@@ -704,7 +704,7 @@ class ReturPembelianController extends Controller
                 $fstockmtcode = 'REB';
 
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
                     $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
@@ -1607,7 +1607,7 @@ class ReturPembelianController extends Controller
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN', '51200');
 
         $fjurnaltype  = 'JRB';
-        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

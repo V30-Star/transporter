@@ -739,7 +739,7 @@ class PenerimaanBarangController extends Controller
         $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $noPrefix = sprintf('%s.%s.%s.%s.00.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
+        $noPrefix = sprintf('%s.%s.%s%s.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $noPrefix . '%')
@@ -990,7 +990,7 @@ class PenerimaanBarangController extends Controller
 
                 // B. Penomoran Otomatis
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
                     $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|" . $fstockmtdate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
@@ -1675,7 +1675,7 @@ class PenerimaanBarangController extends Controller
         $accountPPNBeli = DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount') ?? '11400';
 
         $fjurnaltype  = 'JTB';
-        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
