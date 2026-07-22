@@ -1095,6 +1095,13 @@
                 supplierId: "{{ old('fsupplier', $tr_prh->fsupplier) }}",
                 supplierDisplay: "{{ $tr_prh->fsuppliername }} ({{ $tr_prh->fsupplier }})",
                 dataTable: null,
+                focusSearch() {
+                    setTimeout(() => {
+                        const input = document.querySelector('#supplierBrowseTable_wrapper .dt-search .dt-input, #supplierBrowseTable_wrapper .dataTables_filter input');
+                        input?.focus();
+                        input?.select?.();
+                    }, 50);
+                },
                 init() {
                     window.addEventListener('browse-supplier', () => {
                         this.openModal();
@@ -1102,7 +1109,10 @@
                 },
                 openModal() {
                     this.open = true;
-                    this.$nextTick(() => this.initDT());
+                    this.$nextTick(() => {
+                        this.initDT();
+                        this.focusSearch();
+                    });
                 },
                 close() {
                     this.open = false;
@@ -1198,7 +1208,12 @@
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
                                 fontSize: '14px'
-                            }).focus();
+                            });
+                            setTimeout(() => {
+                                const input = document.querySelector('#supplierBrowseTable_wrapper .dt-search .dt-input, #supplierBrowseTable_wrapper .dataTables_filter input');
+                                input?.focus();
+                                input?.select?.();
+                            }, 50);
                             $c.find('.dt-length select, .dataTables_length select').css({
                                 padding: '6px 32px 6px 10px',
                                 border: '2px solid #e5e7eb',
