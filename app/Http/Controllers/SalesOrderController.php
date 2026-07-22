@@ -84,10 +84,7 @@ class SalesOrderController extends Controller
             'fhargajual2level3',
             'fhargajual3level1',
             'fhargajual3level2',
-            'fhargajual3level3',
-            'fhargasatuankecillevel1',
-            'fhargasatuankecillevel2',
-            'fhargasatuankecillevel3',
+            'fhargajual3level3'
         ];
     }
 

@@ -320,7 +320,9 @@
                             <label class="block text-sm font-bold">Group Produk</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
+                                    <select disabled
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        id="groupSelect">
                                         <option value=""></option>
                                         @foreach ($groups as $group)
                                             <option value="{{ $group->fgroupid }}"
@@ -330,7 +332,8 @@
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0" role="button" aria-label="Browse Group"
-                                        @click="if (isEditable) window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                        @click="if (isEditable) window.dispatchEvent(new CustomEvent('group-browse-open'))">
+                                    </div>
                                 </div>
                                 <input type="hidden" name="fgroupcode"
                                     value="{{ old('fgroupcode', $product->fgroupcode) }}">
@@ -367,7 +370,8 @@
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0" role="button" aria-label="Browse Merek"
-                                        @click="if (isMerekEditable) window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                        @click="if (isMerekEditable) window.dispatchEvent(new CustomEvent('merek-browse-open'))">
+                                    </div>
                                 </div>
                                 <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
                                 <button type="button" disabled
@@ -918,12 +922,12 @@
                     @php
                         $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
                         $isUsedProduct = $usageInfo['is_used'] ?? false;
-                        $usedByLabels  = $usageInfo['used_by'] ?? [];
-                        $lockSatuan1   = $isUsedProduct;
-                        $lockSatuan2   = $isUsedProduct;
-                        $lockSatuan3   = $isUsedProduct;
-                        $lockQty2      = $isUsedProduct;
-                        $lockQty3      = $isUsedProduct;
+                        $usedByLabels = $usageInfo['used_by'] ?? [];
+                        $lockSatuan1 = $isUsedProduct;
+                        $lockSatuan2 = $isUsedProduct;
+                        $lockSatuan3 = $isUsedProduct;
+                        $lockQty2 = $isUsedProduct;
+                        $lockQty3 = $isUsedProduct;
                     @endphp
 
                     @if ($isUsedProduct)
@@ -940,7 +944,8 @@
                             <div class="flex-shrink-0 w-48">
                                 <div class="section-card" style="padding:1rem;">
                                     <div class="section-title" style="margin-bottom:0.75rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -949,23 +954,31 @@
                                     <div class="space-y-3">
                                         @foreach ($enabledImageNumbers as $imgNo)
                                             @php
-                                                $field       = 'fimage' . $imgNo;
-                                                $imageRaw    = (string) ($product->{$field} ?? '');
+                                                $field = 'fimage' . $imgNo;
+                                                $imageRaw = (string) ($product->{$field} ?? '');
                                                 $driveFileId = null;
                                                 if ($imageRaw !== '') {
                                                     if (str_contains($imageRaw, 'http')) {
                                                         if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
                                                             $driveFileId = $m[1];
-                                                        } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                                        } elseif (
+                                                            preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)
+                                                        ) {
                                                             $driveFileId = $m[1];
                                                         }
                                                     } else {
                                                         $driveFileId = $imageRaw;
                                                     }
                                                 }
-                                                $photoVersion   = !empty($product->fupdatedat) ? strtotime((string)$product->fupdatedat) : null;
+                                                $photoVersion = !empty($product->fupdatedat)
+                                                    ? strtotime((string) $product->fupdatedat)
+                                                    : null;
                                                 $drivePreviewUrl = $driveFileId
-                                                    ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field, 'v' => $photoVersion ?: time()])
+                                                    ? route('product.photo', [
+                                                        'fprdid' => $product->fprdid,
+                                                        'field' => $field,
+                                                        'v' => $photoVersion ?: time(),
+                                                    ])
                                                     : null;
                                             @endphp
                                             <div>
@@ -983,15 +996,17 @@
                                                         class="w-full rounded border cursor-zoom-in hover:opacity-90 transition"
                                                         style="object-fit:cover;height:130px;"
                                                         onclick="openModal({{ $imgNo }})"
-                                                        @if($driveFileId) onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';" @endif>
+                                                        @if ($driveFileId) onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';" @endif>
                                                 </div>
 
                                                 {{-- Upload box (shown when no preview) --}}
                                                 <div id="uploadBox{{ $imgNo }}" class="img-upload-box"
                                                     style="{{ $drivePreviewUrl ? 'display:none;' : '' }}"
                                                     onclick="document.getElementById('fimage{{ $imgNo }}').click()">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
                                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                     </svg>
                                                     <span>Klik untuk pilih</span>
@@ -1016,7 +1031,8 @@
                             {{-- ═══ SECTION 1: Identitas Produk ═══ --}}
                             <div class="section-card">
                                 <div class="section-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                     </svg>
@@ -1029,7 +1045,9 @@
                                         <label class="field-label">Group Produk</label>
                                         <div class="flex">
                                             <div class="relative flex-1">
-                                                <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
+                                                <select disabled
+                                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                                    id="groupSelect">
                                                     <option value="">-- Pilih Group Produk --</option>
                                                     @foreach ($groups as $group)
                                                         <option value="{{ $group->fgroupid }}"
@@ -1039,7 +1057,8 @@
                                                     @endforeach
                                                 </select>
                                                 <div class="absolute inset-0" role="button" aria-label="Browse Group"
-                                                    @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                                    @click="window.dispatchEvent(new CustomEvent('group-browse-open'))">
+                                                </div>
                                             </div>
                                             <input type="hidden" name="fgroupcode" id="groupCodeHidden"
                                                 value="{{ old('fgroupcode', $product->fgroupcode) }}">
@@ -1049,7 +1068,8 @@
                                                 title="Browse Group Produk">
                                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                             </button>
-                                            <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                            <button type="button"
+                                                @click="isEditable = true; $dispatch('open-group-modal')"
                                                 class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                                 title="Tambah Group Produk">
                                                 <x-heroicon-o-plus class="w-5 h-5" />
@@ -1076,7 +1096,8 @@
                                                     @endforeach
                                                 </select>
                                                 <div class="absolute inset-0" role="button" aria-label="Browse Merek"
-                                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))">
+                                                </div>
                                             </div>
                                             <input type="hidden" name="fmerek" id="fmerek"
                                                 value="{{ old('fmerek', $product->fmerek) }}">
@@ -1086,7 +1107,8 @@
                                                 title="Browse Merek">
                                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                             </button>
-                                            <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                            <button type="button"
+                                                @click="isMerekEditable = true; $dispatch('open-merk-modal')"
                                                 class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                                 title="Tambah Merek">
                                                 <x-heroicon-o-plus class="w-5 h-5" />
@@ -1135,15 +1157,21 @@
                                     {{-- Jenis --}}
                                     <div>
                                         <label class="field-label">Jenis</label>
-                                        <select name="ftype" class="field-input @error('ftype') border-red-500 @enderror">
-                                            <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>Produk</option>
-                                            <option value="Jasa"   {{ old('ftype', $product->ftype) == 'Jasa'   ? 'selected' : '' }}>Jasa</option>
+                                        <select name="ftype"
+                                            class="field-input @error('ftype') border-red-500 @enderror">
+                                            <option value="Produk"
+                                                {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>Produk
+                                            </option>
+                                            <option value="Jasa"
+                                                {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>Jasa
+                                            </option>
                                         </select>
                                     </div>
 
                                     {{-- Non Aktif --}}
                                     <div class="flex items-end pb-0.5">
-                                        <label class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 text-sm font-semibold transition-colors duration-200">
+                                        <label
+                                            class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 text-sm font-semibold transition-colors duration-200">
                                             <input type="checkbox" name="fnonactive" id="statusToggle"
                                                 class="h-4 w-4 text-red-600 rounded focus:ring-red-500 border-red-300"
                                                 value="1"
@@ -1157,7 +1185,8 @@
                             {{-- ═══ SECTION 2: Satuan & HPP ═══ --}}
                             <div class="section-card" id="satuan-container">
                                 <div class="section-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                                     </svg>
@@ -1183,7 +1212,8 @@
                                                 @endforeach
                                             </select>
                                             @if ($lockSatuan1)
-                                                <input type="hidden" name="fsatuankecil" value="{{ $product->fsatuankecil }}">
+                                                <input type="hidden" name="fsatuankecil"
+                                                    value="{{ $product->fsatuankecil }}">
                                             @endif
                                             @error('fsatuankecil')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -1220,7 +1250,8 @@
                                                 @endforeach
                                             </select>
                                             @if ($lockSatuan2)
-                                                <input type="hidden" name="fsatuanbesar" value="{{ $product->fsatuanbesar }}">
+                                                <input type="hidden" name="fsatuanbesar"
+                                                    value="{{ $product->fsatuanbesar }}">
                                             @endif
                                             @error('fsatuanbesar')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -1228,16 +1259,19 @@
                                         </div>
                                         <div>
                                             <label class="field-label">Isi</label>
-                                            <div class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:ring-1 focus-within:ring-yellow-400">
+                                            <div
+                                                class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:ring-1 focus-within:ring-yellow-400">
                                                 <input type="text" name="fqtykecil" id="fqtykecil"
                                                     value="{{ old('fqtykecil', $product->fqtykecil ?? 0) }}"
                                                     class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
                                                     data-usage-locked="{{ $lockQty2 ? '1' : '0' }}"
                                                     {{ $lockQty2 ? 'disabled' : '' }}>
                                                 @if ($lockQty2)
-                                                    <input type="hidden" name="fqtykecil" value="{{ $product->fqtykecil }}">
+                                                    <input type="hidden" name="fqtykecil"
+                                                        value="{{ $product->fqtykecil }}">
                                                 @endif
-                                                <span class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2"></span>
+                                                <span
+                                                    class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2"></span>
                                             </div>
                                             @error('fqtykecil')
                                                 <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
@@ -1273,7 +1307,8 @@
                                                 @endforeach
                                             </select>
                                             @if ($lockSatuan3)
-                                                <input type="hidden" name="fsatuanbesar2" value="{{ $product->fsatuanbesar2 }}">
+                                                <input type="hidden" name="fsatuanbesar2"
+                                                    value="{{ $product->fsatuanbesar2 }}">
                                             @endif
                                             @error('fsatuanbesar2')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -1281,16 +1316,19 @@
                                         </div>
                                         <div>
                                             <label class="field-label">Isi</label>
-                                            <div class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:ring-1 focus-within:ring-purple-400">
+                                            <div
+                                                class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:ring-1 focus-within:ring-purple-400">
                                                 <input type="text" name="fqtykecil2" id="fqtykecil2"
                                                     value="{{ old('fqtykecil2', $product->fqtykecil2 ?? 0) }}"
                                                     class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
                                                     data-usage-locked="{{ $lockQty3 ? '1' : '0' }}"
                                                     {{ $lockQty3 ? 'disabled' : '' }}>
                                                 @if ($lockQty3)
-                                                    <input type="hidden" name="fqtykecil2" value="{{ $product->fqtykecil2 }}">
+                                                    <input type="hidden" name="fqtykecil2"
+                                                        value="{{ $product->fqtykecil2 }}">
                                                 @endif
-                                                <span class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase"></span>
+                                                <span
+                                                    class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase"></span>
                                             </div>
                                             @error('fqtykecil2')
                                                 <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
@@ -1311,10 +1349,17 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="field-label">Satuan Default Transaksi</label>
-                                        <select name="fsatuandefault" class="field-input @error('fsatuandefault') border-red-500 @enderror">
-                                            <option value="1" {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1</option>
-                                            <option value="2" {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2</option>
-                                            <option value="3" {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3</option>
+                                        <select name="fsatuandefault"
+                                            class="field-input @error('fsatuandefault') border-red-500 @enderror">
+                                            <option value="1"
+                                                {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>
+                                                Satuan 1</option>
+                                            <option value="2"
+                                                {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>
+                                                Satuan 2</option>
+                                            <option value="3"
+                                                {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>
+                                                Satuan 3</option>
                                         </select>
                                         @error('fsatuandefault')
                                             <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
@@ -1322,10 +1367,17 @@
                                     </div>
                                     <div>
                                         <label class="field-label">Satuan Default Laporan</label>
-                                        <select name="fsatuandefaultlaporan" class="field-input @error('fsatuandefaultlaporan') border-red-500 @enderror">
-                                            <option value="1" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>Satuan 1</option>
-                                            <option value="2" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>Satuan 2</option>
-                                            <option value="3" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>Satuan 3</option>
+                                        <select name="fsatuandefaultlaporan"
+                                            class="field-input @error('fsatuandefaultlaporan') border-red-500 @enderror">
+                                            <option value="1"
+                                                {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>
+                                                Satuan 1</option>
+                                            <option value="2"
+                                                {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>
+                                                Satuan 2</option>
+                                            <option value="3"
+                                                {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>
+                                                Satuan 3</option>
                                         </select>
                                         @error('fsatuandefaultlaporan')
                                             <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
@@ -1337,7 +1389,8 @@
                             {{-- ═══ SECTION 3: Harga Jual (Matrix) ═══ --}}
                             <div class="section-card">
                                 <div class="section-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 8V4a1 1 0 011-1z" />
                                     </svg>
@@ -1358,22 +1411,32 @@
                                         <tr>
                                             <td class="row-label">
                                                 <span class="satuan-badge blue" style="margin:0;">S1</span>&nbsp;
-                                                <span id="hj-satuan-kecil-level1-label-row" class="uppercase text-xs text-blue-700">-</span>
+                                                <span id="hj-satuan-kecil-level1-label-row"
+                                                    class="uppercase text-xs text-blue-700">-</span>
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric blue" name="fhargajuallevel1" id="fhargajuallevel1"
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel1"
+                                                    id="fhargajuallevel1"
                                                     value="{{ old('fhargajuallevel1', $product->fhargajuallevel1 ?? 0) }}">
-                                                @error('fhargajuallevel1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajuallevel1')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric blue" name="fhargajuallevel2" id="fhargajuallevel2"
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel2"
+                                                    id="fhargajuallevel2"
                                                     value="{{ old('fhargajuallevel2', $product->fhargajuallevel2 ?? 0) }}">
-                                                @error('fhargajuallevel2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajuallevel2')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric blue" name="fhargajuallevel3" id="fhargajuallevel3"
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel3"
+                                                    id="fhargajuallevel3"
                                                     value="{{ old('fhargajuallevel3', $product->fhargajuallevel3 ?? 0) }}">
-                                                @error('fhargajuallevel3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajuallevel3')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                         </tr>
 
@@ -1381,22 +1444,32 @@
                                         <tr id="hj-level1-block" style="display:none;">
                                             <td class="row-label">
                                                 <span class="satuan-badge yellow" style="margin:0;">S2</span>&nbsp;
-                                                <span id="hj-satuan-besar-level1-label" class="uppercase text-xs text-yellow-700">-</span>
+                                                <span id="hj-satuan-besar-level1-label"
+                                                    class="uppercase text-xs text-yellow-700">-</span>
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric yellow" name="fhargajual2level1" id="fhargajual2level1"
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level1"
+                                                    id="fhargajual2level1"
                                                     value="{{ old('fhargajual2level1', $product->fhargajual2level1 ?? 0) }}">
-                                                @error('fhargajual2level1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual2level1')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric yellow" name="fhargajual2level2" id="fhargajual2level2"
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level2"
+                                                    id="fhargajual2level2"
                                                     value="{{ old('fhargajual2level2', $product->fhargajual2level2 ?? 0) }}">
-                                                @error('fhargajual2level2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual2level2')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric yellow" name="fhargajual2level3" id="fhargajual2level3"
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level3"
+                                                    id="fhargajual2level3"
                                                     value="{{ old('fhargajual2level3', $product->fhargajual2level3 ?? 0) }}">
-                                                @error('fhargajual2level3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual2level3')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                         </tr>
 
@@ -1404,43 +1477,55 @@
                                         <tr id="hj-level2-block" style="display:none;">
                                             <td class="row-label">
                                                 <span class="satuan-badge purple" style="margin:0;">S3</span>&nbsp;
-                                                <span id="hj-satuan-kecil-label" class="uppercase text-xs text-purple-700">-</span>
+                                                <span id="hj-satuan-kecil-label"
+                                                    class="uppercase text-xs text-purple-700">-</span>
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric purple" name="fhargajual3level1" id="fhargajual3level1"
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level1"
+                                                    id="fhargajual3level1"
                                                     value="{{ old('fhargajual3level1', $product->fhargajual3level1 ?? 0) }}">
-                                                @error('fhargajual3level1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual3level1')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric purple" name="fhargajual3level2" id="fhargajual3level2"
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level2"
+                                                    id="fhargajual3level2"
                                                     value="{{ old('fhargajual3level2', $product->fhargajual3level2 ?? 0) }}">
-                                                @error('fhargajual3level2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual3level2')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                             <td>
-                                                <input type="text" class="autonumeric purple" name="fhargajual3level3" id="fhargajual3level3"
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level3"
+                                                    id="fhargajual3level3"
                                                     value="{{ old('fhargajual3level3', $product->fhargajual3level3 ?? 0) }}">
-                                                @error('fhargajual3level3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                                @error('fhargajual3level3')
+                                                    <div class="text-red-600 text-xs">{{ $message }}</div>
+                                                @enderror
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
 
                                 {{-- Hidden label spans required by JS --}}
-                                <span id="hj-satuan-kecil-level1-label"  class="hidden"></span>
-                                <span id="hj-satuan-kecil-level2-label"  class="hidden"></span>
-                                <span id="hj-satuan-kecil-level3-label"  class="hidden"></span>
-                                <span id="hj-satuan-besar-level2-label"  class="hidden"></span>
-                                <span id="hj-satuan-besar-level3-label"  class="hidden"></span>
-                                <span id="hj-satuan-besar-label"         class="hidden"></span>
-                                <span id="hj-satuan-besar2-label"        class="hidden"></span>
+                                <span id="hj-satuan-kecil-level1-label" class="hidden"></span>
+                                <span id="hj-satuan-kecil-level2-label" class="hidden"></span>
+                                <span id="hj-satuan-kecil-level3-label" class="hidden"></span>
+                                <span id="hj-satuan-besar-level2-label" class="hidden"></span>
+                                <span id="hj-satuan-besar-level3-label" class="hidden"></span>
+                                <span id="hj-satuan-besar-label" class="hidden"></span>
+                                <span id="hj-satuan-besar2-label" class="hidden"></span>
 
-                                <p class="text-xs text-gray-400 mt-2">Level 1 = retail &middot; Level 2 = grosir &middot; Level 3 = distributor</p>
+                                <p class="text-xs text-gray-400 mt-2">Level 1 = retail &middot; Level 2 = grosir &middot;
+                                    Level 3 = distributor</p>
                             </div>
 
                             {{-- ═══ SECTION 4: Stok & Lainnya ═══ --}}
                             <div class="section-card">
                                 <div class="section-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                     </svg>
@@ -1450,11 +1535,13 @@
                                 <div class="grid grid-cols-3 gap-4 mb-4">
                                     <div>
                                         <label class="field-label">Min. Stok</label>
-                                        <div class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:ring-1 focus-within:ring-blue-400 @error('fminstock') border-red-500 @enderror">
+                                        <div
+                                            class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:ring-1 focus-within:ring-blue-400 @error('fminstock') border-red-500 @enderror">
                                             <input type="text" name="fminstock" id="fminstock"
                                                 value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
                                                 class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm">
-                                            <span class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase"></span>
+                                            <span
+                                                class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase"></span>
                                         </div>
                                         @error('fminstock')
                                             <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
@@ -1466,7 +1553,8 @@
                                 @php $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', ''))); @endphp
                                 @if ($canApproval)
                                     <div class="flex items-center justify-center gap-2 mb-4">
-                                        <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer border rounded-lg px-3 py-2 hover:bg-gray-50">
+                                        <label
+                                            class="flex items-center gap-2 text-sm font-semibold cursor-pointer border rounded-lg px-3 py-2 hover:bg-gray-50">
                                             <span>Approve</span>
                                             <label class="switch" style="margin:0">
                                                 <input type="checkbox" name="approve_now" id="approvalToggle"
@@ -1497,7 +1585,8 @@
                 </form>
 
                 {{-- ═══ IMAGE MODAL ═══ --}}
-                <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
+                <div id="imageModal"
+                    class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
                     onclick="closeModal()">
                     <span class="absolute top-5 right-10 text-white text-4xl font-bold cursor-pointer">&times;</span>
                     <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
@@ -1991,13 +2080,6 @@
             },
         });
 
-
-        // let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
-        //     'commaDecimalCharDotSeparator');
-        // let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
-        //     'commaDecimalCharDotSeparator');
-        // let hargasatuankecillevel3 = new AutoNumeric('#fhargasatuankecillevel3',
-        //     'commaDecimalCharDotSeparator');
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
@@ -2696,8 +2778,9 @@
             }
 
             $('.satuan-kecil-display').text(satuanKecil);
-            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level1-label-row, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
-                satuanKecil);
+            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level1-label-row, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label')
+                .text(
+                    satuanKecil);
         } else {
             $('#satuan2-block').hide();
             $('#hj-level1-block').hide();
