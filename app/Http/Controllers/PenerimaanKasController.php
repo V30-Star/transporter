@@ -67,7 +67,7 @@ class PenerimaanKasController extends Controller
     {
         return view('penerimaankas.create', $this->formViewData(new Trkasmt([
             'fkasmtdate' => now()->toDateString(),
-        ]), collect([new Trkasdt]), [
+        ]), collect(array_map(fn() => new Trkasdt, range(1, 5))), [
             'pageTitle' => 'Penerimaan Kas/Bank',
             'formAction' => route('penerimaankas.store'),
             'formMethod' => 'POST',
@@ -596,9 +596,9 @@ class PenerimaanKasController extends Controller
                 $reference = trim((string) ($detail['frefno'] ?? ''));
                 $subaccount = trim((string) ($detail['fsubaccount'] ?? ''));
                 $note = trim((string) ($detail['fnote'] ?? ''));
-                $amount = trim((string) ($detail['fkasdtvalue'] ?? ''));
+                $amount = (float) str_replace(',', '', (string) ($detail['fkasdtvalue'] ?? ''));
 
-                return $account !== '' || $reference !== '' || $subaccount !== '' || $note !== '' || $amount !== '';
+                return $account !== '' || $reference !== '' || $subaccount !== '' || $note !== '' || $amount != 0.0;
             })
             ->values()
             ->all();
@@ -809,7 +809,7 @@ class PenerimaanKasController extends Controller
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
         $bankType = $this->resolveBankType($headerAccount);
-        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
+        $prefix = sprintf('%s.%s.%s%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("

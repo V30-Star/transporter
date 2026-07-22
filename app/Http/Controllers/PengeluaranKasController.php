@@ -565,9 +565,9 @@ class PengeluaranKasController extends Controller
                 $reference = trim((string) ($detail['frefno'] ?? ''));
                 $subaccount = trim((string) ($detail['fsubaccount'] ?? ''));
                 $note = trim((string) ($detail['fnote'] ?? ''));
-                $amount = trim((string) ($detail['fkasdtvalue'] ?? ''));
+                $amount = (float) str_replace(',', '', (string) ($detail['fkasdtvalue'] ?? ''));
 
-                return $account !== '' || $reference !== '' || $subaccount !== '' || $note !== '' || $amount !== '';
+                return $account !== '' || $reference !== '' || $subaccount !== '' || $note !== '' || $amount != 0.0;
             })
             ->values()
             ->all();
@@ -724,7 +724,7 @@ class PengeluaranKasController extends Controller
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
         $bankType = $this->resolveBankType($headerAccount);
-        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
+        $prefix = sprintf('%s.%s.%s%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
 
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)
