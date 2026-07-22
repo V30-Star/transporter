@@ -1112,7 +1112,7 @@ class PelunasanCustomerController extends Controller
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
         $bankType = $this->resolveBankType($headerAccount);
-        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
+        $prefix = sprintf('%s.%s.%s%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
 
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)

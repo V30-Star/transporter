@@ -459,7 +459,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
         <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
             <div class="p-6">
-                <div class="flex items-center justify-center gap-3">
+                <div class="flex items-center justify-end gap-3">
              @if ($isDeleteMode)
                 <button type="submit"
                     class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">

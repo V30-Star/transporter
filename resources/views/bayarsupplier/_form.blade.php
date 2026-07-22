@@ -444,20 +444,20 @@
 
         {{-- ─── CARD 3: Approval & Aksi ────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                 <a href="{{ $backRoute }}"
-                    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                    <x-heroicon-o-arrow-left class="w-6 h-6" />
+                    class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
+                    <x-heroicon-o-arrow-left/>
                     {{ 'Keluar' }}
                 </a>
                 @if ($isDeleteMode)
                     <button type="submit"
-                        class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
                         {{ $submitLabel }}
                     </button>
                 @elseif (!$isReadOnly && !empty($submitLabel))
                     <button type="submit"
-                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
                         {{ $submitLabel }}
                     </button>
                 @endif

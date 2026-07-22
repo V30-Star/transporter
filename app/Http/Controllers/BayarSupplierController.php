@@ -144,7 +144,7 @@ class BayarSupplierController extends Controller
             'mt.fsupplier',
             'mt.famountmt',
             'mt.famountremain',
-            'mt.ftgljatuhtempo',
+            'mt.fjatuhtempo',
             DB::raw('COALESCE(s.fsuppliername, c.fcustomername) as fsuppliername'),
             DB::raw('COALESCE(s.ftempo, c.ftempo) as ftempo'),
         ]);
@@ -778,7 +778,7 @@ class BayarSupplierController extends Controller
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
         $bankType = $this->resolveBankType($headerAccount);
-        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
+        $prefix = sprintf('%s.%s.%s%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("
