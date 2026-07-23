@@ -570,9 +570,6 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
-                    </div> {{-- End itemsTable --}}
-                </div> {{-- End CARD 2 body --}}
-            </div> {{-- End CARD 2 --}}
                         <input type="hidden" name="frefcode_global" id="frefcode"
                             value="{{ old('frefcode_global') }}">
                         <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
@@ -1126,7 +1123,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> {{-- End itemsTable --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
 
                     {{-- MODAL ERROR: belum ada item --}}
                     <div x-data="{ showNoItems: false }" x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
