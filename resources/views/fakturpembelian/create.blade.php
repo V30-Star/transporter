@@ -734,6 +734,35 @@
                                 </div>
                             </div>
 
+                            {{-- MODAL: pilih supplier dulu --}}
+                            <div x-show="showSupplierRequired" x-cloak
+                                class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="showSupplierRequired = false"></div>
+
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Pilih Supplier Dulu</h3>
+                                    </div>
+
+                                    <div class="px-5 py-4">
+                                        <p class="text-sm text-gray-700">
+                                            Pilih supplier dulu sebelum menambah produk secara manual.
+                                            Jika mengambil dari PO atau PB, supplier akan terisi otomatis.
+                                        </p>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button"
+                                            @click="showSupplierRequired = false; document.getElementById('supplierBrowseButton')?.click()"
+                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- MODAL: warning modal --}}
                             <div x-show="showWarningModal" x-cloak
                                 class="fixed inset-0 z-[96] flex items-center justify-center bg-black/50" x-transition.opacity>
@@ -1171,7 +1200,7 @@
                     $largeUnit2,
                 ])));
             @endphp
-            "{{ $p->fprdcode }}": {
+            "{{ trim($p->fprdcode) }}": {
                 name: @json($p->fprdname),
                 default_unit: @json($resolvedDefaultUnit),
                 units: @json($orderedUnits),
@@ -1446,7 +1475,7 @@
 
             productMeta(code) {
                 const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key];
+                const meta = window.PRODUCT_MAP?.[key] ?? window.PRODUCT_MAP?.[key.toUpperCase()];
                 if (!meta) {
                     return {
                         name: '',
@@ -1795,7 +1824,10 @@
                     this.showOpeningBalanceMixWarning();
                     return;
                 }
+                row.fitemcode = typedCode;
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
+                this.applyPurchasePrice(row);
                 this.onRowUpdated(index);
             },
 
@@ -2277,12 +2309,15 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                        const meta = this.productMeta(row.fitemcode);
+                        this.hydrateRowFromMeta(row, meta.name ? meta : {
+                            name: product.fprdname || '',
+                            default_unit: product.fsatuankecil || product.fsatuanbesar || product.fsatuanbesar2 || '',
+                            units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                            stock: product.fminstock || 0,
+                        }, true);
                         this.applyPurchasePrice(row);
-                        this.rows.splice(this.browseTarget, 1, {
-                            ...this.rows[this.browseTarget]
-                        });
-                        if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
+                        if (!(Number(row.fqty) > 0)) row.fqty = 1;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);
                         this.onRowUpdated(index >= 0 ? index : null);

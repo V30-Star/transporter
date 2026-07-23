@@ -1706,7 +1706,7 @@
                         $largeUnit2,
                     ])));
                 @endphp
-                    "{{ $p->fprdcode }}": {
+                    "{{ trim($p->fprdcode) }}": {
                         name: @json($p->fprdname),
                         default_unit: @json($defaultUnit),
                         units: @json($orderedUnits),
@@ -1982,7 +1982,7 @@
 
                 productMeta(code) {
                     const key = (code || '').trim();
-                    const meta = window.PRODUCT_MAP?.[key];
+                    const meta = window.PRODUCT_MAP?.[key] ?? window.PRODUCT_MAP?.[key.toUpperCase()];
                     if (!meta) {
                         return {
                             name: '',
@@ -2334,12 +2334,17 @@
                 },
 
                 onCodeTypedRow(row, index = null) {
-                    if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
+                    const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
+
+                    if (typedCode !== '' && !this.requireSupplierBeforeManualProduct()) {
                         row.fitemcode = '';
                         this.hydrateRowFromMeta(row, null);
                         return;
                     }
+                    row.fitemcode = typedCode;
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
+                    this.applyPurchasePrice(row);
                     this.onRowUpdated(index);
                 },
 
@@ -2872,12 +2877,15 @@
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
                             row.hideQtyLimitHint = true;
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            const meta = this.productMeta(row.fitemcode);
+                            this.hydrateRowFromMeta(row, meta.name ? meta : {
+                                name: product.fprdname || '',
+                                default_unit: product.fsatuankecil || product.fsatuanbesar || product.fsatuanbesar2 || '',
+                                units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                                stock: product.fminstock || 0,
+                            }, true);
                             this.applyPurchasePrice(row);
-                            this.rows.splice(this.browseTarget, 1, {
-                                ...this.rows[this.browseTarget]
-                            });
-                            if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
+                            if (!(Number(row.fqty) > 0)) row.fqty = 1;
                             this.recalc(row);
                             const index = this.savedItems.findIndex((item) => item.uid === row.uid);
                             this.onRowUpdated(index >= 0 ? index : null);

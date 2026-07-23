@@ -29,7 +29,7 @@ window.PRODUCT_MAP = {
                 $largeUnit2,
             ])));
         @endphp
-        "{{ $p->fprdcode }}": {
+        "{{ trim($p->fprdcode) }}": {
             name: @json($p->fprdname),
             default_unit: @json($resolvedDefaultUnit),
             units: @json($orderedUnits),
@@ -81,7 +81,7 @@ window.PRODUCT_MAP = {
                 $largeUnit2,
             ])));
         @endphp
-        "{{ $p->fprdcode }}": {
+        "{{ trim($p->fprdcode) }}": {
             name: @json($p->fprdname),
             default_unit: @json($resolvedDefaultUnit),
             units: @json($orderedUnits),

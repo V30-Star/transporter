@@ -196,7 +196,7 @@
                     @foreach ($errors->all() as $error)
                         <li class="text-danger mb-1">
                             <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
+                                {!! $error !!}
                         </li>
                     @endforeach
                 </ul>

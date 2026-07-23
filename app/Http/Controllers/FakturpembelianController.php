@@ -42,7 +42,7 @@ class FakturpembelianController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     private function getReferenceUnitMaps($details): array
@@ -50,15 +50,15 @@ class FakturpembelianController extends Controller
         $detailRows = collect($details);
 
         $poIds = $detailRows
-            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) !== '')
-            ->map(fn ($detail) => (int) $detail->frefdtid)
+            ->filter(fn($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) !== '')
+            ->map(fn($detail) => (int) $detail->frefdtid)
             ->unique()
             ->values()
             ->all();
 
         $pbIds = $detailRows
-            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) === '')
-            ->map(fn ($detail) => (int) $detail->frefdtid)
+            ->filter(fn($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) === '')
+            ->map(fn($detail) => (int) $detail->frefdtid)
             ->unique()
             ->values()
             ->all();
@@ -66,18 +66,18 @@ class FakturpembelianController extends Controller
         $poUnits = empty($poIds)
             ? []
             : DB::table('tr_pod')
-                ->whereIn('fpodid', $poIds)
-                ->pluck('fsatuan', 'fpodid')
-                ->map(fn ($value) => trim((string) $value))
-                ->all();
+            ->whereIn('fpodid', $poIds)
+            ->pluck('fsatuan', 'fpodid')
+            ->map(fn($value) => trim((string) $value))
+            ->all();
 
         $pbUnits = empty($pbIds)
             ? []
             : DB::table('trstockdt')
-                ->whereIn('fstockdtid', $pbIds)
-                ->pluck('fsatuan', 'fstockdtid')
-                ->map(fn ($value) => trim((string) $value))
-                ->all();
+            ->whereIn('fstockdtid', $pbIds)
+            ->pluck('fsatuan', 'fstockdtid')
+            ->map(fn($value) => trim((string) $value))
+            ->all();
 
         return [$poUnits, $pbUnits];
     }
@@ -99,7 +99,7 @@ class FakturpembelianController extends Controller
             })
             ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
             ->get()
-            ->filter(fn ($row) => trim((string) ($row->fsupplier ?? '')) !== '')
+            ->filter(fn($row) => trim((string) ($row->fsupplier ?? '')) !== '')
             ->mapWithKeys(function ($row) {
                 $supplierCode = trim((string) ($row->fsupplier ?? ''));
                 $remainRp = (float) ($row->total_remain_rp ?? 0);
@@ -107,7 +107,7 @@ class FakturpembelianController extends Controller
                 return [
                     $supplierCode => [
                         'message' => $remainRp > 0
-                            ? 'Supplier ini memiliki DP sebesar'.number_format($remainRp, 2, ',', '.').'.'
+                            ? 'Supplier ini memiliki DP sebesar' . number_format($remainRp, 2, ',', '.') . '.'
                             : 'Supplier ini memiliki DP.',
                     ],
                 ];
@@ -1179,7 +1179,7 @@ class FakturpembelianController extends Controller
     {
         try {
             $rawCodes = collect($request->input('fitemcode', []));
-            $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
+            $hasOpeningBalanceItem = $rawCodes->contains(fn($code) => $this->isOpeningBalanceProductCode($code));
 
             if ($hasOpeningBalanceItem) {
                 $request->merge([
@@ -1248,15 +1248,15 @@ class FakturpembelianController extends Controller
 
             if ((string) $ftypebuy === '2') {
                 $invalidAdvanceCodes = collect($codes)
-                    ->map(fn ($code) => trim((string) $code))
-                    ->filter(fn ($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->map(fn($code) => trim((string) $code))
+                    ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
                     ->unique()
                     ->values()
                     ->all();
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.',
+                        'detail' => 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.',
                     ]);
                 }
             }
@@ -1400,7 +1400,7 @@ class FakturpembelianController extends Controller
             if (empty($rowsDt)) {
                 $message = 'Detail item transaksi pembelian tidak berhasil dibentuk, sehingga data detail tidak tersimpan.';
                 if (! empty($skippedDetailCodes)) {
-                    $message .= ' Kode item yang tidak dikenali: '.implode(', ', array_values(array_unique($skippedDetailCodes))).'.';
+                    $message .= ' Kode item yang tidak dikenali: ' . implode(', ', array_values(array_unique($skippedDetailCodes))) . '.';
                 }
 
                 return back()->withInput()->withErrors([
@@ -1891,7 +1891,7 @@ class FakturpembelianController extends Controller
         try {
             $allowNegativeStockQty = stock_boleh_minus();
             $rawCodes = collect($request->input('fitemcode', []));
-            $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
+            $hasOpeningBalanceItem = $rawCodes->contains(fn($code) => $this->isOpeningBalanceProductCode($code));
 
             if ($hasOpeningBalanceItem) {
                 $request->merge([
@@ -2011,15 +2011,15 @@ class FakturpembelianController extends Controller
 
             if ((string) $ftypebuy === '2') {
                 $invalidAdvanceCodes = collect($codes)
-                    ->map(fn ($code) => trim((string) $code))
-                    ->filter(fn ($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->map(fn($code) => trim((string) $code))
+                    ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
                     ->unique()
                     ->values()
                     ->all();
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.',
+                        'detail' => 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.',
                     ]);
                 }
             }
@@ -2304,14 +2304,14 @@ class FakturpembelianController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil diupdate.',
+                    'message' => 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil diupdate.',
                     'redirect_url' => route('fakturpembelian.index'),
                 ]);
             }
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil diupdate.');
+                ->with('success', 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil diupdate.');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -2566,7 +2566,7 @@ class FakturpembelianController extends Controller
             return 0;
         }
 
-        $parts = array_filter(explode('+', $normalized), fn ($part) => $part !== '');
+        $parts = array_filter(explode('+', $normalized), fn($part) => $part !== '');
         if (empty($parts)) {
             return 0;
         }
@@ -2585,8 +2585,8 @@ class FakturpembelianController extends Controller
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
     {
         $references = collect([$frefno, $frefpo])
-            ->map(fn ($value) => trim((string) ($value ?? '')))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) ($value ?? '')))
+            ->filter(fn($value) => $value !== '')
             ->unique()
             ->values();
 

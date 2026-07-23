@@ -1448,7 +1448,9 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                return back()->withInput()->with('error', 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.');
+                return back()
+                    ->withInput()
+                    ->with('error', 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.');
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
@@ -1668,24 +1670,24 @@ class InvoiceController extends Controller
                     } else {
                         $prefix = sprintf('INV.%s.%s%s.', $branchCode, $year, $month);
                     }
+                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
 
-                    // Ambil 1 record terakhir dengan nomor suffix terbesar & kunci barisnya (FOR UPDATE)
+                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
+
+                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
+
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix . '%')
-                        ->whereRaw("split_part(fsono, '.', 6) ~ '^[0-9]+$'") // Pengaman agar hanya memproses nomor berbentuk angka
-                        ->orderByRaw("CAST(split_part(fsono, '.', 6) AS int) DESC")
+                        ->selectRaw("
+        fsono,
+        CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) AS lastno
+    ")
+                        ->orderByRaw("CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) DESC")
                         ->lockForUpdate()
                         ->first();
 
-                    if ($lastRecord) {
-                        // Ambil bagian nomor urut ke-6 (setelah split titik)
-                        $parts = explode('.', $lastRecord->fsono);
-                        $last = (int) ($parts[5] ?? 0);
-                    } else {
-                        $last = 0;
-                    }
+                    $last = $lastRecord ? (int) $lastRecord->lastno : 0;
 
-                    // Generate nomor fsono baru
                     $fsono = $prefix . str_pad((string) ($last + 1), $digits, '0', STR_PAD_LEFT);
                 }
 
@@ -2600,7 +2602,9 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                return back()->withInput()->with('error', 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.');
+                return back()
+                    ->withInput()
+                    ->with('error', 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.');
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
