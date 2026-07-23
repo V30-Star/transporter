@@ -248,10 +248,10 @@
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
-                        <div x-data="{ autoCode: true }">
+                        <div x-data="{ autoCode: @json(old('_token') === null || trim((string) old('fsono', '')) === '') }">
                             <label class="block text-xs font-bold mb-1">Faktur#</label>
                             <div class="flex items-center gap-2">
-                                <input type="text" name="fsono"
+                                <input type="text" name="fsono" value="{{ old('fsono') }}"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
@@ -259,7 +259,7 @@
                                     :placeholder="autoCode ? 'Auto Generated' : ''">
                                 <label
                                     class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                    <input type="checkbox" x-model="autoCode" checked>
+                                    <input type="checkbox" x-model="autoCode">
                                     <span class="ml-1.5">Auto</span>
                                 </label>
                             </div>
@@ -288,7 +288,7 @@
 
                         <div>
                             <label class="block text-xs font-bold mb-1">Type</label>
-                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
+                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = @json((int) old('ftypesales', 0))"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypesales') border-red-500 @enderror">
                                 <option value="0">Penjualan</option>
                                 <option value="1">Uang Muka</option>
@@ -322,7 +322,7 @@
                                                 data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
                                                 data-fkodefp="{{ $customer->fkodefp }}"
                                                 data-fsalesman="{{ $customer->fsalesman }}"
-                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ old('fcustno', $filterSupplierId) == $customer->fcustomercode ? 'selected' : '' }}>
                                                 {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
@@ -389,7 +389,7 @@
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
                                             <option value="{{ $salesman->fsalesmancode }}"
-                                                {{ $filterSalesmanId == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ old('fsalesman', $filterSalesmanId) == $salesman->fsalesmancode ? 'selected' : '' }}>
                                                 {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
@@ -471,14 +471,16 @@
                                 document.getElementById('fsodate').addEventListener('change', calculateDueDate);
                                 document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                                // Initial calculation
-                                calculateDueDate();
+                                // Preserve submitted due date after failed store; recalc on later edits.
+                                if (!@json(old('fjatuhtempo') !== null)) {
+                                    calculateDueDate();
+                                }
                             });
                         </script>
                         <div> <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini..."></textarea>
+                                placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -1335,7 +1337,11 @@
         kodeFpInput.value = eventValue || optionValue || mappedValue || '';
     };
 
-    window.syncInvoiceTempoFromSource = function(days) {
+    window.invoicePreserveOldTempo = @json(old('ftempohr') !== null);
+
+    window.syncInvoiceTempoFromSource = function(days, options = {}) {
+        if (window.invoicePreserveOldTempo && !options.force) return;
+
         const tempoInput = document.getElementById('ftempohr');
         if (!tempoInput) return;
         const numericDays = Number(days ?? 0);
@@ -1431,6 +1437,10 @@
         window.syncInvoiceSalesmanFromCustomer(event.detail || null);
     });
 
+    window.addEventListener('customer-browse-open', function() {
+        window.invoicePreserveOldTempo = false;
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const select = document.getElementById('modal_filter_customer_id');
         const invoiceInput = document.querySelector('input[name="fsono"]');
@@ -1447,7 +1457,9 @@
         }
 
         window.syncInvoiceCustomerTaxCode(null, true);
-        window.syncInvoiceTempoFromCustomer();
+        if (!@json(old('ftempohr') !== null)) {
+            window.syncInvoiceTempoFromCustomer();
+        }
         if (!document.getElementById('salesmanCodeHidden')?.value) {
             window.syncInvoiceSalesmanFromCustomer();
         }
@@ -1701,13 +1713,21 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', 0)),
-            ppnRate: 11,
+            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', 11))),
 
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
-            includePPN: false,
-            fapplyppn: false,
+            includePPN: @json(old('fapplyppn') !== null || old('fincludeppn') !== null),
+            fapplyppn: @json(old('fincludeppn', '0') == '1'),
+
+            get ppnMode() {
+                return this.fapplyppn ? 1 : 0;
+            },
+
+            set ppnMode(value) {
+                this.fapplyppn = Number(value) === 1;
+            },
 
             get headerDiscAmount() {
                 const total = +this.totalHarga || 0;
@@ -2207,7 +2227,9 @@
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
 
-                window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? header?.ftempo ?? 0);
+                window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? header?.ftempo ?? 0, {
+                    force: true
+                });
                 window.syncInvoiceSalesmanFromSource?.(header);
                 window.syncInvoicePpnFromSource?.(header);
 

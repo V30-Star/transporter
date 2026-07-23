@@ -1255,7 +1255,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
+                        'detail' => 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.',
                     ]);
                 }
             }
@@ -2017,7 +2017,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
+                        'detail' => 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.',
                     ]);
                 }
             }

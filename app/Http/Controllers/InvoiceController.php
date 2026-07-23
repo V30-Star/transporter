@@ -1448,7 +1448,7 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                return back()->withInput()->with('error', 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.');
+                return back()->withInput()->with('error', 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.');
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
@@ -2600,7 +2600,7 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                return back()->withInput()->with('error', 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.');
+                return back()->withInput()->with('error', 'Tipe Penjualan: Uang Muka hanya boleh input Uang Muka saja.');
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');

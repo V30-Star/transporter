@@ -338,7 +338,15 @@ class JurnalFakturPenjualan
 
             $lastNo = DB::table('jurnalmt')
                 ->where('fjurnalno', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")
+                ->selectRaw("
+                    MAX(
+                        CASE 
+                            WHEN split_part(fjurnalno, '.', 6) ~ '^[0-9]+$' 
+                            THEN split_part(fjurnalno, '.', 6)::integer 
+                            ELSE NULL 
+                        END
+                    ) AS lastno
+                ")
                 ->value('lastno');
 
             $nextNo = (int) $lastNo + 1;
