@@ -2273,7 +2273,7 @@
 
                         fqty: displayQty > 0 ? displayQty : 1,
                         fterima: Number(src.fterima ?? 0),
-                        fprice: Number(src.fprice ?? 0),
+                        fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
