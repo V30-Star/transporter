@@ -24,7 +24,7 @@ class ProductBrowseController extends Controller
         // Total tanpa search
         $recordsTotal = DB::table('msprd')
             ->where('fnonactive', '!=', 1)
-            ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('0', '2')")
+            ->whereRaw("COALESCE(TRIM(CAST(msprd.fuserapproved AS TEXT)), '') = ''")
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
             })
@@ -36,7 +36,7 @@ class ProductBrowseController extends Controller
             ->where(function ($q) {
                 $q->where('msprd.fnonactive', '!=', 1);
             })
-            ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('0', '2')")
+            ->whereRaw("COALESCE(TRIM(CAST(msprd.fuserapproved AS TEXT)), '') = ''")
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(msprd.fprdcode) = ?', [$exactCode]);
             })
