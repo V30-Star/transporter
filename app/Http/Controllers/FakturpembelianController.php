@@ -1226,6 +1226,7 @@ class FakturpembelianController extends Controller
             $ftypebuy = $request->input('ftypebuy');
             $frefno = $request->input('frefno');
             $frefpo = $request->input('frefpo');
+            $fcurrency = $request->input('fcurrency', 'IDR');
             $frate = max(1, (float) $request->input('frate', 1));
             $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
             $now = now();
@@ -1427,6 +1428,7 @@ class FakturpembelianController extends Controller
                 $ftypebuy,
                 $frefno,
                 $frefpo,
+                $fcurrency,
                 $faccid,
                 $fprdjadi,
                 &$fstockmtno,
@@ -1536,11 +1538,11 @@ class FakturpembelianController extends Controller
                     $fstockmtdate,
                     (string) $kodeCabang,
                     (string) $fsupplier,
-                    (float) $subtotal,
-                    (float) $ppnAmount,
-                    (float) $grandTotal,
-                    (float) $frate,
-                    (string) $userid
+                    (string) $userid,
+                    (int) $ftypebuy,
+                    (string) $fcurrency,
+                    (string) $fprdjadi,
+                    (string) $frate
                 );
             });
 
@@ -2292,11 +2294,11 @@ class FakturpembelianController extends Controller
                     $fstockmtdate,
                     (string) $kodeCabang,
                     (string) $fsupplier,
-                    (float) $subtotal,
-                    (float) $ppnAmount,
-                    (float) $grandTotal,
-                    (float) $frate,
-                    (string) (Auth::user()->fname ?? 'system')
+                    (string) (Auth::user()->fname ?? 'system'),
+                    (int) $ftypebuy,
+                    (string) $fcurrency,
+                    (string) $fprdjadi,
+                    (string) $frate
                 );
             });
 
@@ -2642,79 +2644,33 @@ class FakturpembelianController extends Controller
         Carbon $fstockmtdate,
         string $kodeCabang,
         string $fsupplier,
-        float $subtotal,
-        float $ppnAmount,
-        float $grandTotal,
-        float $frate,
-        string $userid
+        string $userid,
+        int $ftypebuy = 0,
+        string $fcurrency = 'IDR',
+        ?string $toAccount = null,
+        ?string $rateText = null
     ): void {
-        $this->deleteFakturPembelianJournalEntries($fstockmtno);
+        $trancodeIndex = match ($ftypebuy) {
+            1 => 1,
+            2 => 2,
+            default => 0,
+        };
 
-        $fjurnaltype = 'SLS';
-        $yy = $fstockmtdate->format('y');
-        $mm = $fstockmtdate->format('m');
-        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-
-        if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-            $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")->value('lastno');
-            $nextJ = (int) $lastJ + 1;
-        } else {
-            $lastJurnalNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $jurnalPrefix . '%')
-                ->orderByDesc('fjurnalno')
-                ->value('fjurnalno');
-
-            $nextJ = 1;
-            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
-                $nextJ = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
-            }
-        }
-
-        $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
-        $now = now();
-
-        $jurnalId = DB::table('jurnalmt')->insertGetId([
-            'fbranchcode' => $kodeCabang,
-            'fjurnalno' => $fjurnalno,
-            'fjurnaltype' => $fjurnaltype,
-            'fjurnaldate' => $fstockmtdate,
-            'fjurnalnote' => "Faktur Pembelian $fstockmtno dari $fsupplier",
-            'fbalance' => round($grandTotal, 2),
-            'fbalance_rp' => round($grandTotal * $frate, 2),
-            'fdatetime' => $now,
-            'fuserid' => $userid,
-        ], 'fjurnalmtid');
-
-        $jurnalDt = [
-            ['fjurnalmtid' => $jurnalId, 'fbranchcode' => $kodeCabang, 'fjurnaltype' => $fjurnaltype, 'fjurnalno' => $fjurnalno, 'flineno' => 1, 'faccount' => '11400', 'fdk' => 'D', 'fsubaccount' => $fsupplier, 'frefno' => $fstockmtno, 'frate' => $frate, 'famount' => round($subtotal, 2), 'famount_rp' => round($subtotal * $frate, 2), 'faccountnote' => 'Persediaan', 'fusercreate' => $userid, 'fdatetime' => $now],
-            ['fjurnalmtid' => $jurnalId, 'fbranchcode' => $kodeCabang, 'fjurnaltype' => $fjurnaltype, 'fjurnalno' => $fjurnalno, 'flineno' => ($ppnAmount > 0 ? 3 : 2), 'faccount' => '21100', 'fdk' => 'K', 'fsubaccount' => $fsupplier, 'frefno' => $fstockmtno, 'frate' => $frate, 'famount' => round($grandTotal, 2), 'famount_rp' => round($grandTotal * $frate, 2), 'faccountnote' => 'Hutang Dagang', 'fusercreate' => $userid, 'fdatetime' => $now],
-        ];
-
-        if ($ppnAmount > 0) {
-            $jurnalDt[] = ['fjurnalmtid' => $jurnalId, 'fbranchcode' => $kodeCabang, 'fjurnaltype' => $fjurnaltype, 'fjurnalno' => $fjurnalno, 'flineno' => 2, 'faccount' => '11500', 'fdk' => 'D', 'fsubaccount' => null, 'frefno' => $fstockmtno, 'frate' => $frate, 'famount' => round($ppnAmount, 2), 'famount_rp' => round($ppnAmount * $frate, 2), 'faccountnote' => 'PPN Masukan', 'fusercreate' => $userid, 'fdatetime' => $now];
-        }
-
-        DB::table('jurnaldt')->insert($jurnalDt);
+        JurnalFakturPembelian::sync(
+            $fstockmtno,
+            $fstockmtdate,
+            $kodeCabang,
+            $fsupplier,
+            $userid,
+            $trancodeIndex,
+            $fcurrency,
+            $toAccount,
+            $rateText
+        );
     }
 
     private function deleteFakturPembelianJournalEntries(string $fstockmtno): void
     {
-        $jurnalIds = DB::table('jurnaldt')
-            ->where('frefno', $fstockmtno)
-            ->where('fjurnaltype', 'SLS')
-            ->pluck('fjurnalmtid')
-            ->filter(fn($id) => ! is_null($id))
-            ->unique()
-            ->values();
-
-        if ($jurnalIds->isEmpty()) {
-            return;
-        }
-
-        DB::table('jurnaldt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
-        DB::table('jurnalmt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+        JurnalFakturPembelian::delete($fstockmtno);
     }
 }
