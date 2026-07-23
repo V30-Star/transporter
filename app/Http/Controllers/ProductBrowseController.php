@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Support\ApprovalState;
 
 class ProductBrowseController extends Controller
 {
@@ -25,7 +24,7 @@ class ProductBrowseController extends Controller
         // Total tanpa search
         $recordsTotal = DB::table('msprd')
             ->where('fnonactive', '!=', 1)
-            ->whereRaw(ApprovalState::approvedSql('msprd.'))
+            ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('0', '2')")
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
             })
@@ -37,7 +36,7 @@ class ProductBrowseController extends Controller
             ->where(function ($q) {
                 $q->where('msprd.fnonactive', '!=', 1);
             })
-            ->whereRaw(ApprovalState::approvedSql('msprd.'))
+            ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('0', '2')")
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(msprd.fprdcode) = ?', [$exactCode]);
             })
