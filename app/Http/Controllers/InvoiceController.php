@@ -23,9 +23,6 @@ use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
-    private const MEMO_DEBIT_ACCOUNT = '11300';
-    private const MEMO_CREDIT_ACCOUNT = '11401';
-
     private ?bool $tranmtHasInternalNoteColumn = null;
 
     private function resolveProductDefaultUnit($product): string
@@ -3117,90 +3114,7 @@ class InvoiceController extends Controller
         string $customerCode,
         string $userName
     ): void {
-        $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
-        $customerCode = trim($customerCode);
-        $fjurnaltype = 'SLS';
-        $prefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
-
-        if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-
-            $lastNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")
-                ->value('lastno');
-
-            $nextNo = (int) $lastNo + 1;
-        } else {
-            $lastJurnalNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $prefix . '%')
-                ->orderByDesc('fjurnalno')
-                ->value('fjurnalno');
-
-            $nextNo = 1;
-            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
-                $nextNo = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
-            }
-        }
-
-        $fjurnalno = $prefix . str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
-        $now = now();
-        $subaccount = $customerCode !== '' ? $customerCode : null;
-        $invoiceAmount = DB::table('tranmt')
-            ->where('fsono', $fsono)
-            ->first(['famountso', 'famountso_rp']);
-        $famount = (float) ($invoiceAmount->famountso ?? 0);
-        $famountRp = (float) ($invoiceAmount->famountso_rp ?? 0);
-
-        $jurnalId = DB::table('jurnalmt')->insertGetId([
-            'fbranchcode' => $kodeCabang,
-            'fjurnalno' => $fjurnalno,
-            'fjurnaltype' => $fjurnaltype,
-            'fjurnaldate' => $fsodate,
-            'fjurnalnote' => 'Jurnal Faktur Penjualan ' . $fsono,
-            'fbalance' => $famount,
-            'fbalance_rp' => $famountRp,
-            'fdatetime' => $now,
-            'fuserid' => $userName,
-        ], 'fjurnalmtid');
-
-        DB::table('jurnaldt')->insert([
-            [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 1,
-                'faccount' => self::MEMO_DEBIT_ACCOUNT,
-                'fdk' => 'D',
-                'fsubaccount' => $subaccount,
-                'frefno' => $fsono,
-                'frate' => 1,
-                'famount' => $famount,
-                'famount_rp' => $famountRp,
-                'faccountnote' => 'Memo Invoice ' . $fsono,
-                'fusercreate' => $userName,
-                'fdatetime' => $now,
-            ],
-            [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 2,
-                'faccount' => self::MEMO_CREDIT_ACCOUNT,
-                'fdk' => 'K',
-                'fsubaccount' => $subaccount,
-                'frefno' => $fsono,
-                'frate' => 1,
-                'famount' => $famount,
-                'famount_rp' => $famountRp,
-                'faccountnote' => 'Memo Invoice ' . $fsono,
-                'fusercreate' => $userName,
-                'fdatetime' => $now,
-            ],
-        ]);
+        JurnalFakturPenjualan::create($fsono, $fsodate, $branchCode, $customerCode, $userName);
     }
 
     private function syncInvoiceJournalEntries(
@@ -3210,26 +3124,12 @@ class InvoiceController extends Controller
         string $customerCode,
         string $userName
     ): void {
-        $this->deleteInvoiceJournalEntries($fsono);
-        $this->createInvoiceJournalEntries($fsono, $fsodate, $branchCode, $customerCode, $userName);
+        JurnalFakturPenjualan::sync($fsono, $fsodate, $branchCode, $customerCode, $userName);
     }
 
     private function deleteInvoiceJournalEntries(string $fsono): void
     {
-        $existingJurnalIds = DB::table('jurnaldt')
-            ->where('frefno', $fsono)
-            ->where('fjurnaltype', 'SLS')
-            ->pluck('fjurnalmtid')
-            ->filter()
-            ->unique()
-            ->values();
-
-        if ($existingJurnalIds->isEmpty()) {
-            return;
-        }
-
-        DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
-        DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        JurnalFakturPenjualan::delete($fsono);
     }
 
     private function normalizeDiscountInput($discInput): string
