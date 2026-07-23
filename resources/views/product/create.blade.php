@@ -836,10 +836,10 @@
                         {{-- BARIS 1: Kontrol Status (Non Aktif & Approve) --}}
                         <div class="flex items-center justify-center gap-2 mb-4">
                             <label
-                                class="flex items-center gap-2 text-sm font-semibold cursor-not-allowed border rounded-lg px-3 py-2 bg-gray-50 text-gray-500">
+                                class="flex items-center gap-2 text-sm font-semibold border rounded-lg px-3 py-2 {{ $canApproval ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}">
                                 <span>Approve</span>
                                 <label class="switch" style="margin:0">
-                                    <input type="checkbox" id="approvalToggle" disabled>
+                                    <input type="checkbox" name="approve_now" id="approvalToggle" {{ $canApproval ? '' : 'disabled' }}>
                                     <span class="slider round"></span>
                                 </label>
                             </label>

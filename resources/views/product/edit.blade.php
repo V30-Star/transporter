@@ -878,28 +878,20 @@
                             @enderror
                         </div>
 
-                        @php
-                            $canApproval = in_array(
-                                'approveProduct',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-                        @if ($canApproval)
-                            <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                                <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                                    <div class="flex items-center space-x-2">
-                                        <label class="text-sm font-bold">Status Persetujuan</label>
-                                        <label class="switch">
-                                            <input type="checkbox" name="approve_now" id="approvalToggle"
-                                                {{ $isApproved ? 'checked' : '' }} disabled>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </div>
-                                </fieldset>
+                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                            <fieldset disabled>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-bold">Status Persetujuan</label>
+                                    <label class="switch">
+                                        <input type="checkbox" name="approve_now" id="approvalToggle"
+                                            {{ $isApproved ? 'checked' : '' }}>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <br>
                             </div>
-                            <br>
-                        @endif
-
                     </div>
                 </div>
 
@@ -1550,20 +1542,18 @@
                                 </div>
 
                                 {{-- Approve --}}
-                                @php $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', ''))); @endphp
-                                @if ($canApproval)
-                                    <div class="flex items-center justify-center gap-2 mb-4">
-                                        <label
-                                            class="flex items-center gap-2 text-sm font-semibold cursor-pointer border rounded-lg px-3 py-2 hover:bg-gray-50">
-                                            <span>Approve</span>
-                                            <label class="switch" style="margin:0">
-                                                <input type="checkbox" name="approve_now" id="approvalToggle"
-                                                    {{ old('approve_now', \App\Support\ApprovalState::isApprovedRecord($product) ? '1' : '0') ? 'checked' : '' }}>
-                                                <span class="slider round"></span>
-                                            </label>
+                                <div class="flex items-center justify-center gap-2 mb-4">
+                                    <label
+                                        class="flex items-center gap-2 text-sm font-semibold border rounded-lg px-3 py-2 {{ $canApproval ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}">
+                                        <span>Approve</span>
+                                        <label class="switch" style="margin:0">
+                                            <input type="checkbox" name="approve_now" id="approvalToggle"
+                                                {{ old('approve_now', \App\Support\ApprovalState::isApprovedRecord($product) ? '1' : '0') ? 'checked' : '' }}
+                                                {{ $canApproval ? '' : 'disabled' }}>
+                                            <span class="slider round"></span>
                                         </label>
-                                    </div>
-                                @endif
+                                    </label>
+                                </div>
 
                                 {{-- Tombol Aksi --}}
                                 <div class="flex items-center justify-center gap-2">

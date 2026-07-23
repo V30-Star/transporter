@@ -309,8 +309,9 @@ class ProductController extends Controller
         $satuan = Satuan::where('fnonactive', 0)->get();
         $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekcode ?? 1);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
+        $canApproval = $this->canApproveProduct();
 
-        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers', 'canApproval'));
     }
 
     public function store(Request $request)
@@ -422,6 +423,13 @@ class ProductController extends Controller
             $user = auth('sysuser')->user();
             $approvalState = $this->initializeApprovalState();
             $validated = array_merge($validated, $approvalState);
+
+            if ($this->canApproveProduct() && $request->boolean('approve_now')) {
+                $validated['fapproval'] = '2';
+                $validated['fuserapproved'] = $user->fname ?? 'System';
+                $validated['fdateapproved'] = now();
+            }
+
             $validated['fcreatedby'] = $user->fname ?? 'System';
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
@@ -468,6 +476,7 @@ class ProductController extends Controller
         $satuan = Satuan::where('fnonactive', 0)->get();
         $usageInfo = $this->getProductUsageInfo($product);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
+        $canApproval = $this->canApproveProduct();
 
         return view('product.edit', [
             'product' => $product,
@@ -477,6 +486,7 @@ class ProductController extends Controller
             'action' => 'edit',
             'usageInfo' => $usageInfo,
             'enabledImageNumbers' => $enabledImageNumbers,
+            'canApproval' => $canApproval,
         ]);
     }
 
