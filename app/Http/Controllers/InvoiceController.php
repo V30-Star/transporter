@@ -1679,9 +1679,9 @@ class InvoiceController extends Controller
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix . '%')
                         ->selectRaw("
-        fsono,
-        CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) AS lastno
-    ")
+                            fsono,
+                            CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) AS lastno
+                        ")
                         ->orderByRaw("CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) DESC")
                         ->lockForUpdate()
                         ->first();
