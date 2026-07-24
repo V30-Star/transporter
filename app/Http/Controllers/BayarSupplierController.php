@@ -23,10 +23,8 @@ class BayarSupplierController extends Controller
     {
         $records = Trkasmt::query()
             ->where('trkasmt.ftrancode', self::TRAN_CODE)
-            ->whereNotNull('trkasmt.fsupplier')
             ->leftJoin('trkasdt as dt', 'dt.fkasmtid', '=', 'trkasmt.fkasmtid')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'trkasmt.faccountheader')
-            ->leftJoin('mssupplier as supp', 'supp.fsuppliercode', '=', 'trkasmt.fsupplier')
             ->select([
                 'trkasmt.fkasmtid',
                 'trkasmt.fkasmtno',
@@ -35,7 +33,7 @@ class BayarSupplierController extends Controller
                 'trkasmt.fuserid',
                 DB::raw("COALESCE(NULLIF(concat_ws(' - ', trkasmt.faccountheader, acc.faccname), ''), '-') as account_summary"),
                 DB::raw("COALESCE(string_agg(DISTINCT NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), '')), '-') as pbl_summary"),
-                DB::raw("COALESCE(NULLIF(TRIM(supp.fsuppliername), ''), '-') as supplier_name"),
+                DB::raw("COALESCE(NULLIF(TRIM(trkasmt.fwhom), ''), '-') as supplier_name"),
                 DB::raw("ABS(COALESCE(SUM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.fkasdtvalue ELSE 0 END, 0)), COALESCE(trkasmt.famountpay, 0), 0)) as payment_amount"),
             ])
             ->groupBy(
@@ -44,9 +42,9 @@ class BayarSupplierController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.fwhom',
                 'trkasmt.faccountheader',
-                'acc.faccname',
-                'supp.fsuppliername'
+                'acc.faccname'
             )
             ->orderByDesc('trkasmt.fkasmtdate')
             ->orderByDesc('trkasmt.fkasmtid')
@@ -316,7 +314,6 @@ class BayarSupplierController extends Controller
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
-                'fsupplier' => $supplier->fsupplierid,
                 'fcustomercode' => $customerCode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
@@ -537,7 +534,6 @@ class BayarSupplierController extends Controller
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
-                'fsupplier' => $supplier->fsupplierid,
                 'fcustomercode' => $customerCode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,

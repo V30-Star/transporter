@@ -272,12 +272,8 @@ class ReportingPelunasanSupplierController extends Controller
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as t', 't.faccount', '=', 'm.faccountheader')
             ->leftJoin('mssupplier as c', function ($join) {
-                $join->on(function ($query) {
-                    $query->whereRaw("CAST(c.fsupplierid AS text) = TRIM(CAST(m.fsupplier AS text))")
-                        ->orWhereRaw("TRIM(c.fsuppliercode) = TRIM(CAST(m.fsupplier AS text))")
-                        ->orWhereRaw("CAST(c.fsupplierid AS text) = TRIM(CAST(m.fcustomer AS text))")
-                        ->orWhereRaw("TRIM(c.fsuppliercode) = TRIM(CAST(m.fcustomer AS text))");
-                });
+                $join->on(DB::raw("TRIM(c.fsuppliercode)"), '=', DB::raw("TRIM(d.fsubaccount)"))
+                    ->orOn(DB::raw("TRIM(c.fsuppliercode)"), '=', DB::raw("TRIM(n.fsupplier)"));
             })
             ->leftJoin('trstockmt as n', 'd.frefno', '=', 'n.fstockmtno')
             ->leftJoinSub(
@@ -295,8 +291,8 @@ class ReportingPelunasanSupplierController extends Controller
                 d.freftype,
                 m.fkasmtdate,
                 t.faccname AS account,
-                COALESCE(c.fsuppliercode, CAST(m.fsupplier AS text)) AS fcustomer,
-                c.fsuppliername AS fcustname,
+                COALESCE(c.fsuppliercode, d.fsubaccount, n.fsupplier, '') AS fcustomer,
+                COALESCE(c.fsuppliername, m.fwhom, '') AS fcustname,
                 d.frefno,
                 d.fdiscpersen,
                 d.fdiscount,
@@ -348,11 +344,11 @@ class ReportingPelunasanSupplierController extends Controller
         }
 
         if ($filters['customer_from'] !== '') {
-            $query->whereRaw("TRIM(COALESCE(c.fsuppliercode, CAST(m.fsupplier AS text))) >= ?", [$filters['customer_from']]);
+            $query->whereRaw("TRIM(COALESCE(c.fsuppliercode, d.fsubaccount, n.fsupplier, '')) >= ?", [$filters['customer_from']]);
         }
 
         if ($filters['customer_to'] !== '') {
-            $query->whereRaw("TRIM(COALESCE(c.fsuppliercode, CAST(m.fsupplier AS text))) <= ?", [$filters['customer_to']]);
+            $query->whereRaw("TRIM(COALESCE(c.fsuppliercode, d.fsubaccount, n.fsupplier, '')) <= ?", [$filters['customer_to']]);
         }
     }
 }
