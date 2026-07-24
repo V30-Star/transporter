@@ -1013,6 +1013,7 @@
             </div>
 
         <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
+        <x-transaction.browse-account-modal :open-delay="50" :destroy-on-close="true" />
         <x-transaction.browse-warehouse-modal />
         @include('components.transaction.browse-product-script', [
             'showControls' => true,

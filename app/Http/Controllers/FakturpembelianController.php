@@ -1456,10 +1456,15 @@ class FakturpembelianController extends Controller
                         $year = $fstockmtdate->format('y'); // 2-digit year format, e.g. 26
                         $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
                         $digits = 4;
-                        $prefix = sprintf('UM.%s.%s.%s.00.', $kodeCabang, $year, $month);
+                        $prefix = sprintf('UM.%s.%s%s.', $kodeCabang, $year, $month);
+
+                        if (DB::getDriverName() === 'pgsql') {
+                            $lockKey = crc32('STOCKMT|UM|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                        }
+
                         $last = DB::table('trstockmt')
                             ->where('fstockmtno', 'like', $prefix . '%')
-                            ->lockForUpdate()
                             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
                             ->value('lastno');
 
