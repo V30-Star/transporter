@@ -1471,7 +1471,7 @@ class FakturpembelianController extends Controller
                     ->orWhere('fcabangkode', $rawBranch)
                     ->value('fcabangkode') ?? 'NA';
 
-                $yy = $fstockmtdate->format('Y');
+                $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
                 $isAdvancePayment = (int) $ftypebuy === 2;
                 $fstockmtcode = $isAdvancePayment ? 'UM' : 'BUY';
@@ -1485,7 +1485,7 @@ class FakturpembelianController extends Controller
                         $prefix = sprintf('UMB.%s.%s%s.', $kodeCabang, $year, $month);
 
                         if (DB::getDriverName() === 'pgsql') {
-                            $lockKey = crc32('STOCKMT|UMB|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                            $lockKey = crc32('STOCKMT|UMB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
                             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
                         }
 
@@ -1496,8 +1496,8 @@ class FakturpembelianController extends Controller
 
                         $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     } else {
-                        $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
-                        $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
+                        $prefix = "$fstockmtcode.$kodeCabang.$yy$mm.";
+                        $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('y-m'));
                         if (DB::getDriverName() === 'pgsql') {
                             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
                         }
@@ -1505,7 +1505,7 @@ class FakturpembelianController extends Controller
                         if (DB::getDriverName() === 'pgsql') {
                             $last = DB::table('trstockmt')
                                 ->where('fstockmtno', 'like', "$prefix%")
-                                ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                                ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
                                 ->value('lastno');
                         } else {
                             $lastRecord = DB::table('trstockmt')

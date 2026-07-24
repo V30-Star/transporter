@@ -103,12 +103,15 @@ class JurnalFakturPembelian
             ->exists();
 
         // Faktur yang belum ditagih (fcode = 'T') — utk jurnal balik
-        $nFakturYgBelumDitagih = round((float) (
-            DB::table('trstockdt')
+        $nFakturYgBelumDitagih = 0.0;
+        if (! $lSaldoAwal) {
+            $nFakturYgBelumDitagih = round((float) (
+                DB::table('trstockdt')
                 ->where('fstockmtno', $fstockmtno)
                 ->where('fcode', 'T')
                 ->sum('ftotprice_rp')
-        ), 2);
+            ), 2);
+        }
 
         // Persediaan / Non Stok / Uang Muka
         if ($trancodeIndex === self::TRANCODE_UM) {
@@ -118,6 +121,16 @@ class JurnalFakturPembelian
                 ->sum('ftotprice_rp'), 2);
 
             // Fallback ke nominal header (famountmt_rp) jika detail belum terisi
+            if ($nPersediaan <= 0) {
+                $nPersediaan = $famountMTRp;
+            }
+        } elseif ($lSaldoAwal) {
+            // Jika Saldo Awal, hitung seluruh nominal tanpa membedakan fcode
+            $nPersediaan = round((float) DB::table('trstockdt')
+                ->where('fstockmtno', $fstockmtno)
+                ->sum('ftotprice_rp'), 2);
+
+            // Fallback jika detail kosong
             if ($nPersediaan <= 0) {
                 $nPersediaan = $famountMTRp;
             }
@@ -137,10 +150,10 @@ class JurnalFakturPembelian
         if ($trancodeIndex !== self::TRANCODE_UM) {
             $nKurangiUangMuka = round((float) (
                 DB::table('trstockdt')
-                    ->where('fstockmtno', $fstockmtno)
-                    ->where('fprdcode', 'UM')
-                    ->selectRaw('SUM(ABS(ftotprice_rp)) as total')
-                    ->value('total')
+                ->where('fstockmtno', $fstockmtno)
+                ->where('fprdcode', 'UM')
+                ->selectRaw('SUM(ABS(ftotprice_rp)) as total')
+                ->value('total')
             ), 2);
         }
 
@@ -165,7 +178,10 @@ class JurnalFakturPembelian
         if ($nPersediaan > 0) {
             $lineNo++;
 
-            if ($trancodeIndex === self::TRANCODE_NONSTOK) {
+            if ($lSaldoAwal) {
+                // Jika mengandung produk 'AWAL', paksa akun ke SALDOAWAL
+                $account = self::accountCode(self::ACCOUNT_SALDOAWAL);
+            } elseif ($trancodeIndex === self::TRANCODE_NONSTOK) {
                 $account = trim((string) $toAccount);
                 if ($account === '') {
                     throw ValidationException::withMessages([
@@ -175,9 +191,7 @@ class JurnalFakturPembelian
             } elseif ($trancodeIndex === self::TRANCODE_UM) {
                 $account = self::accountCode(self::ACCOUNT_UMBUY);
             } else {
-                $account = $lSaldoAwal
-                    ? self::accountCode(self::ACCOUNT_SALDOAWAL)
-                    : self::accountCode(self::ACCOUNT_PEMBELIAN);
+                $account = self::accountCode(self::ACCOUNT_PEMBELIAN);
             }
 
             $lines[] = [
