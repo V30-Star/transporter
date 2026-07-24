@@ -159,6 +159,32 @@
             -webkit-text-fill-color: #9ca3af !important;
             font-weight: normal !important;
         }
+
+        .btn-desc-filled {
+            background-color: #16a34a !important;
+            color: #ffffff !important;
+            border-color: #15803d !important;
+        }
+
+        .btn-desc-filled:hover {
+            background-color: #15803d !important;
+            color: #ffffff !important;
+        }
+
+        .btn-desc-filled svg {
+            color: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .btn-desc-empty {
+            background-color: #ffffff !important;
+            color: #6b7280 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .btn-desc-empty:hover {
+            background-color: #f9fafb !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -531,8 +557,8 @@
                                                 <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="row.fitemname"></div>
                                                 <button type="button" @click="openDesc(row)"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                    :class="row.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="row.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
                                                     title="Deskripsi">
                                                     <x-heroicon-o-document-text class="w-4 h-4" />
                                                 </button>
