@@ -1256,7 +1256,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka saja.',
+                        'detail' => 'Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!',
                     ]);
                 }
             }
@@ -2019,7 +2019,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka saja.',
+                        'detail' => 'Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!',
                     ]);
                 }
             }

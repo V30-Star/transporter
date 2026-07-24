@@ -1201,6 +1201,7 @@
                 ])));
             @endphp
             "{{ trim($p->fprdcode) }}": {
+                code: @json(trim((string) $p->fprdcode)),
                 name: @json($p->fprdname),
                 default_unit: @json($resolvedDefaultUnit),
                 units: @json($orderedUnits),
@@ -1475,9 +1476,12 @@
 
             productMeta(code) {
                 const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key] ?? window.PRODUCT_MAP?.[key.toUpperCase()];
+                const normalizedKey = key.toUpperCase();
+                const meta = window.PRODUCT_MAP?.[key] ?? window.PRODUCT_MAP?.[normalizedKey] ??
+                    Object.entries(window.PRODUCT_MAP || {}).find(([productCode]) => productCode.toUpperCase() === normalizedKey)?.[1];
                 if (!meta) {
                     return {
+                        code: '',
                         name: '',
                         default_unit: '',
                         units: [],
@@ -1825,7 +1829,9 @@
                     return;
                 }
                 row.fitemcode = typedCode;
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                const meta = this.productMeta(row.fitemcode);
+                if (meta.code) row.fitemcode = meta.code;
+                this.hydrateRowFromMeta(row, meta, true);
                 if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
                 this.applyPurchasePrice(row);
                 this.onRowUpdated(index);
