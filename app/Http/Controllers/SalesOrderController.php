@@ -1899,6 +1899,10 @@ class SalesOrderController extends Controller
             ];
         }
 
+        if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
+            return $stockResponse;
+        }
+
         // 6. CALCULATE TOTALS
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
