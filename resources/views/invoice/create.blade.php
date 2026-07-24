@@ -40,6 +40,8 @@
             $refSrj = trim((string) ($oldInvoiceRefSrjs[$index] ?? ''));
             $refDtNo = trim((string) ($oldInvoiceRefNos[$index] ?? ''));
 
+            $price = (float) ($oldInvoicePrices[$index] ?? 0);
+
             $initialInvoiceItems[] = [
                 'uid' => 'old-invoice-' . $index,
                 'formIndex' => (int) $index,
@@ -59,7 +61,8 @@
                 'frefnoacak' => trim((string) ($oldInvoiceRefNoAcaks[$index] ?? '')),
                 'fqty' => (float) ($oldInvoiceQtys[$index] ?? 0),
                 'fterima' => (float) ($oldInvoiceTerimas[$index] ?? 0),
-                'fprice' => (float) ($oldInvoicePrices[$index] ?? 0),
+                'fprice' => $price,
+                'fpriceInput' => number_format($price, 2, ',', '.'),
                 'fdisc' => $oldInvoiceDiscs[$index] ?? 0,
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
