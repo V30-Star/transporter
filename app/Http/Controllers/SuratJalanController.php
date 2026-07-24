@@ -566,7 +566,7 @@ class SuratJalanController extends Controller
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -963,7 +963,7 @@ class SuratJalanController extends Controller
 
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
                         ->value('lastno');
                     $next = (int) $last + 1;
                     $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);

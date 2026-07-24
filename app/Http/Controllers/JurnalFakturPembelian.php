@@ -391,7 +391,7 @@ class JurnalFakturPembelian
 
             $lastNo = DB::table('jurnalmt')
                 ->where('fjurnalno', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 4) AS int)) AS lastno")
                 ->value('lastno');
 
             $nextNo = (int) $lastNo + 1;

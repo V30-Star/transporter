@@ -677,7 +677,7 @@ class Tr_pohController extends Controller
 
             $last = DB::table('tr_poh')
                 ->where('fpono', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
@@ -1070,7 +1070,7 @@ class Tr_pohController extends Controller
                     // get last sequence under this prefix
                     $last = DB::table('tr_poh')
                         ->where('fpono', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
                         ->value('lastno');
 
                     $next = (int) $last + 1;

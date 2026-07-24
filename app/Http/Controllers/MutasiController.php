@@ -445,7 +445,7 @@ class MutasiController extends Controller
 
         $last = DB::table('tr_poh')
             ->where('fpono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -782,7 +782,7 @@ class MutasiController extends Controller
 
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
                         ->value('lastno');
 
                     $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);

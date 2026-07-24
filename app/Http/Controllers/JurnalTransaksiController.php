@@ -420,7 +420,7 @@ class JurnalTransaksiController extends Controller
 
             $last = DB::table('tr_poh')
                 ->where('fpono', 'like', $prefix.'%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
                 ->value('lastno');
         } else {
             $last = DB::table('tr_poh')
@@ -771,7 +771,7 @@ class JurnalTransaksiController extends Controller
 
                     $lastNo = DB::table('jurnalmt')
                         ->where('fjurnalno', 'like', $prefix.'%')
-                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 4) AS int)) AS lastno")
                         ->value('lastno');
                 } else {
                     $lastNo = DB::table('jurnalmt')

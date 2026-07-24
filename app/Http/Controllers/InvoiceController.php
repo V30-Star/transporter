@@ -1193,7 +1193,7 @@ class InvoiceController extends Controller
 
         $last = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 4) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;

@@ -1120,8 +1120,8 @@ class PelunasanCustomerController extends Controller
             ->selectRaw("
                 MAX(
                     CASE
-                        WHEN split_part(fkasmtno, '.', 6) ~ '^[0-9]+$'
-                        THEN CAST(split_part(fkasmtno, '.', 6) AS integer)
+                        WHEN split_part(fkasmtno, '.', 4) ~ '^[0-9]+$'
+                        THEN CAST(split_part(fkasmtno, '.', 4) AS integer)
                         ELSE NULL
                     END
                 ) as last_no

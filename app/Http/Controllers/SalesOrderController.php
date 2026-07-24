@@ -950,7 +950,7 @@ class SalesOrderController extends Controller
 
         $last = DB::table('trsomt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 4) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -1229,6 +1229,10 @@ class SalesOrderController extends Controller
             ];
         }
 
+        if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
+            return $stockResponse;
+        }
+
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
         $totalDisc += $headerDiscountAmount;
@@ -1304,7 +1308,7 @@ class SalesOrderController extends Controller
 
                     $last = DB::table('trsomt')
                         ->where('fsono', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fsono, '.', 4) AS int)) AS lastno")
                         ->value('lastno');
 
                     $fsono = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
@@ -1452,6 +1456,71 @@ class SalesOrderController extends Controller
         } catch (\Throwable $e) {
             return 0;
         }
+    }
+
+    private function validateSalesOrderStockLines(array $rows, bool $forceSave = false)
+    {
+        $needs = [];
+
+        foreach ($rows as $row) {
+            $code = trim((string) ($row['fprdcode'] ?? ''));
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+
+            if ($code === '' || $qtyKecil <= 0) {
+                continue;
+            }
+
+            $needs[$code] = ($needs[$code] ?? 0) + $qtyKecil;
+        }
+
+        if (empty($needs)) {
+            return null;
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', array_keys($needs))
+            ->get(['fprdcode', 'fprdname', 'fminstock'])
+            ->keyBy('fprdcode');
+
+        $shortages = [];
+        foreach ($needs as $code => $required) {
+            $product = $products->get($code);
+            $available = (float) ($product->fminstock ?? 0);
+
+            if ($available + 0.000001 >= $required) {
+                continue;
+            }
+
+            $shortages[] = [
+                'fprdcode' => $code,
+                'fprdname' => trim((string) ($product->fprdname ?? $code)),
+                'available' => $available,
+                'required' => $required,
+            ];
+        }
+
+        if (empty($shortages) || ($forceSave && stock_boleh_minus())) {
+            return null;
+        }
+
+        $messageLines = array_map(function ($i, $row) {
+            $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
+
+            return ($i + 1) . '. ' . $row['fprdname'] . ' - Stok => ' . $available;
+        }, array_keys($shortages), $shortages);
+
+        $message = "Produk ini Qty Stok tidak cukup :\n \n" . implode("\n", $messageLines);
+
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'status' => 'insufficient_stock',
+                'message' => $message . (stock_boleh_minus() ? "\n \nApakah anda ingin melanjutkan penyimpanan?" : ''),
+                'allow_force' => stock_boleh_minus(),
+                'products' => $shortages,
+            ], 422);
+        }
+
+        return back()->withInput()->with('error', $message);
     }
 
     private function normalizeDiscountInput($discInput): string
