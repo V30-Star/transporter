@@ -19,7 +19,7 @@ class JurnalFakturPenjualan
      */
     private const ACCOUNT_JUALTUNAI          = 'PENJUALANTUNAI';
     private const ACCOUNT_PIUTANG            = 'PIUTANGDAGANG';
-    private const ACCOUNT_UMSALES            = 'UANGMUKA';
+    private const ACCOUNT_UMSALES            = 'UANGMUKAPENJUALAN';
     private const ACCOUNT_DISCSALES          = 'DISCPENJUALAN';
     private const ACCOUNT_SALDOAWAL          = 'SALDOAWAL';
     private const ACCOUNT_SALES              = 'PENJUALAN';
@@ -79,6 +79,9 @@ class JurnalFakturPenjualan
             ]);
         }
 
+        // Apakah baris penjualan ini sebenarnya uang muka
+        $lUangMuka = (string) ($invoice->ftypesales ?? '') === '1';
+
         // Ringkasan detail faktur (trandt) — setara query gabungan tranmt+trandt di versi Delphi
         $summary = DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
@@ -86,25 +89,29 @@ class JurnalFakturPenjualan
             ->selectRaw("
                 MIN(ABS(m.famountpajak_rp)) as famountpajak_rp,
                 SUM(CASE WHEN m.ftypesales = '0' AND d.fprdcode = 'UM' THEN ABS(d.fqty * d.fsalesnet) ELSE 0 END) as fkurangiuangmuka,
-                SUM(CASE WHEN d.fprdcode <> 'UM' THEN d.fqty * d.fsalesnet ELSE 0 END) as ftotalpenjualan,
+                SUM(CASE WHEN m.ftypesales = '1' THEN d.fqty * d.fsalesnet ELSE 0 END) as ftotalpenjualan_um,
+                SUM(CASE WHEN m.ftypesales = '0' AND d.fprdcode <> 'UM' THEN d.fqty * d.fsalesnet ELSE 0 END) as ftotalpenjualan_normal,
                 CASE WHEN MIN(m.fincludeppn) = '1' THEN (MIN(m.fppnpersen) / 100) * MIN(m.fdiscount) ELSE MIN(m.fdiscount) END as fdiscount
             ")
             ->groupBy('m.fsono')
             ->first();
 
         $famountPajakRp = round((float) ($summary->famountpajak_rp ?? 0), 2);
-        $fkurangiUangMuka = round((float) ($summary->fkurangiuangmuka ?? 0), 2);
-        $ftotalPenjualan = round((float) ($summary->ftotalpenjualan ?? 0), 2);
         $fdiscount = round((float) ($summary->fdiscount ?? 0), 2);
+
+        if ($lUangMuka) {
+            $ftotalPenjualan = round((float) ($summary->ftotalpenjualan_um ?? 0), 2);
+            $fkurangiUangMuka = 0.0; // tidak relevan, karena baris UM di sini justru jadi kredit di bawah
+        } else {
+            $ftotalPenjualan = round((float) ($summary->ftotalpenjualan_normal ?? 0), 2);
+            $fkurangiUangMuka = round((float) ($summary->fkurangiuangmuka ?? 0), 2);
+        }
 
         // Apakah ini transaksi saldo awal (perlakuan khusus akun penjualan)
         $lSaldoAwal = DB::table('trandt')
             ->where('fsono', $fsono)
             ->where('fprdcode', 'AWAL')
             ->exists();
-
-        // Apakah baris penjualan ini sebenarnya uang muka
-        $lUangMuka = (string) ($invoice->ftypesales ?? '') === '1';
 
         $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
         $customerCode = trim($customerCode);

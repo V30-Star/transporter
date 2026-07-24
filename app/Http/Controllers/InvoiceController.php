@@ -1777,13 +1777,13 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
+            $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
-                        'redirect_url' => route('invoice.index'),
+                        'redirect_url' => route('invoice.create'),
                     ]);
                 }
                 return $redirect;
@@ -1794,7 +1794,7 @@ class InvoiceController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
-                        'redirect_url' => route('invoice.index'),
+                        'redirect_url' => route('invoice.create'),
                         'success_prompt' => [
                             'type' => 'invoice_create_suratjalan',
                             'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
@@ -1810,7 +1810,7 @@ class InvoiceController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
-                    'redirect_url' => route('invoice.index'),
+                    'redirect_url' => route('invoice.create'),
                 ]);
             }
             return $redirect;
