@@ -443,6 +443,13 @@ class PelunasanCustomerController extends Controller
                     'freftype' => $entry['ftrcode'],
                 ]);
             }
+
+            // Sync sisa piutang ke tranmt
+            $refNos = collect($detailEntries)
+                ->pluck('frefno')
+                ->filter(fn($v) => strtoupper(trim((string) $v)) !== 'ADM' && trim((string) $v) !== '')
+                ->unique()->values()->all();
+            $this->syncInvoiceAmountRemain($refNos);
         });
 
         if ($request->expectsJson()) {
@@ -641,6 +648,13 @@ class PelunasanCustomerController extends Controller
                     'freftype' => $entry['ftrcode'],
                 ]);
             }
+
+            // Sync sisa piutang ke tranmt
+            $refNos = collect($detailEntries)
+                ->pluck('frefno')
+                ->filter(fn($v) => strtoupper(trim((string) $v)) !== 'ADM' && trim((string) $v) !== '')
+                ->unique()->values()->all();
+            $this->syncInvoiceAmountRemain($refNos);
         });
 
         if ($request->expectsJson()) {
@@ -664,8 +678,18 @@ class PelunasanCustomerController extends Controller
         }
 
         DB::transaction(function () use ($header) {
+            // Collect ref nos before deleting details
+            $refNos = Trkasdt::where('fkasmtid', $header->fkasmtid)
+                ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+                ->pluck('frefno')
+                ->filter(fn($v) => trim((string) $v) !== '')
+                ->unique()->values()->all();
+
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
+
+            // Restore famountremain since payment was deleted
+            $this->syncInvoiceAmountRemain($refNos);
         });
 
         if (request()->expectsJson()) {
@@ -678,6 +702,43 @@ class PelunasanCustomerController extends Controller
         return redirect()
             ->route('pelunasancustomer.index')
             ->with('success', 'Pelunasan customer ' . $fkasmtno . ' berhasil dihapus.');
+    }
+
+    /**
+     * Recalculate and update tranmt.famountremain for each invoice reference
+     * based on total payments already made (in trkasdt).
+     */
+    private function syncInvoiceAmountRemain(array $refNos): void
+    {
+        if (empty($refNos)) {
+            return;
+        }
+
+        $invoices = DB::table('tranmt')
+            ->whereIn('fsono', $refNos)
+            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->get(['fsono', 'famountso', 'ftrcode']);
+
+        // Sum all payments (fkasdtvalue) per invoice from trkasdt
+        $totalPaidByRef = DB::table('trkasdt')
+            ->where('ftrancode', self::TRAN_CODE)
+            ->whereIn('frefno', $refNos)
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_paid")
+            ->groupByRaw("TRIM(COALESCE(frefno, ''))")
+            ->pluck('total_paid', 'frefno')
+            ->mapWithKeys(fn($paid, $ref) => [trim((string) $ref) => (float) $paid]);
+
+        foreach ($invoices as $invoice) {
+            $fsono = trim((string) ($invoice->fsono ?? ''));
+            $famountso = abs((float) ($invoice->famountso ?? 0));
+            $totalPaid = $totalPaidByRef->get($fsono, 0.0);
+            $newRemain = round(max($famountso - $totalPaid, 0), 2);
+
+            DB::table('tranmt')
+                ->where('fsono', $fsono)
+                ->update(['famountremain' => $newRemain]);
+        }
     }
 
     private function filterEmptyDetailRows(array $details): array
