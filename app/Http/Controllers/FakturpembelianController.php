@@ -1175,7 +1175,7 @@ class FakturpembelianController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+ public function store(Request $request)
     {
         try {
             $rawCodes = collect($request->input('fitemcode', []));
@@ -1255,15 +1255,23 @@ class FakturpembelianController extends Controller
                     ->all();
 
                 if (! empty($invalidAdvanceCodes)) {
+                    $message = "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!";
+                    if ($request->expectsJson()) {
+                        return response()->json(['message' => $message], 422);
+                    }
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!',
+                        'detail' => $message,
                     ]);
                 }
             }
 
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
+                $message = 'Item awal tidak boleh digabung dengan item referensi PO / TER.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
                 return back()->withInput()->withErrors([
-                    'detail' => 'Item awal tidak boleh digabung dengan item referensi PO / TER.',
+                    'detail' => $message,
                 ]);
             }
 
@@ -1319,10 +1327,16 @@ class FakturpembelianController extends Controller
             );
 
             if ($errors->isNotEmpty()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['errors' => $errors->toArray()], 422);
+                }
                 return back()->withErrors($errors)->withInput();
             }
 
             if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $validationMessage], 422);
+                }
                 return back()->withInput()->withErrors([
                     'detail' => $validationMessage,
                 ]);
@@ -1344,6 +1358,7 @@ class FakturpembelianController extends Controller
                 $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = mb_substr(trim((string) ($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
+                $isAdvancePaymentDetail = (string) $ftypebuy === '2';
                 $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
                 $qtyKecil = $qty;
                 if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
@@ -1360,6 +1375,7 @@ class FakturpembelianController extends Controller
                 $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
                 $discP = $this->parseDiscountExpression($discRaw);
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
+                $isAdvancePaymentDetail = (string) $ftypebuy === '2';
 
                 $priceNet = ($price + $biaya) - ($price * ($discP / 100));
                 $amount = $qty * $priceNet;
@@ -1383,7 +1399,7 @@ class FakturpembelianController extends Controller
                     'ftotprice_rp' => $amount * $frate,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
-                    'fcode' => $sourceType === 'PO' ? 'P' : 'T',
+                    'fcode' => ($isAdvancePaymentDetail || $sourceType === 'PO') ? 'P' : 'T',
                     'fdesc' => trim((string) ($descs[$i] ?? '')) ?: null,
                     'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
@@ -1403,6 +1419,9 @@ class FakturpembelianController extends Controller
                     $message .= ' Kode item yang tidak dikenali: ' . implode(', ', array_values(array_unique($skippedDetailCodes))) . '.';
                 }
 
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
                 return back()->withInput()->withErrors([
                     'detail' => $message,
                 ]);
@@ -1411,6 +1430,15 @@ class FakturpembelianController extends Controller
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
+            if ((string) $ftypebuy === '2' && $subtotal <= 0) {
+                $message = 'Nominal Uang Muka harus lebih besar dari 0.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+                return back()->withInput()->withErrors([
+                    'fprice' => $message,
+                ]);
+            }
             // 5) TRANSACTION
             DB::transaction(function () use (
                 $request,
@@ -1562,12 +1590,25 @@ class FakturpembelianController extends Controller
 
             return redirect()->route('fakturpembelian.create')
                 ->with('success', $successMessage);
-        } catch (\Exception $e) {
-            Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('FakturPembelian@store VALIDATION ERROR: ' . $e->getMessage(), [
+                'errors' => $e->errors(),
+            ]);
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
+                return response()->json([
+                    'message' => collect($e->errors())->flatten()->first() ?? $e->getMessage(),
+                    'errors' => $e->errors(),
+                ], 422);
             }
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+    Log::error('FakturPembelian@store ERROR: ' . $e->getMessage(), [
+        'exception' => $e, 'file' => $e->getFile(), 'line' => $e->getLine(),
+    ]);
+    if ($request->expectsJson()) {
+        return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
+    }
+    return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
         }
     }
 
@@ -2180,7 +2221,7 @@ class FakturpembelianController extends Controller
                     'fdatetime' => $now,
                     'fdesc' => $desc ?: null,
                     'fketdt' => $desc ?: null,
-                    'fcode' => $sourceType === 'PO' ? 'P' : 'T',
+                    'fcode' => ($isAdvancePaymentDetail || $sourceType === 'PO') ? 'P' : 'T',
                     'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
@@ -2621,7 +2662,7 @@ class FakturpembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'No. referensi ' . strtoupper((string) $referenceNo) . ' sudah ada di transaksi ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
+                return 'No. referensi sudah ada di transaksi ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

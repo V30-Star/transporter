@@ -905,12 +905,27 @@
                         if (data?.message) {
                             await window.showAppSuccessToast(data.message);
                         }
-                        window.location.href = data?.redirect_url || window.location.href;
+                        if (data?.redirect_url) {
+                            window.location.href = data.redirect_url;
+                            return;
+                        }
+
+                        const text = await response.clone().text().catch(() => '');
+                        if (text.trim() !== '') {
+                            window.location.reload();
+                            return;
+                        }
+
+                        window.showAppErrorAlert('Terjadi Kesalahan', 'Server tidak mengembalikan pesan simpan.');
                         return;
                     }
 
                     const data = await response.json().catch(() => null);
-                    window.showAppErrorAlert('Terjadi Kesalahan', data?.message || 'Transaksi belum bisa disimpan.');
+                    const validationMessages = data?.errors ? Object.values(data.errors).flat() : [];
+                    window.showAppErrorAlert('Terjadi Kesalahan', validationMessages.length ? validationMessages.join('\n') : (data?.message || 'Transaksi belum bisa disimpan.'));
+                } catch (error) {
+                    console.error(error);
+                    window.showAppErrorAlert('Terjadi Kesalahan', 'Request simpan gagal. Cek koneksi atau console browser.');
                 } finally {
                     form.dataset.stockSubmitBusy = '0';
                 }
