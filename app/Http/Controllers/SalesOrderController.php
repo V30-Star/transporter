@@ -1242,7 +1242,7 @@ class SalesOrderController extends Controller
         if ($fapplyppn === 1) {
             if ($fincludeppn === 1) {
                 $grandTotal = $amountNet;
-                $ppnAmount = $grandTotal * ($fppnpersen / (100 + $fppnpersen));
+                $ppnAmount = $grandTotal * ($fppnpersen / 100);
                 $amountNet = $grandTotal - $ppnAmount;
             } else {
                 $ppnAmount = $amountNet * ($fppnpersen / 100);
@@ -1913,7 +1913,7 @@ class SalesOrderController extends Controller
             if ($fincludeppn === '1') {
                 // Include: amountNet sudah termasuk pajak
                 $grandTotal = $amountNet;
-                $ppnAmount = $grandTotal * ($fppnpersen / (100 + $fppnpersen));
+                $ppnAmount = $grandTotal * ($fppnpersen / 100);
                 $amountNet = $grandTotal - $ppnAmount; // DPP dihitung mundur
             } else {
                 // Exclude: amountNet + pajak

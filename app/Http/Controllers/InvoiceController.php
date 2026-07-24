@@ -1630,7 +1630,7 @@ class InvoiceController extends Controller
         if ($fapplyppn === '1') {
             if ($fincludeppn === '1') {
                 $grandTotal = $amountNet;
-                $ppnAmount = $grandTotal * ($ppnPersen / (100 + $ppnPersen));
+                $ppnAmount = $grandTotal * ($ppnPersen / 100);
                 $amountNet = $grandTotal - $ppnAmount;
             } else {
                 $ppnAmount = $amountNet * ($ppnPersen / 100);
@@ -2806,7 +2806,7 @@ class InvoiceController extends Controller
         if ($fapplyppn === '1') {
             if ($fincludeppn === '1') {
                 $grandTotal = $amountNet;
-                $ppnAmount = $grandTotal * ($ppnPersen / (100 + $ppnPersen));
+                $ppnAmount = $grandTotal * ($ppnPersen / 100);
                 $amountNet = $grandTotal - $ppnAmount;
             } else {
                 $ppnAmount = $amountNet * ($ppnPersen / 100);

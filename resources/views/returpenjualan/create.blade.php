@@ -2020,7 +2020,7 @@
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
                 if (!this.fapplyppn || !this.includePPN) return 0;
-                return Math.round((100 / (100 + rate)) * total * (rate / 100));
+                return Math.round(total * (rate / 100));
             },
 
             get netFromGross() {

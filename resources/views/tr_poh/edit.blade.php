@@ -1626,8 +1626,7 @@
                 if (!this.includePPN) return 0;
                 const total = this.totalHarga,
                     rate = +this.ppnRate || 0;
-                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
-                    100);
+                return Math.round(total * rate / 100);
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;

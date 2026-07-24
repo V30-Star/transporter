@@ -1072,7 +1072,7 @@ class ReturPenjualanController extends Controller
         if ($fincludeppn === '1') {
             if ($fapplyppn === '1') {
                 // INCLUDE: amountNet is current base, we extract
-                $ppnAmount = $amountNet * ($ppnPersen / (100 + $ppnPersen));
+                $ppnAmount = $amountNet * ($ppnPersen / 100);
                 $amountNet = $amountNet - $ppnAmount;
                 $grandTotal = $amountNet + $ppnAmount;
             } else {
@@ -2225,7 +2225,7 @@ class ReturPenjualanController extends Controller
         if ($fincludeppn === '1') {
             if ($fapplyppn === '1') {
                 // INCLUDE
-                $ppnAmount = $amountNet * ($ppnPersen / (100 + $ppnPersen));
+                $ppnAmount = $amountNet * ($ppnPersen / 100);
                 $amountNet = $amountNet - $ppnAmount;
                 $grandTotal = $amountNet + $ppnAmount;
             } else {

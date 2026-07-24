@@ -1301,7 +1301,7 @@
                 const rate = +this.ppnRate || 0;
                 if (this.ppnMode === 1) {
                     // Include: Back-calc from GROSS
-                    return Math.round((rate / (100 + rate)) * total);
+                    return Math.round(total * (rate / 100));
                 } else {
                     // Exclude: Add on top of base
                     return Math.round(total * (rate / 100));
