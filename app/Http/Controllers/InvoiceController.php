@@ -1406,9 +1406,10 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate);
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-        $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
-        $ppnPersen = $request->input('fppnpersen', 0);
+        $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
+        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
+        $rawPpnPersen = (float) $request->input('fppnpersen', 11);
+        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : 11.0) : 0.0;
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
@@ -1626,9 +1627,20 @@ class InvoiceController extends Controller
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
         $totalDisc += $headerDiscountAmount;
         $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
-        $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-        $grandTotal = $amountNet + $ppnAmount;
+        if ($fapplyppn === '1') {
+            if ($fincludeppn === '1') {
+                $grandTotal = $amountNet;
+                $ppnAmount = $grandTotal * ($ppnPersen / (100 + $ppnPersen));
+                $amountNet = $grandTotal - $ppnAmount;
+            } else {
+                $ppnAmount = $amountNet * ($ppnPersen / 100);
+                $grandTotal = $amountNet + $ppnAmount;
+            }
+        } else {
+            $ppnAmount = 0.0;
+            $ppnPersen = 0.0;
+            $grandTotal = $amountNet;
+        }
 
         // if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
         //     return back()->withInput()->with('error', $validationMessage);
@@ -2561,13 +2573,14 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-        $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
+        $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
+        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $rawPpnPersen = (float) $request->input('fppnpersen', 11);
+        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : 11.0) : 0.0;
         $fkodefp = trim((string) $request->input('fkodefp', ''));
         if ($fkodefp === '') {
             $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
@@ -2790,9 +2803,20 @@ class InvoiceController extends Controller
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
         $totalDisc += $headerDiscountAmount;
         $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
-        $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-        $grandTotal = $amountNet + $ppnAmount;
+        if ($fapplyppn === '1') {
+            if ($fincludeppn === '1') {
+                $grandTotal = $amountNet;
+                $ppnAmount = $grandTotal * ($ppnPersen / (100 + $ppnPersen));
+                $amountNet = $grandTotal - $ppnAmount;
+            } else {
+                $ppnAmount = $amountNet * ($ppnPersen / 100);
+                $grandTotal = $amountNet + $ppnAmount;
+            }
+        } else {
+            $ppnAmount = 0.0;
+            $ppnPersen = 0.0;
+            $grandTotal = $amountNet;
+        }
 
         // if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
         //     return back()->withInput()->with('error', $validationMessage);
