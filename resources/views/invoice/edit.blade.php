@@ -248,14 +248,15 @@
 
             if ($invoiceDate && $invoiceDueDate) {
                 try {
-                    $invoiceTempoDays = \Carbon\Carbon::parse($invoiceDate)
+                    $invoiceTempoDays = (int) \Carbon\Carbon::parse($invoiceDate)
                         ->startOfDay()
                         ->diffInDays(\Carbon\Carbon::parse($invoiceDueDate)->startOfDay(), false);
+                    $invoiceTempoDays = max(0, $invoiceTempoDays);
                 } catch (\Throwable $e) {
-                    $invoiceTempoDays = $invoice->ftempohr ?? 0;
+                    $invoiceTempoDays = max(0, (int) ($invoice->ftempohr ?? 0));
                 }
             } else {
-                $invoiceTempoDays = $invoice->ftempohr ?? 0;
+                $invoiceTempoDays = max(0, (int) ($invoice->ftempohr ?? 0));
             }
         }
     @endphp
@@ -2204,7 +2205,7 @@
         taxInput.value = String(invoiceInput.value ?? '').trim();
     };
 
-    window.invoicePreserveOldTempo = @json(old('ftempohr') !== null || old('fjatuhtempo') !== null);
+    window.invoicePreserveOldTempo = @json(old('ftempohr') !== null || old('fjatuhtempo') !== null || isset($invoice));
 
     window.syncInvoiceTempoFromSource = function(days, options = {}) {
         if (window.invoicePreserveOldTempo && !options.force) return;
