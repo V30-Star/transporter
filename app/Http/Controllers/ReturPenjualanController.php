@@ -860,7 +860,7 @@ class ReturPenjualanController extends Controller
 
         // 3. ARRAY INPUT
         $itemCodes = $request->input('fitemcode', []);
-        $itemDescs = $request->input('fitemname', []);
+        $itemDescs = $request->input('fdesc', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
@@ -2017,7 +2017,7 @@ class ReturPenjualanController extends Controller
 
         $itemCodes = $request->input('fitemcode', []);
         $typeSales = (int) $request->input('ftypesales', 0); // 0: Penjualan, 1: Uang Muka
-        $itemDescs = $request->input('fitemname', []);
+        $itemDescs = $request->input('fdesc', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);

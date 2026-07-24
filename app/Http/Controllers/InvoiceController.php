@@ -1422,7 +1422,7 @@ class InvoiceController extends Controller
         // 3. PROSES DETAIL (ARRAY)
         $itemCodes = $request->input('fitemcode', []);
         $typeSales = (int) $request->input('ftypesales');
-        $itemDescs = $request->input('fitemname', []);
+        $itemDescs = $request->input('fdesc', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
@@ -2575,7 +2575,7 @@ class InvoiceController extends Controller
 
         $itemCodes = $request->input('fitemcode', []);
         $typeSales = (int) $request->input('ftypesales');
-        $itemDescs = $request->input('fitemname', []);
+        $itemDescs = $request->input('fdesc', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
