@@ -1120,6 +1120,7 @@
                                             @endif
                                         @endif
                                     </div>
+                                    @if (($action ?? '') !== 'view')
                                     <div id="customerAdvanceWarningBox" class="hidden my-2">
                                         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                                             <div class="flex">
@@ -1134,6 +1135,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                     @error('fcustno')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -3589,6 +3591,7 @@
         'showPagination' => true,
         'supportsForEdit' => true,
     ])
+    @if (($action ?? '') !== 'view')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
@@ -3640,4 +3643,5 @@
             }, 100);
         });
     </script>
+    @endif
 @endpush
