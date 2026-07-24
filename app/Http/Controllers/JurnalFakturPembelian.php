@@ -76,7 +76,7 @@ class JurnalFakturPembelian
         // Header transaksi pembelian (trstockmt)
         $header = DB::table('trstockmt')
             ->whereRaw('trim(fstockmtno) = ?', [$fstockmtno])
-            ->first(['famountmt', 'famountmt_rp', 'frate', 'famountpajak', 'famountpajak_rp']);
+            ->first(['famountmt', 'famountmt_rp', 'frate', 'famountpajak', 'famountpajak_rp', 'fapplyppn']);
 
         if (! $header) {
             throw ValidationException::withMessages([
@@ -84,10 +84,11 @@ class JurnalFakturPembelian
             ]);
         }
 
+        $fapplyPPN = (int) ($header->fapplyppn ?? 0);
         $famountMT = round((float) ($header->famountmt ?? 0), 2);
         $famountMTRp = round((float) ($header->famountmt_rp ?? 0), 2);
         $frate = (float) ($header->frate ?? 1);
-        $famountPajakRp = round((float) ($header->famountpajak_rp ?? 0), 2);
+        $famountPajakRp = ($fapplyPPN === 1) ? round((float) ($header->famountpajak_rp ?? 0), 2) : 0;
 
         if ($famountMT <= 0 || $famountMTRp <= 0) {
             throw ValidationException::withMessages([

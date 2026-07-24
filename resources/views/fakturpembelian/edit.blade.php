@@ -1414,7 +1414,7 @@
                                         <input type="hidden" name="famountpajak" :value="ppnAmount">
                                         <input type="hidden" name="famountmt" :value="grandTotal">
                                         <input type="hidden" name="fincludeppn" :value="includePPN ? 1 : 0">
-                                        <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                        <input type="hidden" name="famountpopajak" :value="includePPN ? ppnRate : 0">
                                     </div>
                                 </div>
 

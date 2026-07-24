@@ -1232,6 +1232,12 @@ class FakturpembelianController extends Controller
             $now = now();
             $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+            if ($fapplyppn === 0) {
+                $fincludeppn = 0;
+                $fppnpersen = 0;
+            } else {
+                $fppnpersen = (float) $request->input('ppn_rate', 0);
+            }
 
             // 3) DETAIL ARRAYS
             $codes = $request->input('fitemcode', []);
@@ -1418,7 +1424,7 @@ class FakturpembelianController extends Controller
                 ]);
             }
 
-            $ppnAmount = (float) $request->input('famountpopajak', 0);
+            $ppnAmount = $fapplyppn === 1 ? (float) $request->input('famountpajak', 0) : 0.0;
             $grandTotal = $subtotal + $ppnAmount;
 
             if ((string) $ftypebuy === '2' && $subtotal <= 0) {
@@ -1444,6 +1450,7 @@ class FakturpembelianController extends Controller
                 $ftempohr,
                 $fincludeppn,
                 $fapplyppn,
+                $fppnpersen,
                 $ftypebuy,
                 $frefno,
                 $frefpo,
@@ -1541,7 +1548,7 @@ class FakturpembelianController extends Controller
                     'fbranchcode' => $kodeCabang,
                     'fincludeppn' => $fincludeppn,
                     'fapplyppn' => $fapplyppn,
-                    'fppnpersen' => $request->input('ppn_rate', 0),
+                    'fppnpersen' => $fppnpersen,
                     'ftempohr' => $ftempohr,
                     'ftypebuy' => $ftypebuy,
                     'fprdout' => '0',
@@ -2028,11 +2035,16 @@ class FakturpembelianController extends Controller
             }
             $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
-            $fppnpersen = (float) $request->input('ppn_rate', 0);
+            if ($fapplyppn === 0) {
+                $fincludeppn = 0;
+                $fppnpersen = 0;
+                $ppnAmount = 0.0;
+            } else {
+                $fppnpersen = (float) $request->input('ppn_rate', 0);
+                $ppnAmount = (float) $request->input('famountpajak', 0);
+            }
             $frefno = $request->input('frefno');
             $frefpo = $request->input('frefpo');
-
-            $ppnAmount = (float) $request->input('famountpajak', 0);
             $now = now();
 
             // DETAIL ARRAYS
