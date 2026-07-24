@@ -109,6 +109,32 @@
             -webkit-text-fill-color: #9ca3af !important;
             font-weight: normal !important;
         }
+
+        .btn-desc-filled {
+            background-color: #16a34a !important;
+            color: #ffffff !important;
+            border-color: #15803d !important;
+        }
+
+        .btn-desc-filled:hover {
+            background-color: #15803d !important;
+            color: #ffffff !important;
+        }
+
+        .btn-desc-filled svg {
+            color: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .btn-desc-empty {
+            background-color: #ffffff !important;
+            color: #6b7280 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .btn-desc-empty:hover {
+            background-color: #f9fafb !important;
+        }
     </style>
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
@@ -366,8 +392,8 @@
                                                         {{ $it['fitemname'] }}</div>
                                                     <button type="button"
                                                         @click="descItemName = '{{ addslashes($it['fitemname']) }}'; descValue = '{{ addslashes($it['fdesc']) }}'; showDescModal = true"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors"
-                                                        :class="'{{ $it['fdesc'] }}' ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-slate-200 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="'{{ $it['fdesc'] }}' ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
@@ -799,10 +825,8 @@
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="row.fitemname || '-'"></div>
                                                     <button type="button" @click="openDesc(row)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors"
-                                                        :class="row.fdesc ?
-                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
-                                                            'border-slate-200 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="row.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>

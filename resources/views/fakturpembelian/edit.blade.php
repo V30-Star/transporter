@@ -156,6 +156,32 @@
             -webkit-text-fill-color: #9ca3af !important;
             font-weight: normal !important;
         }
+
+        .btn-desc-filled {
+            background-color: #16a34a !important;
+            color: #ffffff !important;
+            border-color: #15803d !important;
+        }
+
+        .btn-desc-filled:hover {
+            background-color: #15803d !important;
+            color: #ffffff !important;
+        }
+
+        .btn-desc-filled svg {
+            color: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .btn-desc-empty {
+            background-color: #ffffff !important;
+            color: #6b7280 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .btn-desc-empty:hover {
+            background-color: #f9fafb !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -503,8 +529,8 @@
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                            title="Deskripsi">
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
@@ -990,8 +1016,7 @@
                                                                 style="flex:1 1 auto !important; min-width:0 !important;"
                                                                 x-text="it.fitemname"></div>
                                                             <button type="button" @click="openDesc('saved', i)"
-                                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
-                                                                style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r-lg px-2 py-1 transition-colors"
                                                                 :class="descButtonClass(it.fdesc)" title="Deskripsi">
                                                                 <x-heroicon-o-document-text class="w-4 h-4" />
                                                             </button>
@@ -2444,7 +2469,7 @@
                             frefpr: src.fnouref ?? fnourefVal,
                             fqtyterima: +(src.fqtyterima || 0),
                             fqtysisa_source: Number(src.fqtysisa ?? sourceLimit ?? 0),
-                            fqtyremain_source: Number(src.fqtyremain ?? sourceQtyKecil ?? 0),
+                            fqtyremain_source: Number(src.fqtysisa ?? sourceQtyKecil ?? 0),
 
                             // Data quantity
                             fqty: (src.fqtykecil !== null && src.fqtykecil !== undefined) ?
@@ -2649,8 +2674,8 @@
                 },
                 descButtonClass(value) {
                     return this.hasDesc(value) ?
-                        'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' :
-                        'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                        'btn-desc-filled font-medium' :
+                        'btn-desc-empty';
                 },
                 getDescRow(target = 'saved', index = null) {
                     if (target === 'saved' && index !== null) {
