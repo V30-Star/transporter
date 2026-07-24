@@ -240,6 +240,24 @@
         $nextInvoiceItemIndex = empty($oldInvoiceIndexes)
             ? count($savedItems ?? [])
             : max(array_map('intval', $oldInvoiceIndexes)) + 1;
+
+        $invoiceTempoDays = old('ftempohr');
+        if ($invoiceTempoDays === null) {
+            $invoiceDate = old('fsodate', $invoice->fsodate ?? null);
+            $invoiceDueDate = old('fjatuhtempo', $invoice->fjatuhtempo ?? null);
+
+            if ($invoiceDate && $invoiceDueDate) {
+                try {
+                    $invoiceTempoDays = \Carbon\Carbon::parse($invoiceDate)
+                        ->startOfDay()
+                        ->diffInDays(\Carbon\Carbon::parse($invoiceDueDate)->startOfDay(), false);
+                } catch (\Throwable $e) {
+                    $invoiceTempoDays = $invoice->ftempohr ?? 0;
+                }
+            } else {
+                $invoiceTempoDays = $invoice->ftempohr ?? 0;
+            }
+        }
     @endphp
     @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -426,7 +444,7 @@
                            <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
                                 readonly
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
                                 placeholder="Masukkan jumlah hari">
@@ -482,8 +500,9 @@
                                 document.getElementById('fsodate').addEventListener('change', calculateDueDate);
                                 document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                                // Initial calculation
-                                calculateDueDate();
+                                if (!@json(old('fjatuhtempo') !== null)) {
+                                    calculateDueDate();
+                                }
                             });
                         </script>
                                 <div class="flex flex-col">
@@ -1199,7 +1218,7 @@
                                     <div>
                                         <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                                         <input type="number" id="ftempohr" name="ftempohr"
-                                            value="{{ old('ftempohr', $invoice->ftempohr) }}"
+                                            value="{{ old('ftempohr', $invoiceTempoDays) }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
                                             placeholder="Masukkan jumlah hari">
                                         @error('ftempohr')
@@ -1253,8 +1272,9 @@
                                         document.getElementById('fsodate').addEventListener('change', calculateDueDate);
                                         document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                                        // Initial calculation
-                                        calculateDueDate();
+                                        if (!@json(old('fjatuhtempo') !== null)) {
+                                            calculateDueDate();
+                                        }
                                     });
                                 </script>
 
@@ -2184,7 +2204,11 @@
         taxInput.value = String(invoiceInput.value ?? '').trim();
     };
 
-    window.syncInvoiceTempoFromSource = function(days) {
+    window.invoicePreserveOldTempo = @json(old('ftempohr') !== null || old('fjatuhtempo') !== null);
+
+    window.syncInvoiceTempoFromSource = function(days, options = {}) {
+        if (window.invoicePreserveOldTempo && !options.force) return;
+
         const tempoInput = document.getElementById('ftempohr');
         if (!tempoInput) return;
         const numericDays = Number(days ?? 0);
@@ -2269,6 +2293,10 @@
         window.syncInvoiceSalesmanFromCustomer(event.detail || null);
     });
 
+    window.addEventListener('customer-browse-open', function() {
+        window.invoicePreserveOldTempo = false;
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const select = document.getElementById('modal_filter_customer_id');
         const invoiceInput = document.querySelector('input[name="fsono"]');
@@ -2285,7 +2313,9 @@
         }
 
         window.syncInvoiceCustomerTaxCode(null, true);
-        window.syncInvoiceTempoFromCustomer();
+        if (!window.invoicePreserveOldTempo) {
+            window.syncInvoiceTempoFromCustomer();
+        }
         window.syncInvoiceTaxNoFromInvoiceNo();
     });
 
@@ -2535,13 +2565,13 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
-            ppnRate: @json($invoice->fppnpersen ?? 11),
+            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $invoice->fppnpersen ?? 11))),
 
             initialGrandTotal: @json($invoice->famountso ?? 0),
             initialPpnAmount: @json($invoice->famountpajak ?? 0),
 
-            includePPN: @json($invoice->fincludeppn == '1'),
-            fapplyppn: @json((int) ($invoice->fapplyppn ?? 0)),
+            includePPN: @json(old('_token') !== null ? old('fincludeppn') == '1' : ($invoice->fincludeppn ?? '0') == '1'),
+            fapplyppn: @json((int) (old('_token') !== null ? old('fapplyppn', 0) : ($invoice->fapplyppn ?? 0))),
             action: @js($action ?? 'edit'),
 
             get headerDiscAmount() {

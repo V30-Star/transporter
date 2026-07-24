@@ -1678,7 +1678,7 @@ class InvoiceController extends Controller
 
                     // Tentukan prefix berdasarkan jenis penjualan
                     if ($isAdvancePayment) {
-                        $prefix = sprintf('UM.%s.%s%s.', $branchCode, $year, $month);
+                        $prefix = sprintf('UMJ.%s.%s%s.', $branchCode, $year, $month);
                     } else {
                         $prefix = sprintf('INV.%s.%s%s.', $branchCode, $year, $month);
                     }
