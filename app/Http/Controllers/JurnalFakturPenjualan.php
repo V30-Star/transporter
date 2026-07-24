@@ -11,22 +11,22 @@ class JurnalFakturPenjualan
     private const JURNAL_TYPE = 'SLS';
 
     /**
-     * Nama-nama akun (faccount_name) di tabel set_account.
+     * Nama-nama akun (faccname) di tabel account.
      * Ini menggantikan konstanta MEMO_DEBIT_ACCOUNT / MEMO_CREDIT_ACCOUNT
      * yang sebelumnya hardcode kode akun. Sekarang kode akun (faccount)
-     * diambil dari tabel set_account berdasarkan faccount_name berikut,
+     * diambil dari tabel account berdasarkan faccname berikut,
      * setara dengan properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_JUALTUNAI          = 'PENJUALANTUNAI';
-    private const ACCOUNT_PIUTANG            = 'PIUTANGDAGANG';
-    private const ACCOUNT_UMSALES            = 'UANGMUKAPENJUALAN';
-    private const ACCOUNT_DISCSALES          = 'DISCPENJUALAN';
-    private const ACCOUNT_SALDOAWAL          = 'SALDOAWAL';
+    private const ACCOUNT_JUALTUNAI          = 'CASH VALAS';
+    private const ACCOUNT_PIUTANG            = 'PIUTANG USAHA';
+    private const ACCOUNT_UMSALES            = 'UANG MUKA PENJUALAN';
+    private const ACCOUNT_DISCSALES          = 'DISCOUNT PENJUALAN';
+    private const ACCOUNT_SALDOAWAL          = 'SALDO AWAL';
     private const ACCOUNT_SALES              = 'PENJUALAN';
-    private const ACCOUNT_PPNSALES           = 'PPNJUAL';
-    private const ACCOUNT_SELISIHPEMBULATAN  = 'SELISIHPEMBULATAN';
+    private const ACCOUNT_PPNSALES           = 'PPN';
+    private const ACCOUNT_SELISIHPEMBULATAN  = 'SELISIH HARGA JUAL';
 
-    /** Cache kode akun per faccount_name supaya tidak query berulang dalam 1 request. */
+    /** Cache kode akun per faccname supaya tidak query berulang dalam 1 request. */
     private static array $accountCodeCache = [];
 
     public static function sync(
@@ -312,8 +312,8 @@ class JurnalFakturPenjualan
     }
 
     /**
-     * Ambil kode akun (kolom faccount) dari tabel set_account berdasarkan
-     * faccount_name. Hasil di-cache per request supaya tidak query berulang
+     * Ambil kode akun (kolom faccount) dari tabel account berdasarkan
+     * faccname. Hasil di-cache per request supaya tidak query berulang
      * untuk nama akun yang sama.
      */
     private static function accountCode(string $accountName): string
@@ -322,13 +322,13 @@ class JurnalFakturPenjualan
             return self::$accountCodeCache[$accountName];
         }
 
-        $faccount = DB::table('set_account')
-            ->where('faccount_name', $accountName)
+        $faccount = DB::table('account')
+            ->where('faccname', $accountName)
             ->value('faccount');
 
         if ($faccount === null || trim((string) $faccount) === '') {
             throw ValidationException::withMessages([
-                'set_account' => "Kode akun untuk '{$accountName}' belum diset pada tabel set_account.",
+                'account' => "Kode akun untuk '{$accountName}' belum diset pada tabel account.",
             ]);
         }
 

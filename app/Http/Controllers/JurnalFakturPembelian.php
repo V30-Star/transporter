@@ -11,23 +11,23 @@ class JurnalFakturPembelian
     private const JURNAL_TYPE = 'JBL';
 
     /**
-     * Nama-nama akun (faccount_name) di tabel set_account.
+     * Nama-nama akun (faccname) di tabel account.
      * Setara properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_HUTANG                  = 'HUTANGDAGANG';
-    private const ACCOUNT_UMBUY                    = 'UANGMUKAPEMBELIAN';
-    private const ACCOUNT_SALDOAWAL                 = 'SALDOAWAL';
+    private const ACCOUNT_HUTANG                  = 'HUTANG DAGANG';
+    private const ACCOUNT_UMBUY                    = 'UANG MUKA PEMBELIAN';
+    private const ACCOUNT_SALDOAWAL                 = 'SALDO AWAL';
     private const ACCOUNT_PEMBELIAN                 = 'PEMBELIAN';
-    private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'FAKTURBELIYGBLMDITAGIH';
-    private const ACCOUNT_PPNBELI                   = 'PPNBELI';
-    private const ACCOUNT_SELISIHBAYAR              = 'SELISIHPEMBULATAN';
+    private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'PENERIMAAN PRODUK BELUM DITAGIH';
+    private const ACCOUNT_PPNBELI                   = 'PPN';
+    private const ACCOUNT_SELISIHBAYAR              = 'SELISIH HARGA JUAL';
 
     /** Trancode index — setara cbftrancode.ItemIndex di Delphi */
     private const TRANCODE_STOK    = 0; // persediaan normal
     private const TRANCODE_NONSTOK = 1; // non stok, akun diambil dari $toAccount
     private const TRANCODE_UM      = 2; // uang muka pembelian
 
-    /** Cache kode akun per (faccount_name|currency) supaya tidak query berulang dalam 1 request. */
+    /** Cache kode akun per (faccname|currency) supaya tidak query berulang dalam 1 request. */
     private static array $accountCodeCache = [];
 
     public static function sync(
@@ -368,8 +368,8 @@ class JurnalFakturPembelian
     }
 
     /**
-     * Ambil kode akun (kolom faccount) dari tabel set_account berdasarkan
-     * faccount_name. Jika $currency diisi, coba cari akun spesifik untuk
+     * Ambil kode akun (kolom faccount) dari tabel account berdasarkan
+     * faccname. Jika $currency diisi, coba cari akun spesifik untuk
      * currency tsb terlebih dahulu (mis. hutang dagang per mata uang),
      * lalu fallback ke akun default (tanpa filter currency) jika tidak ada.
      * Hasil di-cache per request.
@@ -384,21 +384,21 @@ class JurnalFakturPembelian
         $faccount = null;
 
         if ($currency !== null && $currency !== '' && $currency !== 'IDR') {
-            $faccount = DB::table('set_account')
-                ->where('faccount_name', $accountName)
+            $faccount = DB::table('account')
+                ->where('faccname', $accountName)
                 ->where('fcurrency', $currency)
                 ->value('faccount');
         }
 
         if ($faccount === null) {
-            $faccount = DB::table('set_account')
-                ->where('faccount_name', $accountName)
+            $faccount = DB::table('account')
+                ->where('faccname', $accountName)
                 ->value('faccount');
         }
 
         if ($faccount === null || trim((string) $faccount) === '') {
             throw ValidationException::withMessages([
-                'set_account' => "Kode akun untuk '{$accountName}' belum diset pada tabel set_account.",
+                'account' => "Kode akun untuk '{$accountName}' belum diset pada tabel account.",
             ]);
         }
 
