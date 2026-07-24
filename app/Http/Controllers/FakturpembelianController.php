@@ -1333,15 +1333,6 @@ class FakturpembelianController extends Controller
                 return back()->withErrors($errors)->withInput();
             }
 
-            // if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo)) {
-            //     if ($request->expectsJson()) {
-            //         return response()->json(['message' => $validationMessage], 422);
-            //     }
-            //     return back()->withInput()->withErrors([
-            //         'detail' => $validationMessage,
-            //     ]);
-            // }
-
             for ($i = 0; $i < count($codes); $i++) {
                 $code = trim((string) ($codes[$i] ?? ''));
                 $qty = (float) ($qtys[$i] ?? 0);
@@ -2153,12 +2144,6 @@ class FakturpembelianController extends Controller
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
             }
-
-            // if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo, $header->fstockmtno)) {
-            //     return back()->withInput()->withErrors([
-            //         'detail' => $validationMessage,
-            //     ]);
-            // }
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $code = trim((string) ($codes[$i] ?? ''));

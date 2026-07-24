@@ -110,19 +110,28 @@ class JurnalFakturPembelian
         ), 2);
 
         // Persediaan / Non Stok / Uang Muka
-        $persediaanQuery = DB::table('trstockdt')
-            ->where('fstockmtno', $fstockmtno)
-            ->where(function ($q) {
-                $q->where('fcode', 'P')->orWhereNull('fcode')->orWhere('fcode', '');
-            });
+        if ($trancodeIndex === self::TRANCODE_UM) {
+            // Untuk Uang Muka Pembelian (ftypebuy = 2), ambil total harga seluruh item detail
+            $nPersediaan = round((float) DB::table('trstockdt')
+                ->where('fstockmtno', $fstockmtno)
+                ->sum('ftotprice_rp'), 2);
 
-        if ($trancodeIndex !== self::TRANCODE_UM) {
-            $persediaanQuery->where('fprdcode', '<>', 'UM');
+            // Fallback ke nominal header (famountmt_rp) jika detail belum terisi
+            if ($nPersediaan <= 0) {
+                $nPersediaan = $famountMTRp;
+            }
+        } else {
+            // Transaksi Normal / Non Stok
+            $nPersediaan = round((float) DB::table('trstockdt')
+                ->where('fstockmtno', $fstockmtno)
+                ->where('fprdcode', '<>', 'UM')
+                ->where(function ($q) {
+                    $q->where('fcode', 'P')->orWhereNull('fcode')->orWhere('fcode', '');
+                })
+                ->sum('ftotprice_rp'), 2);
         }
 
-        $nPersediaan = round((float) $persediaanQuery->sum('ftotprice_rp'), 2);
-
-        // Kurangi uang muka
+        // Kurangi uang muka (hanya berlaku jika BUKAN transaksi Uang Muka Pembelian)
         $nKurangiUangMuka = 0.0;
         if ($trancodeIndex !== self::TRANCODE_UM) {
             $nKurangiUangMuka = round((float) (
