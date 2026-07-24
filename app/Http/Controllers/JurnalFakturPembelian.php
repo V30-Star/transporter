@@ -14,8 +14,8 @@ class JurnalFakturPembelian
      * Nama-nama akun (faccount_name) di tabel set_account.
      * Setara properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_HUTANG                  = 'HUTANG';
-    private const ACCOUNT_UMBUY                    = 'UMBUY';
+    private const ACCOUNT_HUTANG                  = 'HUTANGDAGANG';
+    private const ACCOUNT_UMBUY                    = 'UANGMUKAPEMBELIAN';
     private const ACCOUNT_SALDOAWAL                 = 'SALDOAWAL';
     private const ACCOUNT_PEMBELIAN                 = 'PEMBELIAN';
     private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'FAKTURBELIYGBLMDITAGIH';

@@ -1546,15 +1546,17 @@ class FakturpembelianController extends Controller
                 );
             });
 
+            $successMessage = 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil di simpan.';
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Data berhasil disimpan',
+                    'message' => $successMessage,
                     'redirect_url' => route('fakturpembelian.create'),
                 ]);
             }
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', 'Data berhasil disimpan');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
             if ($request->expectsJson()) {
@@ -2302,16 +2304,18 @@ class FakturpembelianController extends Controller
                 );
             });
 
+            $successMessage = 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil di update.';
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil diupdate.',
+                    'message' => $successMessage,
                     'redirect_url' => route('fakturpembelian.index'),
                 ]);
             }
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1) . ' berhasil diupdate.');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([

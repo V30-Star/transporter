@@ -897,6 +897,11 @@
 
                     if (response.ok) {
                         const data = await response.clone().json().catch(() => null);
+                        if (data?.message && data?.redirect_url) {
+                            sessionStorage.setItem('app.pendingSuccessMessage', data.message);
+                            window.location.href = data.redirect_url;
+                            return;
+                        }
                         if (data?.message) {
                             await window.showAppSuccessToast(data.message);
                         }
@@ -1431,6 +1436,7 @@
     @if (session('success'))
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+                sessionStorage.removeItem('app.pendingSuccessMessage');
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
@@ -1538,6 +1544,17 @@
                     return;
                 }
 
+                window.showAppSuccessToast(successMessage);
+            });
+        </script>
+    @endif
+    @if (!session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const successMessage = sessionStorage.getItem('app.pendingSuccessMessage');
+                if (!successMessage) return;
+
+                sessionStorage.removeItem('app.pendingSuccessMessage');
                 window.showAppSuccessToast(successMessage);
             });
         </script>
