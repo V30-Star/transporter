@@ -1450,7 +1450,7 @@ class InvoiceController extends Controller
             if (! empty($invalidAdvanceCodes)) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.');
+                    ->with('error', "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka saja.");
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
@@ -2604,7 +2604,7 @@ class InvoiceController extends Controller
             if (! empty($invalidAdvanceCodes)) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Tipe Penjualan: Uang Muka.<br>Hanya boleh input Uang Muka saja.');
+                    ->with('error', "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka saja.");
             }
             if (! $hasUM) {
                 return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
