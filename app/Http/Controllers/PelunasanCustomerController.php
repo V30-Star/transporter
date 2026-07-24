@@ -398,7 +398,7 @@ class PelunasanCustomerController extends Controller
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $this->resolveHeaderDk($netPaymentAmount),
-                'fcustomer' => $customer->fcustomerid,
+                'fcustomercode' => $customer->fcustomercode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $netPaymentAmount,
                 'famountpay_rp' => $netPaymentAmount,
@@ -594,7 +594,7 @@ class PelunasanCustomerController extends Controller
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $this->resolveHeaderDk($netPaymentAmount),
-                'fcustomer' => $customer->fcustomerid,
+                'fcustomercode' => $customer->fcustomercode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $netPaymentAmount,
                 'famountpay_rp' => $netPaymentAmount,
@@ -1157,9 +1157,9 @@ class PelunasanCustomerController extends Controller
             $selectedCustomer = Customer::query()
                 ->where('fcustomercode', $customerCode)
                 ->first(['fcustomerid', 'fcustomercode', 'fcustomername', 'ftempo']);
-        } elseif ($header && !empty($header->fcustomer)) {
+        } elseif ($header && !empty($header->fcustomercode)) {
             $selectedCustomer = Customer::query()
-                ->where('fcustomerid', $header->fcustomer)
+                ->where('fcustomercode', $header->fcustomercode)
                 ->first(['fcustomerid', 'fcustomercode', 'fcustomername', 'ftempo']);
         }
 

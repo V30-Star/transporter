@@ -292,7 +292,7 @@ class BayarSupplierController extends Controller
 
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
-            $customerId = null;
+            $customerCode = null;
             foreach ($detailRows as $row) {
                 $refNo = trim((string) ($row['frefno'] ?? ''));
                 $reference = $references[$refNo] ?? null;
@@ -300,7 +300,7 @@ class BayarSupplierController extends Controller
                 if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
                     $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
                     if ($customer) {
-                        $customerId = $customer->fcustomerid;
+                        $customerCode = $customer->fcustomercode;
                         break;
                     }
                 }
@@ -317,7 +317,7 @@ class BayarSupplierController extends Controller
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
-                'fcustomer' => $customerId,
+                'fcustomercode' => $customerCode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
                 'famountpay_rp' => $totalKasKeluar,
@@ -516,7 +516,7 @@ class BayarSupplierController extends Controller
         DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $header, $references) {
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
-            $customerId = null;
+            $customerCode = null;
             foreach ($detailRows as $row) {
                 $refNo = trim((string) ($row['frefno'] ?? ''));
                 $reference = $references[$refNo] ?? null;
@@ -524,7 +524,7 @@ class BayarSupplierController extends Controller
                 if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
                     $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
                     if ($customer) {
-                        $customerId = $customer->fcustomerid;
+                        $customerCode = $customer->fcustomercode;
                         break;
                     }
                 }
@@ -538,7 +538,7 @@ class BayarSupplierController extends Controller
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
-                'fcustomer' => $customerId,
+                'fcustomercode' => $customerCode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
                 'famountpay_rp' => $totalKasKeluar,

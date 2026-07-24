@@ -274,8 +274,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as t', 't.faccount', '=', 'm.faccountheader')
             ->leftJoin('mscustomer as c', function ($join) {
-                $join->whereRaw("CAST(c.fcustomerid AS text) = TRIM(CAST(m.fcustomer AS text))")
-                    ->orWhereRaw("TRIM(c.fcustomercode) = TRIM(CAST(m.fcustomer AS text))");
+                $join->whereRaw("TRIM(c.fcustomercode) = TRIM(COALESCE(m.fcustomercode, ''))");
             })
             ->leftJoin('tranmt as n', 'd.frefno', '=', 'n.fsono')
             ->leftJoinSub(
@@ -288,14 +287,13 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'INV'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
+            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $reject = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as t', 't.faccount', '=', 'm.faccountheader')
             ->leftJoin('mscustomer as c', function ($join) {
-                $join->whereRaw("CAST(c.fcustomerid AS text) = TRIM(CAST(m.fcustomer AS text))")
-                    ->orWhereRaw("TRIM(c.fcustomercode) = TRIM(CAST(m.fcustomer AS text))");
+                $join->whereRaw("TRIM(c.fcustomercode) = TRIM(COALESCE(m.fcustomercode, ''))");
             })
             ->leftJoin('trstockmt as n', 'd.frefno', '=', 'n.fstockmtno')
             ->leftJoinSub(
@@ -308,7 +306,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'REJ'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
+            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $this->applyFilters($invoice, $filters, 'n.fsalesman');
         $this->applyFilters($reject, $filters, 'n.fsalesman');
@@ -344,11 +342,11 @@ class ReportingPelunasanCustomerController extends Controller
         }
 
         if ($filters['customer_from'] !== '') {
-            $query->whereRaw("TRIM(COALESCE(c.fcustomercode, CAST(m.fcustomer AS text))) >= ?", [$filters['customer_from']]);
+            $query->whereRaw("TRIM(COALESCE(c.fcustomercode, m.fcustomercode, '')) >= ?", [$filters['customer_from']]);
         }
 
         if ($filters['customer_to'] !== '') {
-            $query->whereRaw("TRIM(COALESCE(c.fcustomercode, CAST(m.fcustomer AS text))) <= ?", [$filters['customer_to']]);
+            $query->whereRaw("TRIM(COALESCE(c.fcustomercode, m.fcustomercode, '')) <= ?", [$filters['customer_to']]);
         }
     }
 }
