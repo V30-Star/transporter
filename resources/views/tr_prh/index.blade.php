@@ -323,16 +323,7 @@
                 return normalized === '2' || (normalized !== '' && !['0', '1', '2'].includes(normalized));
             };
 
-            const isEditBlockedApproval = (row) => {
-                const left = (row?.fapproval ?? '').toString().trim();
-                const right = (row?.fapproval2 ?? '').toString().trim();
-
-                if (isApprovedValue(left) || isApprovedValue(right)) {
-                    return false;
-                }
-
-                return left === '1' || right === '1';
-            };
+            const isEditBlockedApproval = (row) => false;
 
             const renderPrStatus = (row) => {
                 const closeValue = (row?.fclose ?? '').toString().trim();

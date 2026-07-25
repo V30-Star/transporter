@@ -42,7 +42,7 @@ class Tr_prhController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        return in_array('approvePR', explode(',', session('user_restricted_permissions', '')));
+        return true;
     }
 
     private function getApprovalRecipients(): array
@@ -395,8 +395,6 @@ class Tr_prhController extends Controller
             $ketdts,
             $productMap
         ) {
-            $isApproval = $this->canApprovePurchaseRequest() ? (int) ($request->input('fapproval', 0)) : 0;
-
             $tr_prh = Tr_prh::create([
                 'fprno' => $fprno,
                 'fprdate' => $fprdate,
@@ -409,10 +407,10 @@ class Tr_prhController extends Controller
                 'fneeddate' => $fneeddate,
                 'fduedate' => $fduedate,
                 'fusercreate' => $userName,
-                'fuserapproved' => $request->has('fuserapproved') ? $userName : null,
-                'fdateapproved' => $request->has('fuserapproved') ? now() : null,
+                'fuserapproved' => $userName,
+                'fdateapproved' => now(),
                 'fupdatedat' => null,
-                'fapproval' => $isApproval,
+                'fapproval' => 1,
             ]);
 
             $detailRows = [];
@@ -455,29 +453,6 @@ class Tr_prhController extends Controller
             }
 
             Tr_prd::insert($detailRows);
-
-            if ($isApproval === 1) {
-                $dt = Tr_prd::query()
-                    ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
-                    ->where('tr_prd.fprno', $tr_prh->fprno)
-                    ->orderBy('p.fprdname')
-                    ->get([
-                        'tr_prd.*',
-                        'p.fprdname as product_name',
-                        'p.fprdcode as product_code',
-                        'p.fminstock as stock',
-                    ]);
-
-                $productNameList = $dt->pluck('product_name')->implode(', ');
-                $approver = auth('sysuser')->user()->fname ?? $tr_prh->fusercreate ?? 'System';
-
-                $approvalRecipients = $this->getApprovalRecipients();
-                if ($approvalRecipients !== []) {
-                    Mail::to($approvalRecipients[0])
-                        ->cc(array_slice($approvalRecipients, 1))
-                        ->send(new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)'));
-                }
-            }
         });
 
         return redirect()->route('tr_prh.create')
@@ -673,7 +648,6 @@ class Tr_prhController extends Controller
             $userName = $this->getAuthenticatedUserName('system');
             $usedNoAcaks = [];
 
-            $approveNow = $this->canApprovePurchaseRequest() && $request->boolean('fapproval');
             $headerUpdate = [
                 'fprdate' => $fprdate,
                 'fsupplier' => $request->filled('fsupplier') ? trim((string) $request->fsupplier) : $header->fsupplier,
@@ -684,12 +658,8 @@ class Tr_prhController extends Controller
                 'fuserupdate' => $userName,
                 'fupdatedat' => $now,
                 'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
+                'fapproval' => 1,
             ];
-            if ($approveNow && (empty($header->fuserapproved) && (int) $header->fapproval !== 1)) {
-                $headerUpdate['fapproval'] = 1;
-                $headerUpdate['fuserapproved'] = $userName;
-                $headerUpdate['fdateapproved'] = $now;
-            }
             Tr_prh::where('fprhid', $header->fprhid)->update($headerUpdate);
 
             $submittedIds = array_filter($idsIn);
