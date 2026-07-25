@@ -37,6 +37,71 @@ class InvoiceController extends Controller
         return str_replace('/', '.', $normalized);
     }
 
+    private function validateInvoiceStockLines(array $rows, bool $forceSave = false)
+    {
+        $needs = [];
+
+        foreach ($rows as $row) {
+            $code = trim((string) ($row['fprdcode'] ?? ''));
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+
+            if ($code === '' || $qtyKecil <= 0 || in_array(strtoupper($code), ['UM', 'AWAL'], true)) {
+                continue;
+            }
+
+            $needs[$code] = ($needs[$code] ?? 0) + $qtyKecil;
+        }
+
+        if (empty($needs)) {
+            return null;
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', array_keys($needs))
+            ->get(['fprdcode', 'fprdname', 'fminstock'])
+            ->keyBy('fprdcode');
+
+        $shortages = [];
+        foreach ($needs as $code => $required) {
+            $product = $products->get($code);
+            $available = (float) ($product->fminstock ?? 0);
+
+            if ($available + 0.000001 >= $required) {
+                continue;
+            }
+
+            $shortages[] = [
+                'fprdcode' => $code,
+                'fprdname' => trim((string) ($product->fprdname ?? $code)),
+                'available' => $available,
+                'required' => $required,
+            ];
+        }
+
+        if (empty($shortages) || ($forceSave && stock_boleh_minus())) {
+            return null;
+        }
+
+        $messageLines = array_map(function ($i, $row) {
+            $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
+
+            return ($i + 1) . '. ' . $row['fprdname'] . ' - Stok => ' . $available;
+        }, array_keys($shortages), $shortages);
+
+        $message = "Produk ini Qty Stok tidak cukup :\n \n" . implode("\n", $messageLines);
+
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'status' => 'insufficient_stock',
+                'message' => $message . (stock_boleh_minus() ? "\n \nApakah anda ingin melanjutkan penyimpanan?" : ''),
+                'allow_force' => stock_boleh_minus(),
+                'products' => $shortages,
+            ], 422);
+        }
+
+        return back()->withInput()->with('error', $message);
+    }
+
     private ?bool $tranmtHasInternalNoteColumn = null;
 
     private function resolveProductDefaultUnit($product): string
@@ -1541,6 +1606,10 @@ class InvoiceController extends Controller
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacakVal));
         }
 
+        if ($stockResponse = $this->validateInvoiceStockLines($detailRows, $request->boolean('force_save'))) {
+            return $stockResponse;
+        }
+
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
         if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
@@ -2698,6 +2767,10 @@ class InvoiceController extends Controller
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacakVal));
 
             $detailRows[] = $rowData;
+        }
+
+        if ($stockResponse = $this->validateInvoiceStockLines($detailRows, $request->boolean('force_save'))) {
+            return $stockResponse;
         }
 
         [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildInvoiceReferenceRestoreMaps($header->fsono);
