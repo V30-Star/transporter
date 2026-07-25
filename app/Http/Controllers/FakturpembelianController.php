@@ -1288,7 +1288,7 @@ class FakturpembelianController extends Controller
             ], [
                 'ffrom.required' => 'Gudang wajib diisi.',
                 'frefno.required' => 'No faktur wajib diisi.',
-                'frefpo.required' => 'Nomor Faktur Pajak wajib diisi ketika PPN dicentang.',
+                'frefpo.required' => 'Faktur Pajak wajib diisi ketika PPN dicentang.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
@@ -2094,7 +2094,7 @@ class FakturpembelianController extends Controller
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'frefno.required' => 'No. faktur wajib diisi.',
-                'frefpo.required' => 'Nomor Faktur Pajak wajib diisi ketika PPN dicentang.',
+                'frefpo.required' => 'Faktur Pajak wajib diisi ketika PPN dicentang.',
                 'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
                 'fprdjadi.required_if' => 'Account wajib diisi.',
                 'fdiscpersen.*.regex' => 'Format diskon harus angka atau 10+2.',

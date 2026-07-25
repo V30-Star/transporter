@@ -463,9 +463,9 @@
                             </div>
 
                             <div class="grid grid-cols-3 gap-3">
-                                {{-- Nomor Faktur Pajak --}}
+                                {{-- Faktur Pajak --}}
                                 <div>
-                                    <label class="block text-xs font-bold mb-1">Nomor Faktur Pajak <span class="text-red-500" x-show="includePPN">*</span></label>
+                                    <label class="block text-xs font-bold mb-1">Faktur Pajak <span class="text-red-500" x-show="includePPN">*</span></label>
                                     <input type="text" name="frefpo" value="{{ old('frefpo') }}" :required="includePPN"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror">
                                     @error('frefpo')
@@ -545,13 +545,13 @@
                                         <col style="width:2%;">
                                         <col style="width:12%;">
                                         <col style="width:20%;">
-                                        <col style="width:10%;">
+                                        <col style="width:13%;">
                                         <col style="width:8%;">
                                         <col style="width:7%;">
                                         <col style="width:10%;">
-                                        <col style="width:10%;">
+                                        <col style="width:8%;">
                                         <col style="width:6%;">
-                                        <col style="width:12%;">
+                                        <col style="width:11%;">
                                         <col style="width:3%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
