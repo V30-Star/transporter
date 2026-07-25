@@ -346,14 +346,13 @@
 
             const renderOtorisasi = (row) => {
                 const left = (row?.fapproval ?? '').toString().trim();
-                const right = (row?.fapproval2 ?? '').toString().trim();
 
                 let val = '0';
-                if (left === '2' || right === '2') {
+                if (left === '2') {
                     val = '2';
-                } else if (left === '1' || right === '1') {
+                } else if (left === '1') {
                     val = '1';
-                } else if (left === '0' || right === '0') {
+                } else if (left === '0') {
                     val = '0';
                 }
 

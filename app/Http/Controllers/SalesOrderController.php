@@ -242,129 +242,6 @@ class SalesOrderController extends Controller
         return in_array('createSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
     }
 
-    private function getApprovalRecipients(): array
-    {
-        return array_values(array_filter([
-            trim((string) config('approval.sales_order.stage1', '')),
-            trim((string) config('approval.sales_order.stage2', '')),
-        ]));
-    }
-
-    private function sendApprovalNotification(string $fsono, string $approver): void
-    {
-        $header = DB::table('trsomt as so')
-            ->leftJoin('mscustomer as c', 'so.fcustno', '=', 'c.fcustomercode')
-            ->leftJoin('mssalesman as s', 'so.fsalesman', '=', 's.fsalesmancode')
-            ->where('so.fsono', $fsono)
-            ->first([
-                'so.*',
-                'c.fcustomername',
-                's.fsalesmanname',
-            ]);
-
-        if (! $header) {
-            return;
-        }
-
-        $items = DB::table('trsodt as d')
-            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->where('d.fsono', $fsono)
-            ->get([
-                'd.fprdcode',
-                'd.fdesc',
-                'd.fqty',
-                'd.fprice',
-                'd.famount',
-                'd.fsatuan',
-                'p.fprdname',
-            ])
-            ->map(fn($item) => [
-                'code' => $item->fprdcode,
-                'name' => trim(($item->fprdname ?? '-') . (! empty($item->fdesc) ? ' / ' . $item->fdesc : '')),
-                'qty' => number_format((float) $item->fqty, 2, ',', '.') . ' ' . ($item->fsatuan ?? ''),
-                'price' => format_number($item->fprice ?? 0),
-                'total' => format_number($item->famount ?? 0),
-            ])
-            ->all();
-
-        $fields = [
-            ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
-            ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
-            ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
-            ['label' => 'Persetujuan Kredit', 'value' => $header->fuseracc ?? '-'],
-            ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
-            ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
-        ];
-
-        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
-
-        if (! empty($recipients[0]) && ! empty($header->fapproval_token)) {
-            Mail::to($recipients[0])->send(new GenericApprovalNotification(
-                'Approval Sales Order',
-                'Sales Order Approval',
-                $fsono,
-                $approver,
-                route('approval.salesorder.page', ['fsono' => $fsono, 'token' => $header->fapproval_token]),
-                $fields,
-                $items
-            ));
-        }
-
-        if (! empty($recipients[1]) && ! empty($header->fapproval_token2)) {
-            Mail::to($recipients[1])->send(new GenericApprovalNotification(
-                'Approval Sales Order',
-                'Sales Order Approval',
-                $fsono,
-                $approver,
-                route('approval.salesorder.page', ['fsono' => $fsono, 'token' => $header->fapproval_token2]),
-                $fields,
-                $items
-            ));
-        }
-    }
-
-    private function initializeApprovalState(): array
-    {
-        return ApprovalState::initializeApprovalColumns(
-            array_slice($this->getApprovalRecipients(), 0, 2),
-            fn() => \Illuminate\Support\Str::random(64)
-        );
-    }
-
-    private function markApprovalStateApproved(array $approvalState, string $userid, $approvedAt): array
-    {
-        $approvalState['fapproval'] = '2';
-        $approvalState['fuserapproved'] = mb_substr($userid, 0, 30);
-        $approvalState['fdateapproved'] = $approvedAt;
-        $approvalState['fapproval_token'] = null;
-
-        if (array_key_exists('fapproval2', $approvalState)) {
-            $approvalState['fapproval2'] = null;
-            $approvalState['fuserapproved2'] = null;
-            $approvalState['fdateapproved2'] = null;
-            $approvalState['fapproval_reason2'] = null;
-            $approvalState['fapproval_token2'] = null;
-        }
-
-        return $approvalState;
-    }
-
-    private function shouldRequestSalesOrderApproval(Request $request): bool
-    {
-        return trim((string) $request->input('fneedacc', '0')) === '1';
-    }
-
-    private function getApprovalLockMessage($record): ?string
-    {
-        if (trim((string) data_get($record, 'fneedacc', '0')) !== '1') {
-            return null;
-        }
-
-        return ApprovalState::isEditBlockedRecord($record)
-            ? 'Sales Order belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
-            : null;
-    }
-
     private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0): array
     {
         $customerCode = trim($customerCode);
@@ -700,7 +577,6 @@ class SalesOrderController extends Controller
                     'ftempohr' => $row->ftempohr,
                     'fprint' => $row->fprint,
                     'fapproval' => $row->fapproval,
-                    'fapproval2' => $row->fapproval2,
                 ];
             });
 
@@ -1123,7 +999,6 @@ class SalesOrderController extends Controller
     {
         $shouldSendApprovalNotification = false;
         $canContinueToSuratJalan = $this->canContinueToSuratJalan();
-        $needsApprovalNotification = ! $canContinueToSuratJalan && $this->shouldRequestSalesOrderApproval($request);
         // VALIDATION
         $request->validate([
             'fsono' => ['nullable', 'string', 'max:25'],
@@ -1283,12 +1158,6 @@ class SalesOrderController extends Controller
             $fppnpersen = 0;
             $grandTotal = $amountNet;
         }
-        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
-        $requiresApprovalBeforeContinue = trim((string) ($creditApproval['fneedacc'] ?? '0')) === '1';
-        if ($canContinueToSuratJalan) {
-            $creditApproval['fneedacc'] = '0';
-            $creditApproval['fuseracc'] = mb_substr($userid, 0, 30);
-        }
 
         // TRANSACTION
         try {
@@ -1310,10 +1179,7 @@ class SalesOrderController extends Controller
                 $ppnAmount,
                 $headerDiscPercent,
                 $resolvedSalesmanCode,
-                $creditApproval,
-                $needsApprovalNotification,
                 $canContinueToSuratJalan,
-                &$shouldSendApprovalNotification,
                 &$ftrsomtid
 
             ) {
@@ -1375,7 +1241,6 @@ class SalesOrderController extends Controller
 
                 $nextRefNo = $lastRefNo + 1;
 
-                $approvalState = $this->markApprovalStateApproved($this->initializeApprovalState(), $userid, $now);
                 $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
                 // C. Insert Header
@@ -1406,7 +1271,6 @@ class SalesOrderController extends Controller
                     'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
                     'fneedacc' => '0',
                     'fuseracc' => mb_substr($userid, 0, 30),
-                    ...$approvalState,
                 ], 'ftrsomtid');
 
                 // D. Insert Details
@@ -1420,20 +1284,13 @@ class SalesOrderController extends Controller
                 DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
                     'famountso' => round($grandTotal, 2),
                 ]);
-
-                $shouldSendApprovalNotification = $needsApprovalNotification
-                    && ApprovalState::hasApprovalProgress((object) $approvalState);
             });
-
-            if ($shouldSendApprovalNotification) {
-                $this->sendApprovalNotification($fsono, $userid);
-            }
 
             $redirect = redirect()
                 ->route('salesorder.create')
                 ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
 
-            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
+            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan()) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.',
@@ -1614,10 +1471,6 @@ class SalesOrderController extends Controller
             return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
         }
 
-        if ($message = $this->getApprovalLockMessage($salesorder)) {
-            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
-        }
-
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
@@ -1718,8 +1571,6 @@ class SalesOrderController extends Controller
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($salesorder->fbranchcode ?? null);
 
-        $approvalLockMessage = $this->getApprovalLockMessage($salesorder);
-
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
@@ -1768,7 +1619,6 @@ class SalesOrderController extends Controller
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0),
             'famountgross' => (float) ($salesorder->famountgross ?? 0),
             'famountso' => (float) ($salesorder->famountso ?? 0),
-            'approvalLockMessage' => $approvalLockMessage,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
             'action' => 'view',
@@ -1779,7 +1629,6 @@ class SalesOrderController extends Controller
     {
         $shouldSendApprovalNotification = false;
         $canContinueToSuratJalan = $this->canContinueToSuratJalan();
-        $needsApprovalNotification = $this->shouldRequestSalesOrderApproval($request);
         // 1. VALIDATION (Sama seperti store)
         $request->validate([
             'fsono' => ['nullable', 'string', 'max:25'],
@@ -1836,9 +1685,6 @@ class SalesOrderController extends Controller
             return abort(404, 'Sales Order tidak ada.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
-        }
-        if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
         }
 
@@ -2000,12 +1846,8 @@ class SalesOrderController extends Controller
             $fapplyppn,
             $fppnpersen,
             $headerDiscPercent,
-            $resolvedSalesmanCode,
-            $creditApproval,
-            $needsApprovalNotification,
-            &$shouldSendApprovalNotification
+            $resolvedSalesmanCode
         ) {
-            $approvalState = $this->markApprovalStateApproved($this->initializeApprovalState(), $userid, $now);
             // Update Header
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
                 'fsodate' => $fsodate,
@@ -2031,10 +1873,7 @@ class SalesOrderController extends Controller
                 'famountso' => round($grandTotal, 2),
                 'fneedacc' => '0',
                 'fuseracc' => mb_substr($userid, 0, 30),
-                ...$approvalState,
             ]);
-
-            $shouldSendApprovalNotification = false;
 
             // Delete old details and insert new ones
             DB::table('trsodt')->where('fsono', $header->fsono)->delete();
@@ -2042,10 +1881,6 @@ class SalesOrderController extends Controller
                 DB::table('trsodt')->insert($rowsSodt);
             }
         });
-
-        if ($needsApprovalNotification && $shouldSendApprovalNotification) {
-            $this->sendApprovalNotification($header->fsono, $userid);
-        }
 
         if ($request->expectsJson()) {
             return response()->json([

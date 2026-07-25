@@ -493,103 +493,6 @@ class InvoiceController extends Controller
         return in_array('createSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
     }
 
-    private function getApprovalRecipients(): array
-    {
-        return array_values(array_filter([
-            trim((string) config('approval.invoice.stage1', '')),
-            trim((string) config('approval.invoice.stage2', '')),
-        ]));
-    }
-
-    private function sendApprovalNotification(string $fsono, string $approver): void
-    {
-        $header = DB::table('tranmt as mt')
-            ->leftJoin('mscustomer as c', 'mt.fcustno', '=', 'c.fcustomercode')
-            ->leftJoin('mssalesman as s', 'mt.fsalesman', '=', 's.fsalesmancode')
-            ->where('mt.fsono', $fsono)
-            ->first([
-                'mt.*',
-                'c.fcustomername',
-                's.fsalesmanname',
-            ]);
-
-        if (! $header) {
-            return;
-        }
-
-        $items = DB::table('trandt as d')
-            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->where('d.fsono', $fsono)
-            ->orderBy('d.fnou')
-            ->get([
-                'd.fprdcode',
-                'd.fdesc',
-                'd.fqty',
-                'd.fprice',
-                'd.famount',
-                'd.fsatuan',
-                'p.fprdname',
-            ])
-            ->map(fn($item) => [
-                'code' => $item->fprdcode,
-                'name' => trim(($item->fprdname ?? '-') . (! empty($item->fdesc) ? ' / ' . $item->fdesc : '')),
-                'qty' => number_format((float) $item->fqty, 2, ',', '.') . ' ' . ($item->fsatuan ?? ''),
-                'price' => format_number($item->fprice ?? 0),
-                'total' => format_number($item->famount ?? 0),
-            ])
-            ->all();
-
-        $fields = [
-            ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
-            ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
-            ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
-            ['label' => 'Persetujuan Kredit', 'value' => $header->fuseracc ?? '-'],
-            ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
-            ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
-        ];
-
-        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
-
-        if (! empty($recipients[0]) && ! empty($header->fapproval_token)) {
-            Mail::to($recipients[0])->send(new GenericApprovalNotification(
-                'Approval Faktur Penjualan',
-                'Faktur Penjualan Approval',
-                $fsono,
-                $approver,
-                route('approval.invoice.page', ['fsono' => $fsono, 'token' => $header->fapproval_token]),
-                $fields,
-                $items
-            ));
-        }
-
-        if (! empty($recipients[1]) && ! empty($header->fapproval_token2)) {
-            Mail::to($recipients[1])->send(new GenericApprovalNotification(
-                'Approval Faktur Penjualan',
-                'Faktur Penjualan Approval',
-                $fsono,
-                $approver,
-                route('approval.invoice.page', ['fsono' => $fsono, 'token' => $header->fapproval_token2]),
-                $fields,
-                $items
-            ));
-        }
-    }
-
-    private function initializeApprovalState(): array
-    {
-        return ApprovalState::initializeApprovalColumns(
-            array_slice($this->getApprovalRecipients(), 0, 2),
-            fn() => \Illuminate\Support\Str::random(64)
-        );
-    }
-
-    // private function getApprovalLockMessage($record): ?string
-    // {
-    //     return ApprovalState::isEditBlockedRecord($record)
-    //         ? 'Faktur Penjualan belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
-    //         : null;
-    // }
-
     private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0, ?int $exceptTranmtId = null): array
     {
         $customerCode = trim($customerCode);
@@ -797,7 +700,6 @@ class InvoiceController extends Controller
                     'tranmt.fprdout',
                     'tranmt.fsudahtagih',
                     'tranmt.fapproval',
-                    'tranmt.fapproval2',
                     DB::raw("COALESCE(ref_summary.so_refs, '') as so_refs"),
                     DB::raw("COALESCE(ref_summary.srj_refs, '') as srj_refs"),
                 ]);
@@ -907,7 +809,6 @@ class InvoiceController extends Controller
                     'fsudahtagih' => trim((string) ($row->fsudahtagih ?? '0')),
                     'fclose' => trim((string) ($row->fclose ?? '0')),
                     'fapproval' => trim((string) ($row->fapproval ?? '')),
-                    'fapproval2' => trim((string) ($row->fapproval2 ?? '')),
                 ];
             });
 
@@ -1744,8 +1645,6 @@ class InvoiceController extends Controller
                     $fsono = $prefix . str_pad((string) ($last + 1), $digits, '0', STR_PAD_LEFT);
                 }
 
-                $approvalState = $this->initializeApprovalState();
-
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
@@ -1783,12 +1682,11 @@ class InvoiceController extends Controller
                     'fbranchcode' => $request->fbranchcode,
                     'ftrcode' => 'INV',
                     'fprdout' => $fprdoutVal,
-                    'fneedacc' => $needsApprovalNotification ? '1' : '0',
-                    'fuseracc' => $creditApproval['fuseracc'],
+                    'fneedacc' => '0',
+                    'fuseracc' => mb_substr($userid, 0, 30),
                     'fprint' => 0,
                     'ftunai' => 0,
                     'fjatuhtempo' => $fjatuhtempo,
-                    ...$approvalState,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerInsert['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
@@ -1809,14 +1707,7 @@ class InvoiceController extends Controller
                     (string) $request->fcustno,
                     (string) $userid
                 );
-
-                $shouldSendApprovalNotification = $needsApprovalNotification
-                    && ApprovalState::hasApprovalProgress((object) $approvalState);
             });
-
-            if ($shouldSendApprovalNotification) {
-                $this->sendApprovalNotification($fsono, $userid);
-            }
 
             $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
 
@@ -2601,12 +2492,11 @@ class InvoiceController extends Controller
         if (! $header) {
             return abort(404, 'Faktur penjualan tidak ada.');
         }
+
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
             return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
         }
-        // if ($message = $this->getApprovalLockMessage((object) $header)) {
-        //     return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
-        // }
+
         if ($message = $this->getUsageLockMessage((object) $header)) {
             return redirect()->route('invoice.index')->with('error', $message);
         }
@@ -2973,16 +2863,14 @@ class InvoiceController extends Controller
                     'fbranchcode' => $request->fbranchcode,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
                     'fprdout' => $fprdoutVal,
-                    'fneedacc' => $needsApprovalNotification ? '1' : '0',
-                    'fuseracc' => $creditApproval['fuseracc'],
+                    'fneedacc' => '0',
+                    'fuseracc' => mb_substr($userid, 0, 30),
                     'fjatuhtempo' => $fjatuhtempo,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerUpdate['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
                 }
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update($headerUpdate);
-
-                $shouldSendApprovalNotification = false;
 
                 // Hapus detail lama
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
@@ -3002,10 +2890,6 @@ class InvoiceController extends Controller
                     (string) $userid
                 );
             });
-
-            if ($shouldSendApprovalNotification) {
-                $this->sendApprovalNotification($header->fsono, $userid);
-            }
 
             $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
 

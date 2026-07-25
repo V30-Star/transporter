@@ -123,23 +123,12 @@ class Tr_prhController extends Controller
             } elseif ($statusFilter === 'belum_approve') {
                 $query->where(function ($q) {
                     $q->where(function ($inner) {
-                        $inner->where('tr_prh.fapproval', '1')
-                              ->where(function ($sub) {
-                                  $sub->whereNull('tr_prh.fapproval2')
-                                      ->orWhere('tr_prh.fapproval2', '!=', '2');
-                              });
-                    })->orWhere(function ($inner) {
-                        $inner->where('tr_prh.fapproval2', '1')
-                              ->where(function ($sub) {
-                                  $sub->whereNull('tr_prh.fapproval')
-                                      ->orWhere('tr_prh.fapproval', '!=', '2');
-                              });
+                        $inner->where('tr_prh.fapproval', '1');
                     });
                 });
             } elseif ($statusFilter === 'approve') {
                 $query->where(function ($q) {
-                    $q->where('tr_prh.fapproval', '2')
-                      ->orWhere('tr_prh.fapproval2', '2');
+                    $q->where('tr_prh.fapproval', '2');
                 });
             }
             if ($year) {
@@ -189,7 +178,6 @@ class Tr_prhController extends Controller
                 'tr_prh.fclose',
                 'tr_prh.fprdin',
                 'tr_prh.fapproval',
-                'tr_prh.fapproval2',
                 'mssupplier.fsuppliername',
                 'tr_prh.fcreatedat'
             ]);
@@ -207,7 +195,6 @@ class Tr_prhController extends Controller
                     'fclose' => $record->fclose,
                     'fprdin' => $record->fprdin,
                     'fapproval' => $record->fapproval,
-                    'fapproval2' => $record->fapproval2,
                     'fprhid' => $record->fprhid,
                     'fcreatedat' => $record->fcreatedat,
                     'DT_RowId' => 'row_'.$record->fprhid,
