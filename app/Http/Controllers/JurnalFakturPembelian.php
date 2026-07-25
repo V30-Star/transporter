@@ -407,7 +407,7 @@ class JurnalFakturPembelian
 
     private static function generateJurnalNumber(string $kodeCabang, Carbon $fstockmtdate): string
     {
-        $prefix = sprintf('%s.%s.%s%s.', self::JURNAL_TYPE, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $prefix = sprintf('JV.%s.%s.%s%s.', self::JURNAL_TYPE, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . self::JURNAL_TYPE . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

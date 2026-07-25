@@ -337,7 +337,7 @@ class JurnalFakturPenjualan
 
     private static function generateJurnalNumber(string $kodeCabang, Carbon $fsodate): string
     {
-        $prefix = sprintf('%s.%s.%s%s.', self::JURNAL_TYPE, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $prefix = sprintf('JV.%s.%s.%s%s.', self::JURNAL_TYPE, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . self::JURNAL_TYPE . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));

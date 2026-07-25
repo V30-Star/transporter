@@ -1532,7 +1532,7 @@ class FakturpembelianController extends Controller
                         $year = $fstockmtdate->format('y'); // 2-digit year format, e.g. 26
                         $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
                         $digits = 4;
-                        $prefix = sprintf('JV.UMB.%s.%s%s.', $kodeCabang, $year, $month);
+                        $prefix = sprintf('UMB.%s.%s%s.', $kodeCabang, $year, $month);
 
                         if (DB::getDriverName() === 'pgsql') {
                             $lockKey = crc32('STOCKMT|UMB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
