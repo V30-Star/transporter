@@ -215,7 +215,7 @@ class ReturPembelianController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
                     'fstockmtdate' => $row->fstockmtdate
                         ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
                         : '',
@@ -446,7 +446,7 @@ class ReturPembelianController extends Controller
         return view('returpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -964,7 +964,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1078,7 +1078,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1518,7 +1518,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1552,12 +1552,12 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1') . ' berhasil dihapus.',
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '1') === '0') . ' berhasil dihapus.',
                     'redirect_url' => route('returpembelian.index'),
                 ]);
             }
 
-            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
+            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '1') === '0') . ' berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

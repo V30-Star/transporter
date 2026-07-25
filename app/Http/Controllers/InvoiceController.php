@@ -1711,21 +1711,11 @@ class InvoiceController extends Controller
 
             $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
 
-            if ($needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
-                        'redirect_url' => route('invoice.create'),
-                    ]);
-                }
-                return $redirect;
-            }
-
             // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '0') . ' berhasil disimpan.',
                         'redirect_url' => route('invoice.create'),
                         'success_prompt' => [
                             'type' => 'invoice_create_suratjalan',
@@ -1741,7 +1731,7 @@ class InvoiceController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '0') . ' berhasil disimpan.',
                     'redirect_url' => route('invoice.create'),
                 ]);
             }
@@ -2327,7 +2317,7 @@ class InvoiceController extends Controller
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2420,7 +2410,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2891,12 +2881,12 @@ class InvoiceController extends Controller
                 );
             });
 
-            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
+            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0') . ' berhasil diupdate.');
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0') . ' berhasil diupdate.',
                         'redirect_url' => route('invoice.index'),
                     ]);
                 }
@@ -2907,7 +2897,7 @@ class InvoiceController extends Controller
             if ($fprdoutVal === '0') {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0') . ' berhasil diupdate.',
                         'redirect_url' => route('invoice.index'),
                         'success_prompt' => [
                             'type' => 'invoice_create_suratjalan',
@@ -2923,7 +2913,7 @@ class InvoiceController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0') . ' berhasil diupdate.',
                     'redirect_url' => route('invoice.index'),
                 ]);
             }
@@ -3028,7 +3018,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -3069,12 +3059,12 @@ class InvoiceController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '0') === '1') . ' berhasil dihapus.',
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '1') === '0') . ' berhasil dihapus.',
                     'redirect_url' => route('invoice.index'),
                 ]);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '1') === '0') . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);

@@ -205,7 +205,7 @@ class Tr_pohController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'fpono' => $row->fpono,
-                    'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 0) === 1),
+                    'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 1) === 0),
                     'fpohid' => $row->fpohid,
                     'fsupplier' => $row->fsupplier,
                     'fpodate' => $row->fpodate
@@ -764,7 +764,7 @@ class Tr_pohController extends Controller
         return view('tr_poh.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFpono' => $this->formatDisplayTransactionNumber($hdr->fpono ?? null, (int) ($hdr->fapplyppn ?? 0) === 1),
+            'displayFpono' => $this->formatDisplayTransactionNumber($hdr->fpono ?? null, (int) ($hdr->fapplyppn ?? 1) === 0),
             'fmt' => $fmt,
             'subtotal' => $subtotal,
             'ppnPersen' => $ppnPersen,
@@ -1175,7 +1175,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.create')
-            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($fpono, $fapplyppn === 1) . ' berhasil disimpan.');
+            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($fpono, $fapplyppn === 0) . ' berhasil disimpan.');
     }
 
     public function edit(Request $request, $fpohid)
@@ -1450,7 +1450,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 1),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,
@@ -1494,7 +1494,7 @@ class Tr_pohController extends Controller
 
             return redirect()
                 ->route('tr_poh.index')
-                ->with('success', 'Status close PO ' . $this->formatDisplayTransactionNumber($header->fpono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
+                ->with('success', 'Status close PO ' . $this->formatDisplayTransactionNumber($header->fpono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -1786,7 +1786,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($header->fpono, $fapplyppn === 1) . ' berhasil diupdate.');
+            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($header->fpono, $fapplyppn === 0) . ' berhasil diupdate.');
     }
 
     public function delete(Request $request, $fpohid)
@@ -1931,7 +1931,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 1),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,   // <-- currency aktif dari join
@@ -1970,7 +1970,7 @@ class Tr_pohController extends Controller
             });
 
             return redirect()->route('tr_poh.index')
-                ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($tr_poh->fpono, (int) ($tr_poh->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
+                ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($tr_poh->fpono, (int) ($tr_poh->fapplyppn ?? 1) === 0) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Order pembelian belum bisa dihapus. Coba lagi.');
         }

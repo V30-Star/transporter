@@ -549,7 +549,7 @@ class SalesOrderController extends Controller
                     'ftrsomtid' => $row->ftrsomtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 0) === 1),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 1) === 0),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
@@ -904,7 +904,7 @@ class SalesOrderController extends Controller
         return view('salesorder.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 0) === 1),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 1) === 0),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1288,12 +1288,12 @@ class SalesOrderController extends Controller
 
             $redirect = redirect()
                 ->route('salesorder.create')
-                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
+                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.');
 
             if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan()) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.',
+                        'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.',
                         'redirect_url' => route('salesorder.create'),
                     ]);
                 }
@@ -1302,7 +1302,7 @@ class SalesOrderController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.',
+                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.',
                     'redirect_url' => route('salesorder.create'),
                     'success_prompt' => [
                         'type' => 'salesorder_create_suratjalan',
@@ -1529,7 +1529,7 @@ class SalesOrderController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->salesOrderPriceFlags(),
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -1614,7 +1614,7 @@ class SalesOrderController extends Controller
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? $this->getDefaultPpnTarif()),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0),
             'famountgross' => (float) ($salesorder->famountgross ?? 0),
@@ -1884,7 +1884,7 @@ class SalesOrderController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.',
+                'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.',
                 'redirect_url' => route('salesorder.index'),
                 'success_prompt' => (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) ? null : [
                     'type' => 'salesorder_create_suratjalan',
@@ -1895,7 +1895,7 @@ class SalesOrderController extends Controller
 
         $redirect = redirect()
             ->route('salesorder.index')
-            ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
+            ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.');
 
         if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
             return $redirect;
@@ -2019,7 +2019,7 @@ class SalesOrderController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
@@ -2058,12 +2058,12 @@ class SalesOrderController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 0) === 1) . ' berhasil dihapus.',
+                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 1) === 0) . ' berhasil dihapus.',
                     'redirect_url' => route('salesorder.index'),
                 ]);
             }
 
-            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 1) === 0) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             report($e);
             if (request()->expectsJson()) {

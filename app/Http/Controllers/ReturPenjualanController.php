@@ -269,7 +269,7 @@ class ReturPenjualanController extends Controller
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
@@ -784,7 +784,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1277,12 +1277,12 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '1').' berhasil disimpan.',
+                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '0').' berhasil disimpan.',
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '1').' berhasil disimpan.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '0').' berhasil disimpan.');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -1878,7 +1878,7 @@ class ReturPenjualanController extends Controller
             'productMap' => $productMap,
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2002,7 +2002,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2425,12 +2425,12 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.',
+                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0').' berhasil diupdate.',
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0').' berhasil diupdate.');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -2558,7 +2558,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2630,7 +2630,7 @@ class ReturPenjualanController extends Controller
                 $returpenjualan->delete();
             });
 
-            $displayNo = $this->formatDisplayTransactionNumber((string) ($deletedHeader->fsono ?? ''), (string) ($deletedHeader->fincludeppn ?? '0') === '1');
+            $displayNo = $this->formatDisplayTransactionNumber((string) ($deletedHeader->fsono ?? ''), (string) ($deletedHeader->fincludeppn ?? '1') === '0');
             if (request()->expectsJson()) {
                 return response()->json([
                     'message' => 'Retur penjualan '.$displayNo.' berhasil dihapus.',
