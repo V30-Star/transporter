@@ -238,6 +238,7 @@ class CustomerController extends Controller
             'fmemo' => '',
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
             'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
+            'fnamaktp' => 'required_with:fnik|nullable|string',
         ], [
             'fcustomercode.max' => 'Kode customer max 10 karakter.',
             'fcustomername.required' => 'Nama customer wajib diisi.',
@@ -265,6 +266,8 @@ class CustomerController extends Controller
             'fcustomercode.unique' => 'Kode customer sudah ada.',
             'fnpwp.required_without' => 'Isi salah satu: NPWP atau NIK.',
             'fnik.required_without' => 'Isi salah satu: NPWP atau NIK.',
+            'fnamaktp.required_without' => 'Nama KTP Wajib di isi',
+            'fnamaktp.required' => 'Nama KTP Wajib di isi',
             'fnpwp.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
             'fnik.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
         ]);
@@ -396,6 +399,7 @@ class CustomerController extends Controller
             'fmemo' => '',
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
             'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
+            'fnamaktp' => 'required_without:fnik|nullable|string',
         ], [
             'fcustomername.required' => 'Nama customer wajib diisi.',
             'fgroup.required' => 'Group produk wajib dipilih.',
@@ -424,6 +428,8 @@ class CustomerController extends Controller
             'fcustomercode.unique' => 'Kode customer sudah ada.',
             'fnpwp.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
             'fnik.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
+            'fnamaktp.required_without' => 'Nama KTP Wajib di isi',
+            'fnamaktp.required' => 'Nama KTP Wajib di isi',
         ]);
         $customer = Customer::findOrFail($fcustomerid);
 
@@ -472,6 +478,7 @@ class CustomerController extends Controller
             'fblokir'                    => $customer->fblokir,
             'frekening'                  => $customer->frekening,
             'fnik'                       => $customer->fnik,
+            'fnamaktp'                   => $customer->fnamaktp,
             'fgroup'                     => $customer->fgroup,
             'fnonactive'                 => $customer->fnonactive,
             'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
@@ -567,6 +574,7 @@ class CustomerController extends Controller
                 'fblokir'                    => $customer->fblokir,
                 'frekening'                  => $customer->frekening,
                 'fnik'                       => $customer->fnik,
+                'fnamaktp'                   => $customer->fnamaktp,
                 'fgroup'                     => $customer->fgroup,
                 'fnonactive'                 => $customer->fnonactive,
                 'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
