@@ -223,7 +223,7 @@
         $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
         $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
         $storedPpnRate = (float) ($fakturpembelian->fppnpersen ?? 0);
-        $ppnRate = old('ppn_rate', $storedPpnRate > 0 ? $storedPpnRate : 11);
+        $ppnRate = old('ppn_rate', $storedPpnRate > 0 ? $storedPpnRate : ($defaultPpnTarif ?? 11));
         $usageLocked = !empty($isUsageLocked);
 
         $oldCodes = old('fitemcode', []);
@@ -1818,7 +1818,7 @@
                 biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
                 totalBiayaHPP: @json((float) ($biayaGlobal ?? 0)),
                 totalHarga: 0,
-                ppnRate: 11,
+                ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
 
                 initialGrandTotal: @json($famountmt ?? 0),
                 initialPpnAmount: @json($famountpajak ?? 0),

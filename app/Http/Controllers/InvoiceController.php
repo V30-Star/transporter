@@ -79,6 +79,13 @@ class InvoiceController extends Controller
         return in_array(strtolower(trim((string) env($key, '0'))), ['1', 'true', 'yes', 'on'], true);
     }
 
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function productSelectColumns(): array
     {
         return [
@@ -1293,6 +1300,7 @@ class InvoiceController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->invoicePriceFlags(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
@@ -1408,8 +1416,9 @@ class InvoiceController extends Controller
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
         $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
-        $rawPpnPersen = (float) $request->input('fppnpersen', 11);
-        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : 11.0) : 0.0;
+        $defaultPpnTarif = $this->getDefaultPpnTarif();
+        $rawPpnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
+        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : $defaultPpnTarif) : 0.0;
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
@@ -2388,6 +2397,7 @@ class InvoiceController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
             'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
@@ -2575,8 +2585,9 @@ class InvoiceController extends Controller
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
-        $rawPpnPersen = (float) $request->input('fppnpersen', 11);
-        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : 11.0) : 0.0;
+        $defaultPpnTarif = $this->getDefaultPpnTarif();
+        $rawPpnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
+        $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : $defaultPpnTarif) : 0.0;
         $fkodefp = trim((string) $request->input('fkodefp', ''));
         if ($fkodefp === '') {
             $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');

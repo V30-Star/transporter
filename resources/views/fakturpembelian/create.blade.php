@@ -198,7 +198,7 @@
     @php
         $includePPN = old('fapplyppn', 0);
         $ppnMode = old('fincludeppn', 0);
-        $ppnRate = old('ppn_rate', 11);
+        $ppnRate = old('ppn_rate', $defaultPpnTarif ?? 11);
         $currentType = old('ftypebuy', '0');
         $currentAccount = old('fprdjadi', '');
         $currentAccountId = old('faccid', '');
@@ -1286,7 +1286,7 @@
             biayaGlobal: 0,
             totalBiayaHPP: 0,
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
 
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),

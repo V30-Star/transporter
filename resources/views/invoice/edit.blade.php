@@ -2247,8 +2247,9 @@
         component.includePPN = Number(header.fapplyppn ?? 0) === 1;
         component.fapplyppn = Number(header.fincludeppn ?? 0) === 1 ? 1 : 0;
 
-        const rate = Number(header.fppnpersen ?? 11);
-        component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 11;
+        const defaultTarif = Number(@json((float) ($defaultPpnTarif ?? 11)));
+        const rate = Number(header.fppnpersen ?? defaultTarif);
+        component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : defaultTarif;
     };
 
     window.syncInvoiceTempoFromCustomer = function(payload = null) {
@@ -2566,7 +2567,7 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
-            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $invoice->fppnpersen ?? 11))),
+            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $invoice->fppnpersen ?? ($defaultPpnTarif ?? 11)))),
 
             initialGrandTotal: @json($invoice->famountso ?? 0),
             initialPpnAmount: @json($invoice->famountpajak ?? 0),

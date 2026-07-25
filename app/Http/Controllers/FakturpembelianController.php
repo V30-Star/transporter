@@ -45,6 +45,13 @@ class FakturpembelianController extends Controller
             ->first();
     }
 
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function calculateProductHpp(string $productCode, string $unit): float
     {
         $product = DB::table('msprd')
@@ -1194,6 +1201,7 @@ class FakturpembelianController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
@@ -1286,7 +1294,9 @@ class FakturpembelianController extends Controller
                 $fincludeppn = 0;
                 $fppnpersen = 0;
             } else {
-                $fppnpersen = (float) $request->input('ppn_rate', 0);
+                $defaultPpnTarif = $this->getDefaultPpnTarif();
+                $rawPpn = (float) $request->input('ppn_rate', $defaultPpnTarif);
+                $fppnpersen = $rawPpn > 0 ? $rawPpn : $defaultPpnTarif;
             }
 
             // 3) DETAIL ARRAYS
@@ -1831,6 +1841,7 @@ class FakturpembelianController extends Controller
             'fbranchcode' => $savedBranchCode ?: $defaultBranchCode,
             'warehouses' => $warehouses,
             'products' => $products,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'accounts' => $accounts,
             'productMap' => $productMap,
             'currentAccount' => $currentAccount,
@@ -2090,7 +2101,9 @@ class FakturpembelianController extends Controller
                 $fppnpersen = 0;
                 $ppnAmount = 0.0;
             } else {
-                $fppnpersen = (float) $request->input('ppn_rate', 0);
+                $defaultPpnTarif = $this->getDefaultPpnTarif();
+                $rawPpn = (float) $request->input('ppn_rate', $defaultPpnTarif);
+                $fppnpersen = $rawPpn > 0 ? $rawPpn : $defaultPpnTarif;
                 $ppnAmount = (float) $request->input('famountpajak', 0);
             }
             $frefno = $request->input('frefno');
