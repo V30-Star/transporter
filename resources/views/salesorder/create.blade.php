@@ -888,14 +888,14 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', 0)),
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
 
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: false,
             ppnMode: 0, // 0: Exclude, 1: Include
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             showWarningModal: false,
             warningTitle: 'Perhatian',
             warningMessage: '',

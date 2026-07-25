@@ -763,7 +763,7 @@ class JurnalTransaksiController extends Controller
             $fjurnalno = trim((string) $request->input('fjurnalno', ''));
 
             if (empty($fjurnalno)) {
-                $prefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
                 $driver = DB::getDriverName();
                 if ($driver === 'pgsql') {
                     $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('y-m'));

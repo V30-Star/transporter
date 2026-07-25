@@ -28,6 +28,13 @@ class ReturPembelianController extends Controller
         return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -474,6 +481,7 @@ class ReturPembelianController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -550,7 +558,11 @@ class ReturPembelianController extends Controller
             $grandTotal = (float) $request->input('famountmt', 0);
 
             $fincludeppn = (int) $request->input('fincludeppn', 0);
-            $fppnpersen = (float) $request->input('famountpopajak', 0);
+            $defaultPpnTarif = $this->getDefaultPpnTarif();
+            $fppnpersen = (float) $request->input('famountpopajak', $defaultPpnTarif);
+            if ($fppnpersen <= 0 && $fincludeppn === 1) {
+                $fppnpersen = $defaultPpnTarif;
+            }
 
             // LOAD PRODUCT METADATA
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
@@ -914,6 +926,7 @@ class ReturPembelianController extends Controller
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
             'famountpo' => (float) ($returpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
@@ -1109,7 +1122,11 @@ class ReturPembelianController extends Controller
             $grandTotal = (float) $request->input('famountmt', 0);
 
             $fincludeppn = (int) $request->input('fincludeppn', 0);
-            $fppnpersen = (float) $request->input('famountpopajak', 0);
+            $defaultPpnTarif = $this->getDefaultPpnTarif();
+            $fppnpersen = (float) $request->input('famountpopajak', $defaultPpnTarif);
+            if ($fppnpersen <= 0 && $fincludeppn === 1) {
+                $fppnpersen = $defaultPpnTarif;
+            }
 
             // LOAD PRODUCT METADATA
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
@@ -1607,7 +1624,7 @@ class ReturPembelianController extends Controller
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN', '51200');
 
         $fjurnaltype  = 'JRB';
-        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

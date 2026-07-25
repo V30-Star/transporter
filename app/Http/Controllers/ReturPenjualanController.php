@@ -42,6 +42,13 @@ class ReturPenjualanController extends Controller
         };
     }
 
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function buildProductMap($products): array
     {
         return $products->mapWithKeys(function ($product) {
@@ -814,6 +821,7 @@ class ReturPenjualanController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
         ]);
@@ -851,7 +859,11 @@ class ReturPenjualanController extends Controller
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->input('fapplyppn', '0');
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $defaultPpnTarif = $this->getDefaultPpnTarif();
+        $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
+        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+            $ppnPersen = $defaultPpnTarif;
+        }
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -1822,6 +1834,7 @@ class ReturPenjualanController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'returpenjualan' => $returpenjualan,
             'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
@@ -2010,7 +2023,11 @@ class ReturPenjualanController extends Controller
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->input('fapplyppn', '0');
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $defaultPpnTarif = $this->getDefaultPpnTarif();
+        $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
+        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+            $ppnPersen = $defaultPpnTarif;
+        }
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
@@ -2220,7 +2237,11 @@ class ReturPenjualanController extends Controller
         // 5. KALKULASI TOTAL
         $fapplyppn = $request->input('fapplyppn', '0');
         $amountNet = $totalGross - $totalDisc;
-        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $defaultPpnTarif = $this->getDefaultPpnTarif();
+        $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
+        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+            $ppnPersen = $defaultPpnTarif;
+        }
 
         if ($fincludeppn === '1') {
             if ($fapplyppn === '1') {
@@ -2627,7 +2648,7 @@ class ReturPenjualanController extends Controller
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG', '21181');
 
         $fjurnaltype = 'JRJ';
-        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));

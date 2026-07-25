@@ -2007,7 +2007,7 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             ftypesales: 0,
 
             initialGrandTotal: @json($famountso ?? 0),

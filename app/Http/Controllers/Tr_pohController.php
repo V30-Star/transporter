@@ -644,6 +644,18 @@ class Tr_pohController extends Controller
         }
     }
 
+    private function generatePurchaseOrderNo(string $branchCode, Carbon $date): string
+    {
+        return $this->generatetr_poh_Code($date, $branchCode);
+    }
+
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
     {
         $date = $onDate ?: now();
@@ -816,6 +828,7 @@ class Tr_pohController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'currencies' => $currencies,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -1102,7 +1115,7 @@ class Tr_pohController extends Controller
                     'famountpo' => $grandTotal,
                     'famountpo_rp' => $grandTotal,
                     'fapproval' => $isApproval,
-                    'fppnpersen' => $request->input('ppn_rate', 0),
+                    'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                     'fclose' => '0',
                     'fprdin' => '0',
                 ], 'fpohid');
@@ -1340,6 +1353,7 @@ class Tr_pohController extends Controller
             'ppnAmount' => (float) ($tr_poh->famountpopajak ?? 0),
             'famountponet' => (float) ($tr_poh->famountponet ?? 0),
             'famountpo' => (float) ($tr_poh->famountpo ?? 0),
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'edit',
         ]);
@@ -1738,7 +1752,7 @@ class Tr_pohController extends Controller
                         'famountpopajak' => $ppnAmount,
                         'famountpo' => $grandTotal,
                         'fapplyppn' => $fapplyppn,
-                        'fppnpersen' => $request->input('ppn_rate', 0),
+                        'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                         'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
                         'fprdin' => (string) ($header->fprdin ?? '0'),
                     ]);

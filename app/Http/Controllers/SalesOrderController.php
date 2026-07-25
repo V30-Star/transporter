@@ -63,6 +63,13 @@ class SalesOrderController extends Controller
         return in_array(strtolower(trim((string) env($key, '0'))), ['1', 'true', 'yes', 'on'], true);
     }
 
+    private function getDefaultPpnTarif(): float
+    {
+        $val = DB::table('setini')->value('fppntarif');
+
+        return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
+    }
+
     private function productSelectColumns(): array
     {
         return [
@@ -1043,6 +1050,7 @@ class SalesOrderController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->salesOrderPriceFlags(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
@@ -1238,7 +1246,7 @@ class SalesOrderController extends Controller
         $totalDisc += $headerDiscountAmount;
         $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
 
-        $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
+        $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : 0;
         if ($fapplyppn === 1) {
             if ($fincludeppn === 1) {
                 $grandTotal = $amountNet;
@@ -1619,7 +1627,8 @@ class SalesOrderController extends Controller
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
-            'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
+            'fppnpersen' => (float) ($salesorder->fppnpersen ?? $this->getDefaultPpnTarif()),
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'products' => $products,
             'productMap' => $productMap,
             'priceFlags' => $this->salesOrderPriceFlags(),
@@ -1708,7 +1717,8 @@ class SalesOrderController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'priceFlags' => $this->salesOrderPriceFlags(),
-            'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
+            'fppnpersen' => (float) ($salesorder->fppnpersen ?? $this->getDefaultPpnTarif()),
+            'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'salesorder' => $salesorder,
             'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
@@ -1802,7 +1812,7 @@ class SalesOrderController extends Controller
         );
         $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
         $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
-        $fppnpersen = (float) $request->input('fppnpersen', 11);
+        $fppnpersen = (float) $request->input('fppnpersen', $this->getDefaultPpnTarif());
         $fclose = $request->input('fclose') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();

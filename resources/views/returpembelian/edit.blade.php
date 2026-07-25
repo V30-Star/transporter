@@ -1458,7 +1458,7 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: @json((float) ($returpembelian->fppnpersen ?? 11)),
+            ppnRate: @json((float) old('ppn_rate', $returpembelian->fppnpersen ?? ($defaultPpnTarif ?? 11))),
 
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),

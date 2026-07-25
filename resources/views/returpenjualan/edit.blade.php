@@ -2775,7 +2775,7 @@
             action: @js($action ?? 'edit'),
 
             totalHarga: 0,
-            ppnRate: @json($returpenjualan->fppnpersen ?? 11),
+            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $returpenjualan->fppnpersen ?? ($defaultPpnTarif ?? 11)))),
 
             includePPN: @json($returpenjualan->fincludeppn == '1'),
             fapplyppn: @json((int) ($returpenjualan->fapplyppn ?? 0)),

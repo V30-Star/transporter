@@ -1675,7 +1675,7 @@ class PenerimaanBarangController extends Controller
         $accountPPNBeli = DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount') ?? '11400';
 
         $fjurnaltype  = 'JTB';
-        $jurnalPrefix = sprintf('%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

@@ -1275,7 +1275,7 @@
                                                 <!-- Input Rate + Nominal -->
                                                 <input type="number" name="fppnpersen" min="0"
                                                     max="100" step="0.01" x-model.number="ppnRate"
-                                                    x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}" :disabled="!includePPN"
+                                                    x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? ($defaultPpnTarif ?? 11)) }}" :disabled="!includePPN"
                                                     class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                         [appearance:textfield]
                                                         [&::-webkit-outer-spin-button]:appearance-none
@@ -1790,12 +1790,12 @@
             initialGrandTotal: @json((float) old('famountso', $salesorder->famountso ?? 0)),
             useStoredHeaderDiscount: true,
             useStoredGrandTotal: true,
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: false,
             ppnMode: 0, // 0: Exclude, 1: Include
-            ppnRate: 11,
+            ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             showWarningModal: false,
             warningTitle: 'Perhatian',
             warningMessage: '',

@@ -1540,7 +1540,7 @@
             rateValue: {{ old('frate', $tr_poh->frate ?? ($currentCurrency->frate ?? 1)) }},
             includePPN: {{ (int) old('fapplyppn', $tr_poh->fapplyppn ?? 0) === 1 ? 'true' : 'false' }},
             ppnMode: {{ old('ppn_mode', $tr_poh->fincludeppn ?? 0) }},
-            ppnRate: {{ old('ppn_rate', $tr_poh->fppnpersen ?? 11) }},
+            ppnRate: {{ old('ppn_rate', $tr_poh->fppnpersen ?? ($defaultPpnTarif ?? 11)) }},
             rows: [],
             rowsToSubmit: [],
             activeRow: null,
