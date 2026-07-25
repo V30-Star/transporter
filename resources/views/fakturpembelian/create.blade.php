@@ -1482,7 +1482,7 @@
             },
 
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (typeof row.fpriceInput === 'undefined') {
                     row.fpriceInput = this.fmt(row.fprice);

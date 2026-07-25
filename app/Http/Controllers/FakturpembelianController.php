@@ -1258,6 +1258,7 @@ class FakturpembelianController extends Controller
                 ]);
             }
 
+            $allowNegativeStockQty = stock_boleh_minus();
             $hasPpn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1';
             // 1) VALIDASI
             $request->validate([
@@ -1269,7 +1270,15 @@ class FakturpembelianController extends Controller
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['numeric', 'min:0.001'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdiscpersen' => ['nullable', 'array'],
