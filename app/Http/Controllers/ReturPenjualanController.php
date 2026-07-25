@@ -89,9 +89,11 @@ class ReturPenjualanController extends Controller
             return '-';
         }
 
-        $separator = $useSlash ? '/' : '.';
+        if ($useSlash) {
+            return str_replace('.', '/', $normalized);
+        }
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return str_replace('/', '.', $normalized);
     }
 
     private function ensureNoDuplicateDetailCodes(
@@ -700,18 +702,39 @@ class ReturPenjualanController extends Controller
         return null;
     }
 
-    private function generateInvoiceCode(?Carbon $onDate = null, ?string $branchCode = null): string
+    private function generateInvoiceCode(?Carbon $onDate = null, ?string $branchCode = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
         $branchCode = trim((string) ($branchCode ?: 'NA')) ?: 'NA';
-        $prefix = sprintf('REJ.%s.%s%s.', $branchCode, $date->format('y'), $date->format('m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('REJ%s%s%s%s%s', $sep, $branchCode, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 4) AS int)) AS lastno")
-            ->value('lastno');
+        if (DB::getDriverName() === 'pgsql') {
+            $last = DB::table('tranmt')
+                ->where(function ($q) use ($branchCode, $date) {
+                    $yymm = $date->format('y') . $date->format('m');
+                    $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
+                })
+                ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
+                ->value('lastno');
 
-        $next = (int) $last + 1;
+            $next = (int) $last + 1;
+        } else {
+            $yymm = $date->format('y') . $date->format('m');
+            $lastCode = DB::table('tranmt')
+                ->where(function ($q) use ($branchCode, $yymm) {
+                    $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
+                })
+                ->orderByDesc('fsono')
+                ->value('fsono');
+
+            $next = 1;
+            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                $next = ((int) substr($lastCode, $pos + 1)) + 1;
+            }
+        }
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
@@ -1126,17 +1149,36 @@ class ReturPenjualanController extends Controller
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
-                    $prefix = sprintf('REJ.%s.%s%s.', $branchCode, $fsodate->format('y'), $fsodate->format('m'));
+                    $hasPpn = $fapplyppn === '1' || $fincludeppn === '1';
+                    $sep = $hasPpn ? '.' : '/';
+                    $prefix = sprintf('REJ%s%s%s%s%s', $sep, $branchCode, $sep, $fsodate->format('y') . $fsodate->format('m'), $sep);
 
-                    $lastRecord = DB::table('tranmt')
-                        ->where('fsono', 'like', $prefix . '%')
-                        ->orderByRaw("CAST(split_part(fsono, '.', 4) AS int) DESC")
-                        ->lockForUpdate()
-                        ->first();
+                    if (DB::getDriverName() === 'pgsql') {
+                        $last = DB::table('tranmt')
+                            ->where(function ($q) use ($branchCode, $fsodate) {
+                                $yymm = $fsodate->format('y') . $fsodate->format('m');
+                                $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
+                                  ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
+                            })
+                            ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
+                            ->value('lastno');
 
-                    $nextNumber = $lastRecord
-                        ? ((int) substr(trim($lastRecord->fsono), -4)) + 1
-                        : 1;
+                        $nextNumber = (int) $last + 1;
+                    } else {
+                        $yymm = $fsodate->format('y') . $fsodate->format('m');
+                        $lastCode = DB::table('tranmt')
+                            ->where(function ($q) use ($branchCode, $yymm) {
+                                $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
+                                  ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
+                            })
+                            ->orderByDesc('fsono')
+                            ->value('fsono');
+
+                        $nextNumber = 1;
+                        if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                            $nextNumber = ((int) substr($lastCode, $pos + 1)) + 1;
+                        }
+                    }
 
                     $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }

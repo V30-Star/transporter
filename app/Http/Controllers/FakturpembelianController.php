@@ -45,6 +45,20 @@ class FakturpembelianController extends Controller
             ->first();
     }
 
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        if ($useSlash) {
+            return str_replace('.', '/', $normalized);
+        }
+
+        return str_replace('/', '.', $normalized);
+    }
+
     private function getDefaultPpnTarif(): float
     {
         $val = DB::table('setini')->value('fppntarif');
@@ -90,17 +104,6 @@ class FakturpembelianController extends Controller
         return $baseHpp;
     }
 
-    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
-    {
-        $normalized = trim((string) $number);
-        if ($normalized === '') {
-            return '-';
-        }
-
-        $separator = $useSlash ? '/' : '.';
-
-        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
-    }
 
     private function getReferenceUnitMaps($details): array
     {
@@ -1059,7 +1062,7 @@ class FakturpembelianController extends Controller
         return $errors;
     }
 
-    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
 
@@ -1068,6 +1071,7 @@ class FakturpembelianController extends Controller
             ?? Auth::user()?->fcabang
             ?? null;
 
+        // resolve kode cabang
         $kodeCabang = null;
         if ($branch !== null) {
             $needle = trim((string) $branch);
@@ -1082,26 +1086,35 @@ class FakturpembelianController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('BUY%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
+        $lockKey = crc32('STOCKMT|BUY|' . $kodeCabang . '|' . $date->format('y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-            $last = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
+            $last = DB::table('trstockmt')
+                ->where(function ($q) use ($kodeCabang, $date) {
+                    $yymm = $date->format('y') . $date->format('m');
+                    $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
+                })
+                ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $lastCode = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix . '%')
-                ->orderByDesc('fpono')
-                ->value('fpono');
+            $yymm = $date->format('y') . $date->format('m');
+            $lastCode = DB::table('trstockmt')
+                ->where(function ($q) use ($kodeCabang, $yymm) {
+                    $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
+                })
+                ->orderByDesc('fstockmtno')
+                ->value('fstockmtno');
 
             $next = 1;
-            if ($lastCode && ($pos = strrpos($lastCode, '.')) !== false) {
+            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
                 $next = ((int) substr($lastCode, $pos + 1)) + 1;
             }
         }
@@ -1556,29 +1569,39 @@ class FakturpembelianController extends Controller
 
                         $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     } else {
-                        $prefix = "$fstockmtcode.$kodeCabang.$yy$mm.";
+                        $sep = $fincludeppn === 1 ? '.' : '/';
+                        $prefix = sprintf('%s%s%s%s%s%s', $fstockmtcode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
                         $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('y-m'));
                         if (DB::getDriverName() === 'pgsql') {
                             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-                        }
 
-                        if (DB::getDriverName() === 'pgsql') {
                             $last = DB::table('trstockmt')
-                                ->where('fstockmtno', 'like', "$prefix%")
-                                ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
+                                ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yy, $mm) {
+                                    $yymm = $yy . $mm;
+                                    $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
+                                      ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                                })
+                                ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                                 ->value('lastno');
+
+                            $next = (int) $last + 1;
                         } else {
-                            $lastRecord = DB::table('trstockmt')
-                                ->where('fstockmtno', 'like', "$prefix%")
+                            $yymm = $yy . $mm;
+                            $lastCode = DB::table('trstockmt')
+                                ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yymm) {
+                                    $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
+                                      ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                                })
                                 ->orderByDesc('fstockmtno')
                                 ->value('fstockmtno');
-                            $last = 0;
-                            if ($lastRecord && ($pos = strrpos($lastRecord, '.')) !== false) {
-                                $last = (int) substr($lastRecord, $pos + 1);
+
+                            $next = 1;
+                            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                                $next = ((int) substr($lastCode, $pos + 1)) + 1;
                             }
                         }
 
-                        $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                        $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                     }
                 }
 

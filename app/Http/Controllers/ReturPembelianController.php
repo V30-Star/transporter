@@ -23,9 +23,11 @@ class ReturPembelianController extends Controller
             return '-';
         }
 
-        $separator = $useSlash ? '/' : '.';
+        if ($useSlash) {
+            return str_replace('.', '/', $normalized);
+        }
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
+        return str_replace('/', '.', $normalized);
     }
 
     private function getDefaultPpnTarif(): float
@@ -341,7 +343,7 @@ class ReturPembelianController extends Controller
         ]);
     }
 
-    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
 
@@ -365,18 +367,38 @@ class ReturPembelianController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('REB%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+        $lockKey = crc32('STOCKMT|REB|' . $kodeCabang . '|' . $date->format('y-m'));
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
-            ->value('lastno');
+            $last = DB::table('trstockmt')
+                ->where(function ($q) use ($kodeCabang, $date) {
+                    $yymm = $date->format('y') . $date->format('m');
+                    $q->where('fstockmtno', 'like', "REB.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fstockmtno', 'like', "REB/{$kodeCabang}/{$yymm}/%");
+                })
+                ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
+                ->value('lastno');
 
-        $next = (int) $last + 1;
+            $next = (int) $last + 1;
+        } else {
+            $yymm = $date->format('y') . $date->format('m');
+            $lastCode = DB::table('trstockmt')
+                ->where(function ($q) use ($kodeCabang, $yymm) {
+                    $q->where('fstockmtno', 'like', "REB.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fstockmtno', 'like', "REB/{$kodeCabang}/{$yymm}/%");
+                })
+                ->orderByDesc('fstockmtno')
+                ->value('fstockmtno');
+
+            $next = 1;
+            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                $next = ((int) substr($lastCode, $pos + 1)) + 1;
+            }
+        }
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
@@ -716,17 +738,39 @@ class ReturPembelianController extends Controller
                 $fstockmtcode = 'REB';
 
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $sep = $fincludeppn === 1 ? '.' : '/';
+                    $prefix = sprintf('%s%s%s%s%s%s', $fstockmtcode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
 
                     $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
-                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                    if (DB::getDriverName() === 'pgsql') {
+                        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-                    $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
-                        ->value('lastno');
+                        $last = DB::table('trstockmt')
+                            ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yy, $mm) {
+                                $yymm = $yy . $mm;
+                                $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
+                                  ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                            })
+                            ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
+                            ->value('lastno');
 
-                    $next = (int) $last + 1;
+                        $next = (int) $last + 1;
+                    } else {
+                        $yymm = $yy . $mm;
+                        $lastCode = DB::table('trstockmt')
+                            ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yymm) {
+                                $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
+                                  ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                            })
+                            ->orderByDesc('fstockmtno')
+                            ->value('fstockmtno');
+
+                        $next = 1;
+                        if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                            $next = ((int) substr($lastCode, $pos + 1)) + 1;
+                        }
+                    }
+
                     $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 

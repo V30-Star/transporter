@@ -23,6 +23,20 @@ use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        if ($useSlash) {
+            return str_replace('.', '/', $normalized);
+        }
+
+        return str_replace('/', '.', $normalized);
+    }
+
     private ?bool $tranmtHasInternalNoteColumn = null;
 
     private function resolveProductDefaultUnit($product): string
@@ -184,17 +198,6 @@ class InvoiceController extends Controller
             ->first();
     }
 
-    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
-    {
-        $normalized = trim((string) $number);
-        if ($normalized === '') {
-            return '-';
-        }
-
-        $separator = $useSlash ? '/' : '.';
-
-        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
-    }
 
     private function tranmtHasInternalNoteColumn(): bool
     {
@@ -1168,7 +1171,7 @@ class InvoiceController extends Controller
         return null;
     }
 
-    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
 
@@ -1192,18 +1195,38 @@ class InvoiceController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('INV%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        // kunci per (branch, tahun-bulan)  TANPA bikin tabel baru
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+        $lockKey = crc32('TRANMT|INV|' . $kodeCabang . '|' . $date->format('Y-m'));
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 4) AS int)) AS lastno")
-            ->value('lastno');
+            $last = DB::table('tranmt')
+                ->where(function ($q) use ($kodeCabang, $date) {
+                    $yymm = $date->format('y') . $date->format('m');
+                    $q->where('fsono', 'like', "INV.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "INV/{$kodeCabang}/{$yymm}/%");
+                })
+                ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
+                ->value('lastno');
 
-        $next = (int) $last + 1;
+            $next = (int) $last + 1;
+        } else {
+            $yymm = $date->format('y') . $date->format('m');
+            $lastCode = DB::table('tranmt')
+                ->where(function ($q) use ($kodeCabang, $yymm) {
+                    $q->where('fsono', 'like', "INV.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "INV/{$kodeCabang}/{$yymm}/%");
+                })
+                ->orderByDesc('fsono')
+                ->value('fsono');
+
+            $next = 1;
+            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                $next = ((int) substr($lastCode, $pos + 1)) + 1;
+            }
+        }
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
@@ -1686,24 +1709,37 @@ class InvoiceController extends Controller
                     $digits = 4;
 
                     // Tentukan prefix berdasarkan jenis penjualan
-                    if ($isAdvancePayment) {
-                        $prefix = sprintf('UMJ.%s.%s%s.', $branchCode, $year, $month);
+                    $docType = $isAdvancePayment ? 'UMJ' : 'INV';
+                    $hasPpn = $fapplyppn === '1' || $fincludeppn === '1';
+                    $sep = $hasPpn ? '.' : '/';
+                    $prefix = sprintf('%s%s%s%s%s%s', $docType, $sep, $branchCode, $sep, $year . $month, $sep);
+
+                    if (DB::getDriverName() === 'pgsql') {
+                        $lastRecord = DB::table('tranmt')
+                            ->where(function ($q) use ($docType, $branchCode, $year, $month) {
+                                $yymm = $year . $month;
+                                $q->where('fsono', 'like', "{$docType}.{$branchCode}.{$yymm}.%")
+                                  ->orWhere('fsono', 'like', "{$docType}/{$branchCode}/{$yymm}/%");
+                            })
+                            ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer)) AS lastno")
+                            ->value('lastno');
+
+                        $last = (int) $lastRecord;
                     } else {
-                        $prefix = sprintf('INV.%s.%s%s.', $branchCode, $year, $month);
+                        $yymm = $year . $month;
+                        $lastCode = DB::table('tranmt')
+                            ->where(function ($q) use ($docType, $branchCode, $yymm) {
+                                $q->where('fsono', 'like', "{$docType}.{$branchCode}.{$yymm}.%")
+                                  ->orWhere('fsono', 'like', "{$docType}/{$branchCode}/{$yymm}/%");
+                            })
+                            ->orderByDesc('fsono')
+                            ->value('fsono');
+
+                        $last = 0;
+                        if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                            $last = (int) substr($lastCode, $pos + 1);
+                        }
                     }
-                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
-
-                    $lastRecord = DB::table('tranmt')
-                        ->where('fsono', 'like', $prefix . '%')
-                        ->selectRaw("
-                            fsono,
-                            CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) AS lastno
-                        ")
-                        ->orderByRaw("CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer) DESC")
-                        ->lockForUpdate()
-                        ->first();
-
-                    $last = $lastRecord ? (int) $lastRecord->lastno : 0;
 
                     $fsono = $prefix . str_pad((string) ($last + 1), $digits, '0', STR_PAD_LEFT);
                 }
