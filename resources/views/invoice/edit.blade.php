@@ -3626,7 +3626,7 @@
     @if (($action ?? '') !== 'view')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
+            // const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
             const warningBox = document.getElementById('customerAdvanceWarningBox');
             const warningText = document.getElementById('customerAdvanceWarningText');
             const hiddenInput = document.getElementById('customerCodeHidden');
@@ -3637,7 +3637,7 @@
                 }
 
                 const code = (customerCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
-                const warning = customerAdvanceWarnings[code] ?? null;
+                // const warning = customerAdvanceWarnings[code] ?? null;
 
                 if (!warning || !warning.message) {
                     warningBox.classList.add('hidden');
