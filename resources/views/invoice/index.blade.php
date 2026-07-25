@@ -90,7 +90,6 @@
                 <tr>
                     <th class="border px-2 py-1">Cab.</th>
                     <th class="border px-2 py-1">No.Faktur</th> {{-- Sesuai data simpel (bukan nama) --}}
-                    <th class="border px-2 py-1">Faktur Pajak#</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
@@ -388,10 +387,6 @@
                 {
                     data: 'fsono',
                     name: 'fsono'
-                },
-                {
-                    data: 'ftaxno',
-                    name: 'ftaxno'
                 },
                 {
                     data: 'fsodate',
