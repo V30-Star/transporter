@@ -1375,10 +1375,7 @@ class SalesOrderController extends Controller
 
                 $nextRefNo = $lastRefNo + 1;
 
-                $approvalState = $this->initializeApprovalState();
-                if ($canContinueToSuratJalan) {
-                    $approvalState = $this->markApprovalStateApproved($approvalState, $userid, $now);
-                }
+                $approvalState = $this->markApprovalStateApproved($this->initializeApprovalState(), $userid, $now);
                 $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
                 // C. Insert Header
@@ -1407,8 +1404,8 @@ class SalesOrderController extends Controller
                     'fclose' => '0',
                     'fprint' => 0,
                     'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
-                    'fneedacc' => $creditApproval['fneedacc'],
-                    'fuseracc' => $creditApproval['fuseracc'],
+                    'fneedacc' => '0',
+                    'fuseracc' => mb_substr($userid, 0, 30),
                     ...$approvalState,
                 ], 'ftrsomtid');
 
@@ -2008,6 +2005,7 @@ class SalesOrderController extends Controller
             $needsApprovalNotification,
             &$shouldSendApprovalNotification
         ) {
+            $approvalState = $this->markApprovalStateApproved($this->initializeApprovalState(), $userid, $now);
             // Update Header
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
                 'fsodate' => $fsodate,
@@ -2031,8 +2029,9 @@ class SalesOrderController extends Controller
                 'famountsonet' => round($amountNet, 2),
                 'famountpajak' => round($ppnAmount, 2),
                 'famountso' => round($grandTotal, 2),
-                'fneedacc' => $creditApproval['fneedacc'],
-                'fuseracc' => $creditApproval['fuseracc'],
+                'fneedacc' => '0',
+                'fuseracc' => mb_substr($userid, 0, 30),
+                ...$approvalState,
             ]);
 
             $shouldSendApprovalNotification = false;
