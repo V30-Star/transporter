@@ -361,16 +361,14 @@
                                 </div>
 
                                 {{-- Tanggal --}}
-                                <div>
+                                <div class="flex gap-2">
+                                <div class="w-1/2">
                                     <label class="block text-xs font-bold mb-1">Tanggal</label>
                                     <input type="date" value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}" disabled
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
                                 </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-3">
                                 {{-- Type --}}
-                                <div>
+                                <div class="w-1/2">
                                     <label class="block text-xs font-bold mb-1">Type</label>
                                     <select name="ftypebuy" disabled
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
@@ -379,7 +377,26 @@
                                         <option value="2" {{ old('ftypebuy', $fakturpembelian->ftypebuy) == 2 ? 'selected' : '' }}>Uang Muka</option>
                                     </select>
                                 </div>
+                                 
+                                </div>
+                            </div>
 
+                            <div class="grid grid-cols-3 gap-3">
+                               
+                                {{-- Account --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Account</label>
+                                    <select name="fprdjadi" disabled
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                        <option value=""></option>
+                                        @foreach ($accounts as $account)
+                                            <option value="{{ $account->faccount }}"
+                                                {{ old('fprdjadi', $fakturpembelian->fprdjadi) == $account->faccount ? 'selected' : '' }}>
+                                                {{ $account->faccount }} - {{ $account->faccname }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>  
                                 {{-- Supplier --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Supplier</label>
@@ -412,19 +429,11 @@
                             </div>
 
                             <div class="grid grid-cols-3 gap-3">
-                                {{-- Account --}}
+                                {{-- Nomor Faktur Pajak --}}
                                 <div>
-                                    <label class="block text-xs font-bold mb-1">Account</label>
-                                    <select name="fprdjadi" disabled
+                                    <label class="block text-xs font-bold mb-1">Nomor Faktur Pajak</label>
+                                    <input type="text" name="frefpo" value="{{ old('frefpo', $fakturpembelian->frefpo) }}" disabled
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                                        <option value=""></option>
-                                        @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}"
-                                                {{ old('fprdjadi', $fakturpembelian->fprdjadi) == $account->faccount ? 'selected' : '' }}>
-                                                {{ $account->faccount }} - {{ $account->faccname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
                                 </div>
 
                                 {{-- Faktur --}}
@@ -744,8 +753,9 @@
                                         <input type="hidden" name="fstockmtno" value="{{ $fakturpembelian->fstockmtno }}">
                                     </div>
 
+                                    <div class="flex gap-2">
                                     {{-- Tanggal --}}
-                                    <div>
+                                    <div class="w-1/2">
                                         <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                                         <input type="date" id="fstockmtdate" name="fstockmtdate"
                                             value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}"
@@ -754,11 +764,8 @@
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                </div>
-
-                                <div class="grid grid-cols-3 gap-3">
                                     {{-- Type --}}
-                                    <div>
+                                    <div class="w-1/2">
                                         <label class="block text-xs font-bold mb-1">Type <span class="text-red-500">*</span></label>
                                         <select name="ftypebuy" x-model="selectedType"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypebuy') border-red-400 @enderror">
@@ -771,6 +778,57 @@
                                         @enderror
                                     </div>
 
+                                   
+                                </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-3">
+                                     {{-- Account --}}
+                                     <div>
+                                        <label class="block text-xs font-bold mb-1">Account</label>
+                                        <div class="flex">
+                                            <div class="relative flex-1">
+                                                <select id="accountSelect" class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none"
+                                                    :class="{
+                                                        'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200': selectedType != '1',
+                                                        'bg-gray-50 text-gray-700 cursor-pointer focus:border-blue-500': selectedType == '1'
+                                                    }"
+                                                    disabled>
+                                                    <option value=""></option>
+                                                    @foreach ($accounts as $account)
+                                                        <option value="{{ $account->faccount }}"
+                                                            data-faccid="{{ $account->faccid }}"
+                                                            data-branch="{{ $account->faccount }}"
+                                                            {{ old('fprdjadi', $fakturpembelian->fprdjadi) == $account->faccount ? 'selected' : '' }}>
+                                                            {{ $account->faccount }} - {{ $account->faccname }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse account"
+                                                    @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                                                    x-show="selectedType == '1'"></div>
+                                            </div>
+                                            <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi', $fakturpembelian->fprdjadi) }}">
+                                            <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid', $fakturpembelian->faccid) }}">
+                                            <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                :disabled="selectedType != '1'"
+                                                :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
+                                                title="Browse Account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                            <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
+                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
+                                                @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
+                                                <x-heroicon-o-plus class="w-4 h-4" />
+                                            </a>
+                                        </div>
+                                        @error('fprdjadi')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                   
                                     {{-- Supplier --}}
                                     <div>
                                         <label class="block text-xs font-bold mb-1">Supplier <span class="text-red-500">*</span></label>
@@ -860,48 +918,12 @@
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-3">
-                                    {{-- Account --}}
+                                    {{-- Nomor Faktur Pajak --}}
                                     <div>
-                                        <label class="block text-xs font-bold mb-1">Account</label>
-                                        <div class="flex">
-                                            <div class="relative flex-1">
-                                                <select id="accountSelect" class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none"
-                                                    :class="{
-                                                        'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200': selectedType != '1',
-                                                        'bg-gray-50 text-gray-700 cursor-pointer focus:border-blue-500': selectedType == '1'
-                                                    }"
-                                                    disabled>
-                                                    <option value=""></option>
-                                                    @foreach ($accounts as $account)
-                                                        <option value="{{ $account->faccount }}"
-                                                            data-faccid="{{ $account->faccid }}"
-                                                            data-branch="{{ $account->faccount }}"
-                                                            {{ old('fprdjadi', $fakturpembelian->fprdjadi) == $account->faccount ? 'selected' : '' }}>
-                                                            {{ $account->faccount }} - {{ $account->faccname }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse account"
-                                                    @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                                    x-show="selectedType == '1'"></div>
-                                            </div>
-                                            <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi', $fakturpembelian->fprdjadi) }}">
-                                            <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid', $fakturpembelian->faccid) }}">
-                                            <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                :disabled="selectedType != '1'"
-                                                :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
-                                                title="Browse Account">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-                                            <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
-                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
-                                                @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
-                                                <x-heroicon-o-plus class="w-4 h-4" />
-                                            </a>
-                                        </div>
-                                        @error('fprdjadi')
+                                        <label class="block text-xs font-bold mb-1">Nomor Faktur Pajak <span class="text-red-500" x-show="includePPN">*</span></label>
+                                        <input type="text" name="frefpo" value="{{ old('frefpo', $fakturpembelian->frefpo) }}" :required="includePPN"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror">
+                                        @error('frefpo')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>

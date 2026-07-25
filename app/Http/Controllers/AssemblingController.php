@@ -463,7 +463,7 @@ class AssemblingController extends Controller
         $request->validate([
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:20'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
 
@@ -999,7 +999,7 @@ class AssemblingController extends Controller
         $request->validate([
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:20'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
