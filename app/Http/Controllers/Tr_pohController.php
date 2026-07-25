@@ -193,6 +193,7 @@ class Tr_pohController extends Controller
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             } else {
                 $query->orderBy('tr_poh.fpodate', 'desc');
+                $query->orderBy('tr_poh.fpohid', 'desc');
             }
 
             // Paginasi
