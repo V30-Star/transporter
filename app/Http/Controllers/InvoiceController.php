@@ -1530,7 +1530,7 @@ class InvoiceController extends Controller
                 $refSrjNo = $refSoNo;
             }
 
-            $frefcodeVal = 'INV';
+            $frefcodeVal = '';
             if ($refSrjNo !== '') {
                 if ($this->isDocumentSrj($refSrjNo)) {
                     $frefcodeVal = 'SRJ';
@@ -2707,7 +2707,7 @@ class InvoiceController extends Controller
                 $refSrjNo = $refSoNo;
             }
 
-            $frefcodeVal = 'INV';
+            $frefcodeVal = '';
             if ($refSrjNo !== '') {
                 if ($this->isDocumentSrj($refSrjNo)) {
                     $frefcodeVal = 'SRJ';
