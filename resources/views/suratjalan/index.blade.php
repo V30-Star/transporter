@@ -359,7 +359,7 @@
                     defaultContent: ''
                 },
                 {
-                    data: 'fstockmtno_display',
+                    data: 'fstockmtno',
                     name: 'fstockmtno'
                 },
                 {

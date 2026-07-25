@@ -334,7 +334,7 @@
                     name: 'fbranchcode'
                 },
                 {
-                    data: 'fpono_display',
+                    data: 'fpono',
                     name: 'fpono'
                 },
                 {

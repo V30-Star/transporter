@@ -386,7 +386,7 @@
                     name: 'fbranchcode'
                 },
                 {
-                    data: 'fsono_display',
+                    data: 'fsono',
                     name: 'fsono'
                 },
                 {
