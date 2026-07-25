@@ -32,9 +32,11 @@ class Tr_pohController extends Controller
             return '-';
         }
 
-        $separator = $useSlash ? '/' : '.';
+        if ($useSlash) {
+            return str_replace('.', '/', $normalized);
+        }
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
+        return str_replace('/', '.', $normalized);
     }
 
     private function canApprovePurchaseOrder(): bool
@@ -656,7 +658,7 @@ class Tr_pohController extends Controller
         return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
     }
 
-    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
 
@@ -680,27 +682,36 @@ class Tr_pohController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('PO%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
+        // kunci per (branch, tahun-bulan)
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
+                ->where(function ($q) use ($kodeCabang, $date) {
+                    $yymm = $date->format('y') . $date->format('m');
+                    $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
+                })
+                ->selectRaw("MAX(CAST(SUBSTRING(fpono FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
+            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix . '%')
+                ->where(function ($q) use ($kodeCabang, $yymm) {
+                    $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
+                })
                 ->orderByDesc('fpono')
                 ->value('fpono');
 
             $next = 1;
-            if ($lastCode && ($pos = strrpos($lastCode, '.')) !== false) {
+            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
                 $next = ((int) substr($lastCode, $pos + 1)) + 1;
             }
         }
@@ -1074,19 +1085,41 @@ class Tr_pohController extends Controller
 
                     $yy = $fpodate->format('y');
                     $mm = $fpodate->format('m');
-                    $prefix = sprintf('PO.%s.%s%s.', $kodeCabang, $yy, $mm);
+                    $hasPpn = (int) $fapplyppn === 1 || (int) $fincludeppn === 1;
+                    $sep = $hasPpn ? '.' : '/';
+                    $prefix = sprintf('PO%s%s%s%s%s', $sep, $kodeCabang, $sep, $yy . $mm, $sep);
 
                     // advisory lock per (branch, y-m)
                     $lockKey = crc32('PO|' . $kodeCabang . '|' . $fpodate->format('Y-m'));
-                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                    if (DB::getDriverName() === 'pgsql') {
+                        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-                    // get last sequence under this prefix
-                    $last = DB::table('tr_poh')
-                        ->where('fpono', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fpono, '.', 4) AS int)) AS lastno")
-                        ->value('lastno');
+                        $last = DB::table('tr_poh')
+                            ->where(function ($q) use ($kodeCabang, $yy, $mm) {
+                                $yymm = $yy . $mm;
+                                $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
+                                  ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
+                            })
+                            ->selectRaw("MAX(CAST(SUBSTRING(fpono FROM '([0-9]+)$') AS int)) AS lastno")
+                            ->value('lastno');
 
-                    $next = (int) $last + 1;
+                        $next = (int) $last + 1;
+                    } else {
+                        $yymm = $yy . $mm;
+                        $lastCode = DB::table('tr_poh')
+                            ->where(function ($q) use ($kodeCabang, $yymm) {
+                                $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
+                                  ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
+                            })
+                            ->orderByDesc('fpono')
+                            ->value('fpono');
+
+                        $next = 1;
+                        if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                            $next = ((int) substr($lastCode, $pos + 1)) + 1;
+                        }
+                    }
+
                     $fpohid = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
