@@ -1802,7 +1802,7 @@
                                                 <div class="flex items-center justify-between gap-6">
                                                     <!-- Checkbox -->
                                                     <div class="flex items-center">
-                                                        <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
+                                                        <input id="fincludeppn_input" type="checkbox" name="fapplyppn"
                                                             value="1" x-model="includePPN"
                                                             :disabled="action === 'delete' || action === 'view'"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
@@ -1814,7 +1814,7 @@
 
                                                     <!-- Dropdown Include / Exclude (tengah) -->
                                                     <div class="flex items-center gap-2">
-                                                        <select id="fapplyppn_input" name="fapplyppn"
+                                                        <select id="fapplyppn_input" name="fincludeppn"
                                                             x-model.number="fapplyppn"
                                                             :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
                                                                 action === 'view'"
@@ -2244,8 +2244,8 @@
         const component = root && window.Alpine ? Alpine.$data(root) : null;
         if (!component || !header) return;
 
-        component.includePPN = Number(header.fincludeppn ?? 0) === 1;
-        component.fapplyppn = Number(header.fapplyppn ?? 0) === 1 ? 1 : 0;
+        component.includePPN = Number(header.fapplyppn ?? 0) === 1;
+        component.fapplyppn = Number(header.fincludeppn ?? 0) === 1 ? 1 : 0;
 
         const rate = Number(header.fppnpersen ?? 11);
         component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 11;
@@ -2571,8 +2571,8 @@
             initialGrandTotal: @json($invoice->famountso ?? 0),
             initialPpnAmount: @json($invoice->famountpajak ?? 0),
 
-            includePPN: @json(old('_token') !== null ? old('fincludeppn') == '1' : ($invoice->fincludeppn ?? '0') == '1'),
-            fapplyppn: @json((int) (old('_token') !== null ? old('fapplyppn', 0) : ($invoice->fapplyppn ?? 0))),
+            includePPN: @json(old('_token') !== null ? old('fapplyppn') == '1' : ($invoice->fapplyppn ?? '0') == '1'),
+            fapplyppn: @json((int) (old('_token') !== null ? old('fincludeppn', 0) : ($invoice->fincludeppn ?? 0))),
             action: @js($action ?? 'edit'),
 
             get headerDiscAmount() {

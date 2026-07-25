@@ -33,6 +33,56 @@ class FakturpembelianController extends Controller
             ->first();
     }
 
+    private function latestPurchaseHistoryAnySupplier(string $productCode, string $unit): ?object
+    {
+        return DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->where('m.fstockmtcode', 'BUY')
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
+            ->orderByDesc('m.fstockmtdate')
+            ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+            ->first();
+    }
+
+    private function calculateProductHpp(string $productCode, string $unit): float
+    {
+        $product = DB::table('msprd')
+            ->whereRaw('TRIM(fprdcode) = ?', [$productCode])
+            ->first([
+                'fhpp',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ]);
+
+        if (! $product) {
+            return 0.0;
+        }
+
+        $baseHpp = (float) ($product->fhpp ?? 0);
+        $unitUpper = strtoupper(trim($unit));
+        $smallUnit = strtoupper(trim((string) ($product->fsatuankecil ?? '')));
+        $largeUnit = strtoupper(trim((string) ($product->fsatuanbesar ?? '')));
+        $largeUnit2 = strtoupper(trim((string) ($product->fsatuanbesar2 ?? '')));
+
+        if ($unitUpper === $smallUnit || $unitUpper === '') {
+            return $baseHpp;
+        }
+        if ($unitUpper === $largeUnit) {
+            $ratio = (float) ($product->fqtykecil ?? 1);
+            return $baseHpp * ($ratio > 0 ? $ratio : 1);
+        }
+        if ($unitUpper === $largeUnit2) {
+            $ratio = (float) ($product->fqtykecil2 ?? 1);
+            return $baseHpp * ($ratio > 0 ? $ratio : 1);
+        }
+
+        return $baseHpp;
+    }
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -1482,7 +1532,7 @@ class FakturpembelianController extends Controller
                         $year = $fstockmtdate->format('y'); // 2-digit year format, e.g. 26
                         $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
                         $digits = 4;
-                        $prefix = sprintf('UMB.%s.%s%s.', $kodeCabang, $year, $month);
+                        $prefix = sprintf('JV.UMB.%s.%s%s.', $kodeCabang, $year, $month);
 
                         if (DB::getDriverName() === 'pgsql') {
                             $lockKey = crc32('STOCKMT|UMB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
@@ -2290,6 +2340,45 @@ class FakturpembelianController extends Controller
                     $kodeCabang = $cabang ? $cabang->fcabangkode : 'NA';
                 }
 
+                $paidAmount = (float) DB::table('trkasmt as m')
+                    ->join('trkasdt as d', 'm.fkasmtid', '=', 'd.fkasmtid')
+                    ->where('m.ftrancode', 'PAY')
+                    ->where('d.frefno', $header->fstockmtno)
+                    ->selectRaw('COALESCE(SUM(COALESCE(d.fkasdtvalue, 0) + COALESCE(d.fdiscount, 0)), 0) as total')
+                    ->value('total');
+                $journalPaidAmount = (float) DB::table('jurnalmt as m')
+                    ->join('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
+                    ->join('account as a', 'a.faccount', '=', 'd.faccount')
+                    ->where('d.frefno', $header->fstockmtno)
+                    ->whereIn('a.faccupline', function ($sub) {
+                        $sub->select('faccount')
+                            ->from('set_account')
+                            ->where('faccount_name', 'HUTANGDAGANG');
+                    })
+                    ->where('d.fdk', 'D')
+                    ->selectRaw('COALESCE(SUM(d.famount), 0) as total')
+                    ->value('total');
+                $paidAmountRp = (float) DB::table('trkasmt as m')
+                    ->join('trkasdt as d', 'm.fkasmtid', '=', 'd.fkasmtid')
+                    ->where('m.ftrancode', 'PAY')
+                    ->where('d.frefno', $header->fstockmtno)
+                    ->selectRaw('COALESCE(SUM(COALESCE(d.fvalue_rp, 0) + COALESCE(d.fdiscountrp, 0)), 0) as total')
+                    ->value('total');
+                $journalPaidAmountRp = (float) DB::table('jurnalmt as m')
+                    ->join('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
+                    ->join('account as a', 'a.faccount', '=', 'd.faccount')
+                    ->where('d.frefno', $header->fstockmtno)
+                    ->whereIn('a.faccupline', function ($sub) {
+                        $sub->select('faccount')
+                            ->from('set_account')
+                            ->where('faccount_name', 'HUTANGDAGANG');
+                    })
+                    ->where('d.fdk', 'D')
+                    ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
+                    ->value('total');
+                $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
+                $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
+
                 // Update Header
                 $header->update([
                     'fstockmtdate' => $fstockmtdate,
@@ -2302,8 +2391,8 @@ class FakturpembelianController extends Controller
                     'famountpajak_rp' => round($ppnAmount * $frate, 2),
                     'famountmt' => round($grandTotal, 2),
                     'famountmt_rp' => round($grandTotal * $frate, 2),
-                    'famountremain' => round($grandTotal, 2),
-                    'famountremain_rp' => round($grandTotal * $frate, 2),
+                    'famountremain' => round($amountRemain, 2),
+                    'famountremain_rp' => round($amountRemainRp, 2),
                     'frefno' => $request->input('frefno'),
                     'frefpo' => $request->input('frefpo'),
                     'ffrom' => $ffrom,

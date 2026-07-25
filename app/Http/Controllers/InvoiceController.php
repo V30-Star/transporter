@@ -1678,14 +1678,10 @@ class InvoiceController extends Controller
 
                     // Tentukan prefix berdasarkan jenis penjualan
                     if ($isAdvancePayment) {
-                        $prefix = sprintf('UMJ.%s.%s%s.', $branchCode, $year, $month);
+                        $prefix = sprintf('JV.UMJ.%s.%s%s.', $branchCode, $year, $month);
                     } else {
                         $prefix = sprintf('INV.%s.%s%s.', $branchCode, $year, $month);
                     }
-                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
-
-                    DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
-
                     DB::statement("SELECT pg_advisory_xact_lock(hashtext(?))", [$prefix]);
 
                     $lastRecord = DB::table('tranmt')
@@ -2872,6 +2868,34 @@ class InvoiceController extends Controller
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
+                $paidAmount = (float) DB::table('trkasmt as m')
+                    ->join('trkasdt as d', 'm.fkasmtid', '=', 'd.fkasmtid')
+                    ->where('m.ftrancode', 'RCP')
+                    ->where('d.frefno', $header->fsono)
+                    ->selectRaw('COALESCE(SUM(COALESCE(d.fkasdtvalue, 0) + COALESCE(d.fdiscount, 0)), 0) as total')
+                    ->value('total');
+                $journalPaidAmount = (float) DB::table('jurnalmt as m')
+                    ->join('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
+                    ->where('d.frefno', $header->fsono)
+                    ->where('d.faccount', '11130.01')
+                    ->where('d.fdk', 'K')
+                    ->selectRaw('COALESCE(SUM(d.famount), 0) as total')
+                    ->value('total');
+                $paidAmountRp = (float) DB::table('trkasmt as m')
+                    ->join('trkasdt as d', 'm.fkasmtid', '=', 'd.fkasmtid')
+                    ->where('m.ftrancode', 'RCP')
+                    ->where('d.frefno', $header->fsono)
+                    ->selectRaw('COALESCE(SUM(COALESCE(d.fvalue_rp, 0) + COALESCE(d.fdiscountrp, 0)), 0) as total')
+                    ->value('total');
+                $journalPaidAmountRp = (float) DB::table('jurnalmt as m')
+                    ->join('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
+                    ->where('d.frefno', $header->fsono)
+                    ->where('d.faccount', '11130.01')
+                    ->where('d.fdk', 'K')
+                    ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
+                    ->value('total');
+                $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
+                $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
                 $headerUpdate = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) ($header->fsono ?? ''), 0, 50),
                     'fsodate' => $fsodate,
@@ -2890,6 +2914,8 @@ class InvoiceController extends Controller
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
                     'ftotalsalesnet' => $totalSalesNet,
+                    'famountremain' => $amountRemain,
+                    'famountremain_rp' => $amountRemainRp,
                     'fket' => $request->fket ?? '',
                     'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,

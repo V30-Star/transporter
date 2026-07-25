@@ -1406,8 +1406,8 @@
         const component = root && window.Alpine ? Alpine.$data(root) : null;
         if (!component || !header) return;
 
-        component.includePPN = Number(header.fincludeppn ?? 0) === 1;
-        component.fapplyppn = Number(header.fapplyppn ?? 0) === 1 ? 1 : 0;
+        component.includePPN = Number(header.fapplyppn ?? 0) === 1;
+        component.fapplyppn = Number(header.fincludeppn ?? 0) === 1 ? 1 : 0;
 
         const rate = Number(header.fppnpersen ?? 11);
         component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 11;

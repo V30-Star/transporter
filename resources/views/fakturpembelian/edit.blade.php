@@ -1198,6 +1198,34 @@
                                     </div>
                                 </div>
 
+                                {{-- MODAL: pilih supplier dulu --}}
+                                <div x-show="showSupplierRequired" x-cloak
+                                    class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                                    <div class="absolute inset-0 bg-black/50" @click="showSupplierRequired = false"></div>
+
+                                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center">
+                                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                            <h3 class="text-lg font-semibold text-gray-800">Pilih Supplier Dulu</h3>
+                                        </div>
+
+                                        <div class="px-5 py-4">
+                                            <p class="text-sm text-gray-700">
+                                                Pilih supplier dulu sebelum menambah produk secara manual.
+                                                Jika mengambil dari PO atau PB, supplier akan terisi otomatis.
+                                            </p>
+                                        </div>
+
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                                            <button type="button" @click="showSupplierRequired = false"
+                                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                                                OK
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- MODAL: warning modal --}}
                                 <div x-show="showWarningModal" x-cloak
                                     class="fixed inset-0 z-[96] flex items-center justify-center bg-black/50" x-transition.opacity>
@@ -1413,7 +1441,7 @@
                                         <input type="hidden" name="famount" :value="totalHarga">
                                         <input type="hidden" name="famountpajak" :value="ppnAmount">
                                         <input type="hidden" name="famountmt" :value="grandTotal">
-                                        <input type="hidden" name="fincludeppn" :value="includePPN ? 1 : 0">
+                                        <input type="hidden" name="fincludeppn" :value="includePPN ? ppnMode : 0">
                                         <input type="hidden" name="famountpopajak" :value="includePPN ? ppnRate : 0">
                                     </div>
                                 </div>
