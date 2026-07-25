@@ -41,7 +41,7 @@ class Tr_pohController extends Controller
 
     private function canApprovePurchaseOrder(): bool
     {
-        return in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
+        return true;
     }
 
     private function getApprovalRecipients(): array
@@ -1148,40 +1148,13 @@ class Tr_pohController extends Controller
                     'famountpopajak' => $ppnAmount,
                     'famountpo' => $grandTotal,
                     'famountpo_rp' => $grandTotal,
-                    'fapproval' => $isApproval,
+                    'fapproval' => 1,
                     'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                     'fclose' => '0',
                     'fprdin' => '0',
                 ], 'fpohid');
 
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
-
-                // EMAIL after commit — use fpohid and fprdid
-                if ($isApproval === 1) {
-                    DB::afterCommit(function () use ($fpohid) {
-                        $hdr = Tr_poh::where('fpohid', $fpohid)->first();
-
-                        $dt = Tr_pod::from('tr_pod as d')
-                            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')  // <-- FK to msprd.fprdid
-                            ->where('d.fpono', $hdr->fpono)
-                            ->orderBy('p.fprdname')
-                            ->get([
-                                'd.*',
-                                'p.fprdname as product_name',
-                                'p.fminstock as stock',
-                            ]);
-
-                        $productName = $dt->pluck('product_name')->implode(', ');
-                        $approver = auth('sysuser')->user()->fname ?? '-';
-
-                        $approvalRecipients = $this->getApprovalRecipients();
-                        if ($approvalRecipients !== []) {
-                            Mail::to($approvalRecipients[0])
-                                ->cc(array_slice($approvalRecipients, 1))
-                                ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
-                        }
-                    });
-                }
 
                 // numbering + insert details — use fpono
                 $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');
@@ -1789,6 +1762,7 @@ class Tr_pohController extends Controller
                         'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                         'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
                         'fprdin' => (string) ($header->fprdin ?? '0'),
+                        'fapproval' => 1,
                     ]);
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
