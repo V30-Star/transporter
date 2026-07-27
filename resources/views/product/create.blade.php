@@ -305,8 +305,9 @@
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
 
         <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data" data-form-draft="true"
-            data-draft-key="product:create">
+            data-draft-key="product:create" onsubmit="return handleProductSubmit(event)">
             @csrf
+            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
             {{-- ═══ PAGE HEADER ═══ --}}
             {{-- <div class="flex items-center justify-between mb-5">
@@ -1779,6 +1780,50 @@
             if (hidCode) hidCode.value = fgroupid || '';
             const alpineData = Alpine.$data(sel.closest('[x-data]'));
             if (alpineData) alpineData.isEditable = true;
-        });
+        window.handleProductSubmit = function(e) {
+            const canApproval = @json(!empty($canApproval));
+            if (!canApproval) {
+                const approveInput = document.getElementById('approveNowInput');
+                if (approveInput) approveInput.value = '0';
+                return true;
+            }
+
+            if (e.target.dataset.confirmed) {
+                return true;
+            }
+
+            e.preventDefault();
+            const form = e.target;
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Konfirmasi Approval',
+                text: 'Apakah produk ini mau langsung di Approve ?',
+                showConfirmButton: true,
+                confirmButtonText: 'Yes',
+                showDenyButton: true,
+                denyButtonText: 'No',
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#2563eb',
+                denyButtonColor: '#4b5563',
+                cancelButtonColor: '#9ca3af',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                const approveInput = document.getElementById('approveNowInput');
+                if (result.isConfirmed) {
+                    if (approveInput) approveInput.value = '1';
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                } else if (result.isDenied) {
+                    if (approveInput) approveInput.value = '0';
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                }
+            });
+
+            return false;
+        };
     });
 </script>

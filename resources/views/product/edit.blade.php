@@ -908,9 +908,10 @@
                 {{-- ============================================ --}}
             @else
                 <form action="{{ route('product.update', $product->fprdid) }}" method="POST"
-                    enctype="multipart/form-data" data-form-draft="true" data-draft-key="product:edit">
+                    enctype="multipart/form-data" data-form-draft="true" data-draft-key="product:edit" onsubmit="return handleProductSubmit(event)">
                     @csrf
                     @method('PATCH')
+                    <input type="hidden" name="approve_now" id="approveNowInput" value="0">
                     @php
                         $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
                         $isUsedProduct = $usageInfo['is_used'] ?? false;
@@ -2881,4 +2882,50 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === "Escape") closeModal();
     });
+
+    window.handleProductSubmit = function(e) {
+        const canApproval = @json(!empty($canApproval));
+        if (!canApproval) {
+            const approveInput = document.getElementById('approveNowInput');
+            if (approveInput) approveInput.value = '0';
+            return true;
+        }
+
+        if (e.target.dataset.confirmed) {
+            return true;
+        }
+
+        e.preventDefault();
+        const form = e.target;
+
+        Swal.fire({
+            icon: 'question',
+            title: 'Konfirmasi Approval',
+            text: 'Apakah produk ini mau langsung di Approve ?',
+            showConfirmButton: true,
+            confirmButtonText: 'Yes',
+            showDenyButton: true,
+            denyButtonText: 'No',
+            showCancelButton: true,
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#2563eb',
+            denyButtonColor: '#4b5563',
+            cancelButtonColor: '#9ca3af',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        }).then((result) => {
+            const approveInput = document.getElementById('approveNowInput');
+            if (result.isConfirmed) {
+                if (approveInput) approveInput.value = '1';
+                form.dataset.confirmed = 'true';
+                form.submit();
+            } else if (result.isDenied) {
+                if (approveInput) approveInput.value = '0';
+                form.dataset.confirmed = 'true';
+                form.submit();
+            }
+        });
+
+        return false;
+    };
 </script>

@@ -27,7 +27,8 @@ class ProductController extends Controller
 
     protected function canApproveProduct(): bool
     {
-        return in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approveproduct', $permissions, true);
     }
 
     protected function canViewProductHpp(): bool
@@ -421,13 +422,16 @@ class ProductController extends Controller
             }
 
             $user = auth('sysuser')->user();
-            $approvalState = $this->initializeApprovalState();
-            $validated = array_merge($validated, $approvalState);
+            $isApproved = $this->canApproveProduct() && $request->boolean('approve_now');
 
-            if ($this->canApproveProduct() && $request->boolean('approve_now')) {
-                $validated['fapproval'] = '2';
+            if ($isApproved) {
+                $validated['fapproval'] = '1';
                 $validated['fuserapproved'] = $user->fname ?? 'System';
                 $validated['fdateapproved'] = now();
+            } else {
+                $validated['fapproval'] = '0';
+                $validated['fuserapproved'] = null;
+                $validated['fdateapproved'] = null;
             }
 
             $validated['fcreatedby'] = $user->fname ?? 'System';
@@ -450,10 +454,10 @@ class ProductController extends Controller
 
             $product = Product::create($validated);
 
+            $message = $isApproved ? 'Produk berhasil disimpan' : 'Produk butuh approval';
             return redirect()
-                ->route('product.create')
-                ->with('success', 'Produk berhasil disimpan.')
-                ->with('warning', 'Butuh Approval');
+                ->route('product.index')
+                ->with('success', $message);
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
@@ -677,16 +681,15 @@ class ProductController extends Controller
             $validated['fupdatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-            if ($this->canApproveProduct() && $request->boolean('approve_now')) {
-                $validated['fapproval'] = '2';
+            $isApproved = $this->canApproveProduct() && $request->boolean('approve_now');
+            if ($isApproved) {
+                $validated['fapproval'] = '1';
                 $validated['fuserapproved'] = $userLogin->fname ?? 'System';
                 $validated['fdateapproved'] = now();
             } else {
-                unset(
-                    $validated['fapproval'],
-                    $validated['fuserapproved'],
-                    $validated['fdateapproved']
-                );
+                $validated['fapproval'] = '0';
+                $validated['fuserapproved'] = null;
+                $validated['fdateapproved'] = null;
             }
 
             $googleDriveService = new GoogleDriveService;
@@ -728,26 +731,24 @@ class ProductController extends Controller
                 'fhargajual2level3'       => $product->fhargajual2level3,
                 'fnonactive'              => $product->fnonactive,
                 'fcreatedby'              => $product->fcreatedby,
-                'fupdatedby'              => $product->fupdatedby,
                 'fcreatedat'              => $product->fcreatedat,
+                'fupdatedby'              => $product->fupdatedby,
                 'fupdatedat'              => $product->fupdatedat,
                 'fmerek'                  => $product->fmerek,
-                'fminmargin'              => $product->fminmargin,
-                'fformula'                => $product->fformula,
-                'fminstock'               => $product->fminstock,
-                'fsatuanbesar'            => $product->fsatuanbesar,
-                'fsatuanbesar2'           => $product->fsatuanbesar2,
                 'fsatuankecil'            => $product->fsatuankecil,
+                'fsatuanbesar'            => $product->fsatuanbesar,
                 'fqtykecil'               => $product->fqtykecil,
-                'fsatuandefault'          => $product->fsatuandefault,
-                'fbarcode'                => $product->fbarcode,
+                'fhpp2'                   => $product->fhpp2,
+                'fhpp3'                   => $product->fhpp3,
+                'fsatuanbesar2'           => $product->fsatuanbesar2,
+                'fqtykecil2'              => $product->fqtykecil2,
                 'fhargajual3level1'       => $product->fhargajual3level1,
                 'fhargajual3level2'       => $product->fhargajual3level2,
                 'fhargajual3level3'       => $product->fhargajual3level3,
                 'fimage1'                 => $product->fimage1,
-                'fimage2'                 => $product->fimage2,
-                'fimage3'                 => $product->fimage3,
-                'fqtykecil2'              => $product->fqtykecil2,
+                'fminstock'               => $product->fminstock,
+                'fsatuandefault'          => $product->fsatuandefault,
+                'fapproval'               => $product->fapproval,
                 'fuserapproved'           => $product->fuserapproved,
                 'fdateapproved'           => $product->fdateapproved,
                 'fsatuandefaultlaporan'   => $product->fsatuandefaultlaporan,
@@ -756,9 +757,10 @@ class ProductController extends Controller
                 'fdatetimelog'            => now(),
             ]);
 
+            $message = $isApproved ? 'Produk berhasil disimpan' : 'Produk butuh approval';
             return redirect()
                 ->route('product.index')
-                ->with('success', 'Produk berhasil diupdate.');
+                ->with('success', $message);
         } catch (ValidationException $e) {
             return redirect()
                 ->route('product.edit', $product->fprdid)
