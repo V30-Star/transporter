@@ -1511,7 +1511,7 @@
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
-                if (successMessage === "PR berhasil disimpan" || successMessage === "PR butuh approval") {
+                if (successMessage === "PR berhasil disimpan" || successMessage === "PR butuh approval" || successMessage === "PO berhasil disimpan" || successMessage === "PO butuh approval") {
                     Swal.fire({
                         icon: 'success',
                         title: successMessage,

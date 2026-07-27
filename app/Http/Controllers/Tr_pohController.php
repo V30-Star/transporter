@@ -41,7 +41,10 @@ class Tr_pohController extends Controller
 
     private function canApprovePurchaseOrder(): bool
     {
-        return true;
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvepo', $permissions, true)
+            || in_array('approvetr_poh', $permissions, true)
+            || in_array('approveorderpembelian', $permissions, true);
     }
 
     private function getApprovalRecipients(): array
@@ -835,6 +838,7 @@ class Tr_pohController extends Controller
         return view('tr_poh.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
+            'canApproval' => $canApproval,
             'suppliers' => $suppliers,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -1046,6 +1050,9 @@ class Tr_pohController extends Controller
 
         $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
 
+        $canApprove = $this->canApprovePurchaseOrder();
+        $isApproved = $canApprove && $request->boolean('approve_now');
+
         // TRANSACTION
         $fpono = null;
         try {
@@ -1063,6 +1070,7 @@ class Tr_pohController extends Controller
                 $ppnAmount,
                 $grandTotal,
                 $prdAgg,
+                $isApproved,
                 &$fpono
             ) {
                 $this->validatePrdRemain($prdAgg);
@@ -1127,7 +1135,6 @@ class Tr_pohController extends Controller
                 $fcurrency = $request->input('fcurrency', 'IDR');
                 $frate = $request->input('frate', 15500);
                 $ftempohr = $request->input('ftempohr', 0);
-                $isApproval = $this->canApprovePurchaseOrder() ? (int) ($request->input('fapproval', 0)) : 0;
 
                 // INSERT HEADER and GET fpohid
                 $fpohid = DB::table('tr_poh')->insertGetId([
@@ -1143,12 +1150,14 @@ class Tr_pohController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fket' => $request->input('fket'),
                     'fusercreate' => $userid,
+                    'fuserapproved' => $isApproved ? $userid : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                     'fdatetime' => $now,
                     'famountponet' => round($totalHarga, 2),
                     'famountpopajak' => $ppnAmount,
                     'famountpo' => $grandTotal,
                     'famountpo_rp' => $grandTotal,
-                    'fapproval' => 1,
+                    'fapproval' => $isApproved ? 1 : 0,
                     'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                     'fclose' => '0',
                     'fprdin' => '0',
@@ -1173,9 +1182,10 @@ class Tr_pohController extends Controller
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         }
 
+        $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
         return redirect()
-            ->route('tr_poh.create')
-            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($fpono, $fapplyppn === 0) . ' berhasil disimpan.');
+            ->route('tr_poh.index')
+            ->with('success', $message);
     }
 
     public function edit(Request $request, $fpohid)
@@ -1363,6 +1373,7 @@ class Tr_pohController extends Controller
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'edit',
+            'canApproval' => $this->canApprovePurchaseOrder(),
         ]);
     }
 
@@ -1459,6 +1470,7 @@ class Tr_pohController extends Controller
             'famountpo' => (float) ($tr_poh->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'view',
+            'canApproval' => $this->canApprovePurchaseOrder(),
         ]);
     }
 
@@ -1722,6 +1734,9 @@ class Tr_pohController extends Controller
         $ppnAmount = $fincludeppn ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
         $grandTotal = round($totalHarga + $ppnAmount, 2);
 
+        $canApprove = $this->canApprovePurchaseOrder();
+        $isApproved = $canApprove && $request->boolean('approve_now');
+
         try {
             DB::transaction(function () use (
                 $request,
@@ -1737,7 +1752,8 @@ class Tr_pohController extends Controller
                 $grandTotal,
                 $fincludeppn,
                 $prdAgg,
-                $oldUsageByRef
+                $oldUsageByRef,
+                $isApproved
             ) {
                 $this->validatePrdRemain($prdAgg, $oldUsageByRef);
                 $this->adjustPrReferenceQtyKecil($oldUsageByRef, 1);
@@ -1754,6 +1770,8 @@ class Tr_pohController extends Controller
                         'fincludeppn' => $fincludeppn,
                         'fket' => $request->input('fket'),
                         'fuserupdate' => $userid,
+                        'fuserapproved' => $isApproved ? $userid : null,
+                        'fdateapproved' => $isApproved ? now() : null,
                         'fupdatedat' => now(),
                         'famountponet' => round($totalHarga, 2),
                         'famountpopajak' => $ppnAmount,
@@ -1762,7 +1780,7 @@ class Tr_pohController extends Controller
                         'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                         'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
                         'fprdin' => (string) ($header->fprdin ?? '0'),
-                        'fapproval' => 1,
+                        'fapproval' => $isApproved ? 1 : 0,
                     ]);
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
@@ -1784,9 +1802,10 @@ class Tr_pohController extends Controller
             return back()->withInput()->with('error', 'Order pembelian belum bisa disimpan. Coba lagi.');
         }
 
+        $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($header->fpono, $fapplyppn === 0) . ' berhasil diupdate.');
+            ->with('success', $message);
     }
 
     public function delete(Request $request, $fpohid)

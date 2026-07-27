@@ -381,7 +381,18 @@
                 },
                 {
                     data: 'fapproval',
-                    name: 'fapproval'
+                    name: 'fapproval',
+                    render: function(data, type, row) {
+                        if (type !== 'display') return data;
+                        const left = (data ?? '').toString().trim();
+                        if (left === '1' || left === '2') {
+                            return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Approve</span>';
+                        }
+                        if (left === '0') {
+                            return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Belum Approve</span>';
+                        }
+                        return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">-</span>';
+                    }
                 },
                 {
                     data: 'fclose',
