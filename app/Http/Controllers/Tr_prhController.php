@@ -125,13 +125,15 @@ class Tr_prhController extends Controller
                 $query->where('tr_prh.fclose', '1');
             } elseif ($statusFilter === 'belum_approve') {
                 $query->where(function ($q) {
-                    $q->where(function ($inner) {
-                        $inner->where('tr_prh.fapproval', '1');
-                    });
+                    $q->where('tr_prh.fapproval', '0')
+                        ->orWhere('tr_prh.fapproval', '1')
+                        ->orWhereNull('tr_prh.fapproval')
+                        ->orWhere('tr_prh.fapproval', '');
                 });
             } elseif ($statusFilter === 'approve') {
                 $query->where(function ($q) {
-                    $q->where('tr_prh.fapproval', '2');
+                    $q->where('tr_prh.fapproval', '1')
+                        ->orWhere('tr_prh.fapproval', '2');
                 });
             }
             if ($year) {
