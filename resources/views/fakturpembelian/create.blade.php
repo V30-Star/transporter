@@ -2139,14 +2139,11 @@
                     return;
                 }
 
-                this.savedItems = this.pendingValidRows.map((row) => ({
-                    ...row
-                }));
-                this.recalcTotals();
+                const validRowsToSubmit = this.pendingValidRows.slice();
                 const form = this.pendingSubmitForm;
                 this.closeWarning();
                 this.$nextTick(() => {
-                    this.syncDetailPayload(form, this.savedItems);
+                    this.syncDetailPayload(form, validRowsToSubmit);
                     window.submitFormWithStockMinusConfirmation?.(form);
                 });
             },
@@ -2441,12 +2438,8 @@
                     return;
                 }
 
-                this.savedItems = validRows.map((row) => ({
-                    ...row
-                }));
-                this.recalcTotals();
                 this.$nextTick(() => {
-                    this.syncDetailPayload(form, this.savedItems);
+                    this.syncDetailPayload(form, validRows);
                     window.submitFormWithStockMinusConfirmation?.(form);
                 });
             },
