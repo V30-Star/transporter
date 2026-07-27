@@ -42,7 +42,10 @@ class Tr_prhController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        return true;
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvepermintaanpembelian', $permissions, true)
+            || in_array('approvetr_prh', $permissions, true)
+            || in_array('approvepr', $permissions, true);
     }
 
     private function getApprovalRecipients(): array
@@ -329,6 +332,7 @@ class Tr_prhController extends Controller
         return view('tr_prh.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
+            'canApproval' => $canApproval,
             'suppliers' => $suppliers,
             'fcabang' => $branchInfo['fcabang'],
             'fbranchlabel' => $branchInfo['fbranchlabel'],
@@ -367,6 +371,9 @@ class Tr_prhController extends Controller
                 ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
         }
 
+        $canApprove = $this->canApprovePurchaseRequest();
+        $isApproved = $canApprove && $request->boolean('approve_now');
+
         DB::transaction(function () use (
             $request,
             $fprno,
@@ -380,7 +387,8 @@ class Tr_prhController extends Controller
             $noacaks,
             $descs,
             $ketdts,
-            $productMap
+            $productMap,
+            $isApproved
         ) {
             $tr_prh = Tr_prh::create([
                 'fprno' => $fprno,
@@ -394,10 +402,10 @@ class Tr_prhController extends Controller
                 'fneeddate' => $fneeddate,
                 'fduedate' => $fduedate,
                 'fusercreate' => $userName,
-                'fuserapproved' => $userName,
-                'fdateapproved' => now(),
+                'fuserapproved' => $isApproved ? $userName : null,
+                'fdateapproved' => $isApproved ? now() : null,
                 'fupdatedat' => null,
-                'fapproval' => 1,
+                'fapproval' => $isApproved ? 1 : 0,
             ]);
 
             $detailRows = [];
@@ -442,8 +450,9 @@ class Tr_prhController extends Controller
             Tr_prd::insert($detailRows);
         });
 
-        return redirect()->route('tr_prh.create')
-            ->with('success', 'Permintaan pembelian berhasil disimpan.');
+        $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
+        return redirect()->route('tr_prh.index')
+            ->with('success', $message);
     }
 
     public function view(Request $request, $fprhid)
@@ -465,6 +474,7 @@ class Tr_prhController extends Controller
             'existingPO' => $pageData['existingPO'],
             'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh) : null,
             'action' => 'view',
+            'canApproval' => $this->canApprovePurchaseRequest(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -500,6 +510,7 @@ class Tr_prhController extends Controller
             'existingPO' => $pageData['existingPO'],
             'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh) : null,
             'action' => 'edit',
+            'canApproval' => $this->canApprovePurchaseRequest(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -614,6 +625,9 @@ class Tr_prhController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        $canApprove = $this->canApprovePurchaseRequest();
+        $isApproved = $canApprove && $request->boolean('approve_now');
+
         DB::transaction(function () use (
             $request,
             $header,
@@ -628,8 +642,8 @@ class Tr_prhController extends Controller
             $descs,
             $ketdts,
             $productMap,
-            $oldDetails
-
+            $oldDetails,
+            $isApproved
         ) {
             $now = now();
             $userName = $this->getAuthenticatedUserName('system');
@@ -645,7 +659,9 @@ class Tr_prhController extends Controller
                 'fuserupdate' => $userName,
                 'fupdatedat' => $now,
                 'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
-                'fapproval' => 1,
+                'fapproval' => $isApproved ? 1 : 0,
+                'fuserapproved' => $isApproved ? $userName : null,
+                'fdateapproved' => $isApproved ? $now : null,
             ];
             Tr_prh::where('fprhid', $header->fprhid)->update($headerUpdate);
 
@@ -697,9 +713,10 @@ class Tr_prhController extends Controller
 
         });
 
+        $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
         return redirect()
             ->route('tr_prh.index')
-            ->with('success', 'Permintaan pembelian berhasil diupdate.');
+            ->with('success', $message);
     }
 
     public function delete(Request $request, $fprhid)

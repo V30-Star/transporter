@@ -151,6 +151,7 @@
             <form action="{{ route('tr_prh.store') }}" method="POST" data-form-draft="true" data-draft-key="tr_prh:create"
                 @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-submit-request'))">
                 @csrf
+                <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
                 {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -1218,7 +1219,44 @@
                     return;
                 }
 
-                this.$nextTick(() => this.$root.closest('form')?.submit());
+                const canApproval = @json(!empty($canApproval) || !empty($perms['can_approval']));
+                const submitTheForm = () => {
+                    this.$nextTick(() => this.$root.closest('form')?.submit());
+                };
+
+                if (canApproval) {
+                    Swal.fire({
+                        icon: 'question',
+                        title: 'Konfirmasi Approval',
+                        text: 'Apakah PR ini mau langsung di Approve ?',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Yes',
+                        showDenyButton: true,
+                        denyButtonText: 'No',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#2563eb',
+                        denyButtonColor: '#4b5563',
+                        cancelButtonColor: '#9ca3af',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then((result) => {
+                        const approveInput = document.getElementById('approveNowInput');
+                        if (result.isConfirmed) {
+                            if (approveInput) approveInput.value = '1';
+                            submitTheForm();
+                        } else if (result.isDenied) {
+                            if (approveInput) approveInput.value = '0';
+                            submitTheForm();
+                        }
+                    });
+                } else {
+                    const approveInput = document.getElementById('approveNowInput');
+                    if (approveInput) {
+                        approveInput.value = '0';
+                    }
+                    submitTheForm();
+                }
             },
 
             confirmWarningAndSubmit() {

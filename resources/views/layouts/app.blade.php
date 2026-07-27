@@ -1511,6 +1511,18 @@
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
+                if (successMessage === "PR berhasil disimpan" || successMessage === "PR butuh approval") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: successMessage,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#2563eb',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    });
+                    return;
+                }
+
                 if (successMessage === "Periode sudah di Update\njangan lupa diposting ulang.") {
                     Swal.fire({
                         icon: 'success',
