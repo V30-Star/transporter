@@ -792,8 +792,11 @@
                             @submit.prevent="handleSubmit()">
                             @csrf
                             @method('PATCH')
+                            <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
+                                value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
                             <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
                                 value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
+                            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
                             {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
                             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -2715,10 +2718,12 @@ this.$nextTick(() => {
         const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;
         const needAccInput = form.querySelector('#salesOrderNeedAcc');
         const userAccInput = form.querySelector('#salesOrderUserAcc');
+        const approveNowInput = form.querySelector('#approveNowInput');
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
         if (needAccInput) needAccInput.value = '0';
         if (userAccInput) userAccInput.value = '';
+        if (approveNowInput) approveNowInput.value = '0';
 
         if (!customerCode) {
             return true;
@@ -2751,101 +2756,53 @@ this.$nextTick(() => {
 
             const checks = payload.checks || {};
             const limitCheck = checks.limit_check || {};
-            const overdueCheck = checks.overdue_check || {};
             const canApprove = !!payload.can_approve;
             const currentUser = payload.current_user || '';
 
-            if (limitCheck.enabled && limitCheck.exceeded) {
-                const confirmed = await Swal.fire({
-                    icon: 'warning',
-                    title: @json('Limit Piutang Terlampaui'),
-                    html: `
-                        <div class="text-left text-sm">
-                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: @json('Ya'),
-                    cancelButtonText: @json('Tidak')
-                });
+            const isOverLimit = limitCheck.enabled && limitCheck.exceeded;
 
-                if (!confirmed.isConfirmed) {
-                    if (userAccInput) userAccInput.value = '';
-                    return false;
-                }
-
-                if (!canApprove) {
-                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
-                        html: `
-                            <div class="text-left text-sm">
-                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
-                                <ul class="list-disc pl-5 space-y-1">
-                                    <li>Limit piutang customer sudah terlampaui.</li>
-                                    <li>Ada nota yang lewat jatuh tempo.</li>
-                                </ul>
-                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
-                            </div>
-                        `,
-                        text: undefined
+            if (isOverLimit) {
+                if (canApprove) {
+                    const result = await Swal.fire({
+                        icon: 'question',
+                        title: 'Konfirmasi Approval',
+                        text: 'Apakah SO ini mau langsung di Approve ?',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Yes',
+                        showDenyButton: true,
+                        denyButtonText: 'No',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#2563eb',
+                        denyButtonColor: '#4b5563',
+                        cancelButtonColor: '#9ca3af',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
                     });
-                    return false;
-                }
 
-                if (needAccInput) needAccInput.value = '1';
-                if (userAccInput) userAccInput.value = currentUser;
+                    if (result.isConfirmed) {
+                        if (approveNowInput) approveNowInput.value = '1';
+                        if (needAccInput) needAccInput.value = '1';
+                        if (userAccInput) userAccInput.value = currentUser;
+                        return true;
+                    } else if (result.isDenied) {
+                        if (approveNowInput) approveNowInput.value = '0';
+                        if (needAccInput) needAccInput.value = '0';
+                        if (userAccInput) userAccInput.value = '';
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (approveNowInput) approveNowInput.value = '0';
+                    if (needAccInput) needAccInput.value = '0';
+                    if (userAccInput) userAccInput.value = '';
+                    return true;
+                }
+            } else {
+                if (approveNowInput) approveNowInput.value = '1';
                 return true;
             }
-
-            if (overdueCheck.enabled && overdueCheck.has_overdue) {
-                const overdueHtml = (overdueCheck.items || []).slice(0, 5).map((item) => `
-                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('id-ID')}</li>
-                `).join('');
-
-                const confirmed = await Swal.fire({
-                    icon: 'warning',
-                    title: @json('Ada Nota Lewat Jatuh Tempo'),
-                    html: `
-                        <div class="text-left text-sm">
-                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
-                            <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: @json('Ya'),
-                    cancelButtonText: @json('Tidak')
-                });
-
-                if (!confirmed.isConfirmed) {
-                    if (userAccInput) userAccInput.value = '';
-                    return false;
-                }
-
-                if (!canApprove) {
-                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
-                        html: `
-                            <div class="text-left text-sm">
-                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
-                                <ul class="list-disc pl-5 space-y-1">
-                                    <li>Customer punya nota lewat jatuh tempo.</li>
-                                </ul>
-                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
-                            </div>
-                        `,
-                        text: undefined
-                    });
-                    return false;
-                }
-
-                if (needAccInput) needAccInput.value = '1';
-                if (userAccInput) userAccInput.value = currentUser;
-            }
-
-            return true;
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Pemeriksaan Persetujuan Gagal'),

@@ -229,7 +229,11 @@ class SalesOrderController extends Controller
 
     private function canApproveCreditLimit(): bool
     {
-        return in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')), true);
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvesalesorder', $permissions, true)
+            || in_array('approveso', $permissions, true)
+            || in_array('approvetr_soh', $permissions, true)
+            || in_array('approveorderpenjualan', $permissions, true);
     }
 
     private function canContinueToSuratJalan(): bool
@@ -332,33 +336,33 @@ class SalesOrderController extends Controller
             $grandTotal
         );
 
-        $needsApproval = (bool) ($checks['limit_check']['exceeded'] ?? false)
-            || (bool) ($checks['overdue_check']['has_overdue'] ?? false);
+        $needsApproval = (bool) ($checks['limit_check']['exceeded'] ?? false);
 
         if (! $needsApproval) {
             return [
+                'fapproval' => 1,
                 'fneedacc' => '0',
                 'fuseracc' => null,
+                'fdateapproved' => now(),
+                'needs_approval' => false,
+                'is_approved' => true,
+                'can_approve' => $this->canApproveCreditLimit(),
                 'checks' => $checks,
             ];
         }
 
-        if (! $this->canApproveCreditLimit()) {
-            throw ValidationException::withMessages([
-                'fcustno' => "Transaksi ini butuh persetujuan.\n- Limit piutang customer sudah terlampaui, atau\n- Ada tagihan customer yang sudah lewat jatuh tempo.\n\nSilakan hubungi user yang berwenang.",
-            ]);
-        }
+        $canApprove = $this->canApproveCreditLimit();
+        $isApproved = $canApprove && $request->boolean('approve_now');
 
-        $approvedBy = trim((string) $request->input('fuseracc', ''));
-        if ($approvedBy === '') {
-            throw ValidationException::withMessages([
-                'fcustno' => "Transaksi ini butuh persetujuan.\n- Pilih Yes pada konfirmasi untuk melanjutkan.",
-            ]);
-        }
-
+        $userLogin = auth('sysuser')->user();
         return [
-            'fneedacc' => '1',
-            'fuseracc' => mb_substr($approvedBy, 0, 30),
+            'fapproval' => $isApproved ? 1 : 0,
+            'fneedacc' => $isApproved ? '1' : '0',
+            'fuseracc' => $isApproved ? mb_substr($userLogin->fname ?? 'admin', 0, 30) : null,
+            'fdateapproved' => $isApproved ? now() : null,
+            'needs_approval' => true,
+            'is_approved' => $isApproved,
+            'can_approve' => $canApprove,
             'checks' => $checks,
         ];
     }
@@ -942,6 +946,7 @@ class SalesOrderController extends Controller
         return view('salesorder.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
+            'canApproval' => $canApproval,
             'customers' => $customers,
             'salesmans' => $salesmans,
             'fcabang' => $fcabang,
@@ -1243,6 +1248,9 @@ class SalesOrderController extends Controller
 
                 $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
+                $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+                $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
+
                 // C. Insert Header
                 $ftrsomtid = DB::table('trsomt')->insertGetId([
                     'fsono' => $fsono,
@@ -1255,6 +1263,8 @@ class SalesOrderController extends Controller
                     'fket' => mb_substr($request->input('fket', ''), 0, 300),
                     'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                     'fusercreate' => mb_substr($userid, 0, 10),
+                    'fuserapproved' => $creditApproval['fuseracc'],
+                    'fdateapproved' => $creditApproval['fdateapproved'],
                     'fdatetime' => $now,
                     'famountgross' => round($totalGross, 2),
                     'fdiscount' => round($totalDisc, 2),
@@ -1269,8 +1279,9 @@ class SalesOrderController extends Controller
                     'fclose' => '0',
                     'fprint' => 0,
                     'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
-                    'fneedacc' => '0',
-                    'fuseracc' => mb_substr($userid, 0, 30),
+                    'fneedacc' => $creditApproval['fneedacc'],
+                    'fuseracc' => $creditApproval['fuseracc'],
+                    'fapproval' => $creditApproval['fapproval'],
                 ], 'ftrsomtid');
 
                 // D. Insert Details
@@ -1286,15 +1297,19 @@ class SalesOrderController extends Controller
                 ]);
             });
 
-            $redirect = redirect()
-                ->route('salesorder.create')
-                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.');
+            $message = $creditApproval['needs_approval']
+                ? ($creditApproval['is_approved'] ? 'SO berhasil disimpan' : 'SO butuh approval')
+                : 'SO berhasil disimpan';
 
-            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan()) {
+            $redirect = redirect()
+                ->route('salesorder.index')
+                ->with('success', $message);
+
+            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.',
-                        'redirect_url' => route('salesorder.create'),
+                        'message' => $message,
+                        'redirect_url' => route('salesorder.index'),
                     ]);
                 }
                 return $redirect;
@@ -1302,8 +1317,8 @@ class SalesOrderController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 0) . ' berhasil disimpan.',
-                    'redirect_url' => route('salesorder.create'),
+                    'message' => $message,
+                    'redirect_url' => route('salesorder.index'),
                     'success_prompt' => [
                         'type' => 'salesorder_create_suratjalan',
                         'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
@@ -1539,6 +1554,7 @@ class SalesOrderController extends Controller
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
+            'canApproval' => $this->canApproveCreditLimit(),
         ]);
     }
 
@@ -1622,6 +1638,7 @@ class SalesOrderController extends Controller
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
             'action' => 'view',
+            'canApproval' => $this->canApproveCreditLimit(),
         ]);
     }
 
@@ -1825,7 +1842,7 @@ class SalesOrderController extends Controller
             $grandTotal = $amountNet;
         }
         $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
-        $requiresApprovalBeforeContinue = trim((string) ($creditApproval['fneedacc'] ?? '0')) === '1';
+        $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
 
         // 7. TRANSACTION
         DB::transaction(function () use (
@@ -1846,7 +1863,8 @@ class SalesOrderController extends Controller
             $fapplyppn,
             $fppnpersen,
             $headerDiscPercent,
-            $resolvedSalesmanCode
+            $resolvedSalesmanCode,
+            $creditApproval
         ) {
             // Update Header
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
@@ -1862,6 +1880,8 @@ class SalesOrderController extends Controller
                 'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
                 'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                 'fuserupdate' => mb_substr($userid, 0, 10),
+                'fuserapproved' => $creditApproval['fuseracc'],
+                'fdateapproved' => $creditApproval['fdateapproved'],
                 'fdatetime' => $now,
                 'fapplyppn' => $fapplyppn,
                 'fppnpersen' => $fppnpersen,
@@ -1871,8 +1891,9 @@ class SalesOrderController extends Controller
                 'famountsonet' => round($amountNet, 2),
                 'famountpajak' => round($ppnAmount, 2),
                 'famountso' => round($grandTotal, 2),
-                'fneedacc' => '0',
-                'fuseracc' => mb_substr($userid, 0, 30),
+                'fneedacc' => $creditApproval['fneedacc'],
+                'fuseracc' => $creditApproval['fuseracc'],
+                'fapproval' => $creditApproval['fapproval'],
             ]);
 
             // Delete old details and insert new ones
@@ -1882,9 +1903,13 @@ class SalesOrderController extends Controller
             }
         });
 
+        $message = $creditApproval['needs_approval']
+            ? ($creditApproval['is_approved'] ? 'SO berhasil disimpan' : 'SO butuh approval')
+            : 'SO berhasil disimpan';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.',
+                'message' => $message,
                 'redirect_url' => route('salesorder.index'),
                 'success_prompt' => (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) ? null : [
                     'type' => 'salesorder_create_suratjalan',
@@ -1895,7 +1920,7 @@ class SalesOrderController extends Controller
 
         $redirect = redirect()
             ->route('salesorder.index')
-            ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.');
+            ->with('success', $message);
 
         if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
             return $redirect;
