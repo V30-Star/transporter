@@ -446,19 +446,22 @@
                                 <x-heroicon-o-arrow-left class="w-4 h-4" /> Kembali
                             </button>
                         </div>
-
-                        <br>
-                        <hr style="border:0;border-top:2px dashed #000;margin:16px 0;">
-                        <span class="text-sm text-gray-600 flex justify-between items-center">
-                            <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
-                            <span>{{ \Carbon\Carbon::parse($product->fupdatedat ?: $product->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
-                        </span>
                     </div>
 
                 </div>{{-- end right column --}}
 
             </div>{{-- end main grid --}}
 
+        </div>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $product->fupdatedat ?: $product->fcreatedat;
+            $updatedBy = $product->fupdatedby ?: ($product->fcreatedby ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
         </div>
     </div>
 

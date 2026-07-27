@@ -536,6 +536,16 @@
 
             </form>
 
+            {{-- FOOTER INFO --}}
+            @php
+                $lastUpdate = $customer->fupdatedat ?: $customer->fcreatedat;
+                $updatedBy = $customer->fupdatedby ?: ($customer->fcreatedby ?: '—');
+            @endphp
+            <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+                <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+                <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+            </div>
+
             {{-- modal --}}
             <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/50" @click="showModal = false"></div>

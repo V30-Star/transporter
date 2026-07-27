@@ -1305,8 +1305,17 @@
                     }
                 </script>
             @endif
-        @endif
-    </div>
+
+            {{-- FOOTER INFO --}}
+            @php
+                $lastUpdate = $tr_poh->fupdatedat ?: $tr_poh->fcreatedat;
+                $updatedBy = $tr_poh->fuserupdate ?: ($tr_poh->fusercreate ?: '—');
+            @endphp
+            <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+                <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+                <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+            </div>
+        </div>
 
 
     {{-- Modal Konfirmasi Hapus (delete only) --}}
