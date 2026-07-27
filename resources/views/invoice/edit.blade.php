@@ -986,7 +986,7 @@
             return;
         }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
+        if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) window.submitFormWithStockMinusConfirmation?.($el) }) }
       ">
                 @csrf
                 @method('PATCH')

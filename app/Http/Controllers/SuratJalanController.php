@@ -912,6 +912,13 @@ class SuratJalanController extends Controller
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesForOutChange($rowsDt, $ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         // =========================
         // 7) TRANSAKSI DB
         // =========================
@@ -1575,6 +1582,13 @@ class SuratJalanController extends Controller
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
+        }
+
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesForOutChange($rowsDt, $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
         }
 
         // =========================

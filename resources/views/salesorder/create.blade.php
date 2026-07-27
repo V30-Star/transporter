@@ -231,7 +231,7 @@
                         window.salesOrderItemsTable.submitForm(this.$el);
                         return;
                     }
-                    this.$el.submit();
+                    window.submitFormWithStockMinusConfirmation?.(this.$el);
                 }
             }"
             @submit.prevent="handleSubmit()">
@@ -1412,7 +1412,7 @@
                     window.salesOrderDuplicateRefPoGuard(form).then(ok => {
                         if (!ok) return;
                         window.salesOrderCreditApprovalGuard(form).then(approved => {
-                            if (approved) form.submit();
+                            if (approved) window.submitFormWithStockMinusConfirmation?.(form);
                         });
                     });
                 });
@@ -1641,7 +1641,7 @@
                     window.salesOrderDuplicateRefPoGuard(form).then(ok => {
                         if (!ok) return;
                         window.salesOrderCreditApprovalGuard(form).then(approved => {
-                            if (approved) form.submit();
+                            if (approved) window.submitFormWithStockMinusConfirmation?.(form);
                         });
                     });
                 });

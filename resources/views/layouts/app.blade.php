@@ -862,7 +862,30 @@
                     if (response.status === 422) {
                         const data = await response.clone().json().catch(() => null);
                         if (data?.status === 'insufficient_stock') {
-                            const htmlMessage = (data.message || '').replace(/\n/g, '<br>');
+                            const escapeHtml = (value) => value.replace(/[&<>"']/g, (char) => ({
+                                    '&': '&amp;',
+                                    '<': '&lt;',
+                                    '>': '&gt;',
+                                    '"': '&quot;',
+                                    "'": '&#039;',
+                                }[char]));
+                            const rawLines = (data.message || '').split(/\r?\n/);
+                            const messageLines = [];
+                            rawLines.forEach((line, index) => {
+                                if (/^\d+\.\s*$/.test(line) && rawLines[index + 1]) {
+                                    rawLines[index + 1] = `${line.trim()} ${rawLines[index + 1].trimStart()}`;
+                                    return;
+                                }
+
+                                messageLines.push(line);
+                            });
+                            const htmlMessage = messageLines.map((line) => {
+                                const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
+
+                                return /^\d+\.&nbsp;/.test(escapedLine)
+                                    ? `<span style="white-space: nowrap;">${escapedLine}</span>`
+                                    : escapedLine;
+                            }).join('<br>');
                             if (!data.allow_force) {
                                 await Swal.fire({
                                     title: 'Information',
@@ -899,6 +922,9 @@
                         const data = await response.clone().json().catch(() => null);
                         if (data?.message && data?.redirect_url) {
                             sessionStorage.setItem('app.pendingSuccessMessage', data.message);
+                            if (data.success_prompt) {
+                                sessionStorage.setItem('app.pendingSuccessPrompt', JSON.stringify(data.success_prompt));
+                            }
                             window.location.href = data.redirect_url;
                             return;
                         }
@@ -1374,6 +1400,28 @@
                 return result.charAt(0).toUpperCase() + result.slice(1);
             }
 
+            function renderPreservedMessage(message) {
+                const rawLines = String(message ?? '').split(/\r?\n/);
+                const messageLines = [];
+
+                rawLines.forEach((line, index) => {
+                    if (/^\d+\.\s*$/.test(line.trim()) && rawLines[index + 1]) {
+                        rawLines[index + 1] = `${line.trim()} ${rawLines[index + 1].trimStart()}`;
+                        return;
+                    }
+
+                    messageLines.push(line);
+                });
+
+                return messageLines.map((line) => {
+                    const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
+
+                    return /^\d+\.&nbsp;/.test(escapedLine)
+                        ? `<span style="white-space: nowrap;">${escapedLine}</span>`
+                        : escapedLine;
+                }).join('<br>');
+            }
+
             window.showTransactionErrorModal = function(messages, options = {}) {
                 const rawMessages = (Array.isArray(messages) ? messages : [messages])
                     .map((message) => String(message ?? '').trim())
@@ -1391,11 +1439,15 @@
                     const helperName = simpleTitle.toLowerCase() === 'warning' ?
                         'showAppWarningAlert' :
                         'showAppInfoAlert';
+                    const bodyMessage = simpleLines.slice(1).join('\n');
+                    const bodyHtml = bodyMessage.includes('Produk ini Qty Stok tidak cukup') ?
+                        renderPreservedMessage(bodyMessage) :
+                        simpleLines.slice(1).map((line) => compactPopupMessage(line).replace(/\.\s+/g, '.<br>')).join('\n');
 
                     window[helperName](
                         simpleTitle.toLowerCase() === 'plain' ? '' : simpleTitle,
                         '', {
-                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${simpleLines.slice(1).map((line) => compactPopupMessage(line).replace(/\.\s+/g, '.<br>')).join('\n')}</div>`,
+                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${bodyHtml}</div>`,
                             text: undefined,
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#f59e0b',
@@ -1406,10 +1458,14 @@
                 }
 
                 if (rawMessages.length === 1 && simpleTitle === '') {
+                    const messageHtml = rawMessages[0].includes('Produk ini Qty Stok tidak cukup') ?
+                        renderPreservedMessage(rawMessages[0]) :
+                        escapeHtml(rawMessages[0]).replace(/\.\s+/g, '.<br>');
+
                     window.showAppInfoAlert(
                         '',
                         '', {
-                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${escapeHtml(rawMessages[0]).replace(/\.\s+/g, '.<br>')}</div>`,
+                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${messageHtml}</div>`,
                             text: undefined,
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#f59e0b',
@@ -1568,8 +1624,79 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const successMessage = sessionStorage.getItem('app.pendingSuccessMessage');
                 if (!successMessage) return;
+                const successPrompt = JSON.parse(sessionStorage.getItem('app.pendingSuccessPrompt') || 'null');
 
                 sessionStorage.removeItem('app.pendingSuccessMessage');
+                sessionStorage.removeItem('app.pendingSuccessPrompt');
+                if (successPrompt?.type === 'salesorder_create_suratjalan' && successPrompt.redirect_url) {
+                    window.showAppSuccessToast(successMessage, {
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        timer: undefined,
+                    }).then(() => Swal.fire({
+                        icon: 'question',
+                        title: 'Input Surat Jalan?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    })).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = successPrompt.redirect_url;
+                        }
+                    });
+                    return;
+                }
+
+                if (successPrompt?.type === 'suratjalan_create_invoice' && successPrompt.redirect_url) {
+                    window.showAppSuccessToast(successMessage, {
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        timer: undefined,
+                    }).then(() => Swal.fire({
+                        icon: 'question',
+                        title: 'Input Faktur Penjualan?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    })).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = successPrompt.redirect_url;
+                        }
+                    });
+                    return;
+                }
+
+                if (successPrompt?.type === 'invoice_create_suratjalan' && successPrompt.redirect_url) {
+                    window.showAppSuccessToast(successMessage, {
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        timer: undefined,
+                    }).then(() => Swal.fire({
+                        icon: 'question',
+                        title: 'Input Surat Jalan?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    })).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = successPrompt.redirect_url;
+                        }
+                    });
+                    return;
+                }
+
                 window.showAppSuccessToast(successMessage);
             });
         </script>

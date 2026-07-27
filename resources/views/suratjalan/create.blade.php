@@ -274,7 +274,7 @@
                     return;
                 }
                 const n = Number(document.getElementById('itemsCount')?.value || 0);
-                if (n < 1) { showNoItems = true } else { $el.submit() }
+                if (n < 1) { showNoItems = true } else { window.submitFormWithStockMinusConfirmation?.($el) }
             ">
             @csrf
 
