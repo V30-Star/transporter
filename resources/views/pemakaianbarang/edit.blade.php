@@ -970,6 +970,16 @@
                         </div>
                     </div>
                     </form>
+
+                    {{-- FOOTER INFO --}}
+                    @php
+                        $lastUpdate = $pemakaianbarang->fupdatedat ?: $pemakaianbarang->fcreatedat;
+                        $updatedBy = $pemakaianbarang->fuserupdate ?: ($pemakaianbarang->fusercreate ?: '—');
+                    @endphp
+                    <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+                        <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+                        <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+                    </div>
                 @endif
             </div>
         </div>

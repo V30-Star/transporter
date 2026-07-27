@@ -479,6 +479,16 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
     </div>
 </div>
     </form>
+
+    {{-- FOOTER INFO --}}
+    @php
+        $lastUpdate = $header->fupdatedat ?: $header->fcreatedat;
+        $updatedBy = $header->fuserupdate ?: ($header->fusercreate ?: '—');
+    @endphp
+    <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+        <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+        <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+    </div>
     @if (!$isReadOnly)
         <div x-cloak x-show="notaModalOpen" x-transition.opacity
             class="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden p-3 md:p-6">

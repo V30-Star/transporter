@@ -1420,9 +1420,19 @@
                             <x-heroicon-o-arrow-left class="w-6 h-6" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                         </button>
                     </div>
+                    </div>
                 </div>
-            </div>
         </form>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $adjstock->fupdatedat ?: $adjstock->fcreatedat;
+            $updatedBy = $adjstock->fuserupdate ?: ($adjstock->fusercreate ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
     </div>
     @endif
 
