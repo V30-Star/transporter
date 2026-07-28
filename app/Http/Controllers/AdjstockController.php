@@ -19,6 +19,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class AdjstockController extends Controller
 {
+    private function canApproveAdjustmentStock(): bool
+    {
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+
+        return in_array('approveadjustmentstock', $permissions, true)
+            || in_array('approveadjstock', $permissions, true)
+            || in_array('approvetrstockmt', $permissions, true)
+            || in_array('approvepenerimaanbarang', $permissions, true);
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -157,6 +167,7 @@ class AdjstockController extends Controller
                     'trstockmt.ftrancode',
                     'trstockmt.fket',
                     'trstockmt.fbranchcode',
+                    'trstockmt.fapproval',
                     'c.fcabangname',
                     'w.fwhname',
                 ]);
@@ -176,6 +187,7 @@ class AdjstockController extends Controller
                     'fadjtype' => strtoupper(trim((string) ($row->ftrancode ?? ''))) === 'K' ? 'Keluar' : 'Masuk',
                     'fgudang' => trim((string) ($row->fwhname ?? '')),
                     'fket' => trim((string) ($row->fket ?? '')),
+                    'fapproval' => trim((string) ($row->fapproval ?? '')),
                 ];
             });
 
@@ -424,6 +436,7 @@ class AdjstockController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -701,6 +714,8 @@ class AdjstockController extends Controller
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
+            $isApproved = $this->canApproveAdjustmentStock() && $request->boolean('approve_now');
+            $userName = Auth::user()->fname ?? 'system';
 
             $headerData = [
                 'fstockmtno' => trim((string) $request->input('fstockmtno')),
@@ -722,8 +737,11 @@ class AdjstockController extends Controller
                 'ffrom' => $request->input('ffrom') ?: null,
                 'fprdjadi' => $request->input('fprdjadi') ?: null,
                 'fket' => trim((string) $request->input('fket', '')) ?: null,
-                'fusercreate' => (Auth::user()->fname ?? 'system'),
+                'fusercreate' => $userName,
                 'fdatetime' => $now,
+                'fapproval' => $isApproved ? 1 : 0,
+                'fuserapproved' => $isApproved ? $userName : null,
+                'fdateapproved' => $isApproved ? $now : null,
                 'fbranchcode' => $request->input('fbranchcode'),
                 'fprint' => 0,
                 'fsudahtagih' => '0',
@@ -782,14 +800,14 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment stock {$finalNo} berhasil disimpan.",
+                    'message' => $isApproved ? "Adjustment stock {$finalNo} berhasil disimpan." : "Adjustment stock {$finalNo} butuh approval.",
                     'redirect_url' => route('adjstock.create'),
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
+                ->with('success', $isApproved ? "Adjustment stock {$finalNo} berhasil disimpan." : "Adjustment stock {$finalNo} butuh approval.");
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -914,6 +932,7 @@ class AdjstockController extends Controller
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
+            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -1016,6 +1035,7 @@ class AdjstockController extends Controller
             'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'view',
+            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -1087,6 +1107,9 @@ class AdjstockController extends Controller
         $ppnAmount = (float) $request->input('famountpopajak', 0);
         $userid = $userLogin->fsysuserid ?? 'admin';
         $now = now();
+        $canApprove = $this->canApproveAdjustmentStock();
+        $alreadyApproved = !empty($header->fuserapproved) || (int) ($header->fapproval ?? 0) === 1;
+        $isApproved = $alreadyApproved || ($canApprove && $request->boolean('approve_now'));
 
         // =========================
         // 3) DETAIL ARRAYS
@@ -1231,7 +1254,8 @@ class AdjstockController extends Controller
             $grandTotal,
             $userName,
             $userIdLog,
-            $now
+            $now,
+            $isApproved
         ) {
             $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
@@ -1270,6 +1294,9 @@ class AdjstockController extends Controller
                 'fprdjadi' => $fprdjadi,
                 'fket' => $fket,
                 'fuserupdate' => $userName,
+                'fapproval' => $isApproved ? 1 : 0,
+                'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userName) : null,
+                'fdateapproved' => $isApproved ? ($header->fdateapproved ?: $now) : null,
                 'fbranchcode' => $kodeCabang,
             ];
 
