@@ -542,16 +542,52 @@ class Tr_prhController extends Controller
             return redirect()->route('tr_prh.index')->with('error', $message);
         }
 
+        $userName = $this->getAuthenticatedUserName('system');
+        $userLogin = auth('sysuser')->user();
+        $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
+
         if ($isCloseOnly) {
             if (! $canCloseReferencedPr) {
                 return back()->withInput()->with('error', 'Status close PR tidak bisa diupdate. PR harus sudah direferensi PO dan FPRDIN = 0.');
             }
 
-            Tr_prh::where('fprhid', $header->fprhid)->update([
-                'fclose' => '1',
-                'fuserupdate' => $this->getAuthenticatedUserName('system'),
-                'fupdatedat' => now(),
-            ]);
+            DB::transaction(function () use ($header, $userName, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                Tr_prh::where('fprhid', $header->fprhid)->update([
+                    'fclose' => '1',
+                    'fuserupdate' => $userName,
+                    'fupdatedat' => $now,
+                ]);
+
+                $updatedHeader = Tr_prh::where('fprhid', $header->fprhid)->first();
+
+                // INSERT Log Header untuk Close Only
+                DB::table('log_tr_prh')->insert([
+                    'ftrxlogid'     => $trxLogId,
+                    'fprhid'        => $updatedHeader->fprhid,
+                    'fprno'         => $updatedHeader->fprno,
+                    'fbranchcode'   => $updatedHeader->fbranchcode,
+                    'fprdate'       => $updatedHeader->fprdate,
+                    'fsupplier'     => $updatedHeader->fsupplier,
+                    'fprdin'        => $updatedHeader->fprdin,
+                    'fclose'        => $updatedHeader->fclose,
+                    'fket'          => $updatedHeader->fket,
+                    'fneeddate'     => $updatedHeader->fneeddate,
+                    'fduedate'      => $updatedHeader->fduedate,
+                    'fusercreate'   => $updatedHeader->fusercreate,
+                    'fcreatedat'    => $updatedHeader->fcreatedat,
+                    'fuserapproved' => $updatedHeader->fuserapproved,
+                    'fdateapproved' => $updatedHeader->fdateapproved,
+                    'fupdatedat'    => $updatedHeader->fupdatedat,
+                    'fapproval'     => $updatedHeader->fapproval,
+                    'fuserupdate'   => $updatedHeader->fuserupdate,
+                    'feditmode'     => 'U',
+                    'fuseridlog'    => $userIdLog,
+                    'fdatetimelog'  => $now,
+                ]);
+            });
 
             return redirect()
                 ->route('tr_prh.index')
@@ -620,7 +656,6 @@ class Tr_prhController extends Controller
                     }
                 }
             }
-
         }
 
         if ($errors->isNotEmpty()) {
@@ -646,35 +681,66 @@ class Tr_prhController extends Controller
             $ketdts,
             $productMap,
             $oldDetails,
-            $isApproved
+            $isApproved,
+            $userName,
+            $userIdLog
         ) {
             $now = now();
-            $userName = $this->getAuthenticatedUserName('system');
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
             $usedNoAcaks = [];
 
             $headerUpdate = [
-                'fprdate' => $fprdate,
-                'fsupplier' => $request->filled('fsupplier') ? trim((string) $request->fsupplier) : $header->fsupplier,
-                'fket' => $request->fket,
-                'fbranchcode' => $request->fbranchcode,
-                'fneeddate' => $fneeddate,
-                'fduedate' => $fduedate,
-                'fuserupdate' => $userName,
-                'fupdatedat' => $now,
-                'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
-                'fapproval' => $isApproved ? 1 : 0,
+                'fprdate'       => $fprdate,
+                'fsupplier'     => $request->filled('fsupplier') ? trim((string) $request->fsupplier) : $header->fsupplier,
+                'fket'          => $request->fket,
+                'fbranchcode'   => $request->fbranchcode,
+                'fneeddate'     => $fneeddate,
+                'fduedate'      => $fduedate,
+                'fuserupdate'   => $userName,
+                'fupdatedat'    => $now,
+                'fclose'        => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
+                'fapproval'     => $isApproved ? 1 : 0,
                 'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userName) : null,
                 'fdateapproved' => $isApproved ? ($header->fdateapproved ?: $now) : null,
             ];
+            
             Tr_prh::where('fprhid', $header->fprhid)->update($headerUpdate);
+            $updatedHeader = Tr_prh::where('fprhid', $header->fprhid)->first();
+
+            // 1. INSERT Log Header (Update)
+            DB::table('log_tr_prh')->insert([
+                'ftrxlogid'     => $trxLogId,
+                'fprhid'        => $updatedHeader->fprhid,
+                'fprno'         => $updatedHeader->fprno,
+                'fbranchcode'   => $updatedHeader->fbranchcode,
+                'fprdate'       => $updatedHeader->fprdate,
+                'fsupplier'     => $updatedHeader->fsupplier,
+                'fprdin'        => $updatedHeader->fprdin,
+                'fclose'        => $updatedHeader->fclose,
+                'fket'          => $updatedHeader->fket,
+                'fneeddate'     => $updatedHeader->fneeddate,
+                'fduedate'      => $updatedHeader->fduedate,
+                'fusercreate'   => $updatedHeader->fusercreate,
+                'fcreatedat'    => $updatedHeader->fcreatedat,
+                'fuserapproved' => $updatedHeader->fuserapproved,
+                'fdateapproved' => $updatedHeader->fdateapproved,
+                'fupdatedat'    => $updatedHeader->fupdatedat,
+                'fapproval'     => $updatedHeader->fapproval,
+                'fuserupdate'   => $updatedHeader->fuserupdate,
+                'feditmode'     => 'U',
+                'fuseridlog'    => $userIdLog,
+                'fdatetimelog'  => $now,
+            ]);
 
             $submittedIds = array_filter($idsIn);
 
+            // Hapus detail yang di-remove dari form di UI
             DB::table('tr_prd')
                 ->where('fprno', $header->fprno)
                 ->whereNotIn('fprdid', $submittedIds)
                 ->delete();
 
+            // 2. Loop detail dan catat ke log_tr_prd
             foreach ($codes as $i => $codeStr) {
                 $code = trim($codeStr);
                 if ($code === '') {
@@ -692,28 +758,52 @@ class Tr_prhController extends Controller
                 $qtyKecil = $this->convertQtyToSmallUnit($product, $sat, $qty);
 
                 $data = [
-                    'fprdcode' => $code,
-                    'fqty' => $qty,
-                    'fqtykecil' => $qtyKecil,
-                    'fqtyremain' => $qtyKecil,
-                    'fnoacak' => $noacak,
-                    'fketdt' => $ket,
-                    'fsatuan' => $sat,
-                    'fdesc' => $desc,
+                    'fprdcode'    => $code,
+                    'fqty'        => $qty,
+                    'fqtykecil'   => $qtyKecil,
+                    'fqtyremain'  => $qtyKecil,
+                    'fnoacak'     => $noacak,
+                    'fketdt'      => $ket,
+                    'fsatuan'     => $sat,
+                    'fdesc'       => $desc,
                     'fuserupdate' => $userName,
-                    'fupdatedat' => $now,
-                    'fprno' => $header->fprno,
+                    'fupdatedat'  => $now,
+                    'fprno'       => $header->fprno,
                 ];
 
                 if ($did > 0 && isset($oldDetails[$did])) {
                     DB::table('tr_prd')->where('fprdid', $did)->update($data);
+                    $detailObj = DB::table('tr_prd')->where('fprdid', $did)->first();
                 } else {
                     $data['fcreatedat'] = $now;
                     $data['fusercreate'] = $userName;
-                    DB::table('tr_prd')->insert($data);
+                    $newId = DB::table('tr_prd')->insertGetId($data, 'fprdid');
+                    $detailObj = DB::table('tr_prd')->where('fprdid', $newId)->first();
                 }
-            }
 
+                // INSERT Log Detail
+                DB::table('log_tr_prd')->insert([
+                    'ftrxlogid'    => $trxLogId,
+                    'fprdid'       => $detailObj->fprdid,
+                    'fprno'        => $detailObj->fprno,
+                    'fprdcode'     => $detailObj->fprdcode,
+                    'fqty'         => $detailObj->fqty,
+                    'fqtyremain'   => $detailObj->fqtyremain,
+                    'fqtykecil'    => $detailObj->fqtykecil,
+                    'fprice'       => $detailObj->fprice ?? 0,
+                    'fsatuan'      => $detailObj->fsatuan,
+                    'fdesc'        => $detailObj->fdesc,
+                    'fnoacak'      => $detailObj->fnoacak,
+                    'fketdt'       => $detailObj->fketdt,
+                    'fupdatedat'   => $detailObj->fupdatedat,
+                    'fuserupdate'  => $detailObj->fuserupdate,
+                    'fusercreate'  => $detailObj->fusercreate,
+                    'fcreatedat'   => $detailObj->fcreatedat,
+                    'feditmode'    => 'U',
+                    'fuseridlog'   => $userIdLog,
+                    'fdatetimelog' => $now,
+                ]);
+            }
         });
 
         $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
@@ -770,12 +860,66 @@ class Tr_prhController extends Controller
                 return redirect()->route('tr_prh.index')->with('error', $message);
             }
 
-            DB::transaction(function () use ($tr_prh) {
-                DB::table('tr_prd')
-                    ->where('fprno', $tr_prh->fprno)
-                    ->delete();
+            $userLogin = auth('sysuser')->user();
+            $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
 
+            DB::transaction(function () use ($tr_prh, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_tr_prh')->insert([
+                    'ftrxlogid'     => $trxLogId,
+                    'fprhid'        => $tr_prh->fprhid,
+                    'fprno'         => $tr_prh->fprno,
+                    'fbranchcode'   => $tr_prh->fbranchcode,
+                    'fprdate'       => $tr_prh->fprdate,
+                    'fsupplier'     => $tr_prh->fsupplier,
+                    'fprdin'        => $tr_prh->fprdin,
+                    'fclose'        => $tr_prh->fclose,
+                    'fket'          => $tr_prh->fket,
+                    'fneeddate'     => $tr_prh->fneeddate,
+                    'fduedate'      => $tr_prh->fduedate,
+                    'fusercreate'   => $tr_prh->fusercreate,
+                    'fcreatedat'    => $tr_prh->fcreatedat,
+                    'fuserapproved' => $tr_prh->fuserapproved,
+                    'fdateapproved' => $tr_prh->fdateapproved,
+                    'fupdatedat'    => $tr_prh->fupdatedat,
+                    'fapproval'     => $tr_prh->fapproval,
+                    'fuserupdate'   => $tr_prh->fuserupdate,
+                    'feditmode'     => 'D',
+                    'fuseridlog'    => $userIdLog,
+                    'fdatetimelog'  => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_tr_prd (Delete)
+                $details = DB::table('tr_prd')->where('fprno', $tr_prh->fprno)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_tr_prd')->insert([
+                        'ftrxlogid'    => $trxLogId,
+                        'fprdid'       => $detail->fprdid,
+                        'fprno'        => $detail->fprno,
+                        'fprdcode'     => $detail->fprdcode,
+                        'fqty'         => $detail->fqty,
+                        'fqtyremain'   => $detail->fqtyremain,
+                        'fqtykecil'    => $detail->fqtykecil,
+                        'fprice'       => $detail->fprice ?? 0,
+                        'fsatuan'      => $detail->fsatuan,
+                        'fdesc'        => $detail->fdesc,
+                        'fnoacak'      => $detail->fnoacak,
+                        'fketdt'       => $detail->fketdt,
+                        'fupdatedat'   => $detail->fupdatedat,
+                        'fuserupdate'  => $detail->fuserupdate,
+                        'fusercreate'  => $detail->fusercreate,
+                        'fcreatedat'   => $detail->fcreatedat,
+                        'feditmode'    => 'D',
+                        'fuseridlog'   => $userIdLog,
+                        'fdatetimelog' => $now,
+                    ]);
+                }
+
+                // Hapus detail & header utama
+                DB::table('tr_prd')->where('fprno', $tr_prh->fprno)->delete();
                 $tr_prh->delete();
             });
 
