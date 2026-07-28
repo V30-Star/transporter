@@ -1542,18 +1542,29 @@
                                     </div>
                                 </div>
 
-                                {{-- Approve --}}
-                                <div class="flex items-center justify-center gap-2 mb-4">
-                                    <label
-                                        class="flex items-center gap-2 text-sm font-semibold border rounded-lg px-3 py-2 {{ $canApproval ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}">
-                                        <span>Approve</span>
-                                        <label class="switch" style="margin:0">
-                                            <input type="checkbox" name="approve_now" id="approvalToggle"
-                                                {{ old('approve_now', \App\Support\ApprovalState::isApprovedRecord($product) ? '1' : '0') ? 'checked' : '' }}
-                                                {{ $canApproval ? '' : 'disabled' }}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </label>
+                                {{-- ═══ Status Approval & Aksi ═══ --}}
+                                @php
+                                    $isApproved = \App\Support\ApprovalState::isApprovedRecord($product) || (string) ($product->fapproval ?? '') === '1' || !empty($product->fuserapproved);
+                                    $permissionsArray = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+                                    $canApprovePermission = in_array('approveproduct', $permissionsArray, true)
+                                        || !empty($canApproval);
+                                    $needsApproval = !$isApproved;
+                                @endphp
+                                <input type="hidden" name="approve_now" id="approveNowInput" value="0">
+
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
+                                    </div>
+                                    @if ($needsApproval && $canApprovePermission)
+                                        <div>
+                                            <button type="button" onclick="submitProductWithApproval()"
+                                                class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                                                <x-heroicon-o-check-circle class="w-4 h-4" /> Setujui Sekarang
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 {{-- Tombol Aksi --}}
@@ -2883,49 +2894,36 @@
         if (e.key === "Escape") closeModal();
     });
 
-    window.handleProductSubmit = function(e) {
-        const canApproval = @json(!empty($canApproval));
-        if (!canApproval) {
-            const approveInput = document.getElementById('approveNowInput');
-            if (approveInput) approveInput.value = '0';
-            return true;
-        }
-
-        if (e.target.dataset.confirmed) {
-            return true;
-        }
-
-        e.preventDefault();
-        const form = e.target;
+    window.submitProductWithApproval = function() {
+        const form = document.querySelector('form[action*="product"]');
+        if (!form) return;
 
         Swal.fire({
             icon: 'question',
             title: 'Konfirmasi Approval',
-            text: 'Apakah produk ini mau langsung di Approve ?',
+            text: 'Apakah Anda yakin ingin menyetujui produk ini sekarang?',
             showConfirmButton: true,
             confirmButtonText: 'Yes',
-            showDenyButton: true,
-            denyButtonText: 'No',
             showCancelButton: true,
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#2563eb',
-            denyButtonColor: '#4b5563',
-            cancelButtonColor: '#9ca3af',
+            cancelButtonText: 'No',
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#6b7280',
             allowOutsideClick: false,
             allowEscapeKey: false,
         }).then((result) => {
-            const approveInput = document.getElementById('approveNowInput');
             if (result.isConfirmed) {
+                const approveInput = document.getElementById('approveNowInput');
                 if (approveInput) approveInput.value = '1';
-                form.dataset.confirmed = 'true';
-                form.submit();
-            } else if (result.isDenied) {
-                if (approveInput) approveInput.value = '0';
-                form.dataset.confirmed = 'true';
                 form.submit();
             }
         });
+    };
 
-        return false;
+    window.handleProductSubmit = function(e) {
+        const approveInput = document.getElementById('approveNowInput');
+        if (approveInput && approveInput.value !== '1') {
+            approveInput.value = '0';
+        }
+        return true;
     };
 </script>

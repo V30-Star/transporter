@@ -681,11 +681,12 @@ class ProductController extends Controller
             $validated['fupdatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-            $isApproved = $this->canApproveProduct() && $request->boolean('approve_now');
+            $alreadyApproved = \App\Support\ApprovalState::isApprovedRecord($product) || (string) ($product->fapproval ?? '') === '1' || !empty($product->fuserapproved);
+            $isApproved = $alreadyApproved || ($this->canApproveProduct() && $request->boolean('approve_now'));
             if ($isApproved) {
                 $validated['fapproval'] = '1';
-                $validated['fuserapproved'] = $userLogin->fname ?? 'System';
-                $validated['fdateapproved'] = now();
+                $validated['fuserapproved'] = $product->fuserapproved ?: ($userLogin->fname ?? 'System');
+                $validated['fdateapproved'] = $product->fdateapproved ?: now();
             } else {
                 $validated['fapproval'] = '0';
                 $validated['fuserapproved'] = null;
