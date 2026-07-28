@@ -258,9 +258,15 @@ class LembarPenagihanController extends Controller
         $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
         $tagihanNo = trim((string) $header->ftagihanno);
         $total = array_sum(array_map('floatval', $data['famount']));
-        $userId = substr((string) (auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM'), 0, 10);
+        
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userId = substr((string) ($userLogin->fname ?? $userLogin->name ?? 'SYSTEM'), 0, 10);
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'SYSTEM';
 
-        DB::transaction(function () use ($data, $id, $tagihanNo, $total, $userId) {
+        DB::transaction(function () use ($data, $id, $tagihanNo, $total, $userId, $userIdLog) {
+            $now = now();
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
             $branch = auth()->guard('sysuser')->user()?->fcabang
                 ?? auth()->user()?->fcabang
                 ?? null;
@@ -279,23 +285,49 @@ class LembarPenagihanController extends Controller
                 $kodeCabang = 'NA';
             }
 
+            // 1. Update Header Utama
             DB::table('trtagihanmt')->where('ftagihanid', $id)->update([
-                'ftagihandate' => $data['ftagihandate'],
-                'fcustno' => $data['fcustno'],
-                'ftrancode' => self::CODE,
-                'fnote' => $data['fnote'] ?? null,
+                'ftagihandate'   => $data['ftagihandate'],
+                'fcustno'        => $data['fcustno'],
+                'ftrancode'      => self::CODE,
+                'fnote'          => $data['fnote'] ?? null,
                 'famounttagihan' => $total,
-                'fuserid' => $userId,
-                'fdatetime' => now(),
-                'fbranchcode' => $kodeCabang,
+                'fuserid'        => $userId,
+                'fdatetime'      => $now,
+                'fbranchcode'    => $kodeCabang,
             ]);
+
+            $updatedHeader = DB::table('trtagihanmt')->where('ftagihanid', $id)->first();
+
+            // 2. INSERT Log Header (Update)
+            DB::table('log_trtagihanmt')->insert([
+                'ftrxlogid'      => $trxLogId,
+                'ftagihanid'     => $updatedHeader->ftagihanid,
+                'ftagihanno'     => $updatedHeader->ftagihanno,
+                'fbranchcode'    => $updatedHeader->fbranchcode,
+                'fcustno'        => $updatedHeader->fcustno,
+                'ftrancode'      => $updatedHeader->ftrancode,
+                'ftagihandate'   => $updatedHeader->ftagihandate,
+                'fnote'          => $updatedHeader->fnote,
+                'famounttagihan' => $updatedHeader->famounttagihan,
+                'fprint'         => $updatedHeader->fprint,
+                'fdatetime'      => $updatedHeader->fdatetime,
+                'fuserid'        => $updatedHeader->fuserid,
+                'feditmode'      => 'U',
+                'fuseridlog'     => $userIdLog,
+                'fdatetimelog'   => $now,
+            ]);
+
+            // 3. Delete Detail Lama
             DB::table('trtagihandt')->where('ftagihanno', $tagihanNo)->delete();
-            $this->replaceDetails($tagihanNo, $data, $userId);
+
+            // 4. Insert Detail Baru & Log Detail
+            $this->replaceDetailsWithLog($tagihanNo, $data, $userId, $trxLogId, 'U', $userIdLog, $now);
         });
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Lembar penagihan berhasil diupdate.',
+                'message'      => 'Lembar penagihan berhasil diupdate.',
                 'redirect_url' => route('lembarpenagihan.index'),
             ]);
         }
@@ -306,19 +338,109 @@ class LembarPenagihanController extends Controller
     public function destroy(int $id)
     {
         $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
-        DB::transaction(function () use ($header, $id) {
+
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'SYSTEM';
+
+        DB::transaction(function () use ($header, $id, $userIdLog) {
+            $now = now();
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+            // 1. Log Header (Delete)
+            DB::table('log_trtagihanmt')->insert([
+                'ftrxlogid'      => $trxLogId,
+                'ftagihanid'     => $header->ftagihanid,
+                'ftagihanno'     => $header->ftagihanno,
+                'fbranchcode'    => $header->fbranchcode ?? null,
+                'fcustno'        => $header->fcustno ?? null,
+                'ftrancode'      => $header->ftrancode ?? null,
+                'ftagihandate'   => $header->ftagihandate ?? null,
+                'fnote'          => $header->fnote ?? null,
+                'famounttagihan' => $header->famounttagihan ?? null,
+                'fprint'         => $header->fprint ?? null,
+                'fdatetime'      => $header->fdatetime ?? null,
+                'fuserid'        => $header->fuserid ?? null,
+                'feditmode'      => 'D',
+                'fuseridlog'     => $userIdLog,
+                'fdatetimelog'   => $now,
+            ]);
+
+            // 2. Ambil & Log Detail (Delete)
+            $details = DB::table('trtagihandt')->where('ftagihanno', $header->ftagihanno)->get();
+            foreach ($details as $dt) {
+                DB::table('log_trtagihandt')->insert([
+                    'ftrxlogid'   => $trxLogId,
+                    'ftrtagihanid'=> (int) $dt->ftrtagihanid,
+                    'ftrancode'   => $dt->ftrancode,
+                    'frefcode'    => $dt->frefcode,
+                    'ftagihanno'  => $dt->ftagihanno,
+                    'frefsono'    => $dt->frefsono,
+                    'famount'     => $dt->famount,
+                    'fdatetime'   => $dt->fdatetime,
+                    'fuserid'     => $dt->fuserid,
+                    'feditmode'   => 'D',
+                    'fuseridlog'  => $userIdLog,
+                    'fdatetimelog'=> $now,
+                ]);
+            }
+
+            // 3. Delete Detail & Header
             DB::table('trtagihandt')->where('ftagihanno', $header->ftagihanno)->delete();
             DB::table('trtagihanmt')->where('ftagihanid', $id)->delete();
         });
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Lembar penagihan berhasil dihapus.',
+                'message'      => 'Lembar penagihan berhasil dihapus.',
                 'redirect_url' => route('lembarpenagihan.index'),
             ]);
         }
 
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil dihapus.');
+    }
+
+    /**
+     * Helper internal untuk insert detail dan mencatat ke log_trtagihandt
+     */
+    private function replaceDetailsWithLog($tagihanNo, array $data, string $userId, string $trxLogId, string $editMode, string $userIdLog, $now)
+    {
+        foreach ($data['frefsono'] as $i => $refSono) {
+            $amount = (float) ($data['famount'][$i] ?? 0);
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $refCode = $data['frefcode'][$i] ?? 'INV';
+
+            // Insert ke trtagihandt
+            $insertedId = DB::table('trtagihandt')->insertGetId([
+                'ftrancode'  => self::CODE,
+                'frefcode'   => $refCode,
+                'ftagihanno' => $tagihanNo,
+                'frefsono'   => $refSono,
+                'famount'    => $amount,
+                'fdatetime'  => $now,
+                'fuserid'    => $userId,
+            ], 'ftrtagihanid');
+
+            $dtObj = DB::table('trtagihandt')->where('ftrtagihanid', $insertedId)->first();
+
+            // Insert ke log_trtagihandt
+            DB::table('log_trtagihandt')->insert([
+                'ftrxlogid'   => $trxLogId,
+                'ftrtagihanid'=> (int) $dtObj->ftrtagihanid,
+                'ftrancode'   => $dtObj->ftrancode,
+                'frefcode'    => $dtObj->frefcode,
+                'ftagihanno'  => $dtObj->ftagihanno,
+                'frefsono'    => $dtObj->frefsono,
+                'famount'     => $dtObj->famount,
+                'fdatetime'   => $dtObj->fdatetime,
+                'fuserid'     => $dtObj->fuserid,
+                'feditmode'   => $editMode,
+                'fuseridlog'  => $userIdLog,
+                'fdatetimelog'=> $now,
+            ]);
+        }
     }
 
     public function print(string $ftagihanno)
