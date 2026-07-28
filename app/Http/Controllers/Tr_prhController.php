@@ -453,7 +453,7 @@ class Tr_prhController extends Controller
         });
 
         $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
-        return redirect()->route('tr_prh.index')
+        return redirect()->route('tr_prh.create')
             ->with('success', $message);
     }
 
