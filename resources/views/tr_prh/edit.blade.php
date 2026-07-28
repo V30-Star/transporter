@@ -1837,7 +1837,7 @@
 
                     const approveInput = document.getElementById('approveNowInput');
                     if (approveInput) {
-                        approveInput.value = isApproveNow ? '1' : '0';
+                        approveInput.value = '0';
                     }
                     this.$nextTick(() => this.$root.closest('form')?.submit());
                 },

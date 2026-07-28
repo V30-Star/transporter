@@ -2654,6 +2654,8 @@ this.$nextTick(() => {
                 }
 
                 this.rowsToSubmit = validRows;
+                const approveInput = document.getElementById('approveNowInput');
+                if (approveInput) approveInput.value = '0';
                 this.$nextTick(() => {
                     window.salesOrderDuplicateRefPoGuard(form).then(ok => {
                         if (!ok) return;
