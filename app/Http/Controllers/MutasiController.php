@@ -171,8 +171,8 @@ class MutasiController extends Controller
                     'c.fcabangname',
                     'trstockmt.ffrom',
                     'trstockmt.fto',
-                    'wf.fwhname as from_warehouse_name',
-                    'wt.fwhname as to_warehouse_name',
+                    'wf.fwhcode as from_warehouse_name',
+                    'wt.fwhcode as to_warehouse_name',
                 ]);
 
             // Format Data (Tombol dibuat di sini)
@@ -222,8 +222,8 @@ class MutasiController extends Controller
                     'fstockmtdate' => $row->fstockmtdate
                         ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
                         : '',
-                    'fgudang_dari' => $this->formatWarehouseLabel($row->ffrom ?? '', $row->from_warehouse_name ?? ''),
-                    'fgudang_ke' => $this->formatWarehouseLabel($row->fto ?? '', $row->to_warehouse_name ?? ''),
+                    'fgudang_dari' => $row->to_warehouse_name,
+                    'fgudang_ke' => $row->from_warehouse_name,
                     'fket' => trim((string) ($row->fket ?? '')),
                     'fusercreate' => trim((string) ($row->fusercreate ?? '')),
                     'actions' => $actions,

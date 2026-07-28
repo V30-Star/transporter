@@ -172,24 +172,24 @@
         }
 
         /* Stabilkan tabel */
-        #tr_prhTable {
+        #mutasiTable {
             width: 100% !important;
         }
 
-        #tr_prhTable th,
-        #tr_prhTable td {
+        #mutasiTable th,
+        #mutasiTable td {
             text-align: left !important;
             vertical-align: middle;
         }
 
         /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
-        #tr_prhTable th:last-child,
-        #tr_prhTable td:last-child {
+        #mutasiTable th:last-child,
+        #mutasiTable td:last-child {
             white-space: nowrap;
             text-align: right;
         }
 
-        #tr_prhTable td:last-child {
+        #mutasiTable td:last-child {
             padding: .25rem .5rem;
         }
 
@@ -314,11 +314,13 @@
                 },
                 {
                     data: 'fgudang_dari',
-                    name: 'fgudang_dari'
+                    name: 'fgudang_dari',
+                    className: 'text-left'
                 },
                 {
                     data: 'fgudang_ke',
-                    name: 'fgudang_ke'
+                    name: 'fgudang_ke',
+                    className: 'text-left'
                 },
                 {
                     data: 'fket',
