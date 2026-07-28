@@ -329,21 +329,22 @@ class SalesOrderController extends Controller
         ];
     }
 
-    private function resolveSalesOrderCreditApproval(Request $request, float $grandTotal): array
+    private function resolveSalesOrderCreditApproval(Request $request, float $grandTotal, ?string $existingUserAcc = null, ?int $existingApproval = null, ?string $existingDateApproved = null): array
     {
         $checks = $this->getCustomerCreditChecks(
             (string) $request->input('fcustno', ''),
             $grandTotal
         );
 
+        $alreadyApproved = !empty($existingUserAcc) || (int) ($existingApproval ?? 0) === 1;
         $needsApproval = (bool) ($checks['limit_check']['exceeded'] ?? false);
 
         if (! $needsApproval) {
             return [
                 'fapproval' => 1,
                 'fneedacc' => '0',
-                'fuseracc' => null,
-                'fdateapproved' => now(),
+                'fuseracc' => $existingUserAcc ?: null,
+                'fdateapproved' => $existingDateApproved ?: now(),
                 'needs_approval' => false,
                 'is_approved' => true,
                 'can_approve' => $this->canApproveCreditLimit(),
@@ -352,14 +353,14 @@ class SalesOrderController extends Controller
         }
 
         $canApprove = $this->canApproveCreditLimit();
-        $isApproved = $canApprove && $request->boolean('approve_now');
+        $isApproved = $alreadyApproved || ($canApprove && $request->boolean('approve_now'));
 
         $userLogin = auth('sysuser')->user();
         return [
             'fapproval' => $isApproved ? 1 : 0,
             'fneedacc' => $isApproved ? '1' : '0',
-            'fuseracc' => $isApproved ? mb_substr($userLogin->fname ?? 'admin', 0, 30) : null,
-            'fdateapproved' => $isApproved ? now() : null,
+            'fuseracc' => $isApproved ? ($existingUserAcc ?: mb_substr($userLogin->fname ?? 'admin', 0, 30)) : null,
+            'fdateapproved' => $isApproved ? ($existingDateApproved ?: now()) : null,
             'needs_approval' => true,
             'is_approved' => $isApproved,
             'can_approve' => $canApprove,
@@ -1841,7 +1842,7 @@ class SalesOrderController extends Controller
             $fppnpersen = 0;
             $grandTotal = $amountNet;
         }
-        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal, $header->fuseracc ?? null, (int) ($header->fapproval ?? 0), $header->fdateapproved ?? null);
         $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
 
         // 7. TRANSACTION

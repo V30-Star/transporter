@@ -708,24 +708,28 @@
                         </div>
                     </div>
 
-                    {{-- ─── CARD 3: Approval & Aksi ────────────────────── --}}
+                    {{-- ─── CARD 3: Approval & Aksi (Read-Only) ────────────────────── --}}
                     @php
-                        $canApproval = in_array(
-                            'approveSalesOrder',
-                            explode(',', session('user_restricted_permissions', '')),
-                        );
+                        $isApproved = !empty($salesorder->fuseracc) || (int) ($salesorder->fapproval ?? 0) === 1;
                     @endphp
-
-                    @if ($canApproval)
-                        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                            <div class="p-4 text-sm text-slate-700">
-                                <div class="font-bold text-xs uppercase text-gray-400 tracking-wider mb-2">Status Persetujuan Kredit</div>
-                                <div class="text-sm font-medium">
-                                    {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: ' . $salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    </div>
 
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                         <div class="flex items-center justify-end gap-3 px-5 py-2 bg-gray-50 border-t border-gray-200">
@@ -792,11 +796,11 @@
                             @submit.prevent="handleSubmit()">
                             @csrf
                             @method('PATCH')
+                            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
                             <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
                                 value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
                             <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
                                 value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
-                            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
                             {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
                             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -1389,21 +1393,46 @@
 
                             <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
+                            {{-- ─── CARD 3: Approval & Aksi (Editable) ────────────────────── --}}
                             @php
-                                $canApproval = in_array(
-                                    'approveSalesOrder',
-                                    explode(',', session('user_restricted_permissions', '')),
-                                );
+                                $isApproved = !empty($salesorder->fuseracc) || (int) ($salesorder->fapproval ?? 0) === 1;
+                                $permissionsArray = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+                                $canApprovePermission = in_array('approvesalesorder', $permissionsArray, true)
+                                    || in_array('approveso', $permissionsArray, true)
+                                    || in_array('approvetr_soh', $permissionsArray, true)
+                                    || in_array('approveorderpenjualan', $permissionsArray, true)
+                                    || !empty($canApproval);
+                                $needsApproval = !$isApproved;
+                                $isUsageLocked = !empty($usageLocked) && $usageLocked;
                             @endphp
+                            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden mt-6">
+                                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                                </div>
+                                <div class="p-4 space-y-4">
+                                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                        <div>
+                                            <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
+                                        </div>
+                                        @if ($canEditPermission && $needsApproval && $canApprovePermission && !$isUsageLocked)
+                                            <div>
+                                                <button type="button" @click="submitWithApproval()"
+                                                    class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                                                    <x-heroicon-o-check-circle class="w-4 h-4" /> Setujui Sekarang
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
 
-                            @php
-                                $canApproval = in_array(
-                                    'approveSalesOrder',
-                                    explode(',', session('user_restricted_permissions', '')),
-                                );
-                            @endphp
-
-                            <div class="mt-8 flex justify-end gap-3">
+                            <div class="mt-4 flex justify-end gap-3">
                                 @if ($canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
@@ -2337,6 +2366,61 @@
                             if (approved) window.submitFormWithStockMinusConfirmation?.(form);
                         });
                     });
+                });
+            },
+
+            submitWithApproval() {
+                const form = document.querySelector('form[action*="salesorder"]');
+                if (!form) return;
+
+                const preparedRows = this.prepareRowsForSubmit();
+                if (!preparedRows) return;
+                const validRows = preparedRows.filter((row) => this.isRowSavable(row));
+                const warningRows = preparedRows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                if (warningRows.length > 0) {
+                    this.warningTitle = 'Qty Belum Diisi';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                    this.warningCanProceed = validRows.length > 0;
+                    this.pendingSubmitForm = form;
+                    this.pendingRowsToSubmit = validRows;
+                    this.showWarningModal = true;
+                    return;
+                }
+
+                if (validRows.length < 1) {
+                    this.showNoItems = true;
+                    return;
+                }
+
+                this.rowsToSubmit = validRows;
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Konfirmasi Approval',
+                    text: 'Apakah Anda yakin ingin menyetujui Sales Order (SO) ini sekarang?',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Yes',
+                    showCancelButton: true,
+                    cancelButtonText: 'No',
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#6b7280',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const approveInput = document.getElementById('approveNowInput');
+                        if (approveInput) approveInput.value = '1';
+                        this.$nextTick(() => {
+                            window.salesOrderDuplicateRefPoGuard(form).then(ok => {
+                                if (!ok) return;
+                                window.submitFormWithStockMinusConfirmation?.(form);
+                            });
+                        });
+                    }
                 });
             },
 
