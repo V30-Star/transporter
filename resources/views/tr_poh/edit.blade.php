@@ -538,13 +538,7 @@
                         <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                             <div>
                                 <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas wewenang
-                                </p>
-                            </div>
-                            <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
-                                :class="'{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}'">
-                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
-                                    :class="'{{ $isApproved ? 'translate-x-4 left-0.5' : 'left-0.5' }}'"></div>
+                                <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
                             </div>
                         </div>
                     </div>
@@ -1234,7 +1228,46 @@
 
 
 
-                    {{-- Footer Buttons --}}
+                {{-- ─── CARD 3: Approval & Aksi (Editable) ────────────────────── --}}
+                @php
+                    $isApproved = (int) ($tr_poh->fapproval ?? 0) === 1 || !empty($tr_poh->fuserapproved);
+                    $permissionsArray = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+                    $canApprovePermission = in_array('approveorderpembelian', $permissionsArray, true)
+                        || in_array('approvetr_poh', $permissionsArray, true)
+                        || in_array('approvepo', $permissionsArray, true)
+                        || !empty($canApproval)
+                        || !empty($perms['can_approval']);
+                    $needsApproval = !$isApproved;
+                    $isUsageLocked = !empty($blockedByTerima) && $blockedByTerima;
+                @endphp
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                            <div>
+                                <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
+                            </div>
+                            @if ($canEditPermission && $needsApproval && $canApprovePermission && !$isUsageLocked)
+                                <div>
+                                    <button type="button" @click="submitWithApproval()"
+                                        class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                                        <x-heroicon-o-check-circle class="w-4 h-4" /> Setujui Sekarang
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Buttons --}}
                     <div class="flex items-center justify-end gap-3 px-5 py-2 bg-gray-50 border-t border-gray-200">
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="window.location.href='{{ route('tr_poh.index') }}'"
@@ -2263,43 +2296,58 @@
                 }
 
                 this.rowsToSubmit = validRows;
+                const approveInput = document.getElementById('approveNowInput');
+                if (approveInput) approveInput.value = '0';
+                this.$nextTick(() => form.submit());
+            },
 
-                const canApproval = @json(!empty($canApproval) || !empty($perms['can_approval']));
-                const doSubmit = () => {
-                    this.$nextTick(() => form.submit());
-                };
+            submitWithApproval() {
+                if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
+                const form = document.querySelector('form[action*="tr_poh"]');
+                const preparedRows = this.prepareRowsForSubmit();
+                if (!preparedRows) return;
+                const validRows = preparedRows.filter((row) => this.isRowSavable(row));
+                const warningRows = preparedRows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
 
-                if (canApproval) {
-                    Swal.fire({
-                        icon: 'question',
-                        title: 'Konfirmasi Approval',
-                        text: 'Apakah PO ini mau langsung di Approve ?',
-                        showConfirmButton: true,
-                        confirmButtonText: 'Yes',
-                        showDenyButton: true,
-                        denyButtonText: 'No',
-                        showCancelButton: true,
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#2563eb',
-                        denyButtonColor: '#4b5563',
-                        cancelButtonColor: '#9ca3af',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        const approveInput = document.getElementById('approveNowInput');
-                        if (result.isConfirmed) {
-                            if (approveInput) approveInput.value = '1';
-                            doSubmit();
-                        } else if (result.isDenied) {
-                            if (approveInput) approveInput.value = '0';
-                            doSubmit();
-                        }
-                    });
-                } else {
-                    const approveInput = document.getElementById('approveNowInput');
-                    if (approveInput) approveInput.value = '0';
-                    doSubmit();
+                if (warningRows.length > 0) {
+                    this.warningTitle = 'Qty Belum Diisi';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                    this.warningCanProceed = validRows.length > 0;
+                    this.pendingSubmitForm = form;
+                    this.pendingRowsToSubmit = validRows;
+                    this.showWarningModal = true;
+                    return;
                 }
+
+                if (validRows.length < 1) {
+                    this.showNoItems = true;
+                    return;
+                }
+
+                this.rowsToSubmit = validRows;
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Konfirmasi Approval',
+                    text: 'Apakah Anda yakin ingin menyetujui Order Pembelian (PO) ini sekarang?',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Yes',
+                    showCancelButton: true,
+                    cancelButtonText: 'No',
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#6b7280',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const approveInput = document.getElementById('approveNowInput');
+                        if (approveInput) approveInput.value = '1';
+                        this.$nextTick(() => form.submit());
+                    }
+                });
             },
 
             init() {

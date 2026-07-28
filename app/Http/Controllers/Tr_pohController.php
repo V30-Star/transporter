@@ -1734,8 +1734,9 @@ class Tr_pohController extends Controller
         $ppnAmount = $fincludeppn ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
         $grandTotal = round($totalHarga + $ppnAmount, 2);
 
+        $alreadyApproved = !empty($header->fuserapproved) || (int) ($header->fapproval ?? 0) === 1;
         $canApprove = $this->canApprovePurchaseOrder();
-        $isApproved = $canApprove && $request->boolean('approve_now');
+        $isApproved = $alreadyApproved || ($canApprove && $request->boolean('approve_now'));
 
         try {
             DB::transaction(function () use (
@@ -1770,8 +1771,8 @@ class Tr_pohController extends Controller
                         'fincludeppn' => $fincludeppn,
                         'fket' => $request->input('fket'),
                         'fuserupdate' => $userid,
-                        'fuserapproved' => $isApproved ? $userid : null,
-                        'fdateapproved' => $isApproved ? now() : null,
+                        'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userid) : null,
+                        'fdateapproved' => $isApproved ? ($header->fdateapproved ?: now()) : null,
                         'fupdatedat' => now(),
                         'famountponet' => round($totalHarga, 2),
                         'famountpopajak' => $ppnAmount,
