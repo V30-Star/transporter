@@ -1710,6 +1710,10 @@ class SalesOrderController extends Controller
             return redirect()->route('salesorder.index')->with('error', $message);
         }
 
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userName = $userLogin->fname ?? 'admin';
+        $userIdLog = $userLogin->fuserid ?? 'ADMIN';
+
         // 3. HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
@@ -1721,7 +1725,7 @@ class SalesOrderController extends Controller
         $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
         $fppnpersen = (float) $request->input('fppnpersen', $this->getDefaultPpnTarif());
         $fclose = $request->input('fclose') ? '1' : '0';
-        $userid = auth('sysuser')->user()->fname ?? 'admin';
+        $userid = $userName;
         $now = now();
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
 
@@ -1736,7 +1740,7 @@ class SalesOrderController extends Controller
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
-        // 5. BUILD DETAIL ROWS (Logika sama dengan store)
+        // 5. BUILD DETAIL ROWS
         $rowsSodt = [];
         $totalGross = 0.0;
         $totalDisc = 0.0;
@@ -1800,7 +1804,7 @@ class SalesOrderController extends Controller
             $totalDisc += $discount;
 
             $rowsSodt[] = [
-                'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
+                'fsono' => $header->fsono,
                 'fprdcode' => $itemCode,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'fsatuan' => mb_substr($satuan, 0, 20),
@@ -1828,12 +1832,10 @@ class SalesOrderController extends Controller
 
         if ($fapplyppn === '1') {
             if ($fincludeppn === '1') {
-                // Include: amountNet sudah termasuk pajak
                 $grandTotal = $amountNet;
                 $ppnAmount = $grandTotal * ($fppnpersen / 100);
-                $amountNet = $grandTotal - $ppnAmount; // DPP dihitung mundur
+                $amountNet = $grandTotal - $ppnAmount;
             } else {
-                // Exclude: amountNet + pajak
                 $ppnAmount = $amountNet * ($fppnpersen / 100);
                 $grandTotal = $amountNet + $ppnAmount;
             }
@@ -1854,6 +1856,7 @@ class SalesOrderController extends Controller
             $fincludeppn,
             $fclose,
             $userid,
+            $userIdLog,
             $now,
             $rowsSodt,
             $totalGross,
@@ -1867,40 +1870,109 @@ class SalesOrderController extends Controller
             $resolvedSalesmanCode,
             $creditApproval
         ) {
-            // Update Header
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+            // Update Header Utama
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
-                'fsodate' => $fsodate,
-                'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
-                'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
-                'fsalesman' => $resolvedSalesmanCode,
-                'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
-                'frefpo' => mb_substr($request->input('frefpo', ''), 0, 100),
-                'fincludeppn' => $fincludeppn,
-                'fclose' => $fclose,
-                'fket' => mb_substr($request->input('fket', ''), 0, 300),
-                'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
-                'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
-                'fuserupdate' => mb_substr($userid, 0, 10),
-                'fuserapproved' => $creditApproval['fuseracc'],
-                'fdateapproved' => $creditApproval['fdateapproved'],
-                'fdatetime' => $now,
-                'fapplyppn' => $fapplyppn,
-                'fppnpersen' => $fppnpersen,
-                'famountgross' => round($totalGross, 2),
-                'fdiscount' => round($totalDisc, 2),
-                'fdiscpersen' => round($headerDiscPercent, 2),
-                'famountsonet' => round($amountNet, 2),
-                'famountpajak' => round($ppnAmount, 2),
-                'famountso' => round($grandTotal, 2),
-                'fneedacc' => $creditApproval['fneedacc'],
-                'fuseracc' => $creditApproval['fuseracc'],
-                'fapproval' => $creditApproval['fapproval'],
+                'fsodate'        => $fsodate,
+                'fbranchcode'    => mb_substr($request->input('fbranchcode', ''), 0, 2),
+                'fcustno'        => mb_substr($request->input('fcustno', ''), 0, 20),
+                'fsalesman'      => $resolvedSalesmanCode,
+                'ftempohr'       => mb_substr($request->input('ftempohr', '0'), 0, 3),
+                'frefpo'         => mb_substr($request->input('frefpo', ''), 0, 100),
+                'fincludeppn'    => $fincludeppn,
+                'fclose'         => $fclose,
+                'fket'           => mb_substr($request->input('fket', ''), 0, 300),
+                'fketinternal'   => mb_substr($request->input('fketinternal', ''), 0, 300),
+                'falamatkirim'   => mb_substr($request->input('falamatkirim', ''), 0, 300),
+                'fuserupdate'    => mb_substr($userid, 0, 10),
+                'fuserapproved'  => $creditApproval['fuseracc'],
+                'fdateapproved'  => $creditApproval['fdateapproved'],
+                'fdatetime'      => $now,
+                'fapplyppn'      => $fapplyppn,
+                'fppnpersen'     => $fppnpersen,
+                'famountgross'   => round($totalGross, 2),
+                'fdiscount'      => round($totalDisc, 2),
+                'fdiscpersen'    => round($headerDiscPercent, 2),
+                'famountsonet'   => round($amountNet, 2),
+                'famountpajak'   => round($ppnAmount, 2),
+                'famountso'      => round($grandTotal, 2),
+                'fneedacc'       => $creditApproval['fneedacc'],
+                'fuseracc'       => $creditApproval['fuseracc'],
+                'fapproval'      => $creditApproval['fapproval'],
             ]);
 
-            // Delete old details and insert new ones
+            $updatedHeader = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
+
+            // 1. INSERT Log Header (Update)
+            DB::table('log_trsomt')->insert([
+                'ftrxlogid'        => $trxLogId,
+                'ftrsomtid'       => $updatedHeader->ftrsomtid,
+                'fbranchcode'      => $updatedHeader->fbranchcode,
+                'fsono'            => $updatedHeader->fsono,
+                'fsodate'          => $updatedHeader->fsodate,
+                'fcustno'          => $updatedHeader->fcustno,
+                'fsalesman'        => $updatedHeader->fsalesman,
+                'fdiscpersen'      => $updatedHeader->fdiscpersen,
+                'fdiscount'        => $updatedHeader->fdiscount,
+                'famountgross'     => $updatedHeader->famountgross,
+                'famountsonet'     => $updatedHeader->famountsonet,
+                'famountpajak'     => $updatedHeader->famountpajak,
+                'famountso'        => $updatedHeader->famountso,
+                'fket'             => $updatedHeader->fket,
+                'falamatkirim'     => $updatedHeader->falamatkirim,
+                'fprdout'          => $updatedHeader->fprdout,
+                'fdatetime'        => $updatedHeader->fdatetime,
+                'fclose'           => $updatedHeader->fclose,
+                'frefpo'           => $updatedHeader->frefpo,
+                'fincludeppn'      => $updatedHeader->fincludeppn,
+                'fuseracc'         => $updatedHeader->fuseracc,
+                'fneedacc'         => $updatedHeader->fneedacc,
+                'ftempohr'         => $updatedHeader->ftempohr,
+                'fprint'           => $updatedHeader->fprint,
+                'fketinternal'     => $updatedHeader->fketinternal,
+                'fppnpersen'       => $updatedHeader->fppnpersen,
+                'fapplyppn'        => $updatedHeader->fapplyppn,
+                'fapproval'        => $updatedHeader->fapproval,
+                'fusercreate'      => $updatedHeader->fusercreate,
+                'fuserupdate'      => $updatedHeader->fuserupdate,
+                'fuserapproved'    => $updatedHeader->fuserapproved,
+                'fdateapproved'    => $updatedHeader->fdateapproved,
+                'feditmode'        => 'U',
+                'fuseridlog'       => $userIdLog,
+                'fdatetimelog'     => $now,
+            ]);
+
+            // Hapus detail lama dan masukkan yang baru
             DB::table('trsodt')->where('fsono', $header->fsono)->delete();
+
             if (! empty($rowsSodt)) {
-                DB::table('trsodt')->insert($rowsSodt);
+                foreach ($rowsSodt as $row) {
+                    $insertedSodtid = DB::table('trsodt')->insertGetId($row, 'ftrsodtid');
+                    $sodtObj = DB::table('trsodt')->where('ftrsodtid', $insertedSodtid)->first();
+
+                    // 2. INSERT Log Detail (Update)
+                    DB::table('log_trsodt')->insert([
+                        'ftrxlogid'    => $trxLogId,
+                        'ftrsodtid'    => $sodtObj->ftrsodtid,
+                        'fsono'        => $sodtObj->fsono,
+                        'fprdcode'     => $sodtObj->fprdcode,
+                        'fqty'         => $sodtObj->fqty,
+                        'fprice'       => $sodtObj->fprice,
+                        'fdiscpersen'  => $sodtObj->fdiscpersen,
+                        'fdiscount'    => $sodtObj->fdiscount,
+                        'famount'      => $sodtObj->famount,
+                        'fsatuan'      => $sodtObj->fsatuan,
+                        'fdesc'        => $sodtObj->fdesc,
+                        'fpricenet'    => $sodtObj->fpricenet,
+                        'fqtyremain'   => $sodtObj->fqtyremain,
+                        'fqtykecil'    => $sodtObj->fqtykecil,
+                        'fnoacak'      => $sodtObj->fnoacak,
+                        'feditmode'    => 'U',
+                        'fuseridlog'   => $userIdLog,
+                        'fdatetimelog' => $now,
+                    ]);
+                }
             }
         });
 
@@ -2072,14 +2144,80 @@ class SalesOrderController extends Controller
                 return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
-            DB::transaction(function () use ($salesorder) {
-                DB::table('trsodt')
-                    ->where('fsono', $salesorder->fsono)
-                    ->delete();
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userIdLog = $userLogin->fuserid ?? 'ADMIN';
 
-                DB::table('trsomt')
-                    ->where('ftrsomtid', $salesorder->ftrsomtid)
-                    ->delete();
+            DB::transaction(function () use ($salesorder, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_trsomt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'ftrsomtid'       => $salesorder->ftrsomtid,
+                    'fbranchcode'      => $salesorder->fbranchcode,
+                    'fsono'            => $salesorder->fsono,
+                    'fsodate'          => $salesorder->fsodate,
+                    'fcustno'          => $salesorder->fcustno,
+                    'fsalesman'        => $salesorder->fsalesman,
+                    'fdiscpersen'      => $salesorder->fdiscpersen,
+                    'fdiscount'        => $salesorder->fdiscount,
+                    'famountgross'     => $salesorder->famountgross,
+                    'famountsonet'     => $salesorder->famountsonet,
+                    'famountpajak'     => $salesorder->famountpajak,
+                    'famountso'        => $salesorder->famountso,
+                    'fket'             => $salesorder->fket,
+                    'falamatkirim'     => $salesorder->falamatkirim,
+                    'fprdout'          => $salesorder->fprdout,
+                    'fdatetime'        => $salesorder->fdatetime,
+                    'fclose'           => $salesorder->fclose,
+                    'frefpo'           => $salesorder->frefpo,
+                    'fincludeppn'      => $salesorder->fincludeppn,
+                    'fuseracc'         => $salesorder->fuseracc,
+                    'fneedacc'         => $salesorder->fneedacc,
+                    'ftempohr'         => $salesorder->ftempohr,
+                    'fprint'           => $salesorder->fprint,
+                    'fketinternal'     => $salesorder->fketinternal,
+                    'fppnpersen'       => $salesorder->fppnpersen,
+                    'fapplyppn'        => $salesorder->fapplyppn,
+                    'fapproval'        => $salesorder->fapproval,
+                    'fusercreate'      => $salesorder->fusercreate,
+                    'fuserupdate'      => $salesorder->fuserupdate,
+                    'fuserapproved'    => $salesorder->fuserapproved,
+                    'fdateapproved'    => $salesorder->fdateapproved,
+                    'feditmode'        => 'D',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_trsodt (Delete)
+                $details = DB::table('trsodt')->where('fsono', $salesorder->fsono)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_trsodt')->insert([
+                        'ftrxlogid'    => $trxLogId,
+                        'ftrsodtid'    => $detail->ftrsodtid,
+                        'fsono'        => $detail->fsono,
+                        'fprdcode'     => $detail->fprdcode,
+                        'fqty'         => $detail->fqty,
+                        'fprice'       => $detail->fprice,
+                        'fdiscpersen'  => $detail->fdiscpersen,
+                        'fdiscount'    => $detail->fdiscount,
+                        'famount'      => $detail->famount,
+                        'fsatuan'      => $detail->fsatuan,
+                        'fdesc'        => $detail->fdesc,
+                        'fpricenet'    => $detail->fpricenet,
+                        'fqtyremain'   => $detail->fqtyremain,
+                        'fqtykecil'    => $detail->fqtykecil,
+                        'fnoacak'      => $detail->fnoacak,
+                        'feditmode'    => 'D',
+                        'fuseridlog'   => $userIdLog,
+                        'fdatetimelog' => $now,
+                    ]);
+                }
+
+                // Hapus detail & header utama
+                DB::table('trsodt')->where('fsono', $salesorder->fsono)->delete();
+                DB::table('trsomt')->where('ftrsomtid', $salesorder->ftrsomtid)->delete();
             });
 
             if (request()->expectsJson()) {
