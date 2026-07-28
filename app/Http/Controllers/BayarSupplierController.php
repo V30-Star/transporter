@@ -508,9 +508,14 @@ class BayarSupplierController extends Controller
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
         $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
-        $now = now();
 
-        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $header, $references) {
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? $this->currentUserId();
+
+        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $header, $references, $userIdLog) {
+            $now = now();
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
             $customerCode = null;
@@ -527,29 +532,69 @@ class BayarSupplierController extends Controller
                 }
             }
 
+            // 1. Update Header Utama
             $header->update([
-                'fkasmtno' => $voucherNo,
-                'fkasmtdate' => $validated['fkasmtdate'],
-                'fwhom' => $supplier->fsuppliername,
-                'faccountheader' => $headerAccount->faccount,
+                'fkasmtno'         => $voucherNo,
+                'fkasmtdate'       => $validated['fkasmtdate'],
+                'fwhom'            => $supplier->fsuppliername,
+                'faccountheader'   => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
-                'fdkheader' => $fdkHeader,
-                'fcustomercode' => $customerCode,
-                'fket' => $validated['fket'] ?? null,
-                'famountpay' => $totalKasKeluar,
-                'famountpay_rp' => $totalKasKeluar,
-                'fuserid' => $this->currentUserId(),
-                'fdatetime' => $now,
-                'fgiromundur' => $validated['fgiromundur'] ?? '0',
-                'fnogiro' => $validated['fnogiro'] ?? null,
-                'ftgljatuhtempo' => !empty($validated['ftgljatuhtempo']) ? Carbon::parse($validated['ftgljatuhtempo'])->startOfDay() : null,
-                'faccountno' => $headerAccount->faccount,
-                'faccountnoid' => $headerAccount->faccid,
-                'fbranchcode' => $validated['fbranchcode'],
+                'fdkheader'        => $fdkHeader,
+                'fcustomercode'    => $customerCode,
+                'fket'             => $validated['fket'] ?? null,
+                'famountpay'       => $totalKasKeluar,
+                'famountpay_rp'    => $totalKasKeluar,
+                'fuserid'          => $this->currentUserId(),
+                'fdatetime'        => $now,
+                'fgiromundur'      => $validated['fgiromundur'] ?? '0',
+                'fnogiro'          => $validated['fnogiro'] ?? null,
+                'ftgljatuhtempo'   => !empty($validated['ftgljatuhtempo']) ? Carbon::parse($validated['ftgljatuhtempo'])->startOfDay() : null,
+                'faccountno'       => $headerAccount->faccount,
+                'faccountnoid'     => $headerAccount->faccid,
+                'fbranchcode'      => $validated['fbranchcode'],
             ]);
 
+            $updatedHeader = $this->findHeader($header->fkasmtno);
+
+            // 2. INSERT Log Header (Update)
+            DB::table('log_trkasmt')->insert([
+                'ftrxlogid'        => $trxLogId,
+                'fkasmtid'         => $updatedHeader->fkasmtid,
+                'fkasmtno'         => $updatedHeader->fkasmtno,
+                'fbranchcode'      => $updatedHeader->fbranchcode,
+                'ftrancode'        => $updatedHeader->ftrancode,
+                'fkasmtdate'       => $updatedHeader->fkasmtdate,
+                'frate'            => $updatedHeader->frate,
+                'faccountno'       => $updatedHeader->faccountno,
+                'fwhom'            => $updatedHeader->fwhom,
+                'faccountheader'   => $updatedHeader->faccountheader,
+                'fdkheader'        => $updatedHeader->fdkheader,
+                'fcustomer'        => $updatedHeader->fcustomer ? (string) $updatedHeader->fcustomer : null,
+                'fket'             => $updatedHeader->fket,
+                'famountpay'       => $updatedHeader->famountpay,
+                'famountpay_rp'    => $updatedHeader->famountpay_rp,
+                'fselisihkursmt'   => $updatedHeader->fselisihkursmt,
+                'fgiromundur'      => $updatedHeader->fgiromundur,
+                'fnogiro'          => $updatedHeader->fnogiro,
+                'ftgljatuhtempo'   => $updatedHeader->ftgljatuhtempo,
+                'fstatusgiro'      => $updatedHeader->fstatusgiro,
+                'ftglcair'         => $updatedHeader->ftglcair,
+                'fadjustment2'     => $updatedHeader->fadjustment2,
+                'fadjustment'      => $updatedHeader->fadjustment,
+                'faccadj'          => $updatedHeader->faccadj,
+                'faccadj2'         => $updatedHeader->faccadj2,
+                'fadminbank'       => $updatedHeader->fadminbank,
+                'fuserid'          => $updatedHeader->fuserid,
+                'fdatetime'        => $updatedHeader->fdatetime,
+                'feditmode'        => 'U',
+                'fuseridlog'       => $userIdLog,
+                'fdatetimelog'     => $now,
+            ]);
+
+            // 3. Delete Detail Lama
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
 
+            // 4. Insert Detail Baru & Log Detail
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
             foreach ($detailRows->values() as $index => $row) {
                 $paymentAmount = round((float) $row['fkasdtvalue'], 2);
@@ -578,55 +623,111 @@ class BayarSupplierController extends Controller
                 }
                 $detailNote = $isReb ? $supplier->fsuppliername : trim($refNo . ' (' . $referenceName . ')');
 
-                Trkasdt::create([
-                    'fkasdtid' => $nextDetailId + $index,
-                    'fkasmtid' => $header->fkasmtid,
-                    'fkasmtno' => $voucherNo,
-                    'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $detailAccount?->faccount,
-                    'fdk' => $fdkDetail,
-                    'frefno' => $row['frefno'],
-                    'fnote' => $detailNote,
+                $createdDetail = Trkasdt::create([
+                    'fkasdtid'    => $nextDetailId + $index,
+                    'fkasmtid'    => $header->fkasmtid,
+                    'fkasmtno'    => $voucherNo,
+                    'ftrancode'   => self::TRAN_CODE,
+                    'faccount'    => $detailAccount?->faccount,
+                    'fdk'         => $fdkDetail,
+                    'frefno'      => $row['frefno'],
+                    'fnote'       => $detailNote,
                     'fsubaccount' => $subAccount,
                     'fdiscpersen' => $row['fdiscpersen'],
-                    'fdiscount' => $discountAmount,
+                    'fdiscount'   => $discountAmount,
                     'fdiscountrp' => $discountAmount,
                     'fkasdtvalue' => $paymentAmount,
-                    'fvalue_rp' => $journalAmount,
-                    'fjurnal' => $journalDetailAmount,
-                    'fjurnal_rp' => $journalDetailAmount,
-                    'fuserid' => $this->currentUserId(),
-                    'fdatetime' => $now,
-                    'fnou' => $index + 1,
-                    'freftype' => $freftypeDetail,
+                    'fvalue_rp'   => $journalAmount,
+                    'fjurnal'     => $journalDetailAmount,
+                    'fjurnal_rp'  => $journalDetailAmount,
+                    'fuserid'     => $this->currentUserId(),
+                    'fdatetime'   => $now,
+                    'fnou'        => $index + 1,
+                    'freftype'    => $freftypeDetail,
+                ]);
+
+                // INSERT Log Detail (Update)
+                DB::table('log_trkasdt')->insert([
+                    'ftrxlogid'    => $trxLogId,
+                    'fkasdtid'     => $createdDetail->fkasdtid,
+                    'fkasmtno'     => $updatedHeader->fkasmtno,
+                    'ftrancode'    => $createdDetail->ftrancode,
+                    'fnou'         => $createdDetail->fnou,
+                    'freftype'     => $createdDetail->freftype,
+                    'faccount'     => $createdDetail->faccount,
+                    'fsubaccount'  => $createdDetail->fsubaccount,
+                    'fdk'          => $createdDetail->fdk,
+                    'frefno'       => $createdDetail->frefno,
+                    'fnote'        => $createdDetail->fnote,
+                    'fdiscpersen'  => $createdDetail->fdiscpersen,
+                    'fdiscount'    => $createdDetail->fdiscount,
+                    'fkasdtvalue'  => $createdDetail->fkasdtvalue,
+                    'fvalue_rp'    => $createdDetail->fvalue_rp,
+                    'fjurnal'      => $createdDetail->fjurnal,
+                    'fjurnal_rp'   => $createdDetail->fjurnal_rp,
+                    'fselisihkurs' => $createdDetail->fselisihkurs,
+                    'fdiscountrp'  => $createdDetail->fdiscountrp,
+                    'fuserid'      => $createdDetail->fuserid,
+                    'fdatetime'    => $createdDetail->fdatetime,
+                    'feditmode'    => 'U',
+                    'fuseridlog'   => $userIdLog,
+                    'fdatetimelog' => $now,
                 ]);
             }
 
             if ($bankAdminFee > 0 && $adminAccount) {
-                Trkasdt::create([
-                    'fkasdtid' => $nextDetailId + $detailRows->count(),
-                    'fkasmtid' => $header->fkasmtid,
-                    'fkasmtno' => $voucherNo,
-                    'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $adminAccount->faccount,
-                    'fdk' => 'D',
-                    'frefno' => 'ADM',
-                    'fnote' => 'BIAYA ADMIN BANK',
+                $createdAdminDetail = Trkasdt::create([
+                    'fkasdtid'    => $nextDetailId + $detailRows->count(),
+                    'fkasmtid'    => $header->fkasmtid,
+                    'fkasmtno'    => $voucherNo,
+                    'ftrancode'   => self::TRAN_CODE,
+                    'faccount'    => $adminAccount->faccount,
+                    'fdk'         => 'D',
+                    'frefno'      => 'ADM',
+                    'fnote'       => 'BIAYA ADMIN BANK',
                     'fkasdtvalue' => $bankAdminFee,
-                    'fvalue_rp' => $bankAdminFee,
-                    'fjurnal' => $bankAdminFee,
-                    'fjurnal_rp' => $bankAdminFee,
-                    'fuserid' => $this->currentUserId(),
-                    'fdatetime' => $now,
-                    'fnou' => $detailRows->count() + 1,
-                    'freftype' => 'ADM',
+                    'fvalue_rp'   => $bankAdminFee,
+                    'fjurnal'     => $bankAdminFee,
+                    'fjurnal_rp'  => $bankAdminFee,
+                    'fuserid'     => $this->currentUserId(),
+                    'fdatetime'   => $now,
+                    'fnou'        => $detailRows->count() + 1,
+                    'freftype'    => 'ADM',
+                ]);
+
+                // INSERT Log Detail Admin (Update)
+                DB::table('log_trkasdt')->insert([
+                    'ftrxlogid'    => $trxLogId,
+                    'fkasdtid'     => $createdAdminDetail->fkasdtid,
+                    'fkasmtno'     => $updatedHeader->fkasmtno,
+                    'ftrancode'    => $createdAdminDetail->ftrancode,
+                    'fnou'         => $createdAdminDetail->fnou,
+                    'freftype'     => $createdAdminDetail->freftype,
+                    'faccount'     => $createdAdminDetail->faccount,
+                    'fsubaccount'  => $createdAdminDetail->fsubaccount,
+                    'fdk'          => $createdAdminDetail->fdk,
+                    'frefno'       => $createdAdminDetail->frefno,
+                    'fnote'        => $createdAdminDetail->fnote,
+                    'fdiscpersen'  => $createdAdminDetail->fdiscpersen,
+                    'fdiscount'    => $createdAdminDetail->fdiscount,
+                    'fkasdtvalue'  => $createdAdminDetail->fkasdtvalue,
+                    'fvalue_rp'    => $createdAdminDetail->fvalue_rp,
+                    'fjurnal'      => $createdAdminDetail->fjurnal,
+                    'fjurnal_rp'   => $createdAdminDetail->fjurnal_rp,
+                    'fselisihkurs' => $createdAdminDetail->fselisihkurs,
+                    'fdiscountrp'  => $createdAdminDetail->fdiscountrp,
+                    'fuserid'      => $createdAdminDetail->fuserid,
+                    'fdatetime'    => $createdAdminDetail->fdatetime,
+                    'feditmode'    => 'U',
+                    'fuseridlog'   => $userIdLog,
+                    'fdatetimelog' => $now,
                 ]);
             }
         });
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.',
+                'message'      => 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.',
                 'redirect_url' => route('bayarsupplier.edit', $voucherNo),
             ]);
         }
@@ -644,14 +745,87 @@ class BayarSupplierController extends Controller
             return redirect()->route('bayarsupplier.view', $header->fkasmtno)->with('error', $message);
         }
 
-        DB::transaction(function () use ($header) {
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? $this->currentUserId();
+
+        DB::transaction(function () use ($header, $userIdLog) {
+            $now = now();
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+            // 1. INSERT Log Header (Delete)
+            DB::table('log_trkasmt')->insert([
+                'ftrxlogid'        => $trxLogId,
+                'fkasmtid'         => $header->fkasmtid,
+                'fkasmtno'         => $header->fkasmtno,
+                'fbranchcode'      => $header->fbranchcode,
+                'ftrancode'        => $header->ftrancode,
+                'fkasmtdate'       => $header->fkasmtdate,
+                'frate'            => $header->frate,
+                'faccountno'       => $header->faccountno,
+                'fwhom'            => $header->fwhom,
+                'faccountheader'   => $header->faccountheader,
+                'fdkheader'        => $header->fdkheader,
+                'fcustomer'        => $header->fcustomer ? (string) $header->fcustomer : null,
+                'fket'             => $header->fket,
+                'famountpay'       => $header->famountpay,
+                'famountpay_rp'    => $header->famountpay_rp,
+                'fselisihkursmt'   => $header->fselisihkursmt,
+                'fgiromundur'      => $header->fgiromundur,
+                'fnogiro'          => $header->fnogiro,
+                'ftgljatuhtempo'   => $header->ftgljatuhtempo,
+                'fstatusgiro'      => $header->fstatusgiro,
+                'ftglcair'         => $header->ftglcair,
+                'fadjustment2'     => $header->fadjustment2,
+                'fadjustment'      => $header->fadjustment,
+                'faccadj'          => $header->faccadj,
+                'faccadj2'         => $header->faccadj2,
+                'fadminbank'       => $header->fadminbank,
+                'fuserid'          => $header->fuserid,
+                'fdatetime'        => $header->fdatetime,
+                'feditmode'        => 'D',
+                'fuseridlog'       => $userIdLog,
+                'fdatetimelog'     => $now,
+            ]);
+
+            // 2. Ambil seluruh detail lalu catat ke log_trkasdt (Delete)
+            $details = Trkasdt::where('fkasmtid', $header->fkasmtid)->get();
+            foreach ($details as $detail) {
+                DB::table('log_trkasdt')->insert([
+                    'ftrxlogid'    => $trxLogId,
+                    'fkasdtid'     => $detail->fkasdtid,
+                    'fkasmtno'     => $header->fkasmtno,
+                    'ftrancode'    => $detail->ftrancode,
+                    'fnou'         => $detail->fnou,
+                    'freftype'     => $detail->freftype,
+                    'faccount'     => $detail->faccount,
+                    'fsubaccount'  => $detail->fsubaccount,
+                    'fdk'          => $detail->fdk,
+                    'frefno'       => $detail->frefno,
+                    'fnote'        => $detail->fnote,
+                    'fdiscpersen'  => $detail->fdiscpersen,
+                    'fdiscount'    => $detail->fdiscount,
+                    'fkasdtvalue'  => $detail->fkasdtvalue,
+                    'fvalue_rp'    => $detail->fvalue_rp,
+                    'fjurnal'      => $detail->fjurnal,
+                    'fjurnal_rp'   => $detail->fjurnal_rp,
+                    'fselisihkurs' => $detail->fselisihkurs,
+                    'fdiscountrp'  => $detail->fdiscountrp,
+                    'fuserid'      => $detail->fuserid,
+                    'fdatetime'    => $detail->fdatetime,
+                    'feditmode'    => 'D',
+                    'fuseridlog'   => $userIdLog,
+                    'fdatetimelog' => $now,
+                ]);
+            }
+
+            // Hapus detail & header utama
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
         });
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Bayar supplier ' . $fkasmtno . ' berhasil dihapus.',
+                'message'      => 'Bayar supplier ' . $fkasmtno . ' berhasil dihapus.',
                 'redirect_url' => route('bayarsupplier.index'),
             ]);
         }
