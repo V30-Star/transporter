@@ -450,13 +450,7 @@
                                 class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                                 <div>
                                     <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas
-                                        wewenang</p>
-                                </div>
-                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
-                                    class="{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}">
-                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
-                                        :class="{{ $isApproved ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -535,11 +529,23 @@
                 {{-- MODE EDIT --}}
                 <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" data-form-draft="true"
                     data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}" data-disable-form-persist="true"
-                    x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
+                    x-data="itemsTableRowsEdit()" x-init="init()"
                     @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-edit-submit-request'))">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="approve_now" id="approveNowInput" value="0">
+
+                    @php
+                        $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
+                        $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
+                        $permissionsArray = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+                        $canApprovePermission = in_array('approvepermintaanpembelian', $permissionsArray, true)
+                            || in_array('approvetr_prh', $permissionsArray, true)
+                            || in_array('approvepr', $permissionsArray, true)
+                            || !empty($canApproval)
+                            || !empty($perms['can_approval']);
+                        $needsApproval = !$isApproved;
+                    @endphp
 
                     @if (!empty($blockedByPO) && $blockedByPO)
                         <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
@@ -550,11 +556,6 @@
                             </p>
                         </div>
                     @endif
-
-                    @php
-                        $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
-                        $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
-                    @endphp
 
                     {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
@@ -664,7 +665,7 @@
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
-                            <div x-data="itemsTableRowsEdit()" x-init="init()" class="space-y-2">
+                            <div class="space-y-2">
                                 <div class="overflow-auto border rounded">
                                     <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
                                         data-skip-auto-detail-style="true">
@@ -844,13 +845,16 @@
                                 class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                                 <div>
                                     <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini disetujui</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
                                 </div>
-                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
-                                    class="{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}">
-                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
-                                        :class="{{ $isApproved ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
-                                </div>
+                                @if ($canEditPermission && $needsApproval && $canApprovePermission && !$isUsageLocked)
+                                    <div>
+                                        <button type="button" @click="submitWithApproval()"
+                                            class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                                            <x-heroicon-o-check-circle class="w-4 h-4" /> Setujui Sekarang
+                                        </button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -1487,6 +1491,7 @@
             });
 
             return {
+                blockedByPO: @json(!empty($blockedByPO) && $blockedByPO),
                 rows: hydratedItems.length ? hydratedItems : [],
                 rowsToSubmit: [],
                 browseTargetIndex: null,
@@ -1830,44 +1835,58 @@
                         return;
                     }
 
-                    const canApproval = @json(!empty($canApproval) || !empty($perms['can_approval']));
-                    const submitTheForm = () => {
-                        this.$nextTick(() => this.$root.closest('form')?.submit());
-                    };
-
-                    if (canApproval) {
-                        Swal.fire({
-                            icon: 'question',
-                            title: 'Konfirmasi Approval',
-                            text: 'Apakah PR ini mau langsung di Approve ?',
-                            showConfirmButton: true,
-                            confirmButtonText: 'Yes',
-                            showDenyButton: true,
-                            denyButtonText: 'No',
-                            showCancelButton: true,
-                            cancelButtonText: 'Batal',
-                            confirmButtonColor: '#2563eb',
-                            denyButtonColor: '#4b5563',
-                            cancelButtonColor: '#9ca3af',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                        }).then((result) => {
-                            const approveInput = document.getElementById('approveNowInput');
-                            if (result.isConfirmed) {
-                                if (approveInput) approveInput.value = '1';
-                                submitTheForm();
-                            } else if (result.isDenied) {
-                                if (approveInput) approveInput.value = '0';
-                                submitTheForm();
-                            }
-                        });
-                    } else {
-                        const approveInput = document.getElementById('approveNowInput');
-                        if (approveInput) {
-                            approveInput.value = '0';
-                        }
-                        submitTheForm();
+                    const approveInput = document.getElementById('approveNowInput');
+                    if (approveInput) {
+                        approveInput.value = isApproveNow ? '1' : '0';
                     }
+                    this.$nextTick(() => this.$root.closest('form')?.submit());
+                },
+
+                submitWithApproval() {
+                    this.showNoItems = false;
+                    const prepared = this.prepareRowsForSubmit();
+
+                    if (prepared.invalidMessage) {
+                        this.showWarning('Data Item Belum Lengkap', prepared.invalidMessage);
+                        return;
+                    }
+
+                    if (prepared.validRows.length < 1) {
+                        this.showNoItems = true;
+                        return;
+                    }
+
+                    this.rowsToSubmit = prepared.validRows;
+
+                    if (prepared.zeroQtyRows.length > 0) {
+                        this.showWarning(
+                            'Qty Produk Masih 0',
+                            'Data produk berikut qty-nya masih 0, tidak akan tersimpan:',
+                            prepared.zeroQtyRows,
+                            true
+                        );
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'question',
+                        title: 'Konfirmasi Approval',
+                        text: 'Apakah Anda yakin ingin menyetujui Permintaan Pembelian ini sekarang?',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Yes',
+                        showCancelButton: true,
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#059669',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const approveInput = document.getElementById('approveNowInput');
+                            if (approveInput) approveInput.value = '1';
+                            this.$nextTick(() => this.$root.closest('form')?.submit());
+                        }
+                    });
                 },
 
                 confirmWarningAndSubmit() {

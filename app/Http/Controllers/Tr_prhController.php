@@ -628,7 +628,8 @@ class Tr_prhController extends Controller
         }
 
         $canApprove = $this->canApprovePurchaseRequest();
-        $isApproved = $canApprove && $request->boolean('approve_now');
+        $alreadyApproved = !empty($header->fuserapproved) || (int) ($header->fapproval ?? 0) === 1;
+        $isApproved = $alreadyApproved || ($canApprove && $request->boolean('approve_now'));
 
         DB::transaction(function () use (
             $request,
@@ -662,8 +663,8 @@ class Tr_prhController extends Controller
                 'fupdatedat' => $now,
                 'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
                 'fapproval' => $isApproved ? 1 : 0,
-                'fuserapproved' => $isApproved ? $userName : null,
-                'fdateapproved' => $isApproved ? $now : null,
+                'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userName) : null,
+                'fdateapproved' => $isApproved ? ($header->fdateapproved ?: $now) : null,
             ];
             Tr_prh::where('fprhid', $header->fprhid)->update($headerUpdate);
 
