@@ -1493,16 +1493,64 @@ class Tr_pohController extends Controller
             }
         }
 
+        $userName = Auth::guard('sysuser')->user()?->fname ?? Auth::user()?->fname ?? 'system';
+        $userLogin = Auth::guard('sysuser')->user() ?? Auth::user();
+        $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
+
         if ($isCloseOnly) {
             if (! $canClosePo) {
                 return back()->withInput()->with('error', 'Status close PO tidak bisa diupdate. FPRDIN tidak boleh = 1.');
             }
 
-            Tr_poh::where('fpohid', $header->fpohid)->update([
-                'fclose' => '1',
-                'fuserupdate' => (Auth::guard('sysuser')->user()?->fname ?? Auth::user()?->fname ?? 'system'),
-                'fupdatedat' => now(),
-            ]);
+            DB::transaction(function () use ($header, $userName, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                Tr_poh::where('fpohid', $header->fpohid)->update([
+                    'fclose' => '1',
+                    'fuserupdate' => $userName,
+                    'fupdatedat' => $now,
+                ]);
+
+                $updatedHeader = Tr_poh::where('fpohid', $header->fpohid)->first();
+
+                // INSERT Log Header untuk Close Only
+                DB::table('log_tr_poh')->insert([
+                    'ftrxlogid'      => $trxLogId,
+                    'fpohid'         => $updatedHeader->fpohid,
+                    'fpono'          => $updatedHeader->fpono,
+                    'fbranchcode'    => $updatedHeader->fbranchcode,
+                    'ftypepo'        => $updatedHeader->ftypepo,
+                    'fpodate'        => $updatedHeader->fpodate,
+                    'fsupplier'      => $updatedHeader->fsupplier,
+                    'fcurrency'      => $updatedHeader->fcurrency,
+                    'frate'          => $updatedHeader->frate,
+                    'famountponet'   => $updatedHeader->famountponet,
+                    'famountpopajak' => $updatedHeader->famountpopajak,
+                    'famountpo'      => $updatedHeader->famountpo,
+                    'famountpo_rp'   => $updatedHeader->famountpo_rp,
+                    'fprdin'         => $updatedHeader->fprdin,
+                    'fclose'         => $updatedHeader->fclose,
+                    'fket'           => $updatedHeader->fket,
+                    'fjatuhtempo'    => $updatedHeader->fjatuhtempo,
+                    'ftempohr'       => $updatedHeader->ftempohr,
+                    'fprint'         => $updatedHeader->fprint,
+                    'fincludeppn'    => $updatedHeader->fincludeppn,
+                    'fppnpersen'     => $updatedHeader->fppnpersen,
+                    'fkirimdate'     => $updatedHeader->fkirimdate,
+                    'fapproval'      => $updatedHeader->fapproval,
+                    'fusercreate'    => $updatedHeader->fusercreate,
+                    'fdatetime'      => $updatedHeader->fdatetime,
+                    'fupdatedat'     => $updatedHeader->fupdatedat,
+                    'fuserapproved'  => $updatedHeader->fuserapproved,
+                    'fdateapproved'  => $updatedHeader->fdateapproved,
+                    'fuserupdate'    => $updatedHeader->fuserupdate,
+                    'fapplyppn'      => $updatedHeader->fapplyppn,
+                    'feditmode'      => 'U',
+                    'fuseridlog'     => $userIdLog,
+                    'fdatetimelog'   => $now,
+                ]);
+            });
 
             return redirect()
                 ->route('tr_poh.index')
@@ -1571,9 +1619,6 @@ class Tr_pohController extends Controller
             ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
             : null;
         $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-        $userid = Auth::guard('sysuser')->user()?->fname
-            ?? Auth::user()?->fname
-            ?? 'system';
         $now = now();
 
         $codes = $request->input('fitemcode', []);
@@ -1695,7 +1740,7 @@ class Tr_pohController extends Controller
                 'fpricenet' => $priceNet,
                 'famount' => $amount,
                 'famount_rp' => $amount,
-                'fuserupdate' => $userid,
+                'fuserupdate' => $userName,
                 'fdatetime' => $now,
                 'fsatuan' => $sat,
                 'fdesc' => $desc,
@@ -1744,7 +1789,8 @@ class Tr_pohController extends Controller
                 $header,
                 $fpodate,
                 $fkirimdate,
-                $userid,
+                $userName,
+                $userIdLog,
                 $fapplyppn,
                 $rowsPod,
                 $fponoId,
@@ -1756,10 +1802,13 @@ class Tr_pohController extends Controller
                 $oldUsageByRef,
                 $isApproved
             ) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
                 $this->validatePrdRemain($prdAgg, $oldUsageByRef);
                 $this->adjustPrReferenceQtyKecil($oldUsageByRef, 1);
 
-                $fpohid = DB::table('tr_poh')
+                DB::table('tr_poh')
                     ->where('fpohid', $fponoId)
                     ->update([
                         'fpodate' => $fpodate,
@@ -1770,10 +1819,10 @@ class Tr_pohController extends Controller
                         'fsupplier' => $request->input('fsupplier'),
                         'fincludeppn' => $fincludeppn,
                         'fket' => $request->input('fket'),
-                        'fuserupdate' => $userid,
-                        'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userid) : null,
-                        'fdateapproved' => $isApproved ? ($header->fdateapproved ?: now()) : null,
-                        'fupdatedat' => now(),
+                        'fuserupdate' => $userName,
+                        'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userName) : null,
+                        'fdateapproved' => $isApproved ? ($header->fdateapproved ?: $now) : null,
+                        'fupdatedat' => $now,
                         'famountponet' => round($totalHarga, 2),
                         'famountpopajak' => $ppnAmount,
                         'famountpo' => $grandTotal,
@@ -1783,7 +1832,45 @@ class Tr_pohController extends Controller
                         'fprdin' => (string) ($header->fprdin ?? '0'),
                         'fapproval' => $isApproved ? 1 : 0,
                     ]);
-                $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
+
+                $updatedHeader = DB::table('tr_poh')->where('fpohid', $fponoId)->first();
+
+                // 1. INSERT Log Header (Update)
+                DB::table('log_tr_poh')->insert([
+                    'ftrxlogid'      => $trxLogId,
+                    'fpohid'         => $updatedHeader->fpohid,
+                    'fpono'          => $updatedHeader->fpono,
+                    'fbranchcode'    => $updatedHeader->fbranchcode,
+                    'ftypepo'        => $updatedHeader->ftypepo,
+                    'fpodate'        => $updatedHeader->fpodate,
+                    'fsupplier'      => $updatedHeader->fsupplier,
+                    'fcurrency'      => $updatedHeader->fcurrency,
+                    'frate'          => $updatedHeader->frate,
+                    'famountponet'   => $updatedHeader->famountponet,
+                    'famountpopajak' => $updatedHeader->famountpopajak,
+                    'famountpo'      => $updatedHeader->famountpo,
+                    'famountpo_rp'   => $updatedHeader->famountpo_rp,
+                    'fprdin'         => $updatedHeader->fprdin,
+                    'fclose'         => $updatedHeader->fclose,
+                    'fket'           => $updatedHeader->fket,
+                    'fjatuhtempo'    => $updatedHeader->fjatuhtempo,
+                    'ftempohr'       => $updatedHeader->ftempohr,
+                    'fprint'         => $updatedHeader->fprint,
+                    'fincludeppn'    => $updatedHeader->fincludeppn,
+                    'fppnpersen'     => $updatedHeader->fppnpersen,
+                    'fkirimdate'     => $updatedHeader->fkirimdate,
+                    'fapproval'      => $updatedHeader->fapproval,
+                    'fusercreate'    => $updatedHeader->fusercreate,
+                    'fdatetime'      => $updatedHeader->fdatetime,
+                    'fupdatedat'     => $updatedHeader->fupdatedat,
+                    'fuserapproved'  => $updatedHeader->fuserapproved,
+                    'fdateapproved'  => $updatedHeader->fdateapproved,
+                    'fuserupdate'    => $updatedHeader->fuserupdate,
+                    'fapplyppn'      => $updatedHeader->fapplyppn,
+                    'feditmode'      => 'U',
+                    'fuseridlog'     => $userIdLog,
+                    'fdatetimelog'   => $now,
+                ]);
 
                 DB::table('tr_pod')->where('fpono', $header->fpono)->delete();
 
@@ -1791,10 +1878,44 @@ class Tr_pohController extends Controller
                 foreach ($rowsPod as &$r) {
                     $r['fpono'] = $header->fpono;
                     $r['fnou'] = $nextNou++;
+                    
+                    // Simpan row ke tr_pod
+                    $insertedPodId = DB::table('tr_pod')->insertGetId($r, 'fpodid');
+                    $podObj = DB::table('tr_pod')->where('fpodid', $insertedPodId)->first();
+
+                    // 2. INSERT Log Detail (Update)
+                    DB::table('log_tr_pod')->insert([
+                        'ftrxlogid'    => $trxLogId,
+                        'fpodid'       => $podObj->fpodid,
+                        'fpono'        => $podObj->fpono,
+                        'fnou'         => $podObj->fnou,
+                        'fprdcode'     => $podObj->fprdcode,
+                        'fdesc'        => $podObj->fdesc,
+                        'fqty'         => $podObj->fqty,
+                        'fqtyremain'   => $podObj->fqtyremain,
+                        'fdisc'        => $podObj->fdisc,
+                        'fprice'       => $podObj->fprice,
+                        'fprice_rp'    => $podObj->fprice_rp,
+                        'fpricegross'  => $podObj->fpricegross,
+                        'fpricenet'    => $podObj->fpricenet,
+                        'famount'      => $podObj->famount,
+                        'famount_rp'   => $podObj->famount_rp,
+                        'fsatuan'      => $podObj->fsatuan,
+                        'fqtykecil'    => $podObj->fqtykecil,
+                        'frefdtno'     => $podObj->frefdtno,
+                        'frefnoacak'   => $podObj->frefnoacak,
+                        'fnoacak'      => $podObj->fnoacak,
+                        'fusercreate'  => $podObj->fusercreate,
+                        'fdatetime'    => $podObj->fdatetime,
+                        'fupdatedat'   => $podObj->fupdatedat,
+                        'fuserupdate'  => $podObj->fuserupdate,
+                        'feditmode'    => 'U',
+                        'fuseridlog'   => $userIdLog,
+                        'fdatetimelog' => $now,
+                    ]);
                 }
                 unset($r);
 
-                DB::table('tr_pod')->insert($rowsPod);
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
@@ -1976,10 +2097,85 @@ class Tr_pohController extends Controller
                 return redirect()->route('tr_poh.index')->with('error', $message);
             }
 
-            DB::transaction(function () use ($tr_poh) {
-                $oldUsageByRef = DB::table('tr_pod')
-                    ->where('fpono', $tr_poh->fpono)
-                    ->get(['frefdtid', 'fqtykecil'])
+            $userLogin = Auth::guard('sysuser')->user() ?? Auth::user();
+            $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
+
+            DB::transaction(function () use ($tr_poh, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_tr_poh')->insert([
+                    'ftrxlogid'      => $trxLogId,
+                    'fpohid'         => $tr_poh->fpohid,
+                    'fpono'          => $tr_poh->fpono,
+                    'fbranchcode'    => $tr_poh->fbranchcode,
+                    'ftypepo'        => $tr_poh->ftypepo,
+                    'fpodate'        => $tr_poh->fpodate,
+                    'fsupplier'      => $tr_poh->fsupplier,
+                    'fcurrency'      => $tr_poh->fcurrency,
+                    'frate'          => $tr_poh->frate,
+                    'famountponet'   => $tr_poh->famountponet,
+                    'famountpopajak' => $tr_poh->famountpopajak,
+                    'famountpo'      => $tr_poh->famountpo,
+                    'famountpo_rp'   => $tr_poh->famountpo_rp,
+                    'fprdin'         => $tr_poh->fprdin,
+                    'fclose'         => $tr_poh->fclose,
+                    'fket'           => $tr_poh->fket,
+                    'fjatuhtempo'    => $tr_poh->fjatuhtempo,
+                    'ftempohr'       => $tr_poh->ftempohr,
+                    'fprint'         => $tr_poh->fprint,
+                    'fincludeppn'    => $tr_poh->fincludeppn,
+                    'fppnpersen'     => $tr_poh->fppnpersen,
+                    'fkirimdate'     => $tr_poh->fkirimdate,
+                    'fapproval'      => $tr_poh->fapproval,
+                    'fusercreate'    => $tr_poh->fusercreate,
+                    'fdatetime'      => $tr_poh->fdatetime,
+                    'fupdatedat'     => $tr_poh->fupdatedat,
+                    'fuserapproved'  => $tr_poh->fuserapproved,
+                    'fdateapproved'  => $tr_poh->fdateapproved,
+                    'fuserupdate'    => $tr_poh->fuserupdate,
+                    'fapplyppn'      => $tr_poh->fapplyppn,
+                    'feditmode'      => 'D',
+                    'fuseridlog'     => $userIdLog,
+                    'fdatetimelog'   => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_tr_pod (Delete)
+                $details = DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_tr_pod')->insert([
+                        'ftrxlogid'    => $trxLogId,
+                        'fpodid'       => $detail->fpodid,
+                        'fpono'        => $detail->fpono,
+                        'fnou'         => $detail->fnou,
+                        'fprdcode'     => $detail->fprdcode,
+                        'fdesc'        => $detail->fdesc,
+                        'fqty'         => $detail->fqty,
+                        'fqtyremain'   => $detail->fqtyremain,
+                        'fdisc'        => $detail->fdisc,
+                        'fprice'       => $detail->fprice,
+                        'fprice_rp'    => $detail->fprice_rp,
+                        'fpricegross'  => $detail->fpricegross,
+                        'fpricenet'    => $detail->fpricenet,
+                        'famount'      => $detail->famount,
+                        'famount_rp'   => $detail->famount_rp,
+                        'fsatuan'      => $detail->fsatuan,
+                        'fqtykecil'    => $detail->fqtykecil,
+                        'frefdtno'     => $detail->frefdtno,
+                        'frefnoacak'   => $detail->frefnoacak,
+                        'fnoacak'      => $detail->fnoacak,
+                        'fusercreate'  => $detail->fusercreate,
+                        'fdatetime'    => $detail->fdatetime,
+                        'fupdatedat'   => $detail->fupdatedat,
+                        'fuserupdate'  => $detail->fuserupdate,
+                        'feditmode'    => 'D',
+                        'fuseridlog'   => $userIdLog,
+                        'fdatetimelog' => $now,
+                    ]);
+                }
+
+                $oldUsageByRef = $details
                     ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
                     ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
                     ->all();
