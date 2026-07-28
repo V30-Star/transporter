@@ -1280,6 +1280,10 @@ class PenerimaanBarangController extends Controller
         $ppnAmount = (float) $request->input('famountpopajak', 0);
         $now = now();
 
+        $userLogin = Auth::guard('sysuser')->user() ?? Auth::user();
+        $userName = $userLogin->fname ?? 'system';
+        $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
+
         $codes = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $refdtnos = $request->input('frefdtno', []);
@@ -1333,7 +1337,6 @@ class PenerimaanBarangController extends Controller
             }
 
             if ($rid === null || $rid <= 0) {
-                // Skip rows without a valid PO reference
                 continue;
             }
 
@@ -1373,7 +1376,7 @@ class PenerimaanBarangController extends Controller
                 'fprice_rp' => $price * $frate,
                 'ftotprice' => $amount,
                 'ftotprice_rp' => $amount * $frate,
-                'fuserupdate' => Auth::user()->fname ?? 'system',
+                'fuserupdate' => $userName,
                 'fdatetime' => $now,
                 'fketdt' => '',
                 'fcode' => '0',
@@ -1420,8 +1423,13 @@ class PenerimaanBarangController extends Controller
                 $ppnAmount,
                 $grandTotal,
                 $podAgg,
-                $oldReceiptLines
+                $oldReceiptLines,
+                $userName,
+                $userIdLog
             ) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
                 $oldUsageByPod = [];
                 foreach ($oldReceiptLines as $oldLine) {
                     $oldRefId = (int) ($oldLine->frefdtid ?? 0);
@@ -1454,20 +1462,109 @@ class PenerimaanBarangController extends Controller
                     'famountremain_rp' => round($grandTotal * $frate, 2),
                     'ffrom' => $ffrom,
                     'fket' => $fket,
-                    'fuserupdate' => Auth::user()->fname ?? 'system',
+                    'fuserupdate' => $userName,
                     'fbranchcode' => $kodeCabang,
+                ]);
+
+                $updatedHeader = PenerimaanPembelianHeader::findOrFail($header->fstockmtid);
+
+                // 1. INSERT Log Header (Update)
+                DB::table('log_trstockmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'fstockmtid'       => $updatedHeader->fstockmtid,
+                    'fstockmtno'       => $updatedHeader->fstockmtno,
+                    'fbranchcode'      => $updatedHeader->fbranchcode,
+                    'fstockmtcode'     => $updatedHeader->fstockmtcode,
+                    'fstockmtdate'     => $updatedHeader->fstockmtdate,
+                    'fprdout'          => $updatedHeader->fprdout,
+                    'fsupplier'        => $updatedHeader->fsupplier,
+                    'fcurrency'        => $updatedHeader->fcurrency,
+                    'frate'            => $updatedHeader->frate,
+                    'ftypebuy'         => $updatedHeader->ftypebuy,
+                    'ftempohr'         => $updatedHeader->ftempohr,
+                    'ftrancode'        => $updatedHeader->ftrancode,
+                    'fsalesman'        => $updatedHeader->fsalesman,
+                    'fjatuhtempo'      => $updatedHeader->fjatuhtempo,
+                    'fprint'           => $updatedHeader->fprint,
+                    'fsudahtagih'      => $updatedHeader->fsudahtagih,
+                    'fdiscount'        => $updatedHeader->fdiscount,
+                    'fupdatedat'       => $updatedHeader->fupdatedat,
+                    'famount'          => $updatedHeader->famount,
+                    'famount_rp'       => $updatedHeader->famount_rp,
+                    'famountpajak'     => $updatedHeader->famountpajak,
+                    'famountpajak_rp'  => $updatedHeader->famountpajak_rp,
+                    'famountmt'        => $updatedHeader->famountmt,
+                    'famountmt_rp'     => $updatedHeader->famountmt_rp,
+                    'famountremain'    => $updatedHeader->famountremain,
+                    'famountremain_rp' => $updatedHeader->famountremain_rp,
+                    'frefno'           => $updatedHeader->frefno,
+                    'frefpo'           => $updatedHeader->frefpo,
+                    'ffrom'            => $updatedHeader->ffrom,
+                    'fto'              => $updatedHeader->fto,
+                    'fkirim'           => $updatedHeader->fkirim,
+                    'fprdjadi'         => $updatedHeader->fprdjadi,
+                    'fqtyjadi'         => $updatedHeader->fqtyjadi,
+                    'fket'             => $updatedHeader->fket,
+                    'fincludeppn'      => $updatedHeader->fincludeppn,
+                    'fppnpersen'       => $updatedHeader->fppnpersen,
+                    'fapplyppn'        => $updatedHeader->fapplyppn,
+                    'fketinternal'     => $updatedHeader->fketinternal,
+                    'fusercreate'      => $updatedHeader->fusercreate,
+                    'fdatetime'        => $updatedHeader->fdatetime,
+                    'fuserupdate'      => $updatedHeader->fuserupdate,
+                    'feditmode'        => 'U',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
                 ]);
 
                 DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
-                $nextNouRef = 1;
                 foreach ($rowsDt as &$r) {
                     $r['fstockmtcode'] = $header->fstockmtcode;
                     $r['fstockmtno'] = $header->fstockmtno;
+
+                    // Simpan row ke trstockdt
+                    $insertedDtId = DB::table('trstockdt')->insertGetId($r, 'fstockdtid');
+                    $dtObj = DB::table('trstockdt')->where('fstockdtid', $insertedDtId)->first();
+
+                    // 2. INSERT Log Detail (Update)
+                    DB::table('log_trstockdt')->insert([
+                        'ftrxlogid'     => $trxLogId,
+                        'fstockdtid'    => $dtObj->fstockdtid,
+                        'fstockmtcode'  => $dtObj->fstockmtcode,
+                        'fstockmtno'    => $dtObj->fstockmtno,
+                        'fprdcode'      => $dtObj->fprdcode,
+                        'frefdtno'      => $dtObj->frefdtno,
+                        'fqty'          => $dtObj->fqty,
+                        'fqtyremain'    => $dtObj->fqtyremain,
+                        'fsatuan'       => $dtObj->fsatuan,
+                        'fqtykecil'     => $dtObj->fqtykecil,
+                        'fprice'        => $dtObj->fprice,
+                        'fprice_rp'     => $dtObj->fprice_rp,
+                        'ftotprice'     => $dtObj->ftotprice,
+                        'ftotprice_rp'  => $dtObj->ftotprice_rp,
+                        'fketdt'        => $dtObj->fketdt,
+                        'fcode'         => $dtObj->fcode,
+                        'frefso'        => $dtObj->frefso,
+                        'fdesc'         => $dtObj->fdesc,
+                        'fclosedt'      => $dtObj->fclosedt,
+                        'fdiscpersen'   => $dtObj->fdiscpersen,
+                        'fbiaya'        => $dtObj->fbiaya,
+                        'fpricenet'     => $dtObj->fpricenet,
+                        'fnoacak'       => $dtObj->fnoacak,
+                        'frefnoacak'    => $dtObj->frefnoacak,
+                        'frefnoacak_so' => $dtObj->frefnoacak_so,
+                        'fusercreate'   => $dtObj->fusercreate,
+                        'fdatetime'     => $dtObj->fdatetime,
+                        'fupdatedat'    => $dtObj->fupdatedat,
+                        'fuserupdate'   => $dtObj->fuserupdate,
+                        'feditmode'     => 'U',
+                        'fuseridlog'    => $userIdLog,
+                        'fdatetimelog'  => $now,
+                    ]);
                 }
                 unset($r);
 
-                DB::table('trstockdt')->insert($rowsDt);
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
 
                 $this->syncGoodsReceiptJournalEntries(
@@ -1479,7 +1576,7 @@ class PenerimaanBarangController extends Controller
                     $ppnAmount,
                     $grandTotal,
                     $frate,
-                    Auth::user()->fname ?? 'system'
+                    $userName
                 );
             });
         } catch (\RuntimeException $e) {
@@ -1526,10 +1623,102 @@ class PenerimaanBarangController extends Controller
                 return $stockResponse;
             }
 
-            DB::transaction(function () use ($penerimaanbarang) {
-                $oldUsageByPod = DB::table('trstockdt')
-                    ->where('fstockmtno', $penerimaanbarang->fstockmtno)
-                    ->get(['frefdtid', 'fqtykecil'])
+            $userLogin = Auth::guard('sysuser')->user() ?? Auth::user();
+            $userIdLog = $userLogin->fuserid ?? 'SYSTEM';
+
+            DB::transaction(function () use ($penerimaanbarang, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_trstockmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'fstockmtid'       => $penerimaanbarang->fstockmtid,
+                    'fstockmtno'       => $penerimaanbarang->fstockmtno,
+                    'fbranchcode'      => $penerimaanbarang->fbranchcode,
+                    'fstockmtcode'     => $penerimaanbarang->fstockmtcode,
+                    'fstockmtdate'     => $penerimaanbarang->fstockmtdate,
+                    'fprdout'          => $penerimaanbarang->fprdout,
+                    'fsupplier'        => $penerimaanbarang->fsupplier,
+                    'fcurrency'        => $penerimaanbarang->fcurrency,
+                    'frate'            => $penerimaanbarang->frate,
+                    'ftypebuy'         => $penerimaanbarang->ftypebuy,
+                    'ftempohr'         => $penerimaanbarang->ftempohr,
+                    'ftrancode'        => $penerimaanbarang->ftrancode,
+                    'fsalesman'        => $penerimaanbarang->fsalesman,
+                    'fjatuhtempo'      => $penerimaanbarang->fjatuhtempo,
+                    'fprint'           => $penerimaanbarang->fprint,
+                    'fsudahtagih'      => $penerimaanbarang->fsudahtagih,
+                    'fdiscount'        => $penerimaanbarang->fdiscount,
+                    'fupdatedat'       => $penerimaanbarang->fupdatedat,
+                    'famount'          => $penerimaanbarang->famount,
+                    'famount_rp'       => $penerimaanbarang->famount_rp,
+                    'famountpajak'     => $penerimaanbarang->famountpajak,
+                    'famountpajak_rp'  => $penerimaanbarang->famountpajak_rp,
+                    'famountmt'        => $penerimaanbarang->famountmt,
+                    'famountmt_rp'     => $penerimaanbarang->famountmt_rp,
+                    'famountremain'    => $penerimaanbarang->famountremain,
+                    'famountremain_rp' => $penerimaanbarang->famountremain_rp,
+                    'frefno'           => $penerimaanbarang->frefno,
+                    'frefpo'           => $penerimaanbarang->frefpo,
+                    'ffrom'            => $penerimaanbarang->ffrom,
+                    'fto'              => $penerimaanbarang->fto,
+                    'fkirim'           => $penerimaanbarang->fkirim,
+                    'fprdjadi'         => $penerimaanbarang->fprdjadi,
+                    'fqtyjadi'         => $penerimaanbarang->fqtyjadi,
+                    'fket'             => $penerimaanbarang->fket,
+                    'fincludeppn'      => $penerimaanbarang->fincludeppn,
+                    'fppnpersen'       => $penerimaanbarang->fppnpersen,
+                    'fapplyppn'        => $penerimaanbarang->fapplyppn,
+                    'fketinternal'     => $penerimaanbarang->fketinternal,
+                    'fusercreate'      => $penerimaanbarang->fusercreate,
+                    'fdatetime'        => $penerimaanbarang->fdatetime,
+                    'fuserupdate'      => $penerimaanbarang->fuserupdate,
+                    'feditmode'        => 'D',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_trstockdt (Delete)
+                $details = DB::table('trstockdt')->where('fstockmtno', $penerimaanbarang->fstockmtno)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_trstockdt')->insert([
+                        'ftrxlogid'     => $trxLogId,
+                        'fstockdtid'    => $detail->fstockdtid,
+                        'fstockmtcode'  => $detail->fstockmtcode,
+                        'fstockmtno'    => $detail->fstockmtno,
+                        'fprdcode'      => $detail->fprdcode,
+                        'frefdtno'      => $detail->frefdtno,
+                        'fqty'          => $detail->fqty,
+                        'fqtyremain'    => $detail->fqtyremain,
+                        'fsatuan'       => $detail->fsatuan,
+                        'fqtykecil'     => $detail->fqtykecil,
+                        'fprice'        => $detail->fprice,
+                        'fprice_rp'     => $detail->fprice_rp,
+                        'ftotprice'     => $detail->ftotprice,
+                        'ftotprice_rp'  => $detail->ftotprice_rp,
+                        'fketdt'        => $detail->fketdt,
+                        'fcode'         => $detail->fcode,
+                        'frefso'        => $detail->frefso,
+                        'fdesc'         => $detail->fdesc,
+                        'fclosedt'      => $detail->fclosedt,
+                        'fdiscpersen'   => $detail->fdiscpersen,
+                        'fbiaya'        => $detail->fbiaya,
+                        'fpricenet'     => $detail->fpricenet,
+                        'fnoacak'       => $detail->fnoacak,
+                        'frefnoacak'    => $detail->frefnoacak,
+                        'frefnoacak_so' => $detail->frefnoacak_so,
+                        'fusercreate'   => $detail->fusercreate,
+                        'fdatetime'     => $detail->fdatetime,
+                        'fupdatedat'    => $detail->fupdatedat,
+                        'fuserupdate'   => $detail->fuserupdate,
+                        'feditmode'     => 'D',
+                        'fuseridlog'    => $userIdLog,
+                        'fdatetimelog'  => $now,
+                    ]);
+                }
+
+                $oldUsageByPod = $details
                     ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
                     ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
                     ->all();
