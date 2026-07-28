@@ -2560,6 +2560,10 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('error', $message);
         }
 
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userName = mb_substr($userLogin->fname ?? 'admin', 0, 10);
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'ADMIN';
+
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
@@ -2567,7 +2571,7 @@ class InvoiceController extends Controller
         $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
         $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
-        $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
+        $userid = $userName;
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
         $defaultPpnTarif = $this->getDefaultPpnTarif();
@@ -2651,7 +2655,7 @@ class InvoiceController extends Controller
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
             if ($refSrjNo !== '') {
-                $refSoNo = ''; // Will resolve from trstockdt later
+                $refSoNo = '';
             } elseif ($refSoNo !== '') {
                 $refSrjNo = $refSoNo;
             }
@@ -2814,14 +2818,6 @@ class InvoiceController extends Controller
             $grandTotal = $amountNet;
         }
 
-        // if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
-
-        // if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
-
         if ($hasUM && $typeSales === 0) {
             if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
                 return back()->withInput()->with('error', $validationMessage);
@@ -2834,7 +2830,7 @@ class InvoiceController extends Controller
 
         // 6. TRANSACTION
         try {
-            $fprdoutVal = '0'; // default sebelum transaksi
+            $fprdoutVal = '0';
 
             DB::transaction(function () use (
                 $request,
@@ -2844,6 +2840,7 @@ class InvoiceController extends Controller
                 $fincludeppn,
                 $fapplyppn,
                 $userid,
+                $userIdLog,
                 $now,
                 $detailRows,
                 $oldSoRestoreByReference,
@@ -2865,6 +2862,7 @@ class InvoiceController extends Controller
                 $fjatuhtempo,
                 $headerRefNo
             ) {
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
@@ -2896,53 +2894,149 @@ class InvoiceController extends Controller
                     ->value('total');
                 $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
+
                 $headerUpdate = [
-                    'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) ($header->fsono ?? ''), 0, 50),
-                    'fsodate' => $fsodate,
-                    'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
-                    'fkodefp' => $fkodefp,
-                    'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
-                    'fdiscpersen' => round($headerDiscPercent, 2),
-                    'fdiscount' => $totalDisc,
-                    'fdiscount_rp' => $totalDisc * $frate,
-                    'famountgross' => $totalGross,
-                    'famountgross_rp' => $totalGross * $frate,
-                    'famountsonet' => $amountNet,
-                    'famountsonet_rp' => $amountNet * $frate,
-                    'famountpajak' => $ppnAmount,
-                    'famountpajak_rp' => $ppnAmount * $frate,
-                    'famountso' => $grandTotal,
-                    'famountso_rp' => $grandTotal * $frate,
-                    'ftotalsalesnet' => $totalSalesNet,
-                    'famountremain' => $amountRemain,
+                    'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) ($header->fsono ?? ''), 0, 50),
+                    'fsodate'          => $fsodate,
+                    'fcustno'          => mb_substr((string) $request->fcustno, 0, 10),
+                    'fkodefp'          => $fkodefp,
+                    'fsalesman'        => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
+                    'fdiscpersen'      => round($headerDiscPercent, 2),
+                    'fdiscount'        => $totalDisc,
+                    'fdiscount_rp'     => $totalDisc * $frate,
+                    'famountgross'     => $totalGross,
+                    'famountgross_rp'  => $totalGross * $frate,
+                    'famountsonet'     => $amountNet,
+                    'famountsonet_rp'  => $amountNet * $frate,
+                    'famountpajak'     => $ppnAmount,
+                    'famountpajak_rp'  => $ppnAmount * $frate,
+                    'famountso'        => $grandTotal,
+                    'famountso_rp'     => $grandTotal * $frate,
+                    'ftotalsalesnet'   => $totalSalesNet,
+                    'famountremain'    => $amountRemain,
                     'famountremain_rp' => $amountRemainRp,
-                    'fket' => $request->fket ?? '',
-                    'frefno' => mb_substr($headerRefNo, 0, 100),
-                    'fuserid' => $userid,
-                    'fdatetime' => $now,
-                    'fincludeppn' => $fincludeppn,
-                    'fapplyppn' => $fapplyppn,
-                    'fppnpersen' => $ppnPersen,
-                    'fbranchcode' => $request->fbranchcode,
-                    'ftypesales' => (int) $request->input('ftypesales', 0),
-                    'fprdout' => $fprdoutVal,
-                    'fneedacc' => '0',
-                    'fuseracc' => mb_substr($userid, 0, 30),
-                    'fjatuhtempo' => $fjatuhtempo,
+                    'fket'             => $request->fket ?? '',
+                    'frefno'           => mb_substr($headerRefNo, 0, 100),
+                    'fuserid'          => $userid,
+                    'fdatetime'        => $now,
+                    'fincludeppn'      => $fincludeppn,
+                    'fapplyppn'        => $fapplyppn,
+                    'fppnpersen'       => $ppnPersen,
+                    'fbranchcode'      => $request->fbranchcode,
+                    'ftypesales'       => (int) $request->input('ftypesales', 0),
+                    'fprdout'          => $fprdoutVal,
+                    'fneedacc'         => '0',
+                    'fuseracc'         => mb_substr($userid, 0, 30),
+                    'fjatuhtempo'      => $fjatuhtempo,
                 ];
+
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerUpdate['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
                 }
+
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update($headerUpdate);
 
-                // Hapus detail lama
-                DB::table('trandt')->where('fsono', $header->fsono)->delete();
+                $updatedHeader = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
 
+                // 1. INSERT Log Header (Update)
+                DB::table('log_tranmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'ftranmtid'       => $updatedHeader->ftranmtid,
+                    'fsono'            => $updatedHeader->fsono,
+                    'fbranchcode'      => $updatedHeader->fbranchcode,
+                    'ftaxno'           => $updatedHeader->ftaxno,
+                    'fsodate'          => $updatedHeader->fsodate,
+                    'ftypesales'       => $updatedHeader->ftypesales,
+                    'ftrcode'          => $updatedHeader->ftrcode,
+                    'frefno'           => $updatedHeader->frefno,
+                    'fcustno'          => $updatedHeader->fcustno,
+                    'fsalesman'        => $updatedHeader->fsalesman,
+                    'fcurrency'        => $updatedHeader->fcurrency,
+                    'frate'            => $updatedHeader->frate,
+                    'fdiscpersen'      => $updatedHeader->fdiscpersen,
+                    'fdiscount'        => $updatedHeader->fdiscount,
+                    'fdiscount_rp'     => $updatedHeader->fdiscount_rp,
+                    'famountgross'     => $updatedHeader->famountgross,
+                    'famountgross_rp'  => $updatedHeader->famountgross_rp,
+                    'famountsonet'     => $updatedHeader->famountsonet,
+                    'famountsonet_rp'  => $updatedHeader->famountsonet_rp,
+                    'famountpajak'     => $updatedHeader->famountpajak,
+                    'famountpajak_rp'  => $updatedHeader->famountpajak_rp,
+                    'famountso'        => $updatedHeader->famountso,
+                    'famountso_rp'     => $updatedHeader->famountso_rp,
+                    'famountremain'    => $updatedHeader->famountremain,
+                    'famountremain_rp' => $updatedHeader->famountremain_rp,
+                    'fket'             => $updatedHeader->fket,
+                    'fprdout'          => $updatedHeader->fprdout,
+                    'fuserid'          => $updatedHeader->fuserid,
+                    'fdatetime'        => $updatedHeader->fdatetime,
+                    'fjatuhtempo'      => $updatedHeader->fjatuhtempo,
+                    'fongkosangkut'    => $updatedHeader->fongkosangkut,
+                    'fincludeppn'      => $updatedHeader->fincludeppn,
+                    'ftotalsalesnet'   => $updatedHeader->ftotalsalesnet,
+                    'fkodefp'          => $updatedHeader->fkodefp,
+                    'fprint'           => $updatedHeader->fprint,
+                    'fsudahtagih'      => $updatedHeader->fsudahtagih,
+                    'fppnpersen'       => $updatedHeader->fppnpersen,
+                    'fapplyppn'        => $updatedHeader->fapplyppn,
+                    'fneedacc'         => $updatedHeader->fneedacc,
+                    'fgrosir'          => $updatedHeader->fgrosir,
+                    'ftunai'           => $updatedHeader->ftunai,
+                    'fketinternal'     => $updatedHeader->fketinternal ?? null,
+                    'ffrom'            => $updatedHeader->ffrom,
+                    'fuseracc'         => $updatedHeader->fuseracc,
+                    'fapproval'        => $updatedHeader->fapproval,
+                    'fuserapproved'    => $updatedHeader->fuserapproved,
+                    'fdateapproved'    => $updatedHeader->fdateapproved,
+                    'feditmode'        => 'U',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // Hapus detail lama & restore usage
+                DB::table('trandt')->where('fsono', $header->fsono)->delete();
                 $this->restoreInvoiceReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
-                // Insert detail baru
+                // Insert detail baru & catat ke log_trandt
                 if (! empty($detailRows)) {
-                    DB::table('trandt')->insert($detailRows);
+                    foreach ($detailRows as $row) {
+                        $insertedTrandtid = DB::table('trandt')->insertGetId($row, 'ftrandtid');
+                        $dtObj = DB::table('trandt')->where('ftrandtid', $insertedTrandtid)->first();
+
+                        // 2. INSERT Log Detail (Update)
+                        DB::table('log_trandt')->insert([
+                            'ftrxlogid'        => $trxLogId,
+                            'ftrandtid'       => $dtObj->ftrandtid,
+                            'fsono'            => $dtObj->fsono,
+                            'fnou'             => $dtObj->fnou,
+                            'fprdcode'         => $dtObj->fprdcode,
+                            'fdesc'            => $dtObj->fdesc,
+                            'fqty'             => $dtObj->fqty,
+                            'fqtyremain'       => $dtObj->fqtyremain,
+                            'fsalesnet'        => $dtObj->fsalesnet,
+                            'fsatuan'          => $dtObj->fsatuan,
+                            'fqtykecil'        => $dtObj->fqtykecil,
+                            'fhpp'             => $dtObj->fhpp,
+                            'fprice'           => $dtObj->fprice,
+                            'fprice_rp'        => $dtObj->fprice_rp,
+                            'fdisc'            => $dtObj->fdisc,
+                            'fpricenet'        => $dtObj->fpricenet,
+                            'fpricenet_rp'     => $dtObj->fpricenet_rp,
+                            'frefsrj'          => $dtObj->frefsrj,
+                            'frefcode'         => $dtObj->frefcode,
+                            'frefso'           => $dtObj->frefso,
+                            'fnoacak'          => $dtObj->fnoacak,
+                            'frefnosoacak'     => $dtObj->frefnosoacak,
+                            'frefnoacak'       => $dtObj->frefnoacak,
+                            'famount'          => $dtObj->famount,
+                            'famount_rp'       => $dtObj->famount_rp,
+                            'fuserid'          => $dtObj->fuserid,
+                            'fdatetime'        => $dtObj->fdatetime,
+                            'feditmode'        => 'U',
+                            'fuseridlog'       => $userIdLog,
+                            'fdatetimelog'     => $now,
+                        ]);
+                    }
                 }
 
                 $this->syncInvoiceJournalEntries(
@@ -2966,7 +3060,6 @@ class InvoiceController extends Controller
                 return $redirect;
             }
 
-            // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -3117,7 +3210,105 @@ class InvoiceController extends Controller
                 return redirect()->route('invoice.index')->with('error', $message);
             }
 
-            DB::transaction(function () use ($invoice) {
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'ADMIN';
+
+            DB::transaction(function () use ($invoice, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_tranmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'ftranmtid'       => $invoice->ftranmtid,
+                    'fsono'            => $invoice->fsono,
+                    'fbranchcode'      => $invoice->fbranchcode,
+                    'ftaxno'           => $invoice->ftaxno,
+                    'fsodate'          => $invoice->fsodate,
+                    'ftypesales'       => $invoice->ftypesales,
+                    'ftrcode'          => $invoice->ftrcode,
+                    'frefno'           => $invoice->frefno,
+                    'fcustno'          => $invoice->fcustno,
+                    'fsalesman'        => $invoice->fsalesman,
+                    'fcurrency'        => $invoice->fcurrency,
+                    'frate'            => $invoice->frate,
+                    'fdiscpersen'      => $invoice->fdiscpersen,
+                    'fdiscount'        => $invoice->fdiscount,
+                    'fdiscount_rp'     => $invoice->fdiscount_rp,
+                    'famountgross'     => $invoice->famountgross,
+                    'famountgross_rp'  => $invoice->famountgross_rp,
+                    'famountsonet'     => $invoice->famountsonet,
+                    'famountsonet_rp'  => $invoice->famountsonet_rp,
+                    'famountpajak'     => $invoice->famountpajak,
+                    'famountpajak_rp'  => $invoice->famountpajak_rp,
+                    'famountso'        => $invoice->famountso,
+                    'famountso_rp'     => $invoice->famountso_rp,
+                    'famountremain'    => $invoice->famountremain,
+                    'famountremain_rp' => $invoice->famountremain_rp,
+                    'fket'             => $invoice->fket,
+                    'fprdout'          => $invoice->fprdout,
+                    'fuserid'          => $invoice->fuserid,
+                    'fdatetime'        => $invoice->fdatetime,
+                    'fjatuhtempo'      => $invoice->fjatuhtempo,
+                    'fongkosangkut'    => $invoice->fongkosangkut,
+                    'fincludeppn'      => $invoice->fincludeppn,
+                    'ftotalsalesnet'   => $invoice->ftotalsalesnet,
+                    'fkodefp'          => $invoice->fkodefp,
+                    'fprint'           => $invoice->fprint,
+                    'fsudahtagih'      => $invoice->fsudahtagih,
+                    'fppnpersen'       => $invoice->fppnpersen,
+                    'fapplyppn'        => $invoice->fapplyppn,
+                    'fneedacc'         => $invoice->fneedacc,
+                    'fgrosir'          => $invoice->fgrosir,
+                    'ftunai'           => $invoice->ftunai,
+                    'fketinternal'     => $invoice->fketinternal ?? null,
+                    'ffrom'            => $invoice->ffrom,
+                    'fuseracc'         => $invoice->fuseracc,
+                    'fapproval'        => $invoice->fapproval,
+                    'fuserapproved'    => $invoice->fuserapproved,
+                    'fdateapproved'    => $invoice->fdateapproved,
+                    'feditmode'        => 'D',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_trandt (Delete)
+                $details = DB::table('trandt')->where('fsono', $invoice->fsono)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_trandt')->insert([
+                        'ftrxlogid'        => $trxLogId,
+                        'ftrandtid'       => $detail->ftrandtid,
+                        'fsono'            => $detail->fsono,
+                        'fnou'             => $detail->fnou,
+                        'fprdcode'         => $detail->fprdcode,
+                        'fdesc'            => $detail->fdesc,
+                        'fqty'             => $detail->fqty,
+                        'fqtyremain'       => $detail->fqtyremain,
+                        'fsalesnet'        => $detail->fsalesnet,
+                        'fsatuan'          => $detail->fsatuan,
+                        'fqtykecil'        => $detail->fqtykecil,
+                        'fhpp'             => $detail->fhpp,
+                        'fprice'           => $detail->fprice,
+                        'fprice_rp'        => $detail->fprice_rp,
+                        'fdisc'            => $detail->fdisc,
+                        'fpricenet'        => $detail->fpricenet,
+                        'fpricenet_rp'     => $detail->fpricenet_rp,
+                        'frefsrj'          => $detail->frefsrj,
+                        'frefcode'         => $detail->frefcode,
+                        'frefso'           => $detail->frefso,
+                        'fnoacak'          => $detail->fnoacak,
+                        'frefnosoacak'     => $detail->frefnosoacak,
+                        'frefnoacak'       => $detail->frefnoacak,
+                        'famount'          => $detail->famount,
+                        'famount_rp'       => $detail->famount_rp,
+                        'fuserid'          => $detail->fuserid,
+                        'fdatetime'        => $detail->fdatetime,
+                        'feditmode'        => 'D',
+                        'fuseridlog'       => $userIdLog,
+                        'fdatetimelog'     => $now,
+                    ]);
+                }
+
                 [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildInvoiceReferenceRestoreMaps($invoice->fsono);
                 $this->restoreInvoiceReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
@@ -3139,7 +3330,6 @@ class InvoiceController extends Controller
 
             return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '1') === '0') . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
             if (request()->expectsJson()) {
                 return response()->json([
