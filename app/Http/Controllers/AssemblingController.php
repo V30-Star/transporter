@@ -1040,13 +1040,17 @@ class AssemblingController extends Controller
             return redirect()->route('assembling.index')->with('error', $message);
         }
 
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userName = Auth::user()->fname ?? $userLogin->fname ?? 'system';
+        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
+
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
 
-        $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
+        $userid = $userLogin->fsysuserid ?? 'admin';
         $now = now();
 
         // =========================
@@ -1056,6 +1060,8 @@ class AssemblingController extends Controller
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $descs = $request->input('fdesc', []);
+        $itemtypes = $request->input('fitemtype', []);
+        $prices = $request->input('fprice', []);
 
         // =========================
         // 4) LOGIC PROD META & RAKIT DETAIL
@@ -1088,11 +1094,10 @@ class AssemblingController extends Controller
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
             $sat = trim((string) ($satuans[$i] ?? ''));
-            $rnour = $nourefs[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
-            $itemtype = trim((string) ($itemtypes[$i] ?? '')); // AMBIL TYPE
+            $itemtype = trim((string) ($itemtypes[$i] ?? ''));
 
             if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
@@ -1104,7 +1109,6 @@ class AssemblingController extends Controller
             }
 
             $prdId = $meta->fprdid;
-            $itemeId = $prdId;
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
@@ -1137,11 +1141,11 @@ class AssemblingController extends Controller
                 'frefdtno' => '0',
                 'frefso' => '0',
                 'fqty' => $qty,
-                'fuserupdate' => (Auth::user()->fname ?? 'system'),
-                'fdatetime' => $now, // Tetap gunakan fdatetime
+                'fuserupdate' => $userName,
+                'fdatetime' => $now,
                 'fketdt' => '',
                 'fdesc' => $desc,
-                'fcode' => $fcode, // SET FCODE SESUAI TYPE
+                'fcode' => $fcode,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
                 'fdiscpersen' => 0,
@@ -1192,9 +1196,12 @@ class AssemblingController extends Controller
             $ffrom,
             $fket,
             $fbranchcode,
-            &$rowsDt
-
+            &$rowsDt,
+            $userName,
+            $userIdLog,
+            $now
         ) {
+            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
             // ---- 5.1. Cek Kode Cabang ----
             $kodeCabang = null;
@@ -1205,7 +1212,7 @@ class AssemblingController extends Controller
                         $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                     } else {
                         $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                          ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                        ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                     }
                 }
             }
@@ -1216,6 +1223,7 @@ class AssemblingController extends Controller
             $yy = $fstockmtdate->format('y');
             $mm = $fstockmtdate->format('m');
             $fstockmtcode = 'LHP';
+            $fstockmtno = $header->fstockmtno;
 
             if (empty($fstockmtno)) {
                 $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
@@ -1239,27 +1247,111 @@ class AssemblingController extends Controller
                 'fstockmtdate' => $fstockmtdate,
                 'ffrom' => $ffrom,
                 'fket' => $fket,
-                'fuserupdate' => (Auth::user()->fname ?? 'system'),
+                'fuserupdate' => $userName,
                 'fbranchcode' => $kodeCabang,
             ];
 
             $header->update($masterData);
 
+            $updatedHeader = PenerimaanPembelianHeader::findOrFail($header->fstockmtid);
+
+            // 1. INSERT Log Header (Update)
+            DB::table('log_trstockmt')->insert([
+                'ftrxlogid'        => $trxLogId,
+                'fstockmtid'       => $updatedHeader->fstockmtid,
+                'fstockmtno'       => $updatedHeader->fstockmtno,
+                'fbranchcode'      => $updatedHeader->fbranchcode,
+                'fstockmtcode'     => $updatedHeader->fstockmtcode,
+                'fstockmtdate'     => $updatedHeader->fstockmtdate,
+                'fprdout'          => $updatedHeader->fprdout,
+                'fsupplier'        => $updatedHeader->fsupplier,
+                'fcurrency'        => $updatedHeader->fcurrency,
+                'frate'            => $updatedHeader->frate,
+                'ftypebuy'         => $updatedHeader->ftypebuy,
+                'ftempohr'         => $updatedHeader->ftempohr,
+                'ftrancode'        => $updatedHeader->ftrancode,
+                'fsalesman'        => $updatedHeader->fsalesman,
+                'fjatuhtempo'      => $updatedHeader->fjatuhtempo,
+                'fprint'           => $updatedHeader->fprint,
+                'fsudahtagih'      => $updatedHeader->fsudahtagih,
+                'fdiscount'        => $updatedHeader->fdiscount,
+                'fupdatedat'       => $updatedHeader->fupdatedat,
+                'famount'          => $updatedHeader->famount,
+                'famount_rp'       => $updatedHeader->famount_rp,
+                'famountpajak'     => $updatedHeader->famountpajak,
+                'famountpajak_rp'  => $updatedHeader->famountpajak_rp,
+                'famountmt'        => $updatedHeader->famountmt,
+                'famountmt_rp'     => $updatedHeader->famountmt_rp,
+                'famountremain'    => $updatedHeader->famountremain,
+                'famountremain_rp' => $updatedHeader->famountremain_rp,
+                'frefno'           => $updatedHeader->frefno,
+                'frefpo'           => $updatedHeader->frefpo,
+                'ffrom'            => $updatedHeader->ffrom,
+                'fto'              => $updatedHeader->fto,
+                'fkirim'           => $updatedHeader->fkirim,
+                'fprdjadi'         => $updatedHeader->fprdjadi,
+                'fqtyjadi'         => $updatedHeader->fqtyjadi,
+                'fket'             => $updatedHeader->fket,
+                'fincludeppn'      => $updatedHeader->fincludeppn,
+                'fppnpersen'       => $updatedHeader->fppnpersen,
+                'fapplyppn'        => $updatedHeader->fapplyppn,
+                'fketinternal'     => $updatedHeader->fketinternal,
+                'fusercreate'      => $updatedHeader->fusercreate,
+                'fdatetime'        => $updatedHeader->fdatetime,
+                'fuserupdate'      => $updatedHeader->fuserupdate,
+                'feditmode'        => 'U',
+                'fuseridlog'       => $userIdLog,
+                'fdatetimelog'     => $now,
+            ]);
+
             // ---- 5.3. HAPUS DETAIL LAMA ----
             DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
-            // ---- 5.4. INSERT DETAIL BARU ----
-            $fstockmtcode = $header->fstockmtcode;
-            $fstockmtno = $header->fstockmtno;
-            $nextNouRef = 1;
-
+            // ---- 5.4. INSERT DETAIL BARU & LOG ----
             foreach ($rowsDt as &$r) {
                 $r['fstockmtcode'] = $fstockmtcode;
                 $r['fstockmtno'] = $fstockmtno;
+
+                $insertedDtId = DB::table('trstockdt')->insertGetId($r, 'fstockdtid');
+                $dtObj = DB::table('trstockdt')->where('fstockdtid', $insertedDtId)->first();
+
+                // 2. INSERT Log Detail (Update)
+                DB::table('log_trstockdt')->insert([
+                    'ftrxlogid'     => $trxLogId,
+                    'fstockdtid'    => $dtObj->fstockdtid,
+                    'fstockmtcode'  => $dtObj->fstockmtcode,
+                    'fstockmtno'    => $dtObj->fstockmtno,
+                    'fprdcode'      => $dtObj->fprdcode,
+                    'frefdtno'      => $dtObj->frefdtno,
+                    'fqty'          => $dtObj->fqty,
+                    'fqtyremain'    => $dtObj->fqtyremain,
+                    'fsatuan'       => $dtObj->fsatuan,
+                    'fqtykecil'     => $dtObj->fqtykecil,
+                    'fprice'        => $dtObj->fprice,
+                    'fprice_rp'     => $dtObj->fprice_rp,
+                    'ftotprice'     => $dtObj->ftotprice,
+                    'ftotprice_rp'  => $dtObj->ftotprice_rp,
+                    'fketdt'        => $dtObj->fketdt,
+                    'fcode'         => $dtObj->fcode,
+                    'frefso'        => $dtObj->frefso,
+                    'fdesc'         => $dtObj->fdesc,
+                    'fclosedt'      => $dtObj->fclosedt,
+                    'fdiscpersen'   => $dtObj->fdiscpersen,
+                    'fbiaya'        => $dtObj->fbiaya,
+                    'fpricenet'     => $dtObj->fpricenet,
+                    'fnoacak'       => $dtObj->fnoacak,
+                    'frefnoacak'    => $dtObj->frefnoacak,
+                    'frefnoacak_so' => $dtObj->frefnoacak_so,
+                    'fusercreate'   => $dtObj->fusercreate,
+                    'fdatetime'     => $dtObj->fdatetime,
+                    'fupdatedat'    => $dtObj->fupdatedat,
+                    'fuserupdate'   => $dtObj->fuserupdate,
+                    'feditmode'     => 'U',
+                    'fuseridlog'    => $userIdLog,
+                    'fdatetimelog'  => $now,
+                ]);
             }
             unset($r);
-
-            DB::table('trstockdt')->insert($rowsDt);
         });
 
         if (request()->expectsJson()) {
@@ -1403,7 +1495,6 @@ class AssemblingController extends Controller
             'action' => 'delete',
         ]);
     }
-
     public function destroy($fstockmtid)
     {
         try {
@@ -1429,7 +1520,102 @@ class AssemblingController extends Controller
                 return $stockResponse;
             }
 
-            DB::transaction(function () use ($assembling) {
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
+
+            DB::transaction(function () use ($assembling, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_trstockmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'fstockmtid'       => $assembling->fstockmtid,
+                    'fstockmtno'       => $assembling->fstockmtno,
+                    'fbranchcode'      => $assembling->fbranchcode,
+                    'fstockmtcode'     => $assembling->fstockmtcode,
+                    'fstockmtdate'     => $assembling->fstockmtdate,
+                    'fprdout'          => $assembling->fprdout,
+                    'fsupplier'        => $assembling->fsupplier,
+                    'fcurrency'        => $assembling->fcurrency,
+                    'frate'            => $assembling->frate,
+                    'ftypebuy'         => $assembling->ftypebuy,
+                    'ftempohr'         => $assembling->ftempohr,
+                    'ftrancode'        => $assembling->ftrancode,
+                    'fsalesman'        => $assembling->fsalesman,
+                    'fjatuhtempo'      => $assembling->fjatuhtempo,
+                    'fprint'           => $assembling->fprint,
+                    'fsudahtagih'      => $assembling->fsudahtagih,
+                    'fdiscount'        => $assembling->fdiscount,
+                    'fupdatedat'       => $assembling->fupdatedat,
+                    'famount'          => $assembling->famount,
+                    'famount_rp'       => $assembling->famount_rp,
+                    'famountpajak'     => $assembling->famountpajak,
+                    'famountpajak_rp'  => $assembling->famountpajak_rp,
+                    'famountmt'        => $assembling->famountmt,
+                    'famountmt_rp'     => $assembling->famountmt_rp,
+                    'famountremain'    => $assembling->famountremain,
+                    'famountremain_rp' => $assembling->famountremain_rp,
+                    'frefno'           => $assembling->frefno,
+                    'frefpo'           => $assembling->frefpo,
+                    'ffrom'            => $assembling->ffrom,
+                    'fto'              => $assembling->fto,
+                    'fkirim'           => $assembling->fkirim,
+                    'fprdjadi'         => $assembling->fprdjadi,
+                    'fqtyjadi'         => $assembling->fqtyjadi,
+                    'fket'             => $assembling->fket,
+                    'fincludeppn'      => $assembling->fincludeppn,
+                    'fppnpersen'       => $assembling->fppnpersen,
+                    'fapplyppn'        => $assembling->fapplyppn,
+                    'fketinternal'     => $assembling->fketinternal,
+                    'fusercreate'      => $assembling->fusercreate,
+                    'fdatetime'        => $assembling->fdatetime,
+                    'fuserupdate'      => $assembling->fuserupdate,
+                    'feditmode'        => 'D',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_trstockdt (Delete)
+                $details = DB::table('trstockdt')->where('fstockmtno', $assembling->fstockmtno)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_trstockdt')->insert([
+                        'ftrxlogid'     => $trxLogId,
+                        'fstockdtid'    => $detail->fstockdtid,
+                        'fstockmtcode'  => $detail->fstockmtcode,
+                        'fstockmtno'    => $detail->fstockmtno,
+                        'fprdcode'      => $detail->fprdcode,
+                        'frefdtno'      => $detail->frefdtno,
+                        'fqty'          => $detail->fqty,
+                        'fqtyremain'    => $detail->fqtyremain,
+                        'fsatuan'       => $detail->fsatuan,
+                        'fqtykecil'     => $detail->fqtykecil,
+                        'fprice'        => $detail->fprice,
+                        'fprice_rp'     => $detail->fprice_rp,
+                        'ftotprice'     => $detail->ftotprice,
+                        'ftotprice_rp'  => $detail->ftotprice_rp,
+                        'fketdt'        => $detail->fketdt,
+                        'fcode'         => $detail->fcode,
+                        'frefso'        => $detail->frefso,
+                        'fdesc'         => $detail->fdesc,
+                        'fclosedt'      => $detail->fclosedt,
+                        'fdiscpersen'   => $detail->fdiscpersen,
+                        'fbiaya'        => $detail->fbiaya,
+                        'fpricenet'     => $detail->fpricenet,
+                        'fnoacak'       => $detail->fnoacak,
+                        'frefnoacak'    => $detail->frefnoacak,
+                        'frefnoacak_so' => $detail->frefnoacak_so,
+                        'fusercreate'   => $detail->fusercreate,
+                        'fdatetime'     => $detail->fdatetime,
+                        'fupdatedat'    => $detail->fupdatedat,
+                        'fuserupdate'   => $detail->fuserupdate,
+                        'feditmode'     => 'D',
+                        'fuseridlog'    => $userIdLog,
+                        'fdatetimelog'  => $now,
+                    ]);
+                }
+
+                // Hapus detail & header utama
                 DB::table('trstockdt')
                     ->where('fstockmtno', $assembling->fstockmtno)
                     ->delete();
@@ -1451,7 +1637,6 @@ class AssemblingController extends Controller
                     'message' => 'Assembling belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
                 ], 500);
             }
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Assembling belum bisa dihapus. Coba lagi.');
         }
     }
