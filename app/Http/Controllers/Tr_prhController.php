@@ -368,9 +368,10 @@ class Tr_prhController extends Controller
         ['codes' => $codes, 'sats' => $sats, 'qtys' => $qtys, 'noacaks' => $noacaks, 'descs' => $descs, 'ketdts' => $ketdts] = $this->getDetailInputArrays($request);
         $productMap = $this->getRequestedProductsByCode($codes);
 
+        $allowNegativeStockQty = stock_boleh_minus();
         if (! $this->hasValidDetailRows($codes, $sats, $qtys, $noacaks, $descs, $ketdts)) {
             return back()->withInput()
-                ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
+                ->withErrors(['detail' => $allowNegativeStockQty ? 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≠ 0.' : 'Minimal satu item detail dengan Kode, Satuan, dan Qty > 0.']);
         }
 
         $canApprove = $this->canApprovePurchaseRequest();
@@ -423,7 +424,8 @@ class Tr_prhController extends Controller
                 $desc = $descs[$i] ?? null;
                 $ketdt = $ketdts[$i] ?? null;
 
-                if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty > 0) {
+                $allowNegativeStockQty = stock_boleh_minus();
+                if ($code !== '' && $sat !== '' && is_numeric($qty) && ($allowNegativeStockQty ? $qty != 0 : $qty > 0)) {
                     $product = $productMap[$code] ?? null;
                     $productId = (int) ($product->fprdid ?? 0);
                     if ($productId === 0) {
@@ -948,6 +950,7 @@ class Tr_prhController extends Controller
 
     private function validateStoreRequest(Request $request): void
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         $request->validate([
             'fprdate' => ['nullable', 'date'],
             'fneeddate' => ['nullable', 'date'],
@@ -962,7 +965,15 @@ class Tr_prhController extends Controller
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
 
             'fqty' => ['array'],
-            'fqty.*' => ['nullable'],
+            'fqty.*' => [
+                'nullable',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($value !== null && ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0)) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                    }
+                },
+            ],
 
             'fnoacak' => ['array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
@@ -985,6 +996,7 @@ class Tr_prhController extends Controller
 
     private function validateUpdateRequest(Request $request): void
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         $request->validate([
             'fprdate' => ['nullable', 'date'],
             'fneeddate' => ['nullable', 'date'],
@@ -999,7 +1011,15 @@ class Tr_prhController extends Controller
             'fsatuan' => ['array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'fqty' => ['array'],
-            'fqty.*' => ['nullable', 'numeric', 'min:0.01'],
+            'fqty.*' => [
+                'nullable',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($value !== null && ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0)) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                    }
+                },
+            ],
             'fnoacak' => ['array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'fdesc' => ['array'],
@@ -1058,6 +1078,7 @@ class Tr_prhController extends Controller
 
     private function hasValidDetailRows(array $codes, array $sats, array $qtys, array $noacaks, array $descs, array $ketdts): bool
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         $rowCount = max(count($codes), count($sats), count($qtys), count($noacaks), count($descs), count($ketdts));
 
         for ($i = 0; $i < $rowCount; $i++) {
@@ -1065,7 +1086,7 @@ class Tr_prhController extends Controller
             $sat = trim($sats[$i] ?? '');
             $qty = is_numeric($qtys[$i] ?? null) ? (float) $qtys[$i] : null;
 
-            if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty > 0) {
+            if ($code !== '' && $sat !== '' && is_numeric($qty) && ($allowNegativeStockQty ? $qty != 0 : $qty > 0)) {
                 return true;
             }
         }

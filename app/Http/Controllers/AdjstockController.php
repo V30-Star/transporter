@@ -176,10 +176,7 @@ class AdjstockController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'fstockmtid' => $row->fstockmtid,
-                    'fcabang' => trim(implode(' - ', array_filter([
-                        trim((string) ($row->fbranchcode ?? '')),
-                        trim((string) ($row->fcabangname ?? '')),
-                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
+                    'fcabang' => $row->fbranchcode,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => $row->fstockmtdate
                         ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')

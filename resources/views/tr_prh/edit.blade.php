@@ -1785,7 +1785,8 @@
 
                         seenCodes.add(normalizedCode);
 
-                        if (!(qty > 0)) {
+                        const allowNegative = @json(stock_boleh_minus());
+                        if (allowNegative ? qty === 0 : !(qty > 0)) {
                             zeroQtyRows.push(name || code);
                             continue;
                         }
