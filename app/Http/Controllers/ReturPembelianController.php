@@ -1140,6 +1140,9 @@ class ReturPembelianController extends Controller
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
+
             // HEADER FIELDS
             $fstockmtno = $header->fstockmtno;
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
@@ -1150,7 +1153,7 @@ class ReturPembelianController extends Controller
             $fbranchcode = $request->input('fbranchcode');
             $frefno = $request->input('frefno');
             $frefpo = $request->input('frefpo');
-            $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
+            $userid = $userLogin->fsysuserid ?? 'admin';
             $now = now();
 
             // DETAIL ARRAYS
@@ -1210,7 +1213,6 @@ class ReturPembelianController extends Controller
                 $code = trim((string) ($codes[$i] ?? ''));
                 $sat = trim((string) ($satuans[$i] ?? ''));
                 $rref = trim((string) ($refdtno[$i] ?? ''));
-                $rnour = $nourefs[$i] ?? null;
                 $qty = (float) ($qtys[$i] ?? 0);
                 $price = (float) ($prices[$i] ?? 0);
                 $desc = (string) ($descs[$i] ?? '');
@@ -1224,7 +1226,6 @@ class ReturPembelianController extends Controller
                     continue;
                 }
                 $prdId = $meta->fprdid;
-                $itemeId = $prdId;
                 if ($sat === '') {
                     $sat = $pickDefaultSat($meta);
                 }
@@ -1282,8 +1283,7 @@ class ReturPembelianController extends Controller
 
             // DATABASE TRANSACTION
             DB::transaction(function () use (
-                // <-- Tambahkan request untuk ambil field lain
-                $header,  // <-- Model header yang ada
+                $header,
                 $fstockmtdate,
                 $fsupplier,
                 $ffrom,
@@ -1298,9 +1298,11 @@ class ReturPembelianController extends Controller
                 $ppnAmount,
                 $grandTotal,
                 $userid,
+                $userIdLog,
                 $fincludeppn,
                 $fppnpersen
             ) {
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
                 $kodeCabang = null;
                 if ($fbranchcode !== null) {
@@ -1322,7 +1324,7 @@ class ReturPembelianController extends Controller
                 $fstockmtcode = 'REB';
 
                 if (empty($fstockmtno)) {
-                    $fstockmtno = $header->fstockmtno; // <-- Ambil dari record yang ada
+                    $fstockmtno = $header->fstockmtno;
                 }
 
                 // 1. UPDATE HEADER
@@ -1357,17 +1359,103 @@ class ReturPembelianController extends Controller
 
                 $header->update($masterData);
 
-                $header->details()->delete();
+                $updatedHeader = PenerimaanPembelianHeader::findOrFail($header->fstockmtid);
 
-                $nextNouRef = 1;
+                // 2. INSERT Log Header (Update)
+                DB::table('log_trstockmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'fstockmtid'       => $updatedHeader->fstockmtid,
+                    'fstockmtno'       => $updatedHeader->fstockmtno,
+                    'fbranchcode'      => $updatedHeader->fbranchcode,
+                    'fstockmtcode'     => $updatedHeader->fstockmtcode,
+                    'fstockmtdate'     => $updatedHeader->fstockmtdate,
+                    'fprdout'          => $updatedHeader->fprdout,
+                    'fsupplier'        => $updatedHeader->fsupplier,
+                    'fcurrency'        => $updatedHeader->fcurrency,
+                    'frate'            => $updatedHeader->frate,
+                    'ftypebuy'         => $updatedHeader->ftypebuy,
+                    'ftempohr'         => $updatedHeader->ftempohr,
+                    'ftrancode'        => $updatedHeader->ftrancode,
+                    'fsalesman'        => $updatedHeader->fsalesman,
+                    'fjatuhtempo'      => $updatedHeader->fjatuhtempo,
+                    'fprint'           => $updatedHeader->fprint,
+                    'fsudahtagih'      => $updatedHeader->fsudahtagih,
+                    'fdiscount'        => $updatedHeader->fdiscount,
+                    'fupdatedat'       => $updatedHeader->fupdatedat,
+                    'famount'          => $updatedHeader->famount,
+                    'famount_rp'       => $updatedHeader->famount_rp,
+                    'famountpajak'     => $updatedHeader->famountpajak,
+                    'famountpajak_rp'  => $updatedHeader->famountpajak_rp,
+                    'famountmt'        => $updatedHeader->famountmt,
+                    'famountmt_rp'     => $updatedHeader->famountmt_rp,
+                    'famountremain'    => $updatedHeader->famountremain,
+                    'famountremain_rp' => $updatedHeader->famountremain_rp,
+                    'frefno'           => $updatedHeader->frefno,
+                    'frefpo'           => $updatedHeader->frefpo,
+                    'ffrom'            => $updatedHeader->ffrom,
+                    'fto'              => $updatedHeader->fto,
+                    'fkirim'           => $updatedHeader->fkirim,
+                    'fprdjadi'         => $updatedHeader->fprdjadi,
+                    'fqtyjadi'         => $updatedHeader->fqtyjadi,
+                    'fket'             => $updatedHeader->fket,
+                    'fincludeppn'      => $updatedHeader->fincludeppn,
+                    'fppnpersen'       => $updatedHeader->fppnpersen,
+                    'fapplyppn'        => $updatedHeader->fapplyppn,
+                    'fketinternal'     => $updatedHeader->fketinternal,
+                    'fusercreate'      => $updatedHeader->fusercreate,
+                    'fdatetime'        => $updatedHeader->fdatetime,
+                    'fuserupdate'      => $updatedHeader->fuserupdate,
+                    'feditmode'        => 'U',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                $header->details()->delete();
 
                 foreach ($rowsDt as &$r) {
                     $r['fstockmtcode'] = $fstockmtcode;
                     $r['fstockmtno'] = $fstockmtno;
+
+                    $insertedDtId = DB::table('trstockdt')->insertGetId($r, 'fstockdtid');
+                    $dtObj = DB::table('trstockdt')->where('fstockdtid', $insertedDtId)->first();
+
+                    // 3. INSERT Log Detail (Update)
+                    DB::table('log_trstockdt')->insert([
+                        'ftrxlogid'     => $trxLogId,
+                        'fstockdtid'    => $dtObj->fstockdtid,
+                        'fstockmtcode'  => $dtObj->fstockmtcode,
+                        'fstockmtno'    => $dtObj->fstockmtno,
+                        'fprdcode'      => $dtObj->fprdcode,
+                        'frefdtno'      => $dtObj->frefdtno,
+                        'fqty'          => $dtObj->fqty,
+                        'fqtyremain'    => $dtObj->fqtyremain,
+                        'fsatuan'       => $dtObj->fsatuan,
+                        'fqtykecil'     => $dtObj->fqtykecil,
+                        'fprice'        => $dtObj->fprice,
+                        'fprice_rp'     => $dtObj->fprice_rp,
+                        'ftotprice'     => $dtObj->ftotprice,
+                        'ftotprice_rp'  => $dtObj->ftotprice_rp,
+                        'fketdt'        => $dtObj->fketdt,
+                        'fcode'         => $dtObj->fcode,
+                        'frefso'        => $dtObj->frefso,
+                        'fdesc'         => $dtObj->fdesc,
+                        'fclosedt'      => $dtObj->fclosedt,
+                        'fdiscpersen'   => $dtObj->fdiscpersen,
+                        'fbiaya'        => $dtObj->fbiaya,
+                        'fpricenet'     => $dtObj->fpricenet,
+                        'fnoacak'       => $dtObj->fnoacak,
+                        'frefnoacak'    => $dtObj->frefnoacak,
+                        'frefnoacak_so' => $dtObj->frefnoacak_so,
+                        'fusercreate'   => $dtObj->fusercreate,
+                        'fdatetime'     => $dtObj->fdatetime,
+                        'fupdatedat'    => $dtObj->fupdatedat,
+                        'fuserupdate'   => $dtObj->fuserupdate,
+                        'feditmode'     => 'U',
+                        'fuseridlog'    => $userIdLog,
+                        'fdatetimelog'  => $now,
+                    ]);
                 }
                 unset($r);
-
-                DB::table('trstockdt')->insert($rowsDt);
 
                 $this->syncReturPembelianJournalEntries(
                     (string) $fstockmtno,
@@ -1389,7 +1477,7 @@ class ReturPembelianController extends Controller
             }
 
             return redirect()
-                ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
+                ->route('returpembelian.index')
                 ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
@@ -1540,7 +1628,102 @@ class ReturPembelianController extends Controller
             if ($message = $this->getUsageLockMessage($returpembelian)) {
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }
-            DB::transaction(function () use ($returpembelian) {
+
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
+
+            DB::transaction(function () use ($returpembelian, $userIdLog) {
+                $now = now();
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                // 1. INSERT Log Header (Delete)
+                DB::table('log_trstockmt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'fstockmtid'       => $returpembelian->fstockmtid,
+                    'fstockmtno'       => $returpembelian->fstockmtno,
+                    'fbranchcode'      => $returpembelian->fbranchcode,
+                    'fstockmtcode'     => $returpembelian->fstockmtcode,
+                    'fstockmtdate'     => $returpembelian->fstockmtdate,
+                    'fprdout'          => $returpembelian->fprdout,
+                    'fsupplier'        => $returpembelian->fsupplier,
+                    'fcurrency'        => $returpembelian->fcurrency,
+                    'frate'            => $returpembelian->frate,
+                    'ftypebuy'         => $returpembelian->ftypebuy,
+                    'ftempohr'         => $returpembelian->ftempohr,
+                    'ftrancode'        => $returpembelian->ftrancode,
+                    'fsalesman'        => $returpembelian->fsalesman,
+                    'fjatuhtempo'      => $returpembelian->fjatuhtempo,
+                    'fprint'           => $returpembelian->fprint,
+                    'fsudahtagih'      => $returpembelian->fsudahtagih,
+                    'fdiscount'        => $returpembelian->fdiscount,
+                    'fupdatedat'       => $returpembelian->fupdatedat,
+                    'famount'          => $returpembelian->famount,
+                    'famount_rp'       => $returpembelian->famount_rp,
+                    'famountpajak'     => $returpembelian->famountpajak,
+                    'famountpajak_rp'  => $returpembelian->famountpajak_rp,
+                    'famountmt'        => $returpembelian->famountmt,
+                    'famountmt_rp'     => $returpembelian->famountmt_rp,
+                    'famountremain'    => $returpembelian->famountremain,
+                    'famountremain_rp' => $returpembelian->famountremain_rp,
+                    'frefno'           => $returpembelian->frefno,
+                    'frefpo'           => $returpembelian->frefpo,
+                    'ffrom'            => $returpembelian->ffrom,
+                    'fto'              => $returpembelian->fto,
+                    'fkirim'           => $returpembelian->fkirim,
+                    'fprdjadi'         => $returpembelian->fprdjadi,
+                    'fqtyjadi'         => $returpembelian->fqtyjadi,
+                    'fket'             => $returpembelian->fket,
+                    'fincludeppn'      => $returpembelian->fincludeppn,
+                    'fppnpersen'       => $returpembelian->fppnpersen,
+                    'fapplyppn'        => $returpembelian->fapplyppn,
+                    'fketinternal'     => $returpembelian->fketinternal,
+                    'fusercreate'      => $returpembelian->fusercreate,
+                    'fdatetime'        => $returpembelian->fdatetime,
+                    'fuserupdate'      => $returpembelian->fuserupdate,
+                    'feditmode'        => 'D',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // 2. Ambil seluruh detail lalu catat ke log_trstockdt (Delete)
+                $details = DB::table('trstockdt')->where('fstockmtno', $returpembelian->fstockmtno)->get();
+                foreach ($details as $detail) {
+                    DB::table('log_trstockdt')->insert([
+                        'ftrxlogid'     => $trxLogId,
+                        'fstockdtid'    => $detail->fstockdtid,
+                        'fstockmtcode'  => $detail->fstockmtcode,
+                        'fstockmtno'    => $detail->fstockmtno,
+                        'fprdcode'      => $detail->fprdcode,
+                        'frefdtno'      => $detail->frefdtno,
+                        'fqty'          => $detail->fqty,
+                        'fqtyremain'    => $detail->fqtyremain,
+                        'fsatuan'       => $detail->fsatuan,
+                        'fqtykecil'     => $detail->fqtykecil,
+                        'fprice'        => $detail->fprice,
+                        'fprice_rp'     => $detail->fprice_rp,
+                        'ftotprice'     => $detail->ftotprice,
+                        'ftotprice_rp'  => $detail->ftotprice_rp,
+                        'fketdt'        => $detail->fketdt,
+                        'fcode'         => $detail->fcode,
+                        'frefso'        => $detail->frefso,
+                        'fdesc'         => $detail->fdesc,
+                        'fclosedt'      => $detail->fclosedt,
+                        'fdiscpersen'   => $detail->fdiscpersen,
+                        'fbiaya'        => $detail->fbiaya,
+                        'fpricenet'     => $detail->fpricenet,
+                        'fnoacak'       => $detail->fnoacak,
+                        'frefnoacak'    => $detail->frefnoacak,
+                        'frefnoacak_so' => $detail->frefnoacak_so,
+                        'fusercreate'   => $detail->fusercreate,
+                        'fdatetime'     => $detail->fdatetime,
+                        'fupdatedat'    => $detail->fupdatedat,
+                        'fuserupdate'   => $detail->fuserupdate,
+                        'feditmode'     => 'D',
+                        'fuseridlog'    => $userIdLog,
+                        'fdatetimelog'  => $now,
+                    ]);
+                }
+
                 DB::table('trstockdt')
                     ->where('fstockmtno', $returpembelian->fstockmtno)
                     ->delete();
@@ -1564,7 +1747,6 @@ class ReturPembelianController extends Controller
                     'message' => 'Retur pembelian belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
                 ], 500);
             }
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Retur pembelian belum bisa dihapus. Coba lagi.');
         }
     }
