@@ -1447,6 +1447,7 @@
 
     function itemsTable() {
         return {
+            action: @js($action ?? 'edit'),
             showNoItems: false,
             savedItems: @json(count($initialEditMutasiItems) ? $initialEditMutasiItems : $savedItems),
             minimumVisibleRows: @json(count($initialEditMutasiItems) ? count($initialEditMutasiItems) + 5 : count($savedItems ?? []) + 5),
@@ -1546,14 +1547,14 @@
             },
 
             ensureMinimumRows() {
-                if (ACTION === 'delete' || ACTION === 'view') return;
+                if (this.action === 'delete' || this.action === 'view') return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
-                if (ACTION === 'delete' || ACTION === 'view') return;
+                if (this.action === 'delete' || this.action === 'view') return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
@@ -1772,7 +1773,7 @@
                     passive: true
                 });
 
-                if (ACTION === 'delete' || ACTION === 'view') {
+                if (this.action === 'delete' || this.action === 'view') {
                     this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
                     this.minimumVisibleRows = this.savedItems.length;
                 } else {

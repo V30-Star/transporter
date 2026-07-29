@@ -700,10 +700,10 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:12%;">
-                                            <col style="width:{{ $action === 'view' ? '31%' : '25%' }};">
+                                            <col style="width:{{ $action === 'view' ? '28%' : '25%' }};">
                                             <col style="width:8%;">
                                             <col style="width:15%;">
-                                            <col style="width:12%;">
+                                            <col style="width:15%;">
                                             <col style="width:20%;">
                                             @if ($action !== 'view')
                                                 <col style="width:6%;">
@@ -882,9 +882,9 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:18%;">
-                                            <col style="width:{{ $action === 'view' ? '50%' : '40%' }};">
+                                            <col style="width:{{ $action === 'view' ? '48%' : '40%' }};">
                                             <col style="width:12%;">
-                                            <col style="width:18%;">
+                                            <col style="width:20%;">
                                             @if ($action !== 'view')
                                                 <col style="width:10%;">
                                             @endif
@@ -1700,6 +1700,7 @@
 
     function itemsTable() {
         return {
+            action: @js($action ?? 'edit'),
             showNoItems: false,
             savedItems: @json($savedItems),
             minimumVisibleRows: @json(count($savedItems ?? []) + 5),
@@ -2109,6 +2110,7 @@
 
     function itemsTableKeluar() {
         return {
+            action: @js($action ?? 'edit'),
             showNoItems: false,
             savedItems: @json($savedItems),
             minimumVisibleRows: @json(count($savedItems ?? []) + 5),
