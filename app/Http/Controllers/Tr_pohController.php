@@ -22,6 +22,7 @@ class Tr_pohController extends Controller
 {
     private const MEMO_DEBIT_ACCOUNT = '11400';
     private const MEMO_CREDIT_ACCOUNT = '21100';
+    private const DAILY_CREATE_LIMIT = 15;
 
     use ProductBrowseHelper;
 
@@ -55,6 +56,16 @@ class Tr_pohController extends Controller
         ]));
     }
 
+    private function todayCreateCount(): int
+    {
+        return Tr_poh::whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     public function index(Request $request)
     {
         // Ambil izin (permissions)
@@ -66,6 +77,7 @@ class Tr_pohController extends Controller
         $status = trim((string) $request->query('status', 'all'));
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         // Ambil tahun-tahun yang tersedia
         $availableYearsQuery = Tr_poh::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
@@ -244,7 +256,8 @@ class Tr_pohController extends Controller
             'status',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -806,6 +819,12 @@ class Tr_pohController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('tr_poh.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo', 'fcurr']);
 
@@ -851,6 +870,12 @@ class Tr_pohController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('tr_poh.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         // VALIDATION
         $validator = Validator::make($request->all(), [
             'fpohid' => ['nullable', 'string', 'max:25'],

@@ -20,6 +20,20 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function latestPurchaseHistory(string $supplierCode, string $productCode, string $unit): ?object
     {
         return DB::table('trstockmt as m')
@@ -185,6 +199,7 @@ class FakturpembelianController extends Controller
 
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'BUY')
@@ -343,7 +358,8 @@ class FakturpembelianController extends Controller
             'showActionsColumn',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -1172,6 +1188,12 @@ class FakturpembelianController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('fakturpembelian.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
         $supplierAdvanceWarnings = $this->getSupplierAdvanceWarningMap();
@@ -1249,6 +1271,12 @@ class FakturpembelianController extends Controller
  public function store(Request $request)
     {
         try {
+            if ($this->hasReachedDailyCreateLimit()) {
+                return redirect()
+                    ->route('fakturpembelian.index')
+                    ->with('create_limit_exceeded', true);
+            }
+
             $rawCodes = collect($request->input('fitemcode', []));
             $hasOpeningBalanceItem = $rawCodes->contains(fn($code) => $this->isOpeningBalanceProductCode($code));
 

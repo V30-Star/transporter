@@ -18,6 +18,20 @@ use Illuminate\Validation\ValidationException;
 
 class PemakaianbarangController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'PBR')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -57,6 +71,7 @@ class PemakaianbarangController extends Controller
         $canEdit = in_array('updatePemakaianBarang', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deletePemakaianBarang', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
@@ -179,7 +194,8 @@ class PemakaianbarangController extends Controller
             'canCreate',
             'canEdit',
             'canDelete',
-            'showActionsColumn'
+            'showActionsColumn',
+            'createLimitReached'
         ));
     }
 
@@ -361,6 +377,12 @@ class PemakaianbarangController extends Controller
 
     public function create()
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('pemakaianbarang.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $supplier = Supplier::all();
 
         $accounts = DB::table('account')
@@ -421,6 +443,12 @@ class PemakaianbarangController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('pemakaianbarang.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $allowNegativeStockQty = stock_boleh_minus();
         // =========================
         // 1) VALIDASI INPUT

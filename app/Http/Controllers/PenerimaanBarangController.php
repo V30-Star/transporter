@@ -19,6 +19,20 @@ class PenerimaanBarangController extends Controller
 {
     use ProductBrowseHelper;
 
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'TER')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -40,6 +54,7 @@ class PenerimaanBarangController extends Controller
 
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'TER')
@@ -166,7 +181,8 @@ class PenerimaanBarangController extends Controller
             'showActionsColumn',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -797,6 +813,12 @@ class PenerimaanBarangController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('penerimaanbarang.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsuppliercode', 'fsuppliername']);
 
         $warehouses = DB::table('mswh')
@@ -823,6 +845,12 @@ class PenerimaanBarangController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('penerimaanbarang.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         // 1) VALIDASI
         $request->validate([
             'fstockmtno' => ['nullable', 'string', 'max:100'],
