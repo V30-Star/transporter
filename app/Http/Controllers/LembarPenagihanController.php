@@ -553,7 +553,7 @@ class LembarPenagihanController extends Controller
     {
         return DB::table('trtagihanmt as h')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
-            ->selectRaw('h.ftagihanid, h.ftagihanno, h.ftagihandate, h.fcustno, c.fcustomername, h.famounttagihan, h.fnote');
+            ->selectRaw('h.ftagihanid, h.ftagihanno, h.ftagihandate, h.fcustno, c.fcustomername, h.famounttagihan, h.fnote, h.fdatetime, h.fuserid');
     }
 
     private function details(string $tagihanNo)

@@ -3297,9 +3297,14 @@
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = Array.isArray(this.savedItems) ?
                     this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
-                this.pruneEmptyRows();
-                this.ensureMinimumRows();
-                this.ensureTrailingRow();
+                if (this.action === 'view' || this.action === 'delete') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.pruneEmptyRows();
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
                     passive: true
                 });

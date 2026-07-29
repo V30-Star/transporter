@@ -2931,10 +2931,13 @@
                         item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
                         item.fpriceInput = this.fmt(price);
                     });
-                    if (this.savedItems.length === 0) {
-                        this.savedItems = [this.createRow()];
-                    }
-                    if (ACTION !== 'delete' && ACTION !== 'view') {
+                    if (ACTION === 'delete' || ACTION === 'view') {
+                        this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                        this.minimumVisibleRows = this.savedItems.length;
+                    } else {
+                        if (this.savedItems.length === 0) {
+                            this.savedItems = [this.createRow()];
+                        }
                         this.ensureMinimumRows();
                         this.ensureTrailingRow();
                     }

@@ -842,10 +842,12 @@
                                     <colgroup>
                                         <col style="width:2%;">
                                         <col style="width:18%;">
-                                        <col style="width:40%;">
+                                        <col style="width:{{ $action === 'view' ? '50%' : '40%' }};">
                                         <col style="width:12%;">
                                         <col style="width:18%;">
-                                        <col style="width:10%;">
+                                        @if ($action !== 'view')
+                                            <col style="width:10%;">
+                                        @endif
                                     </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -854,7 +856,9 @@
                                             <th class="p-2 text-left w-[20rem]">Nama Produk</th>
                                             <th class="p-2 text-left w-24">Sat</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                            <th class="p-2 text-center w-36">Aksi</th>
+                                            @if ($action !== 'view')
+                                                <th class="p-2 text-center w-36">Aksi</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -912,11 +916,13 @@
                                                         @input="onRowUpdated(i)"
                                                         @change="onRowUpdated(i)">
                                                 </td>
-                                                <td class="p-2 text-center text-xs">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                        title="Hapus baris">-</button>
-                                                </td>
+                                                @if ($action !== 'view')
+                                                    <td class="p-2 text-center text-xs">
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                            title="Hapus baris">-</button>
+                                                    </td>
+                                                @endif
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1540,12 +1546,14 @@
             },
 
             ensureMinimumRows() {
+                if (ACTION === 'delete' || ACTION === 'view') return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (ACTION === 'delete' || ACTION === 'view') return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
@@ -1764,8 +1772,13 @@
                     passive: true
                 });
 
-                this.ensureMinimumRows();
-                this.ensureTrailingRow();
+                if (ACTION === 'delete' || ACTION === 'view') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
                 this.recalcTotals();
             },
 

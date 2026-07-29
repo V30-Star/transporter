@@ -700,12 +700,14 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:12%;">
-                                            <col style="width:25%;">
+                                            <col style="width:{{ $action === 'view' ? '31%' : '25%' }};">
                                             <col style="width:8%;">
                                             <col style="width:15%;">
                                             <col style="width:12%;">
                                             <col style="width:20%;">
-                                            <col style="width:6%;">
+                                            @if ($action !== 'view')
+                                                <col style="width:6%;">
+                                            @endif
                                         </colgroup>
                                         <thead class="bg-gray-100">
                                             <tr>
@@ -716,7 +718,9 @@
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty Masuk</th>
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                                <th class="p-2 text-center w-36">Aksi</th>
+                                                @if ($action !== 'view')
+                                                    <th class="p-2 text-center w-36">Aksi</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -789,11 +793,13 @@
                                                     <td class="p-2 text-right">
                                                         <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="rupiah(it.ftotal)"></div>
                                                     </td>
-                                                    <td class="p-2 text-center text-xs">
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                            title="Hapus baris">-</button>
-                                                    </td>
+                                                    @if ($action !== 'view')
+                                                        <td class="p-2 text-center text-xs">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                                title="Hapus baris">-</button>
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -876,10 +882,12 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:18%;">
-                                            <col style="width:40%;">
+                                            <col style="width:{{ $action === 'view' ? '50%' : '40%' }};">
                                             <col style="width:12%;">
                                             <col style="width:18%;">
-                                            <col style="width:10%;">
+                                            @if ($action !== 'view')
+                                                <col style="width:10%;">
+                                            @endif
                                         </colgroup>
                                         <thead class="bg-gray-100">
                                             <tr>
@@ -888,7 +896,9 @@
                                                 <th class="p-2 text-left w-[20rem]">Nama Produk</th>
                                                 <th class="p-2 text-left w-24">Satuan</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty Keluar</th>
-                                                <th class="p-2 text-center w-36">Aksi</th>
+                                                @if ($action !== 'view')
+                                                    <th class="p-2 text-center w-36">Aksi</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -948,11 +958,13 @@
                                                             @change="onRowUpdated(i)"
                                                             @keydown.enter.prevent="onRowUpdated(i)">
                                                     </td>
-                                                    <td class="p-2 text-center text-xs">
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                            title="Hapus baris">-</button>
-                                                    </td>
+                                                    @if ($action !== 'view')
+                                                        <td class="p-2 text-center text-xs">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                                title="Hapus baris">-</button>
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -1785,12 +1797,14 @@
             },
 
             ensureMinimumRows() {
+                if (this.action === 'view' || this.action === 'delete') return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (this.action === 'view' || this.action === 'delete') return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
@@ -2049,8 +2063,13 @@
                     passive: true
                 });
 
-                this.ensureMinimumRows();
-                this.ensureTrailingRow();
+                if (this.action === 'view' || this.action === 'delete') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
                 this.recalcTotals();
             },
 
@@ -2186,12 +2205,14 @@
             },
 
             ensureMinimumRows() {
+                if (this.action === 'view' || this.action === 'delete') return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (this.action === 'view' || this.action === 'delete') return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
@@ -2444,8 +2465,13 @@
                     passive: true
                 });
 
-                this.ensureMinimumRows();
-                this.ensureTrailingRow();
+                if (this.action === 'view' || this.action === 'delete') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
                 this.recalcTotals();
             },
 

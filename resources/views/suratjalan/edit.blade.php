@@ -792,11 +792,13 @@
                                                 <colgroup>
                                                     <col style="width:2%;">
                                                     <col style="width:15%;">
-                                                    <col style="width:30%;">
+                                                    <col style="width:{{ $action === 'view' ? '40%' : '30%' }};">
                                                     <col style="width:18%;">
                                                     <col style="width:10%;">
                                                     <col style="width:15%;">
-                                                    <col style="width:10%;">
+                                                    @if ($action !== 'view')
+                                                        <col style="width:10%;">
+                                                    @endif
                                                 </colgroup>
                                                 <thead class="bg-gray-100">
                                                     <tr>
@@ -806,7 +808,9 @@
                                                         <th class="p-2 text-left">No.Ref</th>
                                                         <th class="p-2 text-right w-24">Sat</th>
                                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                                                        <th class="p-2 text-center w-36">Aksi</th>
+                                                        @if ($action !== 'view')
+                                                            <th class="p-2 text-center w-36">Aksi</th>
+                                                        @endif
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -869,11 +873,13 @@
                                                                 x-html="formatStockLimit(it)"></span>
                                                         </div>
                                                     </td>
-                                                    <td class="p-2 text-center text-xs">
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                            title="Hapus baris">-</button>
-                                                    </td>
+                                                    @if ($action !== 'view')
+                                                        <td class="p-2 text-center text-xs">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                                title="Hapus baris">-</button>
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -1626,12 +1632,14 @@
             },
 
             ensureMinimumRows() {
+                if (this.isReadOnlyMode) return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (this.isReadOnlyMode) return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
@@ -2067,7 +2075,10 @@
                     item.maxqty = Number.isFinite(soLimit) ? soLimit : 0;
                     item.hideQtyLimitHint = false;
                 });
-                if (!this.isReadOnlyMode) {
+                if (this.isReadOnlyMode) {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
                     this.ensureMinimumRows();
                     this.ensureTrailingRow();
                 }
