@@ -988,10 +988,7 @@ class ProductController extends Controller
         $supplierData = DB::select("
             SELECT 
                 d.fstockmtno,
-                CASE 
-                    WHEN m.fstockmtcode = 'BUY' THEN s.fsuppliername 
-                    ELSE CAST('ADJ' AS CHAR(3)) 
-                END AS fsuppliername,
+                s.fsuppliername,
                 m.fstockmtdate,
                 m.fcurrency,
                 COALESCE(d.fprice, 0) AS fprice,
@@ -1002,11 +999,7 @@ class ProductController extends Controller
             LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsuppliercode
             WHERE 
                 d.fqty > 0 
-                AND (
-                    (m.fstockmtcode = 'BUY') 
-                    OR 
-                    (m.fstockmtcode = 'ADJ')
-                ) 
+                AND m.fstockmtcode = 'BUY'
                 AND d.fprdcode = :fprdcode
             ORDER BY m.fstockmtdate DESC 
         ", ['fprdcode' => $product->fprdcode]);

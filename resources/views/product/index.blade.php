@@ -418,7 +418,7 @@
                                     </template>
                                     <tr x-show="$store.laporanStore.supplierData.length === 0">
                                         <td colspan="7" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
-                                            riwayat Laporan Pembelian/ADJ dari Supplier.</td>
+                                            riwayat Laporan Pembelian dari Supplier.</td>
                                     </tr>
                                 </tbody>
                             </table>
