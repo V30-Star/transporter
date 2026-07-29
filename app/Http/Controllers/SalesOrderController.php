@@ -24,6 +24,17 @@ class SalesOrderController extends Controller
 
     private const MEMO_DEBIT_ACCOUNT = '11300';
     private const MEMO_CREDIT_ACCOUNT = '41000';
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return SalesOrderHeader::whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
 
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
@@ -441,6 +452,7 @@ class SalesOrderController extends Controller
 
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         $availableYearsQuery = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
             ->whereNotNull('fsodate');
@@ -600,7 +612,8 @@ class SalesOrderController extends Controller
             'showActionsColumn',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -918,6 +931,12 @@ class SalesOrderController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('salesorder.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman', 'fhargalevel']);
 
@@ -1003,6 +1022,12 @@ class SalesOrderController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('salesorder.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $shouldSendApprovalNotification = false;
         $canContinueToSuratJalan = $this->canContinueToSuratJalan();
         // VALIDATION
