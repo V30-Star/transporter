@@ -1084,14 +1084,16 @@
                             }
                         });
                         $('#groupTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
-                            const data = this.table.row($(e.target).closest('tr')).data();
-                            this.choose(data);
+                            const tr = $(e.currentTarget).closest('tr')[0];
+                            const data = this.table ? this.table.row(tr).data() : null;
+                            if (data) this.choose(data);
                         });
                     },
                     openModal() { this.open = true; this.$nextTick(() => { this.initDataTable(); }); },
                     close() { this.open = false; if (this.table) this.table.search('').draw(); },
                     choose(g) {
-                        window.dispatchEvent(new CustomEvent('group-picked', { detail: { fgroupid: g.fgroupid, fgroupcode: g.fgroupcode, fgroupname: g.fgroupname } }));
+                        if (!g) return;
+                        window.dispatchEvent(new CustomEvent('group-picked', { detail: { fgroupid: g.fgroupid ?? '', fgroupcode: g.fgroupcode ?? '', fgroupname: g.fgroupname ?? '' } }));
                         this.close();
                     },
                     init() { window.addEventListener('group-browse-open', () => this.openModal(), { passive: true }); }
@@ -1153,14 +1155,16 @@
                             }
                         });
                         $('#merekTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
-                            const data = this.table.row($(e.target).closest('tr')).data();
-                            this.choose(data);
+                            const tr = $(e.currentTarget).closest('tr')[0];
+                            const data = this.table ? this.table.row(tr).data() : null;
+                            if (data) this.choose(data);
                         });
                     },
                     openModal() { this.open = true; this.$nextTick(() => { this.initDataTable(); }); },
                     close() { this.open = false; if (this.table) this.table.search('').draw(); },
                     choose(m) {
-                        window.dispatchEvent(new CustomEvent('merek-picked', { detail: { fmerekid: m.fmerekid, fmerekcode: m.fmerekcode, fmerekname: m.fmerekname } }));
+                        if (!m) return;
+                        window.dispatchEvent(new CustomEvent('merek-picked', { detail: { fmerekid: m.fmerekid ?? '', fmerekcode: m.fmerekcode ?? '', fmerekname: m.fmerekname ?? '' } }));
                         this.close();
                     },
                     init() { window.addEventListener('merek-browse-open', () => this.openModal(), { passive: true }); }
@@ -1745,8 +1749,9 @@
                     }
                 });
                 $('#merekTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
-                    const data = this.table.row($(e.target).closest('tr')).data();
-                    this.choose(data);
+                    const tr = $(e.currentTarget).closest('tr')[0];
+                    const data = this.table ? this.table.row(tr).data() : null;
+                    if (data) this.choose(data);
                 });
             },
             openModal() {
@@ -1760,11 +1765,12 @@
                 if (this.table) this.table.search('').draw();
             },
             choose(m) {
+                if (!m) return;
                 window.dispatchEvent(new CustomEvent('merek-picked', {
                     detail: {
-                        fmerekid: m.fmerekid,
-                        fmerekcode: m.fmerekcode,
-                        fmerekname: m.fmerekname
+                        fmerekid: m.fmerekid ?? '',
+                        fmerekcode: m.fmerekcode ?? '',
+                        fmerekname: m.fmerekname ?? ''
                     }
                 }));
                 this.close();
@@ -1886,9 +1892,10 @@
                         $c.find('.dt-search .dt-input, .dataTables_filter input').focus();
                     }
                 });
-                $('#groupTable').on('click', '.btn-choose', (e) => {
-                    const data = this.table.row($(e.target).closest('tr')).data();
-                    this.choose(data);
+                $('#groupTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                    const tr = $(e.currentTarget).closest('tr')[0];
+                    const data = this.table ? this.table.row(tr).data() : null;
+                    if (data) this.choose(data);
                 });
             },
             openModal() {
@@ -1902,11 +1909,12 @@
                 if (this.table) this.table.search('').draw();
             },
             choose(g) {
+                if (!g) return;
                 window.dispatchEvent(new CustomEvent('group-picked', {
                     detail: {
-                        fgroupid: g.fgroupid,
-                        fgroupcode: g.fgroupcode,
-                        fgroupname: g.fgroupname
+                        fgroupid: g.fgroupid ?? '',
+                        fgroupcode: g.fgroupcode ?? '',
+                        fgroupname: g.fgroupname ?? ''
                     }
                 }));
                 this.close();
