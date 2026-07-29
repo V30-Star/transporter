@@ -520,8 +520,8 @@
 
     {{-- FOOTER INFO --}}
     @php
-        $lastUpdate = $header->fupdatedat ?: $header->fcreatedat;
-        $updatedBy = $header->fuserupdate ?: ($header->fusercreate ?: '—');
+        $lastUpdate = ($pengeluaranKas->fupdatedat ?? null) ?: ($pengeluaranKas->fcreatedat ?? null);
+        $updatedBy = ($pengeluaranKas->fuserupdate ?? null) ?: (($pengeluaranKas->fusercreate ?? null) ?: '—');
     @endphp
     <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
         <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
