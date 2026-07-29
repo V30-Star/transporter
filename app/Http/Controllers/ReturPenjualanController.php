@@ -18,6 +18,20 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPenjualanController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return Tranmt::where('ftrcode', 'REJ')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private const MEMO_DEBIT_ACCOUNT = '11300';
     private const MEMO_CREDIT_ACCOUNT = '41000';
 
@@ -154,6 +168,7 @@ class ReturPenjualanController extends Controller
         // $status = $request->query('status');
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         // Ambil tahun-tahun yang tersedia dari data
         $availableYearsQuery = Tranmt::query()
@@ -300,7 +315,8 @@ class ReturPenjualanController extends Controller
             // 'status',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -793,6 +809,12 @@ class ReturPenjualanController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('returpenjualan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomerid', 'fcustomername', 'fcustomercode']);
 
@@ -852,6 +874,12 @@ class ReturPenjualanController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('returpenjualan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         try {
             $request->validate([
                 'fsodate' => ['required', 'date'],

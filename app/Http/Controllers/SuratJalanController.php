@@ -15,6 +15,20 @@ use Illuminate\Validation\ValidationException;
 
 class SuratJalanController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'SRJ')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function resolveProductDefaultUnit($product): string
     {
         $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
@@ -136,6 +150,7 @@ class SuratJalanController extends Controller
 
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
         $availableWarehouses = DB::table('mswh')
             ->where(function ($query) {
                 $query->whereNull('fnonactive')
@@ -312,7 +327,8 @@ class SuratJalanController extends Controller
             'availableWarehouses',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -631,6 +647,12 @@ class SuratJalanController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('suratjalan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomercode', 'fcustomername']);
 
@@ -686,6 +708,12 @@ class SuratJalanController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('suratjalan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $allowNegativeStockQty = stock_boleh_minus();
         $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
 

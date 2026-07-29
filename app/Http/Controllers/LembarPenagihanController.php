@@ -9,6 +9,19 @@ use Illuminate\Support\Facades\DB;
 class LembarPenagihanController extends Controller
 {
     private const CODE = 'LPT';
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return DB::table('trtagihanmt')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
 
     public function index(Request $request)
     {
@@ -64,11 +77,19 @@ class LembarPenagihanController extends Controller
             ]);
         }
 
-        return view('lembarpenagihan.index', compact('canCreate', 'canEdit', 'canDelete', 'showActionsColumn'));
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
+
+        return view('lembarpenagihan.index', compact('canCreate', 'canEdit', 'canDelete', 'showActionsColumn', 'createLimitReached'));
     }
 
     public function create()
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('lembarpenagihan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         return view('lembarpenagihan.create', $this->formData());
     }
 
@@ -189,6 +210,19 @@ class LembarPenagihanController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Batas membuat data sudah terlampaui.',
+                    'redirect_url' => route('lembarpenagihan.index'),
+                ], 422);
+            }
+
+            return redirect()
+                ->route('lembarpenagihan.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $data = $this->validatedData($request);
         $tagihanNo = trim((string) ($data['ftagihanno'] ?? '')) ?: $this->generateTagihanNo(Carbon::parse($data['ftagihandate']));
         $total = array_sum(array_map('floatval', $data['famount']));
