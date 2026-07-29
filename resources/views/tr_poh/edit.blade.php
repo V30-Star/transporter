@@ -1349,6 +1349,7 @@
                 <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
                 <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
             </div>
+        @endif
         </div>
 
 
