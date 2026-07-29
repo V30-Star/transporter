@@ -184,7 +184,7 @@
         <div x-show="$store.laporanStore.showModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="$store.laporanStore.closeModal()"
-                class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] max-h-[90vh] flex flex-col">
+                class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col">
                 <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                     <div class="flex items-center gap-3">
                         <h3 class="text-lg font-semibold text-gray-900">Detail Info Produk</h3>
@@ -273,7 +273,7 @@
                     </nav>
                 </div>
 
-                <div class="p-6 overflow-y-auto flex-1">
+                <div class="p-6 overflow-y-auto flex-1 min-h-0">
                     <div x-show="$store.laporanStore.isLoading" class="flex justify-center py-8">
                         <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">

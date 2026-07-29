@@ -479,6 +479,7 @@
                         <script>
                             function itemsTable() {
                                 return {
+                                    action: @js($action ?? 'edit'),
                                     activeTab: 'bahan_baku',
                                     showNoItems: false,
                                     savedItems: @json(count($initialEditAssemblingItems) ? $initialEditAssemblingItems : $savedItems),
@@ -552,7 +553,13 @@
                                         return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
                                     },
 
+                                    rowHasContent(row) {
+                                        if (!row) return false;
+                                        return String(row.fitemcode ?? '').trim() !== '' || String(row.fitemname ?? '').trim() !== '';
+                                    },
+
                                     ensureMinimumRows(tab = null) {
+                                        if (this.action === 'view' || this.action === 'delete') return;
                                         const tabs = tab ? [tab] : ['bahan_baku', 'barang_jadi'];
                                         tabs.forEach(t => {
                                             while (this.getItemsByTab(t).length < this.minimumVisibleRows) {
@@ -612,7 +619,12 @@
                                                 this.recalc(row);
                                             }
                                         });
-                                        this.ensureMinimumRows();
+                                        if (this.action === 'view' || this.action === 'delete') {
+                                            this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                                            this.minimumVisibleRows = this.savedItems.length;
+                                        } else {
+                                            this.ensureMinimumRows();
+                                        }
                                     },
                                 };
 
