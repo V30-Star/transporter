@@ -17,14 +17,14 @@ class JurnalFakturPenjualan
      * diambil dari tabel account berdasarkan faccname berikut,
      * setara dengan properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_JUALTUNAI          = 'CASH VALAS';
-    private const ACCOUNT_PIUTANG            = 'PIUTANG USAHA';
-    private const ACCOUNT_UMSALES            = 'UANG MUKA PENJUALAN';
-    private const ACCOUNT_DISCSALES          = 'DISCOUNT PENJUALAN';
-    private const ACCOUNT_SALDOAWAL          = 'SALDO AWAL';
+    private const ACCOUNT_JUALTUNAI          = '-';
+    private const ACCOUNT_PIUTANG            = 'PIUTANGDAGANG';
+    private const ACCOUNT_UMSALES            = 'UANGMUKAPENJUALAN';
+    private const ACCOUNT_DISCSALES          = 'DISCPENJUALAN';
+    private const ACCOUNT_SALDOAWAL          = 'SALDOAWAL';
     private const ACCOUNT_SALES              = 'PENJUALAN';
     private const ACCOUNT_PPNSALES           = 'PPN';
-    private const ACCOUNT_SELISIHPEMBULATAN  = 'SELISIH HARGA JUAL';
+    private const ACCOUNT_SELISIHPEMBULATAN  = 'SELISIHPEMBULATAN';
 
     /** Cache kode akun per faccname supaya tidak query berulang dalam 1 request. */
     private static array $accountCodeCache = [];
@@ -322,13 +322,13 @@ class JurnalFakturPenjualan
             return self::$accountCodeCache[$accountName];
         }
 
-        $faccount = DB::table('account')
-            ->where('faccname', $accountName)
+        $faccount = DB::table('set_account')
+            ->where('faccount_name', $accountName)
             ->value('faccount');
 
         if ($faccount === null || trim((string) $faccount) === '') {
             throw ValidationException::withMessages([
-                'account' => "Kode akun untuk '{$accountName}' belum diset pada tabel account.",
+                'set_account' => "Kode akun untuk '{$accountName}' belum diset pada tabel set_account.",
             ]);
         }
 

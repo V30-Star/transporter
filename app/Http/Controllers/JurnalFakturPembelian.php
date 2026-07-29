@@ -14,13 +14,13 @@ class JurnalFakturPembelian
      * Nama-nama akun (faccname) di tabel account.
      * Setara properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_HUTANG                  = 'HUTANG DAGANG';
-    private const ACCOUNT_UMBUY                    = 'UANG MUKA PEMBELIAN';
-    private const ACCOUNT_SALDOAWAL                 = 'SALDO AWAL';
+    private const ACCOUNT_HUTANG                  = 'HUTANGDAGANG';
+    private const ACCOUNT_UMBUY                    = 'UANGMUKAPEMBELIAN';
+    private const ACCOUNT_SALDOAWAL                 = 'SALDOAWAL';
     private const ACCOUNT_PEMBELIAN                 = 'PEMBELIAN';
-    private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'PENERIMAAN PRODUK BELUM DITAGIH';
+    private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'FAKTURBELIYGBLMDITAGIH';
     private const ACCOUNT_PPNBELI                   = 'PPN';
-    private const ACCOUNT_SELISIHBAYAR              = 'SELISIH HARGA JUAL';
+    private const ACCOUNT_SELISIHBAYAR              = 'SELISIHPEMBULATAN';
 
     /** Trancode index — setara cbftrancode.ItemIndex di Delphi */
     private const TRANCODE_STOK    = 0; // persediaan normal
@@ -419,21 +419,21 @@ public static function create(
         $faccount = null;
 
         if ($currency !== null && $currency !== '' && $currency !== 'IDR') {
-            $faccount = DB::table('account')
-                ->where('faccname', $accountName)
+            $faccount = DB::table('set_account')
+                ->where('faccount_name', $accountName)
                 ->where('fcurrency', $currency)
                 ->value('faccount');
         }
 
         if ($faccount === null) {
-            $faccount = DB::table('account')
-                ->where('faccname', $accountName)
+            $faccount = DB::table('set_account')
+                ->where('faccount_name', $accountName)
                 ->value('faccount');
         }
 
         if ($faccount === null || trim((string) $faccount) === '') {
             throw ValidationException::withMessages([
-                'account' => "Kode akun untuk '{$accountName}' belum diset pada tabel account.",
+                'set_account' => "Kode akun untuk '{$accountName}' belum diset pada tabel set_account.",
             ]);
         }
 
