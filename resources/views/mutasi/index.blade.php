@@ -6,6 +6,7 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: '',
+        showCreateLimitModal: @js(session('create_limit_exceeded', false)),
     
         openDelete(url) {
             this.deleteUrl = url;
@@ -15,6 +16,14 @@
         closeDelete() {
             this.showDeleteModal = false;
             this.deleteUrl = '';
+        },
+
+        openCreateLimitModal() {
+            this.showCreateLimitModal = true;
+        },
+
+        closeCreateLimitModal() {
+            this.showCreateLimitModal = false;
         }
     }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)">
 
@@ -31,6 +40,7 @@
 
             @if ($canCreate)
                 <a href="{{ route('mutasi.create') }}"
+                    @click="if (@js($createLimitReached)) { $event.preventDefault(); openCreateLimitModal(); }"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
                 </a>
@@ -149,6 +159,21 @@
                             Hapus
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal Create Limit --}}
+        <div x-show="showCreateLimitModal" x-cloak
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
+            <div @click.away="closeCreateLimitModal()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                <h3 class="text-lg font-semibold mb-4">{{ 'Notifikasi' }}</h3>
+                <p class="mb-6">{{ 'Batas membuat data sudah terlampaui' }}</p>
+                <div class="flex justify-end">
+                    <button type="button" @click="closeCreateLimitModal()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        {{ 'OK' }}
+                    </button>
                 </div>
             </div>
         </div>

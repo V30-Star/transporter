@@ -19,6 +19,20 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class AdjstockController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function canApproveAdjustmentStock(): bool
     {
         $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
@@ -69,6 +83,7 @@ class AdjstockController extends Controller
         $showActionsColumn = $canEdit || $canDelete;
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
         $availableYearsQuery = DB::table('trstockmt')
             ->where('fstockmtcode', 'ADJ')
             ->whereNotNull('fstockmtdate')
@@ -204,7 +219,8 @@ class AdjstockController extends Controller
             'showActionsColumn',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -385,6 +401,12 @@ class AdjstockController extends Controller
 
     public function create()
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('adjstock.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $supplier = Supplier::all();
 
         $warehouses = DB::table('mswh')
@@ -541,6 +563,12 @@ class AdjstockController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('adjstock.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         try {
             $allowNegativeStockQty = stock_boleh_minus();
             // =========================

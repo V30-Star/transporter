@@ -16,6 +16,20 @@ use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 
 class JurnalTransaksiController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return DB::table('jurnalmt')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private const GENERAL_JOURNAL_TYPE = 'SJU';
     private const PURCHASE_JOURNAL_TYPE = 'JBL';
     private const SALES_JOURNAL_TYPE = 'SLS';
@@ -155,6 +169,7 @@ class JurnalTransaksiController extends Controller
         $month = trim((string) $request->query('month', ''));
         $journalType = strtoupper(trim((string) $request->query('journal_type', self::GENERAL_JOURNAL_TYPE)));
         $pageMeta = $this->resolveJournalPageMeta($journalType);
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         $availableYearsQuery = DB::table('jurnalmt')
             ->when($journalType !== '', fn ($query) => $query->where('fjurnaltype', $journalType))
@@ -295,7 +310,8 @@ class JurnalTransaksiController extends Controller
             'year',
             'month',
             'journalType',
-            'pageMeta'
+            'pageMeta',
+            'createLimitReached'
         ));
     }
 
@@ -478,6 +494,13 @@ class JurnalTransaksiController extends Controller
 
     public function create()
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            $requestedJournalType = strtoupper(trim((string) request()->query('journal_type', '')));
+            return redirect()
+                ->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($requestedJournalType))
+                ->with('create_limit_exceeded', true);
+        }
+
         $supplier = Supplier::all();
 
         $accounts = DB::table('account')
@@ -544,6 +567,18 @@ class JurnalTransaksiController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Batas membuat data sudah terlampaui.',
+                    'redirect_url' => route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($request->input('fjurnaltype'))),
+                ], 422);
+            }
+
+            return redirect()
+                ->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($request->input('fjurnaltype')))
+                ->with('create_limit_exceeded', true);
+        }
         // =========================================================
         // 1) VALIDASI — field sesuai kolom jurnalmt & jurnaldt
         // =========================================================

@@ -17,6 +17,20 @@ use Illuminate\Validation\ValidationException;
 
 class MutasiController extends Controller
 {
+    private const DAILY_CREATE_LIMIT = 15;
+
+    private function todayCreateCount(): int
+    {
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'MUT')
+            ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -58,6 +72,7 @@ class MutasiController extends Controller
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
         $availableYearsQuery = DB::table('trstockmt')
             ->where('fstockmtcode', 'MUT')
             ->whereNotNull('fstockmtdate')
@@ -247,7 +262,8 @@ class MutasiController extends Controller
             'showActionsColumn',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -504,6 +520,12 @@ class MutasiController extends Controller
 
     public function create()
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('mutasi.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $supplier = Supplier::all();
 
         $warehouses = DB::table('mswh')
@@ -561,6 +583,12 @@ class MutasiController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('mutasi.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         try {
             $allowNegativeStockQty = stock_boleh_minus();
             // =========================
