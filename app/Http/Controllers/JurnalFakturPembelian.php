@@ -218,7 +218,7 @@ public static function create(
                     $lines[] = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnaltype' => self::JURNAL_TYPE,
-                        'fjurnalno' => $fjurnalno,
+                        'fjurnalno' => 'JV' . $fstockmtno,
                         'flineno' => $lineNo,
                         'faccount' => $account,
                         'fdk' => 'D',
@@ -240,7 +240,7 @@ public static function create(
                     $lines[] = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnaltype' => self::JURNAL_TYPE,
-                        'fjurnalno' => $fjurnalno,
+                        'fjurnalno' => 'JV' . $fstockmtno,
                         'flineno' => $lineNo,
                         'faccount' => self::accountCode(self::ACCOUNT_FAKTURBELIYGBLMDITAGIH),
                         'fdk' => 'D',
@@ -262,7 +262,7 @@ public static function create(
                     $lines[] = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnaltype' => self::JURNAL_TYPE,
-                        'fjurnalno' => $fjurnalno,
+                        'fjurnalno' => 'JV' . $fstockmtno,
                         'flineno' => $lineNo,
                         'faccount' => self::accountCode(self::ACCOUNT_PPNBELI),
                         'fdk' => 'D',
@@ -284,7 +284,7 @@ public static function create(
                     $lines[] = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnaltype' => self::JURNAL_TYPE,
-                        'fjurnalno' => $fjurnalno,
+                        'fjurnalno' => 'JV' . $fstockmtno,
                         'flineno' => $lineNo,
                         'faccount' => self::accountCode(self::ACCOUNT_UMBUY),
                         'fdk' => 'K',
@@ -305,7 +305,7 @@ public static function create(
                 $lines[] = [
                     'fbranchcode' => $kodeCabang,
                     'fjurnaltype' => self::JURNAL_TYPE,
-                    'fjurnalno' => $fjurnalno,
+                    'fjurnalno' => 'JV' . $fstockmtno,
                     'flineno' => $lineNo,
                     'faccount' => self::accountCode(self::ACCOUNT_HUTANG, $currency),
                     'fdk' => 'K',
@@ -327,7 +327,7 @@ public static function create(
                     $lines[] = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnaltype' => self::JURNAL_TYPE,
-                        'fjurnalno' => $fjurnalno,
+                        'fjurnalno' => 'JV' . $fstockmtno,
                         'flineno' => $lineNo,
                         'faccount' => self::accountCode(self::ACCOUNT_SELISIHBAYAR),
                         'fdk' => $debit > $kredit ? 'K' : 'D',
@@ -347,7 +347,7 @@ public static function create(
 
                 $jurnalId = DB::table('jurnalmt')->insertGetId([
                     'fbranchcode' => $kodeCabang,
-                    'fjurnalno' => $fjurnalno,
+                    'fjurnalno' => 'JV' . $fstockmtno,
                     'fjurnaltype' => self::JURNAL_TYPE,
                     'fjurnaldate' => $fstockmtdate,
                     'fjurnalnote' => $note,

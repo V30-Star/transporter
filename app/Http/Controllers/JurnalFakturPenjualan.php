@@ -131,7 +131,7 @@ class JurnalFakturPenjualan
         $lines[] = [
             'fbranchcode' => $kodeCabang,
             'fjurnaltype' => self::JURNAL_TYPE,
-            'fjurnalno' => $fjurnalno,
+            'fjurnalno' => 'JV' . $fsono,
             'flineno' => $lineNo,
             'faccount' => self::accountCode($isCash ? self::ACCOUNT_JUALTUNAI : self::ACCOUNT_PIUTANG),
             'fdk' => 'D',
@@ -152,7 +152,7 @@ class JurnalFakturPenjualan
             $lines[] = [
                 'fbranchcode' => $kodeCabang,
                 'fjurnaltype' => self::JURNAL_TYPE,
-                'fjurnalno' => $fjurnalno,
+                'fjurnalno' => 'JV' . $fsono,
                 'flineno' => $lineNo,
                 'faccount' => self::accountCode(self::ACCOUNT_UMSALES),
                 'fdk' => 'D',
@@ -174,7 +174,7 @@ class JurnalFakturPenjualan
             $lines[] = [
                 'fbranchcode' => $kodeCabang,
                 'fjurnaltype' => self::JURNAL_TYPE,
-                'fjurnalno' => $fjurnalno,
+                'fjurnalno' => 'JV' . $fsono,
                 'flineno' => $lineNo,
                 'faccount' => self::accountCode(self::ACCOUNT_DISCSALES),
                 'fdk' => 'D',
@@ -205,7 +205,7 @@ class JurnalFakturPenjualan
             $lines[] = [
                 'fbranchcode' => $kodeCabang,
                 'fjurnaltype' => self::JURNAL_TYPE,
-                'fjurnalno' => $fjurnalno,
+                'fjurnalno' => 'JV' . $fsono,
                 'flineno' => $lineNo,
                 'faccount' => $account,
                 'fdk' => 'K',
@@ -227,7 +227,7 @@ class JurnalFakturPenjualan
             $lines[] = [
                 'fbranchcode' => $kodeCabang,
                 'fjurnaltype' => self::JURNAL_TYPE,
-                'fjurnalno' => $fjurnalno,
+                'fjurnalno' => 'JV' . $fsono,
                 'flineno' => $lineNo,
                 'faccount' => self::accountCode(self::ACCOUNT_PPNSALES),
                 'fdk' => 'K',
@@ -250,7 +250,7 @@ class JurnalFakturPenjualan
             $lines[] = [
                 'fbranchcode' => $kodeCabang,
                 'fjurnaltype' => self::JURNAL_TYPE,
-                'fjurnalno' => $fjurnalno,
+                'fjurnalno' => 'JV' . $fsono,
                 'flineno' => $lineNo,
                 'faccount' => self::accountCode(self::ACCOUNT_SELISIHPEMBULATAN),
                 'fdk' => $debit > $kredit ? 'K' : 'D',
@@ -270,7 +270,7 @@ class JurnalFakturPenjualan
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
-            'fjurnalno' => $fjurnalno,
+            'fjurnalno' => 'JV' . $fsono,
             'fjurnaltype' => self::JURNAL_TYPE,
             'fjurnaldate' => $fsodate,
             'fjurnalnote' => 'Jurnal Faktur Penjualan ' . $fsono,
