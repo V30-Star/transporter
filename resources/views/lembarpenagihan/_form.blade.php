@@ -168,7 +168,7 @@
                             <tbody id="tagihan-detail-body">
                                 @php
                                     $actualCount = count($detailRows);
-                                    $placeholderCount = max(0, 5 - $actualCount);
+                                    $placeholderCount = $isReadOnly ? 0 : max(0, 5 - $actualCount);
                                 @endphp
                                 @foreach ($detailRows as $index => $row)
                                     <tr class="border-t align-middle bg-white hover:bg-gray-50" data-ref="{{ $row['frefsono'] }}">
@@ -743,9 +743,9 @@
                     if (famountInput) famountInput.setAttribute('name', `famount[${index}]`);
                 });
 
-                // Add empty placeholder rows back if total rows are less than 5
+                // Add empty placeholder rows back if total rows are less than 5 (only in edit mode)
                 const actualCount = dataRows.length;
-                if (actualCount < 5) {
+                if (!isReadOnly && actualCount < 5) {
                     const needed = 5 - actualCount;
                     for (let i = 0; i < needed; i++) {
                         const emptyTr = document.createElement('tr');

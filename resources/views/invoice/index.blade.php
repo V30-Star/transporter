@@ -383,7 +383,7 @@
             const isEditBlockedApproval = (row) => {
                 const left = (row?.fapproval ?? '').toString().trim();
 
-                if (isApprovedValue(left) || isApprovedValue(right)) {
+                if (isApprovedValue(left)) {
                     return false;
                 }
 
