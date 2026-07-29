@@ -350,7 +350,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
 
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
@@ -384,6 +383,7 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
                     </div>
 
                     <script>

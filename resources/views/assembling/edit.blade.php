@@ -1010,10 +1010,71 @@
                                 <th class="p-2 text-center w-36">Aksi</th>
                             </tr>
                         </thead>
-
+                        <tbody>
+                            <template x-for="(it, i) in getItemsByTab(activeTab)" :key="it.uid || `item-${i}`">
+                                <tr class="border-t align-top hover:bg-gray-55">
+                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                    <td class="p-2">
+                                        <div class="flex">
+                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
+                                                :id="'assembling_code_row_' + activeTab + '_' + i"
+                                                x-model.trim="it.fitemcode"
+                                                @input="onCodeTypedRow(it, activeTab, i)"
+                                                @keydown.enter.prevent="focusRowUnit(it, activeTab, i)">
+                                            <button type="button" @click="openBrowseFor(i)"
+                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
+                                                title="Cari Produk">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="p-2">
+                                        <div class="flex w-full max-w-full">
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-655 whitespace-normal break-words"
+                                                x-text="it.fitemname"></div>
+                                            <button type="button" @click="openDesc(it)"
+                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                :class="it.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="p-2">
+                                        <template x-if="it.units && it.units.length > 1">
+                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                :id="'assembling_unit_row_' + activeTab + '_' + i"
+                                                x-model="it.fsatuan"
+                                                @change="onRowUpdated(activeTab, i)"
+                                                @keydown.enter.prevent="focusRowQty(activeTab, i)">
+                                                <template x-for="u in it.units" :key="u">
+                                                    <option :value="u" x-text="u" :selected="it.fsatuan == u"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                        <template x-if="!it.units || it.units.length <= 1">
+                                            <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded"
+                                                x-text="it.fsatuan || '-'"></div>
+                                        </template>
+                                    </td>
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                            min="0" step="0.01"
+                                            :id="'assembling_qty_row_' + activeTab + '_' + i"
+                                            x-model.number="it.fqty"
+                                            @input="onRowUpdated(activeTab, i)"
+                                            @change="onRowUpdated(activeTab, i)">
+                                    </td>
+                                    <td class="p-2 text-center text-xs">
+                                        <button type="button" @click="removeSaved(i)"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                            title="Hapus baris">-</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
                     </table>
                             </div>
-                        </div>
 
                         <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                             x-transition.opacity>
@@ -1051,11 +1112,13 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
 
                         <script>
                             // PASTE INI DI FILE JS ANDA, GANTI FUNCTION itemsTable() YANG LAMA
                                 function itemsTable() {
                                     return {
+                                    action: @js($action ?? 'edit'),
                                     // === TAB STATE ===
                                     activeTab: 'bahan_baku',
                                     editingTab: null,
@@ -1126,9 +1189,15 @@
                                         }, 0);
                                     },
 
+                                    rowHasContent(row) {
+                                        if (!row) return false;
+                                        return String(row.fitemcode ?? '').trim() !== '' || String(row.fitemname ?? '').trim() !== '';
+                                    },
+
                                     ensureExtraEditableRows() {
+                                        if (this.action === 'view' || this.action === 'delete') return;
                                         ['bahan_baku', 'barang_jadi'].forEach((tab) => {
-                                            while ((this.savedItems || []).filter(it => it?.__placeholder && it.fitemtype === tab).length < this.extraEditableRows) {
+                                            while (this.getItemsByTab(tab).length < 5) {
                                                 this.savedItems.push({
                                                     ...newRow(),
                                                     uid: cryptoRandom(),
@@ -1185,8 +1254,27 @@
                                         row.maxqty = stock;
                                     },
 
-                                    onCodeTypedRow(row) {
+                                    onCodeTypedRow(row, tab, index = null) {
                                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                                        this.recalc(row);
+                                        this.onRowUpdated(tab, index);
+                                    },
+
+                                    onRowUpdated(tab, index) {
+                                        this.ensureExtraEditableRows();
+                                        this.recalcTotals();
+                                    },
+
+                                    focusRowUnit(row, tab, index) {
+                                        if (row?.units?.length > 1) {
+                                            document.getElementById(`assembling_unit_row_${tab}_${index}`)?.focus();
+                                            return;
+                                        }
+                                        this.focusRowQty(tab, index);
+                                    },
+
+                                    focusRowQty(tab, index) {
+                                        document.getElementById(`assembling_qty_row_${tab}_${index}`)?.focus();
                                     },
 
                                     isComplete(row) {
@@ -1388,16 +1476,23 @@
                                     showDescModal: false,
                                     descTarget: 'draft',
                                     descSavedIndex: null,
+                                    descItemName: '',
                                     descValue: '',
                                     _descTarget: null,
                                     openDesc(targetRow) {
                                         this._descTarget = targetRow;
+                                        this.descItemName = targetRow?.fitemname || '';
                                         this.descValue = targetRow?.fdesc || '';
                                         this.showDescModal = true;
+                                    },
+                                    copyDescName() {
+                                        this.descValue = this.descItemName || '';
                                     },
                                     closeDesc() {
                                         this.showDescModal = false;
                                         this._descTarget = null;
+                                        this.descItemName = '';
+                                        this.descValue = '';
                                     },
                                     applyDesc() {
                                         if (this._descTarget) this._descTarget.fdesc = this.descValue;
@@ -1413,7 +1508,11 @@
                                     },
 
                                     init() {
-                                        this.ensureExtraEditableRows();
+                                        if (this.action === 'view' || this.action === 'delete') {
+                                            this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                                        } else {
+                                            this.ensureExtraEditableRows();
+                                        }
                                         window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                                         window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
