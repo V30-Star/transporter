@@ -292,6 +292,10 @@ class CustomerController extends Controller
 
         $validated['fcurrency'] = 'IDR';
 
+        if (isset($validated['fnamaktp']) && is_string($validated['fnamaktp'])) {
+            $validated['fnamaktp'] = strtoupper(trim($validated['fnamaktp']));
+        }
+
         if (! $this->canEditCustomerAdmin()) {
             $validated['ftempo'] = 0;
             $validated['fmaxtempo'] = 0;
@@ -459,59 +463,70 @@ class CustomerController extends Controller
             $validated['fcustomercode'] = $customer->fcustomercode;
         }
 
+        if (isset($validated['fnamaktp']) && is_string($validated['fnamaktp'])) {
+            $validated['fnamaktp'] = strtoupper(trim($validated['fnamaktp']));
+        }
+
         if (! $this->canEditCustomerAdmin()) {
             $validated['ftempo'] = $customer->ftempo;
             $validated['fmaxtempo'] = $customer->fmaxtempo;
             $validated['flimit'] = $customer->flimit;
         }
 
-        $customer->update($validated);
+        try {
+            $customer->update($validated);
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logmscustomer')->insert([
-            'fcustomerid'                => $customer->fcustomerid,
-            'fcustomercode'              => $customer->fcustomercode,
-            'fcustomername'              => $customer->fcustomername,
-            'fnpwp'                      => $customer->fnpwp,
-            'faddress'                   => $customer->faddress,
-            'ftelp'                      => $customer->ftelp,
-            'ffax'                       => $customer->ffax,
-            'ftempo'                     => $customer->ftempo,
-            'fhargalevel'                => $customer->fhargalevel,
-            'fcreatedby'                 => $customer->fcreatedby,
-            'fupdatedby'                 => $customer->fupdatedby,
-            'fcreatedat'                 => $customer->fcreatedat,
-            'fupdatedat'                 => $customer->fupdatedat,
-            'fcurr'                      => $customer->fcurr,
-            'ftaxaddress'                => $customer->ftaxaddress,
-            'fkodefp'                    => $customer->fkodefp,
-            'fkodewilayah'               => $customer->fwilayah,
-            'fkirimaddress1'             => $customer->fkirimaddress1,
-            'fkirimaddress2'             => $customer->fkirimaddress2,
-            'fkirimaddress3'             => $customer->fkirimaddress3,
-            'flimit'                     => $customer->flimit,
-            'fkontakperson'              => $customer->fkontakperson,
-            'fjabatan'                   => $customer->fjabatan,
-            'fsalesman'                  => $customer->fsalesman,
-            'femail'                     => $customer->femail,
-            'fmemo'                      => $customer->fmemo,
-            'fmaxtempo'                  => $customer->fmaxtempo,
-            'fblokir'                    => $customer->fblokir,
-            'frekening'                  => $customer->frekening,
-            'fnik'                       => $customer->fnik,
-            'fnamaktp'                   => $customer->fnamaktp,
-            'fgroup'                     => $customer->fgroup,
-            'fnonactive'                 => $customer->fnonactive,
-            'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
-            'fjadwaltukarfakturhari'     => $customer->fjadwaltukarfakturhari,
-            'feditmode'                  => 'U', // Update
-            'fuseridlog'                 => $userLogin->fname ?? null,
-            'fdatetimelog'               => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logmscustomer')->insert([
+                'fcustomerid'                => $customer->fcustomerid,
+                'fcustomercode'              => $customer->fcustomercode,
+                'fcustomername'              => $customer->fcustomername,
+                'fnpwp'                      => $customer->fnpwp,
+                'faddress'                   => $customer->faddress,
+                'ftelp'                      => $customer->ftelp,
+                'ffax'                       => $customer->ffax,
+                'ftempo'                     => $customer->ftempo,
+                'fhargalevel'                => $customer->fhargalevel,
+                'fcreatedby'                 => $customer->fcreatedby,
+                'fupdatedby'                 => $customer->fupdatedby,
+                'fcreatedat'                 => $customer->fcreatedat,
+                'fupdatedat'                 => $customer->fupdatedat,
+                'fcurr'                      => $customer->fcurr,
+                'ftaxaddress'                => $customer->ftaxaddress,
+                'fkodefp'                    => $customer->fkodefp,
+                'fkodewilayah'               => $customer->fwilayah,
+                'fkirimaddress1'             => $customer->fkirimaddress1,
+                'fkirimaddress2'             => $customer->fkirimaddress2,
+                'fkirimaddress3'             => $customer->fkirimaddress3,
+                'flimit'                     => $customer->flimit,
+                'fkontakperson'              => $customer->fkontakperson,
+                'fjabatan'                   => $customer->fjabatan,
+                'fsalesman'                  => $customer->fsalesman,
+                'femail'                     => $customer->femail,
+                'fmemo'                      => $customer->fmemo,
+                'fmaxtempo'                  => $customer->fmaxtempo,
+                'fblokir'                    => $customer->fblokir,
+                'frekening'                  => $customer->frekening,
+                'fnik'                       => $customer->fnik,
+                'fnamaktp'                   => $customer->fnamaktp,
+                'fgroup'                     => $customer->fgroup,
+                'fnonactive'                 => $customer->fnonactive,
+                'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
+                'fjadwaltukarfakturhari'     => $customer->fjadwaltukarfakturhari,
+                'feditmode'                  => 'U', // Update
+                'fuseridlog'                 => $userLogin->fname ?? null,
+                'fdatetimelog'               => now(),
+            ]);
 
-        return redirect()
-            ->route('customer.index')
-            ->with('success', 'Customer berhasil diupdate.');
+            return redirect()
+                ->route('customer.index')
+                ->with('success', 'Customer berhasil diupdate.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate customer: ' . $e->getMessage());
+        }
     }
 
     public function delete($fcustomerid)
@@ -523,7 +538,7 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($fcustomerid);
 
         if ($message = $this->getUsageLockMessage($customer)) {
-            return redirect()->route('customer.view', $customer->fcustomerid)->with('error', $message);
+            return redirect()->route('customer.edit', $customer->fcustomerid)->with('error', $message);
         }
 
         return view('customer.delete', [
