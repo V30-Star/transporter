@@ -169,6 +169,7 @@ public static function create(
                 $fstockmtno,
                 $fstockmtdate,
                 $kodeCabang,
+                $supplierCode,
                 $subaccount,
                 $userName,
                 $trancodeIndex,
@@ -186,7 +187,14 @@ public static function create(
             ) {
                 $fjurnalno = self::generateJurnalNumber($kodeCabang, $fstockmtdate);
                 $now = now();
-                $note = 'Jurnal Pembelian ' . $fstockmtno;
+                $fsuppliername = '';
+                if (! empty($supplierCode)) {
+                    $fsuppliername = (string) (DB::table('mssupplier')
+                        ->where('fsuppliercode', $supplierCode)
+                        ->value('fsuppliername') ?? '');
+                }
+
+                $note = ! empty(trim($fsuppliername)) ? trim($fsuppliername) : ('Jurnal Pembelian ' . $fstockmtno);
                 $noteWithRate = $currency !== 'IDR' && $rateText
                     ? $note . ' Rate: ' . trim($rateText)
                     : $note;

@@ -119,7 +119,14 @@ class JurnalFakturPenjualan
         $subaccount = $customerCode !== '' ? $customerCode : null;
         $fjurnalno = self::generateJurnalNumber($kodeCabang, $fsodate);
         $now = now();
-        $note = 'Memo Invoice ' . $fsono;
+        $fcustomername = '';
+        if ($customerCode !== '') {
+            $fcustomername = (string) (DB::table('mscustomer')
+                ->where('fcustomercode', $customerCode)
+                ->value('fcustomername') ?? '');
+        }
+
+        $note = ! empty(trim($fcustomername)) ? trim($fcustomername) : ('Memo Invoice ' . $fsono);
 
         $lineNo = 0;
         $lines = [];
