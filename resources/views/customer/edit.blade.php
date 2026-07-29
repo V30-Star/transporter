@@ -397,10 +397,6 @@
                             </div>
                         </div>
 
-                        @if (!$allowEditAdmin)
-                            <p class="text-xs text-amber-600 font-medium mt-1">* Pengubahan Jatuh Tempo, Max JT Tempo & Limit Piutang memerlukan wewenang Customereditadmin.</p>
-                        @endif
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {{-- Jadwal Tukar Faktur --}}
                             <div>
