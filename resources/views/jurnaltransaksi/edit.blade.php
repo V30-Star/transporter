@@ -205,9 +205,9 @@
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
                         @else
-                            <select name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <select disabled name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 @foreach ($journalTypes as $type)
-                                    <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
+                                    <option disabled value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
                                         {{ $type->fmastercode }} - {{ $type->fmastername }}
                                     </option>
                                 @endforeach
@@ -378,8 +378,8 @@
 
             {{-- FOOTER INFO --}}
             @php
-                $lastUpdate = $jurnaltransaksi->fupdatedat ?: $jurnaltransaksi->fcreatedat;
-                $updatedBy = $jurnaltransaksi->fuserupdate ?: ($jurnaltransaksi->fusercreate ?: '—');
+                $lastUpdate = ($jurnaltransaksi->fupdatedat ?? null) ?: ($jurnaltransaksi->fcreatedat ?? null);
+                $updatedBy = ($jurnaltransaksi->fuserupdate ?? null) ?: (($jurnaltransaksi->fusercreate ?? null) ?: (($jurnaltransaksi->fupdatedby ?? null) ?: (($jurnaltransaksi->fcreatedby ?? null) ?: '—')));
             @endphp
             <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
                 <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
@@ -606,9 +606,13 @@
 
                 rowHasContent(item) { return item && String(item.faccount || '').trim() !== ''; },
 
-                ensureMinimumRows() { while (this.items.length < 5) this.items.push(this.emptyRow()); },
+                ensureMinimumRows() {
+                    if (this.mode === 'delete' || this.mode === 'view') return;
+                    while (this.items.length < 5) this.items.push(this.emptyRow());
+                },
 
                 ensureTrailingRow() {
+                    if (this.mode === 'delete' || this.mode === 'view') return;
                     if (!this.items.length) { this.ensureMinimumRows(); return; }
                     if (this.rowHasContent(this.items[this.items.length - 1])) this.items.push(this.emptyRow());
                 },
@@ -641,9 +645,13 @@
 
                 init() {
                     this.items = (Array.isArray(this.items) ? this.items : []).map((item, index) => this.normalizeRow(item, index));
-                    this.ensureMinimumRows();
+                    if (this.mode === 'delete' || this.mode === 'view') {
+                        this.items = (this.items || []).filter(item => this.rowHasContent(item));
+                    } else {
+                        this.ensureMinimumRows();
+                        this.$watch('items', () => { this.ensureMinimumRows(); this.ensureTrailingRow(); }, { deep: true });
+                    }
                     this.recalcTotals();
-                    this.$watch('items', () => { this.ensureMinimumRows(); this.ensureTrailingRow(); }, { deep: true });
                     
                     window.addEventListener('account-picked', (event) => {
                         if (this.browseIndex === null || !this.items[this.browseIndex]) return;

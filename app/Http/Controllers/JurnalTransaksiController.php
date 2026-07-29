@@ -1473,6 +1473,12 @@ class JurnalTransaksiController extends Controller
             'famountpopajak' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
+            'fcreatedat' => $header->fcreatedat ?? null,
+            'fupdatedat' => $header->fupdatedat ?? null,
+            'fusercreate' => $header->fusercreate ?? null,
+            'fuserupdate' => $header->fuserupdate ?? null,
+            'fcreatedby' => $header->fcreatedby ?? null,
+            'fupdatedby' => $header->fupdatedby ?? null,
         ];
 
         $savedItems = $details->map(function ($row) {

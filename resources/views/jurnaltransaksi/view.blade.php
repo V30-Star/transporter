@@ -153,8 +153,8 @@
 
         {{-- FOOTER INFO --}}
         @php
-            $lastUpdate = $jurnaltransaksi->fupdatedat ?: $jurnaltransaksi->fcreatedat;
-            $updatedBy = $jurnaltransaksi->fuserupdate ?: ($jurnaltransaksi->fusercreate ?: '—');
+            $lastUpdate = ($jurnaltransaksi->fupdatedat ?? null) ?: ($jurnaltransaksi->fcreatedat ?? null);
+            $updatedBy = ($jurnaltransaksi->fuserupdate ?? null) ?: (($jurnaltransaksi->fusercreate ?? null) ?: (($jurnaltransaksi->fupdatedby ?? null) ?: (($jurnaltransaksi->fcreatedby ?? null) ?: '—')));
         @endphp
         <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
             <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
