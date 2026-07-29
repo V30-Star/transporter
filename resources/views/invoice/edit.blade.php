@@ -1323,14 +1323,16 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:16%;">
-                                            <col style="width:25%;">
+                                            <col style="width:{{ $action === 'view' ? '28%' : '25%' }};">
                                             <col style="width:8%;">
                                             <col style="width:13%;">
                                             <col style="width:8%;">
                                             <col style="width:9%;">
                                             <col style="width:6%;">
                                             <col style="width:10%;">
-                                            <col style="width:3%;">
+                                            @if ($action !== 'view')
+                                                <col style="width:3%;">
+                                            @endif
                                         </colgroup>
                                         <thead class="bg-gray-100">
                                             <tr>
