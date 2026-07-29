@@ -18,6 +18,7 @@ class Tr_prhController extends Controller
 {
     private const MEMO_DEBIT_ACCOUNT = '11400';
     private const MEMO_CREDIT_ACCOUNT = '21100';
+    private const DAILY_CREATE_LIMIT = 15;
 
     private function resolveProductDefaultUnit(object $product): string
     {
@@ -56,6 +57,16 @@ class Tr_prhController extends Controller
         ]));
     }
 
+    private function todayCreateCount(): int
+    {
+        return Tr_prh::whereBetween('fcreatedat', [now()->startOfDay(), now()->endOfDay()])->count();
+    }
+
+    private function hasReachedDailyCreateLimit(): bool
+    {
+        return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
+    }
+
     public function index(Request $request)
     {
         $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
@@ -66,6 +77,7 @@ class Tr_prhController extends Controller
         $status = trim((string) $request->query('status', 'all'));
         $year = $request->query('year');
         $month = $request->query('month');
+        $createLimitReached = $this->hasReachedDailyCreateLimit();
 
         $availableYearsQuery = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM tr_prh.fcreatedat) as year')
             ->whereNotNull('tr_prh.fcreatedat');
@@ -222,7 +234,8 @@ class Tr_prhController extends Controller
             'status',
             'availableYears',
             'year',
-            'month'
+            'month',
+            'createLimitReached'
         ));
     }
 
@@ -322,6 +335,12 @@ class Tr_prhController extends Controller
 
     public function create(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('tr_prh.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $branchInfo = $this->getCurrentBranchInfo();
         $canApproval = $this->canApprovePurchaseRequest();
         $suppliers = $this->getSuppliers();
@@ -347,6 +366,12 @@ class Tr_prhController extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasReachedDailyCreateLimit()) {
+            return redirect()
+                ->route('tr_prh.index')
+                ->with('create_limit_exceeded', true);
+        }
+
         $this->validateStoreRequest($request);
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
