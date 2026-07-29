@@ -561,7 +561,20 @@
                                         </div>
                                     </template>
                                 </div>
-                                <div class="flex justify-end">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <a href="{{ route('adjstock.template.download') }}"
+                                            class="inline-flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                                            Download Excel
+                                        </a>
+                                        <button type="button"
+                                            id="adjstockUploadButton"
+                                            onclick="document.getElementById('adjstockUploadType').value = document.querySelector('[name=ftrancode]')?.value || 'K'; document.getElementById('adjstockExcelFile')?.click()"
+                                            class="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                            <span id="adjstockUploadSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                            <span id="adjstockUploadText">Upload Excel</span>
+                                        </button>
+                                    </div>
                                     <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
                                         <div class="flex justify-between items-center font-bold text-gray-800">
                                             <span class="text-sm">Total Harga</span>
@@ -1178,17 +1191,6 @@
                             class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
                             <x-heroicon-o-arrow-left class="w-6 h-6" />
                             Keluar
-                        </button>
-                        <a href="{{ route('adjstock.template.download') }}"
-                            class="inline-flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
-                            Download Excel
-                        </a>
-                        <button type="button"
-                            id="adjstockUploadButton"
-                            onclick="document.getElementById('adjstockUploadType').value = document.querySelector('[name=ftrancode]')?.value || 'K'; document.getElementById('adjstockExcelFile')?.click()"
-                            class="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                            <span id="adjstockUploadSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                            <span id="adjstockUploadText">Upload Excel</span>
                         </button>
                         <button type="submit"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">

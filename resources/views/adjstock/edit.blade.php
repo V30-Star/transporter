@@ -195,6 +195,7 @@
         $currentAccountId = old('faccid', $adjstock->faccid);
         $currentPpnAmount = old('famountpajak', $adjstock->famountpajak ?? 0);
         $currentSubtotal = old('famount', $adjstock->famount ?? 0);
+        $currentAdjType = strtoupper(trim((string) ($adjstock->ftrancode ?? 'M'))) === 'K' ? 'K' : 'M';
         $usageLocked = !empty($isUsageLocked);
     @endphp
 
@@ -230,10 +231,10 @@
         </div>
     @endif
 
-    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'M') }}' }" class="{{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
+    <div x-data="{ open: true, adjtype: @js($currentAdjType) }" class="{{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
         <div x-data="{
             open: true,
-            adjtype: '{{ old('ftrancode', 'M') }}',
+            adjtype: @js($currentAdjType),
         
             includePPN: false,
             ppnRate: 0,
@@ -312,7 +313,7 @@
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Adj. Type</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        value="{{ $adjstock->ftrancode === 'M' ? 'Masuk' : 'Keluar' }}" readonly>
+                                        value="{{ $currentAdjType === 'M' ? 'Masuk' : 'Keluar' }}" readonly>
                                 </div>
                             </div>
 
@@ -568,10 +569,10 @@
                             <select name="ftrancode" x-model="adjtype"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 @error('ftrancode') border-red-500 @enderror">
                                 <option value="M"
-                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'M') === 'M' ? 'selected' : '' }}>Masuk
+                                    {{ $currentAdjType === 'M' ? 'selected' : '' }}>Masuk
                                 </option>
                                 <option value="K"
-                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'K') === 'K' ? 'selected' : '' }}>
+                                    {{ $currentAdjType === 'K' ? 'selected' : '' }}>
                                     Keluar
                                 </option>
                             </select>
@@ -815,11 +816,6 @@
                         </template>
                     </div>
                     <div class="flex justify-between items-center mt-3">
-                        <button type="button" @click="addNewRow()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            Tambah Baris
-                        </button>
                         <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
                             <div class="flex justify-between items-center font-bold text-gray-800">
                                 <span class="text-sm">Total Harga</span>
@@ -961,14 +957,6 @@
                                             </template>
                                         </tbody>
                                     </table>
-                    </div>
-                    <div class="flex justify-between items-center mt-3">
-                        <button type="button" @click="addNewRow()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 text-sm font-semibold rounded-lg hover:bg-green-100 border border-green-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            Tambah Baris
-                        </button>
-                        <div class="text-sm text-gray-400 italic">Adj. Keluar — qty saja, tanpa harga</div>
                     </div>
                     <div class="hidden">
                         <template x-for="(it, i) in submitItems" :key="'submit-keluar-' + (it.uid || i)">
