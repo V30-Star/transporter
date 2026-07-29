@@ -347,6 +347,10 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="roleaccess" {{ in_array('roleaccess', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Edit TOP, Max JT Tempo & Limit Customer (Customereditadmin)</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="Customereditadmin" {{ (in_array('Customereditadmin', $selectedPermissions) || in_array('customereditadmin', $selectedPermissions)) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Lihat HPP Produk</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewProductHpp" {{ in_array('viewProductHpp', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>

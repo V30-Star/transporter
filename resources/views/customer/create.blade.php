@@ -6,6 +6,11 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
+    @php
+        $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
+        $allowEditAdmin = $canEditAdmin ?? (in_array('Customereditadmin', $permissions, true) || in_array('customereditadmin', $permissions, true));
+    @endphp
+
     <div>
 
         <div class="max-w-4xl mx-auto py-8 px-6" x-data="{ showModal: false, selectedAlamat: 'alamatsurat', frekening: '' }">
@@ -342,7 +347,8 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Jatuh Tempo (Hari)</label>
                                 <input type="number" name="ftempo" id="ftempo" value="{{ old('ftempo', 0) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempo') border-red-400 @enderror">
+                                    {{ $allowEditAdmin ? '' : 'readonly disabled' }}
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $allowEditAdmin ? '' : 'bg-gray-100 text-gray-500 cursor-not-allowed' }} @error('ftempo') border-red-400 @enderror">
                                 @error('ftempo')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -352,7 +358,8 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Max JT Tempo</label>
                                 <input type="number" name="fmaxtempo" id="fmaxtempo" value="{{ old('fmaxtempo', 0) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmaxtempo') border-red-400 @enderror">
+                                    {{ $allowEditAdmin ? '' : 'readonly disabled' }}
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $allowEditAdmin ? '' : 'bg-gray-100 text-gray-500 cursor-not-allowed' }} @error('fmaxtempo') border-red-400 @enderror">
                                 @error('fmaxtempo')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -362,13 +369,18 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Limit Piutang</label>
                                 <input type="text" name="flimit" id="flimit" value="{{ old('flimit') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('flimit') border-red-400 @enderror"
+                                    {{ $allowEditAdmin ? '' : 'readonly disabled' }}
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $allowEditAdmin ? '' : 'bg-gray-100 text-gray-500 cursor-not-allowed' }} @error('flimit') border-red-400 @enderror"
                                     placeholder="Masukkan Limit Piutang">
                                 @error('flimit')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
+
+                        @if (!$allowEditAdmin)
+                            <p class="text-xs text-amber-600 font-medium mt-1">* Pengisian Jatuh Tempo, Max JT Tempo & Limit Piutang memerlukan wewenang Customereditadmin.</p>
+                        @endif
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {{-- Jadwal Tukar Faktur --}}

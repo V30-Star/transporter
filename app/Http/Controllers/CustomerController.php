@@ -24,6 +24,12 @@ class CustomerController extends Controller
             ->with('error', 'Anda tidak memiliki akses ke menu customer.');
     }
 
+    private function canEditCustomerAdmin(): bool
+    {
+        return $this->hasRestrictedPermission('Customereditadmin')
+            || $this->hasRestrictedPermission('customereditadmin');
+    }
+
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
@@ -196,8 +202,9 @@ class CustomerController extends Controller
         $wilayah = Wilayah::where('fnonactive', 0)->get();
         $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
+        $canEditAdmin = $this->canEditCustomerAdmin();
 
-        return view('customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
+        return view('customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode', 'canEditAdmin'));
     }
 
     // Store method to save the new customer in the database
@@ -285,6 +292,12 @@ class CustomerController extends Controller
 
         $validated['fcurrency'] = 'IDR';
 
+        if (! $this->canEditCustomerAdmin()) {
+            $validated['ftempo'] = 0;
+            $validated['fmaxtempo'] = 0;
+            $validated['flimit'] = 0;
+        }
+
         Customer::create($validated);
 
         return redirect()
@@ -316,6 +329,7 @@ class CustomerController extends Controller
             'rekening' => $rekening,
             'newCustomerCode' => $newCustomerCode,
             'isTransactionLocked' => $isTransactionLocked,
+            'canEditAdmin' => $this->canEditCustomerAdmin(),
             'action' => 'edit',
         ]);
     }
@@ -444,6 +458,13 @@ class CustomerController extends Controller
         if ($isTransactionLocked) {
             $validated['fcustomercode'] = $customer->fcustomercode;
         }
+
+        if (! $this->canEditCustomerAdmin()) {
+            $validated['ftempo'] = $customer->ftempo;
+            $validated['fmaxtempo'] = $customer->fmaxtempo;
+            $validated['flimit'] = $customer->flimit;
+        }
+
         $customer->update($validated);
 
         // 2. Selalu INSERT log baru (feditmode = 'U')
