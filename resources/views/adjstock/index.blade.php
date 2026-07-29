@@ -18,10 +18,10 @@
 
         @php
             $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
-            $canCreate = in_array('createPenerimaanBarang', $permissions, true);
-            $canEdit = in_array('updatePenerimaanBarang', $permissions, true);
-            $canDelete = in_array('deletePenerimaanBarang', $permissions, true);
-            $canView = $canCreate || $canEdit || $canDelete;
+            $canCreate = in_array('createAdjstock', $permissions, true) || in_array('createPenerimaanBarang', $permissions, true);
+            $canEdit = in_array('updateAdjstock', $permissions, true) || in_array('updatePenerimaanBarang', $permissions, true);
+            $canDelete = in_array('deleteAdjstock', $permissions, true) || in_array('deletePenerimaanBarang', $permissions, true);
+            $canView = in_array('viewAdjstock', $permissions, true) || $canCreate || $canEdit || $canDelete;
             $showActionsColumn = $canView || $canEdit || $canDelete;
         @endphp
 

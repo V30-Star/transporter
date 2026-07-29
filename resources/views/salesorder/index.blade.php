@@ -7,10 +7,10 @@
 
         @php
             $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
-            $canCreate = in_array('createTr_poh', $permissions, true);
-            $canView = in_array('viewTr_poh', $permissions, true) || $canCreate;
-            $canEdit = in_array('updateTr_poh', $permissions, true);
-            $canDelete = in_array('deleteTr_poh', $permissions, true);
+            $canCreate = in_array('createSalesOrder', $permissions, true) || in_array('createTr_poh', $permissions, true);
+            $canView = in_array('viewSalesOrder', $permissions, true) || in_array('viewTr_poh', $permissions, true) || $canCreate;
+            $canEdit = in_array('updateSalesOrder', $permissions, true) || in_array('updateTr_poh', $permissions, true);
+            $canDelete = in_array('deleteSalesOrder', $permissions, true) || in_array('deleteTr_poh', $permissions, true);
             $showActionsColumn = $canView || $canEdit || $canDelete;
         @endphp
 

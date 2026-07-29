@@ -22,14 +22,19 @@
                 ->unique()
                 ->sortDesc()
                 ->values();
+        @php
+            $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
+            $canCreate = empty($permissions) || in_array('createPelunasanCustomer', $permissions, true);
         @endphp
 
-        <div class="flex justify-end items-center mb-4">
-            <a href="{{ route('pelunasancustomer.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah Baru' }}
-            </a>
-        </div>
+        @if ($canCreate)
+            <div class="flex justify-end items-center mb-4">
+                <a href="{{ route('pelunasancustomer.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah Baru' }}
+                </a>
+            </div>
+        @endif
 
         <table id="pelunasanCustomerTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">

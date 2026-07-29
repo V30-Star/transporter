@@ -29,10 +29,11 @@
 
         @php
             $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
-            $canCreate = in_array('createPenerimaanBarang', $permissions, true);
-            $canEdit = in_array('updatePenerimaanBarang', $permissions, true);
-            $canDelete = in_array('deletePenerimaanBarang', $permissions, true);
-            $showActionsColumn = $canEdit || $canDelete;
+            $canCreate = in_array('createMutasi', $permissions, true) || in_array('createPenerimaanBarang', $permissions, true);
+            $canEdit = in_array('updateMutasi', $permissions, true) || in_array('updatePenerimaanBarang', $permissions, true);
+            $canDelete = in_array('deleteMutasi', $permissions, true) || in_array('deletePenerimaanBarang', $permissions, true);
+            $canView = in_array('viewMutasi', $permissions, true) || $canCreate || $canEdit || $canDelete;
+            $showActionsColumn = $canView || $canEdit || $canDelete;
         @endphp
 
         <div class="flex justify-end items-center mb-4">
