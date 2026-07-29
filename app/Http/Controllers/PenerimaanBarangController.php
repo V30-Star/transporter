@@ -42,7 +42,7 @@ class PenerimaanBarangController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     public function index(Request $request)
@@ -129,14 +129,14 @@ class PenerimaanBarangController extends Controller
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
             $records = $query->skip($start)->take($length)->get([
-                'trstockmt.fstockmtid', 
-                'trstockmt.fstockmtno', 
-                'trstockmt.fstockmtdate', 
-                'trstockmt.ffrom', 
-                'trstockmt.fsupplier', 
-                'trstockmt.fket', 
-                'trstockmt.famountmt', 
-                'trstockmt.fbranchcode', 
+                'trstockmt.fstockmtid',
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'trstockmt.ffrom',
+                'trstockmt.fsupplier',
+                'trstockmt.fket',
+                'trstockmt.famountmt',
+                'trstockmt.fbranchcode',
                 'trstockmt.fusercreate'
             ]);
 
@@ -1082,7 +1082,7 @@ class PenerimaanBarangController extends Controller
             }
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (Exception $e) {
-            Log::error('PenerimaanBarang@store ERROR: '.$e->getMessage());
+            Log::error('PenerimaanBarang@store ERROR: ' . $e->getMessage());
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
             }
@@ -1091,12 +1091,12 @@ class PenerimaanBarangController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Penerimaan barang '.$this->formatDisplayTransactionNumber($fstockmtno, false).' berhasil disimpan.',
+                'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
                 'redirect_url' => route('penerimaanbarang.create'),
             ]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang '.$this->formatDisplayTransactionNumber($fstockmtno, false).' berhasil disimpan.');
+        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1613,7 +1613,7 @@ class PenerimaanBarangController extends Controller
             }
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (\Exception $e) {
-            Log::error('PenerimaanBarang@update ERROR: '.$e->getMessage());
+            Log::error('PenerimaanBarang@update ERROR: ' . $e->getMessage());
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Gagal update: ' . $e->getMessage()], 500);
             }
@@ -1622,13 +1622,13 @@ class PenerimaanBarangController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Penerimaan barang '.$this->formatDisplayTransactionNumber($header->fstockmtno, false).' berhasil diupdate.',
+                'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($header->fstockmtno, false) . ' berhasil diupdate.',
                 'redirect_url' => route('penerimaanbarang.index'),
             ]);
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', 'Penerimaan barang '.$this->formatDisplayTransactionNumber($header->fstockmtno, false).' berhasil diupdate.');
+            ->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($header->fstockmtno, false) . ' berhasil diupdate.');
     }
 
     public function destroy($fstockmtid)
@@ -1804,8 +1804,8 @@ class PenerimaanBarangController extends Controller
     {
         $referenceDetailIds = collect($rowsDt)
             ->pluck('frefdtid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -1887,9 +1887,8 @@ class PenerimaanBarangController extends Controller
         $this->deleteGoodsReceiptJournalEntries($fstockmtno);
 
         // --- Lookup accounts from set_account table ---
-        $accountPersediaan = DB::table('set_account')->where('faccount_name', 'SALDOAWAL')->value('faccount') ?? '31020';
-        $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount') ?? '72000';
-        $accountPPNBeli = DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount') ?? '11400';
+        $accountPersediaan = DB::table('set_account')->where('faccount_name', 'PEMBELIAN')->value('faccount');
+        $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount');
 
         $fjurnaltype  = 'JTB';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
@@ -1963,26 +1962,6 @@ class PenerimaanBarangController extends Controller
                 'fdatetime'    => $now,
             ],
         ];
-
-        if ($ppnAmount > 0) {
-            $jurnalDt[] = [
-                'fjurnalmtid'  => $jurnalId,
-                'fbranchcode'  => $kodeCabang,
-                'fjurnaltype'  => $fjurnaltype,
-                'fjurnalno'    => $fjurnalno,
-                'flineno'      => 2,
-                'faccount'     => (string) $accountPPNBeli,
-                'fdk'          => 'D',
-                'fsubaccount'  => null,
-                'frefno'       => $fstockmtno,
-                'frate'        => 1,
-                'famount'      => round($ppnAmount, 2),
-                'famount_rp'   => round($ppnAmount, 2),
-                'faccountnote' => 'PPN Masukan',
-                'fusercreate'  => $userid,
-                'fdatetime'    => $now,
-            ];
-        }
 
         DB::table('jurnaldt')->insert($jurnalDt);
     }

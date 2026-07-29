@@ -1873,9 +1873,9 @@ class ReturPembelianController extends Controller
             ->whereIn('faccount_name', ['RETBELIBLMPOTHUTANG', 'PPNBELI', 'RETURPEMBELIAN'])
             ->pluck('faccount', 'faccount_name');
 
-        $accountHutang      = $setAccounts->get('RETBELIBLMPOTHUTANG', '11437');
-        $accountPPNBeli     = $setAccounts->get('PPNBELI', '11400');
-        $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN', '51200');
+        $accountHutang      = $setAccounts->get('RETBELIBLMPOTHUTANG');
+        $accountPPNBeli     = $setAccounts->get('PPNBELI');
+        $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN');
 
         $fjurnaltype  = 'JRB';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));

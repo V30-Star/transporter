@@ -3077,9 +3077,9 @@ class ReturPenjualanController extends Controller
             ->whereIn('faccount_name', ['RETURPENJUALAN', 'PPNJUAL', 'RETJUALBLMPOTPIUTANG'])
             ->pluck('faccount', 'faccount_name');
 
-        $accountReturnSales           = $setAccounts->get('RETURPENJUALAN', '41300');
-        $accountPPNSales              = $setAccounts->get('PPNJUAL', '21160');
-        $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG', '21181');
+        $accountReturnSales           = $setAccounts->get('RETURPENJUALAN');
+        $accountPPNSales              = $setAccounts->get('PPNJUAL');
+        $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG');
 
         $fjurnaltype = 'JRJ';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
