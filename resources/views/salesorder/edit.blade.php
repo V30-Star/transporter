@@ -528,14 +528,13 @@
                                     <colgroup>
                                         <col style="width:2%;">
                                         <col style="width:12%;">
-                                        <col style="width:22%;">
+                                        <col style="width:28%;">
                                         <col style="width:8%;">
                                         <col style="width:8%;">
                                         <col style="width:8%;">
                                         <col style="width:12%;">
                                         <col style="width:8%;">
                                         <col style="width:14%;">
-                                        <col style="width:6%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -548,7 +547,6 @@
                                             <th class="p-2 text-right w-33 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-33 whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center w-24">Aksi</th>
                                         </tr>
                                     </thead>
                                     <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
@@ -587,10 +585,6 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(row.ftotal)"></div>
-                                                </td>
-                                                <td class="p-2 text-center text-xs">
-                                                    <button type="button" disabled
-                                                        class="px-2 py-1 rounded bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed">Hapus</button>
                                                 </td>
                                             </tr>
                                         </tbody>

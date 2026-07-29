@@ -481,14 +481,13 @@
                                     <colgroup>
                                         <col style="width:2%;">
                                         <col style="width:12%;">
-                                        <col style="width:25%;">
+                                        <col style="width:31%;">
                                         <col style="width:8%;">
                                         <col style="width:15%;">
                                         <col style="width:8%;">
                                         <col style="width:12%;">
                                         <col style="width:8%;">
                                         <col style="width:14%;">
-                                        <col style="width:6%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -501,7 +500,6 @@
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center w-28">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -540,11 +538,6 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="fmt(it.ftotal)"></div>
-                                                </td>
-                                                <td class="p-2 text-center text-xs">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                        title="Hapus baris">-</button>
                                                     <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
                                                     <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">
                                                     <input type="hidden" :name="`fsatuan[${it.formIndex}]`" :value="it.fsatuan">
@@ -943,14 +936,16 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:12%;">
-                                            <col style="width:25%;">
+                                            <col style="width:{{ $action === 'view' ? '31%' : '25%' }};">
                                             <col style="width:8%;">
                                             <col style="width:15%;">
                                             <col style="width:8%;">
                                             <col style="width:12%;">
                                             <col style="width:8%;">
                                             <col style="width:14%;">
-                                            <col style="width:6%;">
+                                            @if ($action !== 'view')
+                                                <col style="width:6%;">
+                                            @endif
                                         </colgroup>
                                         <thead class="bg-gray-100">
                                             <tr>
@@ -963,7 +958,9 @@
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                                <th class="p-2 text-center w-28">Aksi</th>
+                                                @if ($action !== 'view')
+                                                    <th class="p-2 text-center w-28">Aksi</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1090,11 +1087,13 @@
                                                     <td class="p-2 text-right">
                                                         <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotal)"></div>
                                                     </td>
-                                                    <td class="p-2 text-center text-xs">
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                            title="Hapus baris">-</button>
-                                                    </td>
+                                                    @if ($action !== 'view')
+                                                        <td class="p-2 text-center text-xs">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                                title="Hapus baris">-</button>
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -2987,6 +2986,12 @@
             },
 
             init() {
+                if (this.action === 'view' || this.action === 'delete') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.ensureMinimumRows();
+                }
                 this.recalcTotals();
             },
 
@@ -3180,12 +3185,14 @@
             },
 
             ensureMinimumRows() {
+                if (this.action === 'view' || this.action === 'delete') return;
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (this.action === 'view' || this.action === 'delete') return;
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
