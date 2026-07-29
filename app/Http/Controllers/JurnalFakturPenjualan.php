@@ -17,7 +17,7 @@ class JurnalFakturPenjualan
      * diambil dari tabel account berdasarkan faccname berikut,
      * setara dengan properti cAccount_* pada versi Delphi.
      */
-    private const ACCOUNT_JUALTUNAI          = '-';
+    private const ACCOUNT_JUALTUNAI          = 'PENJUALAN';
     private const ACCOUNT_PIUTANG            = 'PIUTANGDAGANG';
     private const ACCOUNT_UMSALES            = 'UANGMUKAPENJUALAN';
     private const ACCOUNT_DISCSALES          = 'DISCPENJUALAN';
