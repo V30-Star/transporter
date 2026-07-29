@@ -1162,7 +1162,7 @@ class ReturPembelianController extends Controller
             // 1. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Retur Pembelian ini')) {
-                return redirect()->route('returpembelian.view', $header->fstockmtid)->with('error', $message);
+                return redirect()->route('returpembelian.edit', $header->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($header)) {
                 return redirect()->route('returpembelian.index')->with('error', $message);
@@ -1544,7 +1544,7 @@ class ReturPembelianController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
             return redirect()
-                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->route('returpembelian.edit', $returpembelian->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -1552,7 +1552,7 @@ class ReturPembelianController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->route('returpembelian.edit', $returpembelian->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1651,7 +1651,7 @@ class ReturPembelianController extends Controller
         try {
             $returpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
-                return redirect()->route('returpembelian.view', $returpembelian->fstockmtid)->with('error', $message);
+                return redirect()->route('returpembelian.edit', $returpembelian->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($returpembelian)) {
                 return redirect()->route('returpembelian.index')->with('error', $message);

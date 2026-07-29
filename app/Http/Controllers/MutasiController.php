@@ -1021,7 +1021,7 @@ class MutasiController extends Controller
             // =========================
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Mutasi ini')) {
-                return redirect()->route('mutasi.view', $header->fstockmtid)->with('error', $message);
+                return redirect()->route('mutasi.edit', $header->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($header)) {
                 return redirect()->route('mutasi.index')->with('error', $message);
@@ -1316,7 +1316,7 @@ class MutasiController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
             return redirect()
-                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->route('mutasi.edit', $mutasi->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($mutasi->fbranchcode ?? null);
@@ -1329,7 +1329,7 @@ class MutasiController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->route('mutasi.edit', $mutasi->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1431,7 +1431,7 @@ class MutasiController extends Controller
             if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
                 DB::rollBack();
 
-                return redirect()->route('mutasi.view', $fstockmtid)->with('error', $message);
+                return redirect()->route('mutasi.edit', $fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid))) {

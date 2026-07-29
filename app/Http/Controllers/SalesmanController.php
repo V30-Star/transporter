@@ -180,7 +180,7 @@ class SalesmanController extends Controller
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         if ($message = $this->getUsageLockMessage($salesman)) {
-            return redirect()->route('salesman.view', $salesman->fsalesmanid)->with('error', $message);
+            return redirect()->route('salesman.edit', $salesman->fsalesmanid)->with('error', $message);
         }
 
         return view('salesman.delete', [
@@ -211,11 +211,11 @@ class SalesmanController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('salesman.view', $salesman->fsalesmanid),
+                        'redirect' => route('salesman.edit', $salesman->fsalesmanid),
                     ], 422);
                 }
 
-                return redirect()->route('salesman.view', $salesman->fsalesmanid)->with('error', $message);
+                return redirect()->route('salesman.edit', $salesman->fsalesmanid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

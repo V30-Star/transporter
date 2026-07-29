@@ -1811,7 +1811,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {
@@ -1824,7 +1824,7 @@ class ReturPenjualanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpenjualan.view', $returpenjualan->ftranmtid)
+                ->route('returpenjualan.edit', $returpenjualan->ftranmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1947,7 +1947,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {
@@ -2081,7 +2081,7 @@ class ReturPenjualanController extends Controller
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.view', $ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.edit', $ftranmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
@@ -2677,7 +2677,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {
@@ -2690,7 +2690,7 @@ class ReturPenjualanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpenjualan.view', $returpenjualan->ftranmtid)
+                ->route('returpenjualan.edit', $returpenjualan->ftranmtid)
                 ->with('error', $usageLockMessage);
         }
 

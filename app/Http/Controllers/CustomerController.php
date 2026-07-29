@@ -569,11 +569,11 @@ class CustomerController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('customer.view', $customer->fcustomerid),
+                        'redirect' => route('customer.edit', $customer->fcustomerid),
                     ], 422);
                 }
 
-                return redirect()->route('customer.view', $customer->fcustomerid)->with('error', $message);
+                return redirect()->route('customer.edit', $customer->fcustomerid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

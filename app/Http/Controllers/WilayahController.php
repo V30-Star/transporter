@@ -174,7 +174,7 @@ class WilayahController extends Controller
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
         if ($message = $this->getUsageLockMessage($wilayah)) {
-            return redirect()->route('wilayah.view', $wilayah->fwilayahid)->with('error', $message);
+            return redirect()->route('wilayah.edit', $wilayah->fwilayahid)->with('error', $message);
         }
 
         return view('wilayah.delete', [
@@ -205,11 +205,11 @@ class WilayahController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('wilayah.view', $wilayah->fwilayahid),
+                        'redirect' => route('wilayah.edit', $wilayah->fwilayahid),
                     ], 422);
                 }
 
-                return redirect()->route('wilayah.view', $wilayah->fwilayahid)->with('error', $message);
+                return redirect()->route('wilayah.edit', $wilayah->fwilayahid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

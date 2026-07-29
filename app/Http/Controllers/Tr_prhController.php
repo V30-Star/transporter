@@ -549,7 +549,7 @@ class Tr_prhController extends Controller
         $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($header->fprdate, 'Data ini')) {
-            return redirect()->route('tr_prh.view', $header->fprhid)->with('error', $message);
+            return redirect()->route('tr_prh.edit', $header->fprhid)->with('error', $message);
         }
 
         $isCloseOnly = $request->boolean('close_only');
@@ -847,13 +847,13 @@ class Tr_prhController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
             return redirect()
-                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->route('tr_prh.edit', $tr_prh->fprhid)
                 ->with('error', $message);
         }
 
         if ($pageData['blockedByPO']) {
             return redirect()
-                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->route('tr_prh.edit', $tr_prh->fprhid)
                 ->with('error', $this->getUsageLockMessage($tr_prh));
         }
 
@@ -880,7 +880,7 @@ class Tr_prhController extends Controller
             $tr_prh = Tr_prh::findOrFail($fprhid);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
-                return redirect()->route('tr_prh.view', $tr_prh->fprhid)->with('error', $message);
+                return redirect()->route('tr_prh.edit', $tr_prh->fprhid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($tr_prh)) {

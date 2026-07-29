@@ -233,7 +233,7 @@ class WhController extends Controller
         $gudang = Wh::findOrFail($fwhid);
 
         if ($message = $this->getUsageLockMessage($gudang)) {
-            return redirect()->route('gudang.view', $gudang->fwhid)->with('error', $message);
+            return redirect()->route('gudang.edit', $gudang->fwhid)->with('error', $message);
         }
 
         return view('gudang.delete', [
@@ -264,11 +264,11 @@ class WhController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('gudang.view', $gudang->fwhid),
+                        'redirect' => route('gudang.edit', $gudang->fwhid),
                     ], 422);
                 }
 
-                return redirect()->route('gudang.view', $gudang->fwhid)->with('error', $message);
+                return redirect()->route('gudang.edit', $gudang->fwhid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

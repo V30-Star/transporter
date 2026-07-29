@@ -1509,7 +1509,7 @@ class SalesOrderController extends Controller
         }])->findOrFail($ftrsomtid);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+            return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
         }
 
         if (! $salesorder->customer) {
@@ -1522,7 +1522,7 @@ class SalesOrderController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('salesorder.view', $salesorder->ftrsomtid)
+                ->route('salesorder.edit', $salesorder->ftrsomtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1728,7 +1728,7 @@ class SalesOrderController extends Controller
             return abort(404, 'Sales Order tidak ada.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
+            return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
@@ -2055,7 +2055,7 @@ class SalesOrderController extends Controller
         }])->findOrFail($ftrsomtid);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+            return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
         }
 
         if (! $salesorder->customer) {
@@ -2068,7 +2068,7 @@ class SalesOrderController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('salesorder.view', $salesorder->ftrsomtid)
+                ->route('salesorder.edit', $salesorder->ftrsomtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -2162,11 +2162,11 @@ class SalesOrderController extends Controller
             $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
 
             if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+                return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($salesorder)) {
-                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+                return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user() ?? auth()->user();
@@ -2260,7 +2260,7 @@ class SalesOrderController extends Controller
                     'message' => 'Sales Order belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
                 ], 500);
             }
-            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
+            return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
         }
     }
 

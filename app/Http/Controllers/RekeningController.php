@@ -170,7 +170,7 @@ class RekeningController extends Controller
         $rekening = Rekening::findOrFail($frekeningid);
 
         if ($message = $this->getUsageLockMessage($rekening)) {
-            return redirect()->route('rekening.view', $rekening->frekeningid)->with('error', $message);
+            return redirect()->route('rekening.edit', $rekening->frekeningid)->with('error', $message);
         }
 
         return view('rekening.delete', [
@@ -201,11 +201,11 @@ class RekeningController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('rekening.view', $rekening->frekeningid),
+                        'redirect' => route('rekening.edit', $rekening->frekeningid),
                     ], 422);
                 }
 
-                return redirect()->route('rekening.view', $rekening->frekeningid)->with('error', $message);
+                return redirect()->route('rekening.edit', $rekening->frekeningid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

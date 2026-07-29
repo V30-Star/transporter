@@ -1164,7 +1164,7 @@ class SuratJalanController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
             return redirect()
-                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->route('suratjalan.edit', $suratjalan->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -1175,7 +1175,7 @@ class SuratJalanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->route('suratjalan.edit', $suratjalan->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
         $soReferenceStats = $this->getSoReferenceStats(
@@ -1427,7 +1427,7 @@ class SuratJalanController extends Controller
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
-            return redirect()->route('suratjalan.view', $header->fstockmtid)->with('error', $message);
+            return redirect()->route('suratjalan.edit', $header->fstockmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage($header)) {
@@ -1866,7 +1866,7 @@ class SuratJalanController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
             return redirect()
-                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->route('suratjalan.edit', $suratjalan->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -1877,7 +1877,7 @@ class SuratJalanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->route('suratjalan.edit', $suratjalan->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
         $soReferenceStats = $this->getSoReferenceStats(
@@ -1960,7 +1960,7 @@ class SuratJalanController extends Controller
             $suratjalan = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
             if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
-                return redirect()->route('suratjalan.view', $suratjalan->fstockmtid)->with('error', $message);
+                return redirect()->route('suratjalan.edit', $suratjalan->fstockmtid)->with('error', $message);
             }
 
             $invoiceReferenceDocs = DB::table('trstockdt')

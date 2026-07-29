@@ -2136,7 +2136,7 @@ class FakturpembelianController extends Controller
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate)) {
-                return redirect()->route('fakturpembelian.view', $header->fstockmtid)->with('error', $message);
+                return redirect()->route('fakturpembelian.edit', $header->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($header)) {
@@ -2652,7 +2652,7 @@ class FakturpembelianController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
             return redirect()
-                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
+                ->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -2765,7 +2765,7 @@ class FakturpembelianController extends Controller
             $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
             if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
-                return redirect()->route('fakturpembelian.view', $fakturpembelian->fstockmtid)->with('error', $message);
+                return redirect()->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($fakturpembelian)) {

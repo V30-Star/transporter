@@ -227,7 +227,7 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($fsupplierid);
 
         if ($message = $this->getUsageLockMessage($supplier)) {
-            return redirect()->route('supplier.view', $supplier->fsupplierid)->with('error', $message);
+            return redirect()->route('supplier.edit', $supplier->fsupplierid)->with('error', $message);
         }
 
         return view('supplier.delete', [
@@ -258,11 +258,11 @@ class SupplierController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => $message,
-                        'redirect' => route('supplier.view', $supplier->fsupplierid),
+                        'redirect' => route('supplier.edit', $supplier->fsupplierid),
                     ], 422);
                 }
 
-                return redirect()->route('supplier.view', $supplier->fsupplierid)->with('error', $message);
+                return redirect()->route('supplier.edit', $supplier->fsupplierid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user();

@@ -2323,11 +2323,11 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
-        //     return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        //     return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
         // }
 
         if (! $invoice->customer) {
@@ -2339,7 +2339,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -2581,7 +2581,7 @@ class InvoiceController extends Controller
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
+            return redirect()->route('invoice.edit', $ftranmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
@@ -3144,11 +3144,11 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
-        //     return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        //     return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
         // }
 
         if (! $invoice->customer) {
@@ -3160,7 +3160,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -3231,7 +3231,7 @@ class InvoiceController extends Controller
             $invoice = Tranmt::findOrFail($ftranmtid);
 
             if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-                return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+                return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($invoice)) {

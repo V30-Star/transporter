@@ -1290,7 +1290,7 @@ class PenerimaanBarangController extends Controller
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate)) {
-            return redirect()->route('penerimaanbarang.view', $header->fstockmtid)->with('error', $message);
+            return redirect()->route('penerimaanbarang.edit', $header->fstockmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage($header)) {
@@ -1637,7 +1637,7 @@ class PenerimaanBarangController extends Controller
             $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
             if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
-                return redirect()->route('penerimaanbarang.view', $penerimaanbarang->fstockmtid)->with('error', $message);
+                return redirect()->route('penerimaanbarang.edit', $penerimaanbarang->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($penerimaanbarang)) {

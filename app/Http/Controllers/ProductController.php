@@ -473,7 +473,7 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($id);
         if ($message = $this->getApprovalLockMessage($product)) {
-            return redirect()->route('product.view', $product->fprdid)->with('error', $message);
+            return redirect()->route('product.edit', $product->fprdid)->with('error', $message);
         }
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
@@ -524,7 +524,7 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($fprdid);
         if ($message = $this->getApprovalLockMessage($product)) {
-            return redirect()->route('product.view', $product->fprdid)->with('error', $message);
+            return redirect()->back()->withInput()->with('error', $message);
         }
         try {
             $usageInfo = $this->getProductUsageInfo($product);

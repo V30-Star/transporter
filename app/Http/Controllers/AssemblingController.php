@@ -1062,7 +1062,7 @@ class AssemblingController extends Controller
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Assembling ini')) {
-            return redirect()->route('assembling.view', $header->fstockmtid)->with('error', $message);
+            return redirect()->route('assembling.edit', $header->fstockmtid)->with('error', $message);
         }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('assembling.index')->with('error', $message);
@@ -1424,7 +1424,7 @@ class AssemblingController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
             return redirect()
-                ->route('assembling.view', $assembling->fstockmtid)
+                ->route('assembling.edit', $assembling->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($assembling->fbranchcode ?? null);
@@ -1433,7 +1433,7 @@ class AssemblingController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('assembling.view', $assembling->fstockmtid)
+                ->route('assembling.edit', $assembling->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1528,7 +1528,7 @@ class AssemblingController extends Controller
         try {
             $assembling = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
-                return redirect()->route('assembling.view', $assembling->fstockmtid)->with('error', $message);
+                return redirect()->route('assembling.edit', $assembling->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($assembling)) {
                 return redirect()->route('assembling.index')->with('error', $message);

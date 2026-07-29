@@ -1107,7 +1107,7 @@ class AdjstockController extends Controller
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Adjustment Stock ini')) {
-            return redirect()->route('adjstock.view', $header->fstockmtid)->with('error', $message);
+            return redirect()->route('adjstock.edit', $header->fstockmtid)->with('error', $message);
         }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('adjstock.index')->with('error', $message);
@@ -1479,7 +1479,7 @@ class AdjstockController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
             return redirect()
-                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->route('adjstock.edit', $adjstock->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($adjstock->fbranchcode ?? null);
@@ -1488,7 +1488,7 @@ class AdjstockController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->route('adjstock.edit', $adjstock->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1564,7 +1564,7 @@ class AdjstockController extends Controller
         try {
             $adjstock = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
-                return redirect()->route('adjstock.view', $adjstock->fstockmtid)->with('error', $message);
+                return redirect()->route('adjstock.edit', $adjstock->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($adjstock)) {
                 return redirect()->route('adjstock.index')->with('error', $message);

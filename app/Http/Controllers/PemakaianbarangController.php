@@ -1038,7 +1038,7 @@ class PemakaianbarangController extends Controller
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Pemakaian barang ini')) {
-            return redirect()->route('pemakaianbarang.view', $header->fstockmtid)->with('error', $message);
+            return redirect()->route('pemakaianbarang.edit', $header->fstockmtid)->with('error', $message);
         }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('pemakaianbarang.index')->with('error', $message);
@@ -1377,7 +1377,7 @@ class PemakaianbarangController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
             return redirect()
-                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($pemakaianbarang->fbranchcode ?? null);
@@ -1386,7 +1386,7 @@ class PemakaianbarangController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1477,7 +1477,7 @@ class PemakaianbarangController extends Controller
         try {
             $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
-                return redirect()->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)->with('error', $message);
+                return redirect()->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($pemakaianbarang)) {
                 return redirect()->route('pemakaianbarang.index')->with('error', $message);
