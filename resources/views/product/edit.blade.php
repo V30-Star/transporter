@@ -1908,6 +1908,152 @@
         </div>
     </div>
 
+    <script>
+        if (typeof window.groupBrowser !== 'function') {
+            window.groupBrowser = function() {
+                return {
+                    open: false,
+                    table: null,
+                    initDataTable() {
+                        if (this.table) this.table.destroy();
+                        this.table = $('#groupTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('group.browse') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    var orderCol = 'fgroupcode';
+                                    if (d.order && d.order.length > 0 && d.columns && d.columns[d.order[0].column]) {
+                                        orderCol = d.columns[d.order[0].column].data || 'fgroupcode';
+                                    }
+                                    var orderDir = (d.order && d.order.length > 0) ? d.order[0].dir : 'asc';
+                                    return {
+                                        draw: d.draw,
+                                        page: Math.floor((d.start || 0) / (d.length || 10)) + 1,
+                                        per_page: d.length || 10,
+                                        search: d.search ? d.search.value : '',
+                                        order_column: typeof orderCol === 'string' ? orderCol : 'fgroupcode',
+                                        order_dir: orderDir
+                                    };
+                                },
+                                dataSrc: function(json) { return json.data; }
+                            },
+                            columns: [
+                                { data: 'fgroupcode', name: 'fgroupcode', className: 'font-mono' },
+                                { data: 'fgroupname', name: 'fgroupname' },
+                                {
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    render: function() { return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white">Pilih</button>'; }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                            language: {
+                                processing: "Memuat...", search: "Cari:", lengthMenu: "Tampilkan _MENU_ data",
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", infoEmpty: "Menampilkan 0 data",
+                                infoFiltered: "(disaring dari _MAX_ total data)", zeroRecords: "Tidak ada data yang ditemukan",
+                                emptyTable: "Tidak ada data tersedia", paginate: { first: "Pertama", last: "Terakhir", next: "Selanjutnya", previous: "Sebelumnya" }
+                            },
+                            order: [[0, 'asc']],
+                            autoWidth: false,
+                            initComplete: function() {
+                                const $c = $(this.api().table().container());
+                                $c.find('.dt-search .dt-input, .dataTables_filter input').css({ width: '400px', maxWidth: '100%', minWidth: '300px' });
+                                $c.find('.dt-search, .dataTables_filter').css({ minWidth: '420px' });
+                                $c.find('.dt-search .dt-input, .dataTables_filter input').focus();
+                            }
+                        });
+                        $('#groupTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                            const data = this.table.row($(e.target).closest('tr')).data();
+                            this.choose(data);
+                        });
+                    },
+                    openModal() { this.open = true; this.$nextTick(() => { this.initDataTable(); }); },
+                    close() { this.open = false; if (this.table) this.table.search('').draw(); },
+                    choose(g) {
+                        window.dispatchEvent(new CustomEvent('group-picked', { detail: { fgroupid: g.fgroupid, fgroupcode: g.fgroupcode, fgroupname: g.fgroupname } }));
+                        this.close();
+                    },
+                    init() { window.addEventListener('group-browse-open', () => this.openModal(), { passive: true }); }
+                };
+            };
+        }
+        if (typeof window.merekBrowser !== 'function') {
+            window.merekBrowser = function() {
+                return {
+                    open: false,
+                    table: null,
+                    initDataTable() {
+                        if (this.table) this.table.destroy();
+                        this.table = $('#merekTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('merek.browse') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    var orderCol = 'fmerekcode';
+                                    if (d.order && d.order.length > 0 && d.columns && d.columns[d.order[0].column]) {
+                                        orderCol = d.columns[d.order[0].column].data || 'fmerekcode';
+                                    }
+                                    var orderDir = (d.order && d.order.length > 0) ? d.order[0].dir : 'asc';
+                                    return {
+                                        draw: d.draw,
+                                        start: d.start,
+                                        length: d.length,
+                                        search: d.search ? d.search.value : '',
+                                        order_column: typeof orderCol === 'string' ? orderCol : 'fmerekcode',
+                                        order_dir: orderDir
+                                    };
+                                }
+                            },
+                            columns: [
+                                { data: 'fmerekcode', name: 'fmerekcode', className: 'font-mono text-sm', width: '30%' },
+                                { data: 'fmerekname', name: 'fmerekname', className: 'text-sm', width: '55%' },
+                                {
+                                    data: null, orderable: false, searchable: false, className: 'text-center', width: '15%',
+                                    render: function() { return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white">Pilih</button>'; }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                            language: {
+                                processing: "Memuat data...", search: "Cari:", lengthMenu: "Tampilkan _MENU_",
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", infoEmpty: "Tidak ada data",
+                                infoFiltered: "(disaring dari _MAX_ total data)", zeroRecords: "Tidak ada data yang ditemukan",
+                                emptyTable: "Tidak ada data tersedia", paginate: { first: "Pertama", last: "Terakhir", next: "Selanjutnya", previous: "Sebelumnya" }
+                            },
+                            order: [[1, 'asc']],
+                            autoWidth: false,
+                            initComplete: function() {
+                                const $c = $(this.api().table().container());
+                                $c.find('.dt-search .dt-input, .dataTables_filter input').css({ width: '300px', padding: '8px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }).focus();
+                                $c.find('.dt-length select, .dataTables_length select').css({ padding: '6px 32px 6px 10px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' });
+                            }
+                        });
+                        $('#merekTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                            const data = this.table.row($(e.target).closest('tr')).data();
+                            this.choose(data);
+                        });
+                    },
+                    openModal() { this.open = true; this.$nextTick(() => { this.initDataTable(); }); },
+                    close() { this.open = false; if (this.table) this.table.search('').draw(); },
+                    choose(m) {
+                        window.dispatchEvent(new CustomEvent('merek-picked', { detail: { fmerekid: m.fmerekid, fmerekcode: m.fmerekcode, fmerekname: m.fmerekname } }));
+                        this.close();
+                    },
+                    init() { window.addEventListener('merek-browse-open', () => this.openModal(), { passive: true }); }
+                };
+            };
+        }
+    </script>
+
     <!-- MODAL BROWSE GROUP PRODUCT -->
     <div x-data="groupBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9998] flex items-center justify-center p-4">
@@ -2249,18 +2395,20 @@
                         url: "{{ route('merek.browse') }}",
                         type: 'GET',
                         data: function(d) {
+                            var orderCol = 'fmerekcode';
+                            if (d.order && d.order.length > 0 && d.columns && d.columns[d.order[0].column]) {
+                                orderCol = d.columns[d.order[0].column].data || 'fmerekcode';
+                            }
+                            var orderDir = (d.order && d.order.length > 0) ? d.order[0].dir : 'asc';
                             return {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
-                                search: d.search.value,
-                                // Menggunakan parameter sorting standar DataTables
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                search: d.search ? d.search.value : '',
+                                order_column: typeof orderCol === 'string' ? orderCol : 'fmerekcode',
+                                order_dir: orderDir
                             };
                         },
-                        // Tidak perlu dataSrc jika backend merespons dalam format DataTables standar
-                        // Jika backend masih merespons dengan struktur Laravel pagination, dataSrc diperlukan
                     },
                     columns: [{
                             data: 'fmerekcode',
@@ -2427,13 +2575,18 @@
                         url: "{{ route('group.browse') }}", // Sesuaikan route Anda
                         type: 'GET',
                         data: function(d) {
+                            var orderCol = 'fgroupcode';
+                            if (d.order && d.order.length > 0 && d.columns && d.columns[d.order[0].column]) {
+                                orderCol = d.columns[d.order[0].column].data || 'fgroupcode';
+                            }
+                            var orderDir = (d.order && d.order.length > 0) ? d.order[0].dir : 'asc';
                             return {
                                 draw: d.draw,
-                                page: (d.start / d.length) + 1,
-                                per_page: d.length,
-                                search: d.search.value,
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                page: Math.floor((d.start || 0) / (d.length || 10)) + 1,
+                                per_page: d.length || 10,
+                                search: d.search ? d.search.value : '',
+                                order_column: typeof orderCol === 'string' ? orderCol : 'fgroupcode',
+                                order_dir: orderDir
                             };
                         },
                         dataSrc: function(json) {

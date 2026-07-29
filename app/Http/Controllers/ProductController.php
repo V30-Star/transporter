@@ -9,6 +9,7 @@ use App\Models\Satuan;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Support\ApprovalState;
 
@@ -39,8 +40,6 @@ class ProductController extends Controller
     protected function resolveProductDefaultHpp(Product $product): float
     {
         return match ((string) ($product->fsatuandefault ?? '1')) {
-            '2' => (float) ($product->fhpp2 ?? 0),
-            '3' => (float) ($product->fhpp3 ?? 0),
             default => (float) ($product->fhpp ?? 0),
         };
     }
@@ -192,8 +191,6 @@ class ProductController extends Controller
                 'msprd.fapproval',
                 'msprd.fmerek',
                 'msprd.fhpp',
-                'msprd.fhpp2',
-                'msprd.fhpp3',
                 'msmerek.fmerekname AS merek_name',
             ]);
 
@@ -362,8 +359,6 @@ class ProductController extends Controller
                 ],
                 'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
-                'fhpp2' => 'nullable',
-                'fhpp3' => 'nullable',
             ];
 
             foreach ($enabledImageFields as $imageField) {
@@ -404,8 +399,6 @@ class ProductController extends Controller
 
             $numericFields = [
                 'fhpp',
-                'fhpp2',
-                'fhpp3',
                 'fhargajuallevel1',
                 'fhargajuallevel2',
                 'fhargajuallevel3',
@@ -447,7 +440,7 @@ class ProductController extends Controller
                             $validated[$imageField] = $fileId;
                         }
                     } catch (\Exception $e) {
-                        \Log::error("Upload $imageField Failed: " . $e->getMessage());
+                        Log::error("Upload $imageField Failed: " . $e->getMessage());
                     }
                 }
             }
@@ -574,8 +567,6 @@ class ProductController extends Controller
                 ],
                 'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
-                'fhpp2' => 'nullable',
-                'fhpp3' => 'nullable',
             ];
 
             foreach ($enabledImageFields as $imageField) {
@@ -614,8 +605,6 @@ class ProductController extends Controller
 
             $numericFields = [
                 'fhpp',
-                'fhpp2',
-                'fhpp3',
                 'fhargajuallevel1',
                 'fhargajuallevel2',
                 'fhargajuallevel3',
@@ -739,8 +728,6 @@ class ProductController extends Controller
                 'fsatuankecil'            => $product->fsatuankecil,
                 'fsatuanbesar'            => $product->fsatuanbesar,
                 'fqtykecil'               => $product->fqtykecil,
-                'fhpp2'                   => $product->fhpp2,
-                'fhpp3'                   => $product->fhpp3,
                 'fsatuanbesar2'           => $product->fsatuanbesar2,
                 'fqtykecil2'              => $product->fqtykecil2,
                 'fhargajual3level1'       => $product->fhargajual3level1,
