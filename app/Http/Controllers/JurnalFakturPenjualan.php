@@ -23,7 +23,7 @@ class JurnalFakturPenjualan
     private const ACCOUNT_DISCSALES          = 'DISCPENJUALAN';
     private const ACCOUNT_SALDOAWAL          = 'SALDOAWAL';
     private const ACCOUNT_SALES              = 'PENJUALAN';
-    private const ACCOUNT_PPNSALES           = 'PPN';
+    private const ACCOUNT_PPNSALES           = 'PPNJUAL';
     private const ACCOUNT_SELISIHPEMBULATAN  = 'SELISIHPEMBULATAN';
 
     /** Cache kode akun per faccname supaya tidak query berulang dalam 1 request. */

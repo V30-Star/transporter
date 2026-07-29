@@ -19,7 +19,7 @@ class JurnalFakturPembelian
     private const ACCOUNT_SALDOAWAL                 = 'SALDOAWAL';
     private const ACCOUNT_PEMBELIAN                 = 'PEMBELIAN';
     private const ACCOUNT_FAKTURBELIYGBLMDITAGIH    = 'FAKTURBELIYGBLMDITAGIH';
-    private const ACCOUNT_PPNBELI                   = 'PPN';
+    private const ACCOUNT_PPNBELI                   = 'PPNBELI';
     private const ACCOUNT_SELISIHBAYAR              = 'SELISIHPEMBULATAN';
 
     /** Trancode index — setara cbftrancode.ItemIndex di Delphi */
