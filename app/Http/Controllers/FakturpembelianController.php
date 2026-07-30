@@ -1113,7 +1113,7 @@ class FakturpembelianController extends Controller
                 ->where(function ($q) use ($kodeCabang, $date) {
                     $yymm = $date->format('y') . $date->format('m');
                     $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
+                        ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
                 })
                 ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
@@ -1124,7 +1124,7 @@ class FakturpembelianController extends Controller
             $lastCode = DB::table('trstockmt')
                 ->where(function ($q) use ($kodeCabang, $yymm) {
                     $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
+                        ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
                 })
                 ->orderByDesc('fstockmtno')
                 ->value('fstockmtno');
@@ -1268,7 +1268,7 @@ class FakturpembelianController extends Controller
         ]);
     }
 
- public function store(Request $request)
+    public function store(Request $request)
     {
         try {
             if ($this->hasReachedDailyCreateLimit()) {
@@ -1316,7 +1316,7 @@ class FakturpembelianController extends Controller
             ], [
                 'ffrom.required' => 'Gudang wajib diisi.',
                 'frefno.required' => 'No faktur wajib diisi.',
-                'frefpo.required' => 'Faktur Pajak wajib diisi ketika PPN dicentang.',
+                'frefpo.required' => 'Faktur Pajak wajib diisi karena pembelian ada PPN.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
@@ -1619,7 +1619,7 @@ class FakturpembelianController extends Controller
                                 ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yy, $mm) {
                                     $yymm = $yy . $mm;
                                     $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                      ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                                        ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
                                 })
                                 ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                                 ->value('lastno');
@@ -1630,7 +1630,7 @@ class FakturpembelianController extends Controller
                             $lastCode = DB::table('trstockmt')
                                 ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yymm) {
                                     $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                      ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
+                                        ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
                                 })
                                 ->orderByDesc('fstockmtno')
                                 ->value('fstockmtno');
@@ -1646,6 +1646,13 @@ class FakturpembelianController extends Controller
                 }
 
                 // C. Insert Header
+                $ftrancode = match ((string) $ftypebuy) {
+                    '0' => '0',
+                    '1' => '1',
+                    '2', '3' => '3',
+                    default => '0',
+                };
+
                 $masterId = DB::table('trstockmt')->insertGetId([
                     'fstockmtno' => $fstockmtno,
                     'fstockmtcode' => $fstockmtcode,
@@ -1662,6 +1669,7 @@ class FakturpembelianController extends Controller
                     'famountremain_rp' => round($grandTotal * $frate, 2),
                     'frefno' => $frefno,
                     'frefpo' => $frefpo,
+                    'ftrancode' => $ftrancode,
                     'ffrom' => $ffrom,
                     'fprdjadi' => $fprdjadi,
                     'fprdjadiid' => $faccid,
@@ -1723,13 +1731,15 @@ class FakturpembelianController extends Controller
             }
             return back()->withInput()->withErrors($e->errors());
         } catch (\Throwable $e) {
-    Log::error('FakturPembelian@store ERROR: ' . $e->getMessage(), [
-        'exception' => $e, 'file' => $e->getFile(), 'line' => $e->getLine(),
-    ]);
-    if ($request->expectsJson()) {
-        return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
-    }
-    return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+            Log::error('FakturPembelian@store ERROR: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
         }
     }
 
@@ -2124,7 +2134,7 @@ class FakturpembelianController extends Controller
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'frefno.required' => 'No. faktur wajib diisi.',
-                'frefpo.required' => 'Faktur Pajak wajib diisi ketika PPN dicentang.',
+                'frefpo.required' => 'Faktur Pajak wajib diisi karena pembelian ada PPN.',
                 'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
                 'fprdjadi.required_if' => 'Account wajib diisi.',
                 'fdiscpersen.*.regex' => 'Format diskon harus angka atau 10+2.',
@@ -2165,7 +2175,7 @@ class FakturpembelianController extends Controller
                 $frate = 1;
             }
             $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-            
+
             if ($fapplyppn === 0) {
                 $fincludeppn = 0;
                 $fppnpersen = 0;
@@ -2460,6 +2470,13 @@ class FakturpembelianController extends Controller
                 $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
+                $ftrancode = match ((string) $ftypebuy) {
+                    '0' => '0',
+                    '1' => '1',
+                    '2', '3' => '3',
+                    default => '0',
+                };
+
                 // Update Header
                 $header->update([
                     'fstockmtdate' => $fstockmtdate,
@@ -2476,6 +2493,7 @@ class FakturpembelianController extends Controller
                     'famountremain_rp' => round($amountRemainRp, 2),
                     'frefno' => $request->input('frefno'),
                     'frefpo' => $request->input('frefpo'),
+                    'ftrancode' => $ftrancode,
                     'ffrom' => $ffrom,
                     'fprdjadi' => $fprdjadi,
                     'fprdjadiid' => $faccid,
