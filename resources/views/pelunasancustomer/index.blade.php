@@ -22,7 +22,7 @@
                 ->unique()
                 ->sortDesc()
                 ->values();
-        @php
+
             $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
             $canCreate = empty($permissions) || in_array('createPelunasanCustomer', $permissions, true);
         @endphp
