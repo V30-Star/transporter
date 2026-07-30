@@ -253,17 +253,12 @@
         }
     @endphp
 
-    <div x-data="{
-        open: true,
-        selectedType: '{{ $currentType }}',
-        selectedAccountCode: '{{ $currentAccount }}',
-        selectedAccountId: '{{ $currentAccountId }}'
-    }">
+    <div class="w-full">
         <div class="lg:col-span-5">
                         <div>
                 <form action="{{ route('fakturpembelian.store') }}" method="POST" data-form-draft="true"
-                    data-draft-key="fakturpembelian:create" x-data="{ showNoItems: false }"
-                    @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true } else { window.submitFormWithStockMinusConfirmation?.($el) } }">
+                    data-draft-key="fakturpembelian:create" x-data="itemsTable()" x-init="init()"
+                    @submit.prevent="submitForm($el)">
                     @csrf
 
                     {{-- ─── CARD 1: Identitas Faktur Pembelian ────────────────────── --}}
@@ -498,20 +493,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {{-- ─── CARD 2: Detail Item ────────────────────── --}}
-                    <div x-data="itemsTable()" x-init="init()" class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                         <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
-                        </div>
-                        <div class="p-4 space-y-3">
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="col-span-2">
                                     <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
@@ -537,7 +518,20 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                         <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                        </div>
+                        <div class="p-4 space-y-3">
                             <div class="overflow-auto border rounded">
                                 <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
                                     data-skip-auto-detail-style="true">
@@ -1281,6 +1275,10 @@
 
     function itemsTable() {
         return {
+            open: true,
+            selectedType: @json((string) $currentType),
+            selectedAccountCode: @json((string) $currentAccount),
+            selectedAccountId: @json((string) $currentAccountId),
             showNoItems: false,
             savedItems: @js($initialFakturItems),
             activeRow: null,

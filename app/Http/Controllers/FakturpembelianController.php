@@ -1588,61 +1588,52 @@ class FakturpembelianController extends Controller
                 $mm = $fstockmtdate->format('m');
                 $isAdvancePayment = (int) $ftypebuy === 2;
                 $fstockmtcode = 'BUY';
+                $prefixCode = $isAdvancePayment ? 'UM' : 'BUY';
 
                 // B. Penomoran
                 if (empty($fstockmtno)) {
-                    if ($isAdvancePayment) {
-                        $year = $fstockmtdate->format('y'); // 2-digit year format, e.g. 26
-                        $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
-                        $digits = 4;
-                        $prefix = sprintf('UMB.%s.%s%s.', $kodeCabang, $year, $month);
+                    $sep = $fincludeppn === 1 ? '.' : '/';
+                    $prefix = sprintf('%s%s%s%s%s%s', $prefixCode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
+                    $lockKey = crc32("STOCKMT|$prefixCode|$kodeCabang|" . $fstockmtdate->format('y-m'));
 
-                        if (DB::getDriverName() === 'pgsql') {
-                            $lockKey = crc32('STOCKMT|UMB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
-                            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-                        }
+                    if (DB::getDriverName() === 'pgsql') {
+                        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                         $last = DB::table('trstockmt')
-                            ->where('fstockmtno', 'like', $prefix . '%')
-                            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
+                            ->where(function ($q) use ($prefixCode, $kodeCabang, $yy, $mm) {
+                                $yymm = $yy . $mm;
+                                $q->where('fstockmtno', 'like', "{$prefixCode}.{$kodeCabang}.{$yymm}.%")
+                                    ->orWhere('fstockmtno', 'like', "{$prefixCode}/{$kodeCabang}/{$yymm}/%");
+                                if ($prefixCode === 'UM') {
+                                    $q->orWhere('fstockmtno', 'like', "UMB.{$kodeCabang}.{$yymm}.%")
+                                      ->orWhere('fstockmtno', 'like', "UMB/{$kodeCabang}/{$yymm}/%");
+                                }
+                            })
+                            ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                             ->value('lastno');
 
-                        $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
+                        $next = (int) $last + 1;
                     } else {
-                        $sep = $fincludeppn === 1 ? '.' : '/';
-                        $prefix = sprintf('%s%s%s%s%s%s', $fstockmtcode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
-                        $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('y-m'));
-                        if (DB::getDriverName() === 'pgsql') {
-                            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                        $yymm = $yy . $mm;
+                        $lastCode = DB::table('trstockmt')
+                            ->where(function ($q) use ($prefixCode, $kodeCabang, $yymm) {
+                                $q->where('fstockmtno', 'like', "{$prefixCode}.{$kodeCabang}.{$yymm}.%")
+                                    ->orWhere('fstockmtno', 'like', "{$prefixCode}/{$kodeCabang}/{$yymm}/%");
+                                if ($prefixCode === 'UM') {
+                                    $q->orWhere('fstockmtno', 'like', "UMB.{$kodeCabang}.{$yymm}.%")
+                                      ->orWhere('fstockmtno', 'like', "UMB/{$kodeCabang}/{$yymm}/%");
+                                }
+                            })
+                            ->orderByDesc('fstockmtno')
+                            ->value('fstockmtno');
 
-                            $last = DB::table('trstockmt')
-                                ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yy, $mm) {
-                                    $yymm = $yy . $mm;
-                                    $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                        ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
-                                })
-                                ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
-                                ->value('lastno');
-
-                            $next = (int) $last + 1;
-                        } else {
-                            $yymm = $yy . $mm;
-                            $lastCode = DB::table('trstockmt')
-                                ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yymm) {
-                                    $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                        ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
-                                })
-                                ->orderByDesc('fstockmtno')
-                                ->value('fstockmtno');
-
-                            $next = 1;
-                            if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
-                                $next = ((int) substr($lastCode, $pos + 1)) + 1;
-                            }
+                        $next = 1;
+                        if ($lastCode && ($pos = max((int) strrpos($lastCode, '.'), (int) strrpos($lastCode, '/'))) !== false && $pos > 0) {
+                            $next = ((int) substr($lastCode, $pos + 1)) + 1;
                         }
-
-                        $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                     }
+
+                    $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 // C. Insert Header
