@@ -1670,7 +1670,8 @@ class SalesOrderController extends Controller
 
     public function update(Request $request, $ftrsomtid)
     {
-        $shouldSendApprovalNotification = false;
+        try {
+            $shouldSendApprovalNotification = false;
         $canContinueToSuratJalan = $this->canContinueToSuratJalan();
         // 1. VALIDATION (Sama seperti store)
         $request->validate([
@@ -2028,6 +2029,28 @@ class SalesOrderController extends Controller
             'type' => 'salesorder_create_suratjalan',
             'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
         ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update sales order.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate sales order. Cek data.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate sales order: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate sales order: ' . $e->getMessage());
+        }
     }
 
     public function delete(Request $request, $ftrsomtid)

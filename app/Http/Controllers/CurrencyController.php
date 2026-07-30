@@ -114,54 +114,69 @@ class CurrencyController extends Controller
             return $guard;
         }
 
-        $request->merge([
-            'fcurrname' => strtoupper($request->fcurrname),
-            'fcurrcode' => strtoupper($request->fcurrcode),
-            'frate' => $request->frate,
-        ]);
+        try {
+            $request->merge([
+                'fcurrname' => strtoupper($request->fcurrname),
+                'fcurrcode' => strtoupper($request->fcurrcode),
+                'frate' => $request->frate,
+            ]);
 
-        $validated = $request->validate(
-            [
-                'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode,' . $fcurrid . ',fcurrid',
-                'fcurrname' => 'required|string|unique:mscurrency,fcurrname,' . $fcurrid . ',fcurrid',
-                'frate' => 'required|numeric|min:0',
-            ],
-            [
-                'fcurrname.required' => 'Nama currency wajib diisi.',
-                'fcurrname.unique' => 'Nama currency sudah ada.',
-                'fcurrcode.unique' => 'Kode currency sudah ada.',
-                'frate.numeric' => 'Rate harus angka.',
-                'fcurrcode.required' => 'Kode currency wajib diisi.',
-                'fcurrcode.max' => 'Kode currency max 10 karakter.',
-            ]
-        );
+            $validated = $request->validate(
+                [
+                    'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode,' . $fcurrid . ',fcurrid',
+                    'fcurrname' => 'required|string|unique:mscurrency,fcurrname,' . $fcurrid . ',fcurrid',
+                    'frate' => 'required|numeric|min:0',
+                ],
+                [
+                    'fcurrname.required' => 'Nama currency wajib diisi.',
+                    'fcurrname.unique' => 'Nama currency sudah ada.',
+                    'fcurrcode.unique' => 'Kode currency sudah ada.',
+                    'frate.numeric' => 'Rate harus angka.',
+                    'fcurrcode.required' => 'Kode currency wajib diisi.',
+                    'fcurrcode.max' => 'Kode currency max 10 karakter.',
+                ]
+            );
 
-        $validated['fcurrname'] = strtoupper($validated['fcurrname']);
+            $validated['fcurrname'] = strtoupper($validated['fcurrname']);
 
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
-        $currency = Currency::findOrFail($fcurrid);
+            $currency = Currency::findOrFail($fcurrid);
 
-        // 1. Jalankan update ke tabel utama
-        $currency->update($validated);
+            // 1. Jalankan update ke tabel utama
+            $currency->update($validated);
 
-        $userLogin = auth('sysuser')->user();
+            $userLogin = auth('sysuser')->user();
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        DB::table('logcurrency')->insert([
-            'fcurrid'      => $currency->fcurrid,
-            'fcurrcode'    => $currency->fcurrcode,
-            'fcurrname'    => $currency->fcurrname,
-            'frate'        => $currency->frate,
-            'fnonactive'   => $currency->fnonactive,
-            'feditmode'    => 'U', // 'U' untuk Update
-            'fuseridlog'   => $userLogin->fuserid ?? null,
-            'fdatetimelog' => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            DB::table('logcurrency')->insert([
+                'fcurrid'      => $currency->fcurrid,
+                'fcurrcode'    => $currency->fcurrcode,
+                'fcurrname'    => $currency->fcurrname,
+                'frate'        => $currency->frate,
+                'fnonactive'   => $currency->fnonactive,
+                'feditmode'    => 'U', // 'U' untuk Update
+                'fuseridlog'   => $userLogin->fuserid ?? null,
+                'fdatetimelog' => now(),
+            ]);
 
-        return redirect()
-            ->route('currency.index')
-            ->with('success', 'Currency berhasil diupdate.');
+            return redirect()
+                ->route('currency.index')
+                ->with('success', 'Currency berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate currency. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate currency: ' . $e->getMessage());
+        }
     }
 
     public function delete($fcurrid)

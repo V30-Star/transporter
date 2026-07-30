@@ -1280,13 +1280,23 @@ class MutasiController extends Controller
             return redirect()
                 ->route('mutasi.index')
                 ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update mutasi.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Mutasi belum bisa diupdate. Cek data.');
+        } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Mutasi belum bisa diupdate: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->withErrors([
-                'fatal' => 'Mutasi belum bisa diupdate. Cek data transaksi.',
-            ]);
+            return back()->withInput()->with('error', 'Mutasi belum bisa diupdate: ' . $e->getMessage());
         }
     }
 

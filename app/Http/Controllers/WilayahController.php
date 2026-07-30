@@ -114,55 +114,69 @@ class WilayahController extends Controller
             return $guard;
         }
 
-        $wilayah = Wilayah::findOrFail($fwilayahid);
-        $isTransactionLocked = $this->hasTransactionUsage($wilayah);
+        try {
+            $wilayah = Wilayah::findOrFail($fwilayahid);
+            $isTransactionLocked = $this->hasTransactionUsage($wilayah);
 
-        $request->merge([
-            'fwilayahcode' => strtoupper($isTransactionLocked ? $wilayah->fwilayahcode : $request->fwilayahcode),
-        ]);
+            $request->merge([
+                'fwilayahcode' => strtoupper($isTransactionLocked ? $wilayah->fwilayahcode : $request->fwilayahcode),
+            ]);
 
-        $validated = $request->validate([
-            'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
-            'fwilayahname' => 'required|string',
-        ], [
-            'fwilayahcode.required' => 'Kode wilayah wajib diisi.',
-            'fwilayahname.required' => 'Nama wilayah wajib diisi.',
-            'fwilayahcode.unique' => 'Kode wilayah sudah ada.',
-        ]);
+            $validated = $request->validate([
+                'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
+                'fwilayahname' => 'required|string',
+            ], [
+                'fwilayahcode.required' => 'Kode wilayah wajib diisi.',
+                'fwilayahname.required' => 'Nama wilayah wajib diisi.',
+                'fwilayahcode.unique' => 'Kode wilayah sudah ada.',
+            ]);
 
-        // Add default values for the required fields
-        $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
-        $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
+            $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
+            $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        if ($isTransactionLocked) {
-            $validated['fwilayahcode'] = $wilayah->fwilayahcode;
+            if ($isTransactionLocked) {
+                $validated['fwilayahcode'] = $wilayah->fwilayahcode;
+            }
+
+            $wilayah->update($validated);
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logwilayah')->insert([
+                'fwilayahid'   => $wilayah->fwilayahid,
+                'fwilayahcode' => $wilayah->fwilayahcode,
+                'fwilayahname' => $wilayah->fwilayahname,
+                'fcreatedat'   => $wilayah->fcreatedat,
+                'fupdatedat'   => $wilayah->fupdatedat,
+                'fcreatedby'   => $wilayah->fcreatedby,
+                'fupdatedby'   => $wilayah->fupdatedby,
+                'fnonactive'   => $wilayah->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
+            return redirect()
+                ->route('wilayah.index')
+                ->with('success', 'Wilayah berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate wilayah. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate wilayah: ' . $e->getMessage());
         }
-
-        $wilayah->update($validated);
-
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logwilayah')->insert([
-            'fwilayahid'   => $wilayah->fwilayahid,
-            'fwilayahcode' => $wilayah->fwilayahcode,
-            'fwilayahname' => $wilayah->fwilayahname,
-            'fcreatedat'   => $wilayah->fcreatedat,
-            'fupdatedat'   => $wilayah->fupdatedat,
-            'fcreatedby'   => $wilayah->fcreatedby,
-            'fupdatedby'   => $wilayah->fupdatedby,
-            'fnonactive'   => $wilayah->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
-
-        return redirect()
-            ->route('wilayah.index')
-            ->with('success', 'Wilayah berhasil diupdate.');
     }
 
     public function delete($fwilayahid)

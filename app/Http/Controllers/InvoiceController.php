@@ -3112,12 +3112,24 @@ class InvoiceController extends Controller
                 ]);
             }
             return $redirect;
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update faktur penjualan.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Faktur penjualan belum bisa diupdate. Cek data.');
+        } catch (\Throwable $e) {
             report($e);
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Faktur penjualan belum bisa diupdate: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
+            return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate: ' . $e->getMessage());
         }
     }
 

@@ -113,52 +113,67 @@ class RekeningController extends Controller
             return $guard;
         }
 
-        $request->merge([
-            'frekeningname' => strtoupper($request->frekeningname),
-        ]);
+        try {
+            $request->merge([
+                'frekeningname' => strtoupper($request->frekeningname),
+            ]);
 
-        $validated = $request->validate(
-            [
-                'frekeningname' => "required|string|unique:msrekening,frekeningname,{$frekeningid},frekeningid",
-            ],
-            [
-                'frekeningname.required' => 'Nama rekening wajib diisi.',
-                'frekeningname.unique' => 'Nama rekening sudah ada.',
-            ]
-        );
+            $validated = $request->validate(
+                [
+                    'frekeningname' => "required|string|unique:msrekening,frekeningname,{$frekeningid},frekeningid",
+                ],
+                [
+                    'frekeningname.required' => 'Nama rekening wajib diisi.',
+                    'frekeningname.unique' => 'Nama rekening sudah ada.',
+                ]
+            );
 
-        $validated['frekeningname'] = strtoupper($validated['frekeningname']);
+            $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['frekeningcode'] = '0';
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['frekeningcode'] = '0';
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fupdatedby'] = $userLogin->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fupdatedby'] = $userLogin->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        $rekening = Rekening::findOrFail($frekeningid);
+            $rekening = Rekening::findOrFail($frekeningid);
 
-        // 1. Jalankan update ke tabel utama
-        $rekening->update($validated);
+            // 1. Jalankan update ke tabel utama
+            $rekening->update($validated);
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        DB::table('logrekening')->insert([
-            'frekeningid'   => $rekening->frekeningid,
-            'frekeningcode' => $rekening->frekeningcode,
-            'frekeningname' => $rekening->frekeningname,
-            'fcreatedat'    => $rekening->fcreatedat,
-            'fupdatedat'    => $rekening->fupdatedat,
-            'fcreatedby'    => $rekening->fcreatedby,
-            'fupdatedby'    => $rekening->fupdatedby,
-            'fnonactive'    => $rekening->fnonactive,
-            'feditmode'     => 'U', // 'U' untuk Update
-            'fuseridlog'    => $userLogin->fname ?? null,
-            'fdatetimelog'  => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            DB::table('logrekening')->insert([
+                'frekeningid'   => $rekening->frekeningid,
+                'frekeningcode' => $rekening->frekeningcode,
+                'frekeningname' => $rekening->frekeningname,
+                'fcreatedat'    => $rekening->fcreatedat,
+                'fupdatedat'    => $rekening->fupdatedat,
+                'fcreatedby'    => $rekening->fcreatedby,
+                'fupdatedby'    => $rekening->fupdatedby,
+                'fnonactive'    => $rekening->fnonactive,
+                'feditmode'     => 'U', // 'U' untuk Update
+                'fuseridlog'    => $userLogin->fname ?? null,
+                'fdatetimelog'  => now(),
+            ]);
 
-        return redirect()
-            ->route('rekening.index')
-            ->with('success', 'Rekening berhasil diupdate.');
+            return redirect()
+                ->route('rekening.index')
+                ->with('success', 'Rekening berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate rekening. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate rekening: ' . $e->getMessage());
+        }
     }
 
     public function delete($frekeningid)

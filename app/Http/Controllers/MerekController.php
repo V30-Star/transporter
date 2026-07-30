@@ -123,50 +123,65 @@ class MerekController extends Controller
             return $guard;
         }
 
-        $request->merge([
-            'fmerekcode' => strtoupper($request->fmerekcode),
-        ]);
+        try {
+            $request->merge([
+                'fmerekcode' => strtoupper($request->fmerekcode),
+            ]);
 
-        $validated = $request->validate(
-            [
-                'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
-                'fmerekname' => 'required|string',
-            ],
-            [
-                'fmerekcode.required' => 'Kode merek wajib diisi.',
-                'fmerekname.required' => 'Nama merek wajib diisi.',
-                'fmerekcode.unique' => 'Kode merek sudah ada.',
-            ]
-        );
+            $validated = $request->validate(
+                [
+                    'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
+                    'fmerekname' => 'required|string',
+                ],
+                [
+                    'fmerekcode.required' => 'Kode merek wajib diisi.',
+                    'fmerekname.required' => 'Nama merek wajib diisi.',
+                    'fmerekcode.unique' => 'Kode merek sudah ada.',
+                ]
+            );
 
-        $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
-        $validated['fmerekname'] = strtoupper($validated['fmerekname']);
+            $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
+            $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        $merek = Merek::findOrFail($fmerekid);
-        $merek->update($validated);
+            $merek = Merek::findOrFail($fmerekid);
+            $merek->update($validated);
 
-        \Illuminate\Support\Facades\DB::table('logmerek')->insert([
-            'fmerekid'     => $merek->fmerekid,
-            'fmerekcode'   => $merek->fmerekcode,
-            'fmerekname'   => $merek->fmerekname,
-            'fcreatedat'   => $merek->fcreatedat,
-            'fupdatedat'   => $merek->fupdatedat,
-            'fcreatedby'   => $merek->fcreatedby,
-            'fupdatedby'   => $merek->fupdatedby,
-            'fnonactive'   => $merek->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fuserid ?? null,
-            'fdatetimelog' => now(),
-        ]);
+            \Illuminate\Support\Facades\DB::table('logmerek')->insert([
+                'fmerekid'     => $merek->fmerekid,
+                'fmerekcode'   => $merek->fmerekcode,
+                'fmerekname'   => $merek->fmerekname,
+                'fcreatedat'   => $merek->fcreatedat,
+                'fupdatedat'   => $merek->fupdatedat,
+                'fcreatedby'   => $merek->fcreatedby,
+                'fupdatedby'   => $merek->fupdatedby,
+                'fnonactive'   => $merek->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fuserid ?? null,
+                'fdatetimelog' => now(),
+            ]);
 
-        return redirect()
-            ->route('merek.index')
-            ->with('success', 'Merek berhasil diupdate.');
+            return redirect()
+                ->route('merek.index')
+                ->with('success', 'Merek berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate merek. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate merek: ' . $e->getMessage());
+        }
     }
 
     public function delete($fmerekid)

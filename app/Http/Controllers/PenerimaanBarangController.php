@@ -1607,17 +1607,29 @@ class PenerimaanBarangController extends Controller
                     $userName
                 );
             });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update penerimaan barang.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate penerimaan barang. Cek data.');
         } catch (\RuntimeException $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
-        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
             Log::error('PenerimaanBarang@update ERROR: ' . $e->getMessage());
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Gagal update: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->withErrors(['detail' => 'Gagal update: ' . $e->getMessage()]);
+            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
         }
 
         if ($request->expectsJson()) {

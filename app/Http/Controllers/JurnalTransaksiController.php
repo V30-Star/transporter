@@ -1065,7 +1065,8 @@ class JurnalTransaksiController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
-        $request->validate([
+        try {
+            $request->validate([
             'fjurnalno' => ['required', 'string', 'max:100'],
             'fjurnaltype' => ['required', 'string', 'max:10'],
             'fjurnaldate' => ['required', 'date'],
@@ -1311,6 +1312,28 @@ class JurnalTransaksiController extends Controller
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
             ->with('success', ucfirst($this->resolveJournalSuccessName($fjurnaltype)) . ' ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update jurnal transaksi.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate jurnal transaksi. Cek data.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate jurnal transaksi: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate jurnal transaksi: ' . $e->getMessage());
+        }
     }
 
     public function delete($fstockmtid)

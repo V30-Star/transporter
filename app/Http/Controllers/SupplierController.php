@@ -136,51 +136,50 @@ class SupplierController extends Controller
             return $guard;
         }
 
-        $supplier = Supplier::findOrFail($fsupplierid);
-        $isTransactionLocked = $this->hasTransactionUsage($supplier);
-
-        $request->merge([
-            'fsuppliercode' => strtoupper($isTransactionLocked ? $supplier->fsuppliercode : $request->fsuppliercode),
-        ]);
-
-        $validated = $request->validate(
-            [
-                'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
-                'fsuppliername' => 'required|string',
-                'fnpwp' => 'required|string',
-                'fkontakperson' => '',
-                'fjabatan' => '',
-                'ftempo' => '',
-                'fmemo' => '',
-                'faddress' => 'required|string',
-                'ftelp' => 'nullable|string',
-                'ffax' => 'nullable|string',
-                'fcurr' => 'required|string',
-                'faddress' => '',
-            ],
-            [
-                'fsuppliercode.unique' => 'Kode supplier sudah ada.',
-                'fsuppliercode.required' => 'Kode supplier wajib diisi.',
-                'fsuppliername.required' => 'Nama supplier wajib diisi.',
-                'fnpwp.required' => 'Npwp wajib diisi.',
-                'faddress.required' => 'Alamat wajib diisi.',
-                'fcurr.required' => 'Mata uang wajib diisi.',
-            ]
-        );
-
-        $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
-        $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
-
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
-
-        if ($isTransactionLocked) {
-            $validated['fsuppliercode'] = $supplier->fsuppliercode;
-        }
-
         try {
+            $supplier = Supplier::findOrFail($fsupplierid);
+            $isTransactionLocked = $this->hasTransactionUsage($supplier);
+
+            $request->merge([
+                'fsuppliercode' => strtoupper($isTransactionLocked ? $supplier->fsuppliercode : $request->fsuppliercode),
+            ]);
+
+            $validated = $request->validate(
+                [
+                    'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
+                    'fsuppliername' => 'required|string',
+                    'fnpwp' => 'required|string',
+                    'fkontakperson' => '',
+                    'fjabatan' => '',
+                    'ftempo' => '',
+                    'fmemo' => '',
+                    'faddress' => 'required|string',
+                    'ftelp' => 'nullable|string',
+                    'ffax' => 'nullable|string',
+                    'fcurr' => 'required|string',
+                ],
+                [
+                    'fsuppliercode.unique' => 'Kode supplier sudah ada.',
+                    'fsuppliercode.required' => 'Kode supplier wajib diisi.',
+                    'fsuppliername.required' => 'Nama supplier wajib diisi.',
+                    'fnpwp.required' => 'Npwp wajib diisi.',
+                    'faddress.required' => 'Alamat wajib diisi.',
+                    'fcurr.required' => 'Mata uang wajib diisi.',
+                ]
+            );
+
+            $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
+            $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
+
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
+
+            if ($isTransactionLocked) {
+                $validated['fsuppliercode'] = $supplier->fsuppliercode;
+            }
+
             $supplier->update($validated);
 
             // 2. Selalu INSERT log baru (feditmode = 'U')
@@ -207,15 +206,24 @@ class SupplierController extends Controller
                 'fuseridlog'     => $userLogin->fname ?? null,
                 'fdatetimelog'   => now(),
             ]);
-        } catch (\Throwable $e) {
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Supplier belum bisa diupdate. Cek data supplier.']);
-        }
 
-        return redirect()
-            ->route('supplier.index')
-            ->with('success', 'Supplier berhasil diupdate.');
+            return redirect()
+                ->route('supplier.index')
+                ->with('success', 'Supplier berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate supplier. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate supplier: ' . $e->getMessage());
+        }
     }
 
     public function delete($fsupplierid)

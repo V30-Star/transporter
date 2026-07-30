@@ -1943,10 +1943,22 @@ class Tr_pohController extends Controller
 
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if (request()->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update PO.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Order pembelian belum bisa disimpan. Cek data.');
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'Order pembelian belum bisa disimpan. Coba lagi.');
+            return back()->withInput()->with('error', 'Order pembelian belum bisa disimpan: ' . $e->getMessage());
         }
 
         $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';

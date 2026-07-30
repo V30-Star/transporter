@@ -128,75 +128,90 @@ class SysUserController extends Controller
 
     public function update(Request $request, $fuid)
     {
-        $request->merge([
-            'fsysuserid' => strtoupper($request->fsysuserid),
-        ]);
+        try {
+            $request->merge([
+                'fsysuserid' => strtoupper($request->fsysuserid),
+            ]);
 
-        $validated = $request->validate([
-            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
-            'fname' => 'required|string',
-            'password' => 'nullable|string|confirmed',
-            'fsalesman' => 'nullable',
-            'fuserlevel' => 'string|in:User,Admin',
-            'fcabang' => 'string',
-        ], [
-            'fsysuserid.unique' => 'Username sudah ada.',
-            'fname.required' => 'Nama wajib diisi.',
-            'fsysuserid.required' => 'Username wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
-            'fuserlevel.required' => 'Level akun tidak valid.',
-            'fcabang.required' => 'Cabang wajib diisi.',
-        ]);
+            $validated = $request->validate([
+                'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
+                'fname' => 'required|string',
+                'password' => 'nullable|string|confirmed',
+                'fsalesman' => 'nullable',
+                'fuserlevel' => 'string|in:User,Admin',
+                'fcabang' => 'string',
+            ], [
+                'fsysuserid.unique' => 'Username sudah ada.',
+                'fname.required' => 'Nama wajib diisi.',
+                'fsysuserid.required' => 'Username wajib diisi.',
+                'password.required' => 'Password wajib diisi.',
+                'fuserlevel.required' => 'Level akun tidak valid.',
+                'fcabang.required' => 'Cabang wajib diisi.',
+            ]);
 
-        $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
-        $validated['fname'] = strtoupper($validated['fname']);
+            $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
+            $validated['fname'] = strtoupper($validated['fname']);
 
-        $sysuser = Sysuser::findOrFail($fuid);
+            $sysuser = Sysuser::findOrFail($fuid);
 
-        if ($request->filled('password')) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+            if ($request->filled('password')) {
+                $validated['password'] = Hash::make($validated['password']);
+            } else {
+                unset($validated['password']);
+            }
+
+            $validated['fname'] = mb_strtoupper($validated['fname']);
+            $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
+
+            $userLogin = auth('sysuser')->user();
+            $validated['fcabang'] = $request->fcabang ?? '-';
+            $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
+            $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
+            $validated['updated_at'] = now();
+            $fsalesmanValue = $request->fsalesman;
+
+            if (empty($fsalesmanValue) || $fsalesmanValue === '-') {
+                $validated['fsalesman'] = 0;
+            } else {
+                $validated['fsalesman'] = (int) $fsalesmanValue;
+            }
+            $sysuser->update($validated);
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logsysuser')->insert([
+                'fuid'         => $sysuser->fuid,
+                'fsysuserid'   => $sysuser->fsysuserid,
+                'fname'        => $sysuser->fname,
+                'password'     => $sysuser->password,
+                'fusercreate'  => $sysuser->fusercreate,
+                'fkodesalesman'    => $sysuser->fsalesman,
+                'fuserlevel'   => $sysuser->fuserlevel,
+                'fcabang'      => $sysuser->fcabang,
+                'created_at'   => $sysuser->created_at,
+                'updated_at'   => $sysuser->updated_at,
+                'fuserupdate'  => $sysuser->fuserupdate,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
+            return redirect()
+                ->route('sysuser.index')
+                ->with('success', 'User berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate user. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate user: ' . $e->getMessage());
         }
-
-        $validated['fname'] = mb_strtoupper($validated['fname']);
-        $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
-
-        $userLogin = auth('sysuser')->user();
-        $validated['fcabang'] = $request->fcabang ?? '-';
-        $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
-        $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
-        $validated['updated_at'] = now();
-        $fsalesmanValue = $request->fsalesman;
-
-        if (empty($fsalesmanValue) || $fsalesmanValue === '-') {
-            $validated['fsalesman'] = 0;
-        } else {
-            $validated['fsalesman'] = (int) $fsalesmanValue;
-        }
-        $sysuser->update($validated);
-
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logsysuser')->insert([
-            'fuid'         => $sysuser->fuid,
-            'fsysuserid'   => $sysuser->fsysuserid,
-            'fname'        => $sysuser->fname,
-            'password'     => $sysuser->password,
-            'fusercreate'  => $sysuser->fusercreate,
-            'fkodesalesman'    => $sysuser->fsalesman,
-            'fuserlevel'   => $sysuser->fuserlevel,
-            'fcabang'      => $sysuser->fcabang,
-            'created_at'   => $sysuser->created_at,
-            'updated_at'   => $sysuser->updated_at,
-            'fuserupdate'  => $sysuser->fuserupdate,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
-
-        return redirect()
-            ->route('sysuser.index')
-            ->with('success', 'User berhasil diupdate.');
     }
 
     public function delete($fuid)

@@ -117,47 +117,62 @@ class SatuanController extends Controller
             return $guard;
         }
 
-        $validated = $request->validate(
-            [
-                'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
-                'fsatuanname' => 'required|string',
-            ],
-            [
-                'fsatuancode.unique' => 'Kode satuan sudah ada.',
-                'fsatuancode.required' => 'Kode satuan wajib diisi.',
-            ]
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
+                    'fsatuanname' => 'required|string',
+                ],
+                [
+                    'fsatuancode.unique' => 'Kode satuan sudah ada.',
+                    'fsatuancode.required' => 'Kode satuan wajib diisi.',
+                ]
+            );
 
-        $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
-        $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
+            $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
+            $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        $satuan = Satuan::findOrFail($fsatuanid);
-        $satuan->update($validated);
+            $satuan = Satuan::findOrFail($fsatuanid);
+            $satuan->update($validated);
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logsatuan')->insert([
-            'fsatuanid'    => $satuan->fsatuanid,
-            'fsatuancode'  => $satuan->fsatuancode,
-            'fsatuanname'  => $satuan->fsatuanname,
-            'fcreatedat'   => $satuan->fcreatedat,
-            'fupdatedat'   => $satuan->fupdatedat,
-            'fcreatedby'   => $satuan->fcreatedby,
-            'fupdatedby'   => $satuan->fupdatedby,
-            'fnonactive'   => $satuan->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logsatuan')->insert([
+                'fsatuanid'    => $satuan->fsatuanid,
+                'fsatuancode'  => $satuan->fsatuancode,
+                'fsatuanname'  => $satuan->fsatuanname,
+                'fcreatedat'   => $satuan->fcreatedat,
+                'fupdatedat'   => $satuan->fupdatedat,
+                'fcreatedby'   => $satuan->fcreatedby,
+                'fupdatedby'   => $satuan->fupdatedby,
+                'fnonactive'   => $satuan->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
 
-        return redirect()
-            ->route('satuan.index')
-            ->with('success', 'Satuan berhasil diupdate.');
+            return redirect()
+                ->route('satuan.index')
+                ->with('success', 'Satuan berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate satuan. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate satuan: ' . $e->getMessage());
+        }
     }
 
     public function delete($fsatuanid)

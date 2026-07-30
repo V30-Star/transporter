@@ -464,9 +464,10 @@ class PelunasanCustomerController extends Controller
             ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.');
     }
 
-   public function update(Request $request, $fkasmtno)
+    public function update(Request $request, $fkasmtno)
     {
-        $header = $this->findHeader($fkasmtno);
+        try {
+            $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
             return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
@@ -740,6 +741,28 @@ class PelunasanCustomerController extends Controller
         return redirect()
             ->route('pelunasancustomer.edit', $voucherNo)
             ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update pelunasan customer.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate pelunasan customer. Cek data.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate pelunasan customer: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate pelunasan customer: ' . $e->getMessage());
+        }
     }
 
     public function destroy($fkasmtno)

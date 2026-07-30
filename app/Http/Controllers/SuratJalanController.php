@@ -1792,13 +1792,23 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
             });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update surat jalan.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Surat jalan belum bisa diupdate. Cek data.');
         } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Data belum berhasil diperbarui: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->withErrors([
-                'detail' => 'Data belum berhasil diperbarui. Cek isian transaksi.',
-            ]);
+            return back()->withInput()->with('error', 'Data belum berhasil diperbarui: ' . $e->getMessage());
         }
 
         $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));

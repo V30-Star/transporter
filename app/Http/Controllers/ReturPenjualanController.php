@@ -2639,13 +2639,25 @@ class ReturPenjualanController extends Controller
             }
 
             return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0').' berhasil diupdate.');
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update retur penjualan.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Retur penjualan belum bisa diupdate. Cek data.');
+        } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Retur penjualan belum bisa diupdate: ' . $e->getMessage(),
                 ], 500);
             }
-            return back()->withInput()->with('error', 'Retur penjualan belum bisa diupdate. Cek data transaksi.');
+            return back()->withInput()->with('error', 'Retur penjualan belum bisa diupdate: ' . $e->getMessage());
         }
     }
 

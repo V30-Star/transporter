@@ -416,7 +416,8 @@ class BayarSupplierController extends Controller
 
     public function update(Request $request, $fkasmtno)
     {
-        $header = $this->findHeader($fkasmtno);
+        try {
+            $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
             return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
@@ -735,6 +736,28 @@ class BayarSupplierController extends Controller
         return redirect()
             ->route('bayarsupplier.edit', $voucherNo)
             ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update bayar supplier.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate bayar supplier. Cek data.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate bayar supplier: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate bayar supplier: ' . $e->getMessage());
+        }
     }
 
     public function destroy($fkasmtno)

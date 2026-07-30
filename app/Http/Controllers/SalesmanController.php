@@ -118,57 +118,72 @@ class SalesmanController extends Controller
             return $guard;
         }
 
-        $salesman = Salesman::findOrFail($fsalesmanid);
-        $isTransactionLocked = $this->hasTransactionUsage($salesman);
+        try {
+            $salesman = Salesman::findOrFail($fsalesmanid);
+            $isTransactionLocked = $this->hasTransactionUsage($salesman);
 
-        $request->merge([
-            'fsalesmancode' => strtoupper($isTransactionLocked ? $salesman->fsalesmancode : $request->fsalesmancode),
-        ]);
+            $request->merge([
+                'fsalesmancode' => strtoupper($isTransactionLocked ? $salesman->fsalesmancode : $request->fsalesmancode),
+            ]);
 
-        $validated = $request->validate(
-            [
-                'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
-                'fsalesmanname' => 'required|string',
-            ],
-            [
-                'fsalesmancode.required' => 'Kode salesman wajib diisi.',
-                'fsalesmanname.required' => 'Nama salesman wajib diisi.',
-                'fsalesmancode.unique' => 'Kode salesman sudah ada.',
-            ]
-        );
+            $validated = $request->validate(
+                [
+                    'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
+                    'fsalesmanname' => 'required|string',
+                ],
+                [
+                    'fsalesmancode.required' => 'Kode salesman wajib diisi.',
+                    'fsalesmanname.required' => 'Nama salesman wajib diisi.',
+                    'fsalesmancode.unique' => 'Kode salesman sudah ada.',
+                ]
+            );
 
-        $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
-        $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
+            $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
+            $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        if ($isTransactionLocked) {
-            $validated['fsalesmancode'] = $salesman->fsalesmancode;
+            if ($isTransactionLocked) {
+                $validated['fsalesmancode'] = $salesman->fsalesmancode;
+            }
+
+            $salesman->update($validated);
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logsalesman')->insert([
+                'fsalesmanid'   => $salesman->fsalesmanid,
+                'fsalesmancode' => $salesman->fsalesmancode,
+                'fsalesmanname' => $salesman->fsalesmanname,
+                'fcreatedat'   => $salesman->fcreatedat,
+                'fupdatedat'   => $salesman->fupdatedat,
+                'fcreatedby'   => $salesman->fcreatedby,
+                'fupdatedby'   => $salesman->fupdatedby,
+                'fnonactive'   => $salesman->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
+            return redirect()
+                ->route('salesman.index')
+                ->with('success', 'Salesman berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate salesman. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate salesman: ' . $e->getMessage());
         }
-
-        $salesman->update($validated);
-
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logsalesman')->insert([
-            'fsalesmanid'   => $salesman->fsalesmanid,
-            'fsalesmancode' => $salesman->fsalesmancode,
-            'fsalesmanname' => $salesman->fsalesmanname,
-            'fcreatedat'   => $salesman->fcreatedat,
-            'fupdatedat'   => $salesman->fupdatedat,
-            'fcreatedby'   => $salesman->fcreatedby,
-            'fupdatedby'   => $salesman->fupdatedby,
-            'fnonactive'   => $salesman->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
-
-        return redirect()
-            ->route('salesman.index')
-            ->with('success', 'Salesman berhasil diupdate.');
     }
 
     public function delete($fsalesmanid)

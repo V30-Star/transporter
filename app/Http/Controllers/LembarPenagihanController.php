@@ -292,7 +292,8 @@ class LembarPenagihanController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $data = $this->validatedData($request, $id);
+        try {
+            $data = $this->validatedData($request, $id);
         $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
         $tagihanNo = trim((string) $header->ftagihanno);
         $total = array_sum(array_map('floatval', $data['famount']));
@@ -371,6 +372,28 @@ class LembarPenagihanController extends Controller
         }
 
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if (request()->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update lembar penagihan.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate lembar penagihan. Cek data.');
+        } catch (\Throwable $e) {
+            if (request()->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate lembar penagihan: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate lembar penagihan: ' . $e->getMessage());
+        }
     }
 
     public function destroy(int $id)

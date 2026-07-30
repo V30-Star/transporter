@@ -111,47 +111,62 @@ class GroupcustomerController extends Controller
             return $guard;
         }
 
-        $request->merge([
-            'fgroupcode' => strtoupper($request->fgroupcode),
-        ]);
+        try {
+            $request->merge([
+                'fgroupcode' => strtoupper($request->fgroupcode),
+            ]);
 
-        $validated = $request->validate([
-            'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
-            'fgroupname' => 'required|string',
-        ], [
-            'fgroupcode.required' => 'Kode group wajib diisi.',
-            'fgroupname.required' => 'Nama group wajib diisi.',
-            'fgroupcode.unique' => 'Kode group sudah ada.',
-        ]);
+            $validated = $request->validate([
+                'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
+                'fgroupname' => 'required|string',
+            ], [
+                'fgroupcode.required' => 'Kode group wajib diisi.',
+                'fgroupname.required' => 'Nama group wajib diisi.',
+                'fgroupcode.unique' => 'Kode group sudah ada.',
+            ]);
 
-        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
-        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
+            $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+            $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $userLogin = auth('sysuser')->user();
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
-        $groupcustomer = Groupcustomer::findOrFail($fgroupid);
-        $groupcustomer->update($validated);
+            $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+            $groupcustomer->update($validated);
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logmsgroupcustomer')->insert([
-            'fgroupid'     => $groupcustomer->fgroupid,
-            'fgroupcode'   => $groupcustomer->fgroupcode,
-            'fgroupname'   => $groupcustomer->fgroupname,
-            'fcreatedat'   => $groupcustomer->fcreatedat,
-            'fupdatedat'   => $groupcustomer->fupdatedat,
-            'fcreatedby'   => $groupcustomer->fcreatedby,
-            'fupdatedby'   => $groupcustomer->fupdatedby,
-            'fnonactive'   => $groupcustomer->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logmsgroupcustomer')->insert([
+                'fgroupid'     => $groupcustomer->fgroupid,
+                'fgroupcode'   => $groupcustomer->fgroupcode,
+                'fgroupname'   => $groupcustomer->fgroupname,
+                'fcreatedat'   => $groupcustomer->fcreatedat,
+                'fupdatedat'   => $groupcustomer->fupdatedat,
+                'fcreatedby'   => $groupcustomer->fcreatedby,
+                'fupdatedby'   => $groupcustomer->fupdatedby,
+                'fnonactive'   => $groupcustomer->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
 
-        return redirect()->route('groupcustomer.index')
-            ->with('success', 'Group customer berhasil diupdate.');
+            return redirect()->route('groupcustomer.index')
+                ->with('success', 'Group customer berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate group customer. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate group customer: ' . $e->getMessage());
+        }
     }
 
     public function delete($fgroupid)

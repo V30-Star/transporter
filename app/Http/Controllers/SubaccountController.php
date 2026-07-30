@@ -94,50 +94,65 @@ class SubaccountController extends Controller
 
     public function update(Request $request, $fsubaccountid)
     {
-        $validated = $request->validate(
-            [
-                'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
-                'fsubaccountname' => 'required|string',
-            ],
-            [
-                'fsubaccountcode.required' => 'Kode subaccount wajib diisi.',
-                'fsubaccountname.required' => 'Nama subaccount wajib diisi.',
-                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
-            ]
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
+                    'fsubaccountname' => 'required|string',
+                ],
+                [
+                    'fsubaccountcode.required' => 'Kode subaccount wajib diisi.',
+                    'fsubaccountname.required' => 'Nama subaccount wajib diisi.',
+                    'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
+                ]
+            );
 
-        $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
-        $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
+            $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
+            $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fupdatedby'] = $userLogin->fname ?? null;
-        $validated['fupdatedat'] = now();
+            $userLogin = auth('sysuser')->user();
+            $validated['fupdatedby'] = $userLogin->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        $subaccount = Subaccount::findOrFail($fsubaccountid);
+            $subaccount = Subaccount::findOrFail($fsubaccountid);
 
-        // 1. Jalankan update ke tabel utama
-        $subaccount->update($validated);
+            // 1. Jalankan update ke tabel utama
+            $subaccount->update($validated);
 
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        DB::table('logsubaccount')->insert([
-            'fsubaccountid'   => $subaccount->fsubaccountid,
-            'fsubaccountcode' => $subaccount->fsubaccountcode,
-            'fsubaccountname' => $subaccount->fsubaccountname,
-            'fcreatedat'      => $subaccount->fcreatedat,
-            'fupdatedat'      => $subaccount->fupdatedat,
-            'fcreatedby'      => $subaccount->fcreatedby,
-            'fupdatedby'      => $subaccount->fupdatedby,
-            'fnonactive'      => $subaccount->fnonactive,
-            'feditmode'       => 'U', // 'U' untuk Update
-            'fuseridlog'      => $userLogin->fname ?? null,
-            'fdatetimelog'    => now(),
-        ]);
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            DB::table('logsubaccount')->insert([
+                'fsubaccountid'   => $subaccount->fsubaccountid,
+                'fsubaccountcode' => $subaccount->fsubaccountcode,
+                'fsubaccountname' => $subaccount->fsubaccountname,
+                'fcreatedat'      => $subaccount->fcreatedat,
+                'fupdatedat'      => $subaccount->fupdatedat,
+                'fcreatedby'      => $subaccount->fcreatedby,
+                'fupdatedby'      => $subaccount->fupdatedby,
+                'fnonactive'      => $subaccount->fnonactive,
+                'feditmode'       => 'U', // 'U' untuk Update
+                'fuseridlog'      => $userLogin->fname ?? null,
+                'fdatetimelog'    => now(),
+            ]);
 
-        return redirect()
-            ->route('subaccount.index')
-            ->with('success', 'Subaccount berhasil diupdate.');
+            return redirect()
+                ->route('subaccount.index')
+                ->with('success', 'Subaccount berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate subaccount. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate subaccount: ' . $e->getMessage());
+        }
     }
 
     public function delete($fsubaccountid)

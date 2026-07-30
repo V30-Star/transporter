@@ -1020,7 +1020,8 @@ class AssemblingController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
-        $allowNegativeStockQty = stock_boleh_minus();
+        try {
+            $allowNegativeStockQty = stock_boleh_minus();
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -1392,6 +1393,28 @@ class AssemblingController extends Controller
         return redirect()
             ->route('assembling.index')
             ->with('success', "Assembling {$header->fstockmtno} berhasil diupdate.");
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if (request()->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update assembling.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate assembling. Cek data.');
+        } catch (\Throwable $e) {
+            if (request()->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate assembling: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate assembling: ' . $e->getMessage());
+        }
     }
 
     public function delete($fstockmtid)

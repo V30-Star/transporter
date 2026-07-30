@@ -2618,7 +2618,19 @@ class FakturpembelianController extends Controller
             return redirect()
                 ->route('fakturpembelian.index')
                 ->with('success', $successMessage);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update faktur pembelian.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate faktur pembelian. Cek data.');
+        } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
@@ -2626,7 +2638,7 @@ class FakturpembelianController extends Controller
             }
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+                ->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
 

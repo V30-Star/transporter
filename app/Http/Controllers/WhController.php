@@ -161,67 +161,80 @@ class WhController extends Controller
             return $guard;
         }
 
-        $gudang = Wh::findOrFail($fwhid);
-        $isTransactionLocked = $this->hasTransactionUsage($gudang);
+        try {
+            $gudang = Wh::findOrFail($fwhid);
+            $isTransactionLocked = $this->hasTransactionUsage($gudang);
 
-        $request->merge([
-            'fwhcode' => strtoupper($isTransactionLocked ? $gudang->fwhcode : $request->fwhcode),
-        ]);
+            $request->merge([
+                'fwhcode' => strtoupper($isTransactionLocked ? $gudang->fwhcode : $request->fwhcode),
+            ]);
 
-        $validated = $request->validate(
-            [
-                'fwhcode' => "required|string|unique:mswh,fwhcode,{$fwhid},fwhid",
-                'fwhname' => 'required|string',
-                'faddress' => 'required|string',
-                'fbranchcode' => 'required|string', // Ensure the cabang code is validated and passed
-            ],
-            [
-                'fwhcode.unique' => 'Kode gudang sudah ada.',
-                'fwhcode.required' => 'Kode gudang wajib diisi.',
-                'fwhname.required' => 'Nama gudang wajib diisi.',
-                'faddress.required' => 'Alamat gudang wajib diisi.',
-                'fbranchcode.required' => 'Kode cabang wajib dipilih.',
-            ]
-        );
+            $validated = $request->validate(
+                [
+                    'fwhcode' => "required|string|unique:mswh,fwhcode,{$fwhid},fwhid",
+                    'fwhname' => 'required|string',
+                    'faddress' => 'required|string',
+                    'fbranchcode' => 'required|string',
+                ],
+                [
+                    'fwhcode.unique' => 'Kode gudang sudah ada.',
+                    'fwhcode.required' => 'Kode gudang wajib diisi.',
+                    'fwhname.required' => 'Nama gudang wajib diisi.',
+                    'faddress.required' => 'Alamat gudang wajib diisi.',
+                    'fbranchcode.required' => 'Kode cabang wajib dipilih.',
+                ]
+            );
 
-        // Add default values for the required fields
-        $validated['fwhcode'] = strtoupper($validated['fwhcode']);
-        $validated['fwhname'] = strtoupper($validated['fwhname']);
+            $validated['fwhcode'] = strtoupper($validated['fwhcode']);
+            $validated['fwhname'] = strtoupper($validated['fwhname']);
 
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fstokpenjualan'] = $request->boolean('fstokpenjualan') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fstokpenjualan'] = $request->boolean('fstokpenjualan') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
 
-        // Cari dan update
-        if ($isTransactionLocked) {
-            $validated['fwhcode'] = $gudang->fwhcode;
+            if ($isTransactionLocked) {
+                $validated['fwhcode'] = $gudang->fwhcode;
+            }
+
+            $gudang->update($validated);
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logmswh')->insert([
+                'fwhid'          => $gudang->fwhid,
+                'fwhcode'        => $gudang->fwhcode,
+                'fwhname'        => $gudang->fwhname,
+                'faddress'       => $gudang->faddress,
+                'fcreatedat'     => $gudang->fcreatedat,
+                'fupdatedat'     => $gudang->fupdatedat,
+                'fcreatedby'     => $gudang->fcreatedby,
+                'fupdatedby'     => $gudang->fupdatedby,
+                'fnonactive'     => $gudang->fnonactive,
+                'fbranchcode'    => $gudang->fbranchcode,
+                'fstokpenjualan' => $gudang->fstokpenjualan,
+                'feditmode'      => 'U', // Update
+                'fuseridlog'     => $userLogin->fname ?? null,
+                'fdatetimelog'   => now(),
+            ]);
+
+            return redirect()
+                ->route('gudang.index')
+                ->with('success', 'Gudang berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate gudang. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate gudang: ' . $e->getMessage());
         }
-
-        $gudang->update($validated);
-
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logmswh')->insert([
-            'fwhid'          => $gudang->fwhid,
-            'fwhcode'        => $gudang->fwhcode,
-            'fwhname'        => $gudang->fwhname,
-            'faddress'       => $gudang->faddress,
-            'fcreatedat'     => $gudang->fcreatedat,
-            'fupdatedat'     => $gudang->fupdatedat,
-            'fcreatedby'     => $gudang->fcreatedby,
-            'fupdatedby'     => $gudang->fupdatedby,
-            'fnonactive'     => $gudang->fnonactive,
-            'fbranchcode'    => $gudang->fbranchcode,
-            'fstokpenjualan' => $gudang->fstokpenjualan,
-            'feditmode'      => 'U', // Update
-            'fuseridlog'     => $userLogin->fname ?? null,
-            'fdatetimelog'   => now(),
-        ]);
-
-        return redirect()
-            ->route('gudang.index')
-            ->with('success', 'Gudang berhasil diupdate.');
     }
 
     public function delete($fwhid)

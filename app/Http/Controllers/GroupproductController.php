@@ -125,68 +125,84 @@ class GroupproductController extends Controller
             return $guard;
         }
 
-        $groupproduct = Groupproduct::findOrFail($fgroupid);
-        $oldGroupCode = $groupproduct->fgroupcode;
+        try {
+            $groupproduct = Groupproduct::findOrFail($fgroupid);
+            $oldGroupCode = $groupproduct->fgroupcode;
 
-        $request->merge([
-            'fgroupcode' => strtoupper($request->fgroupcode),
-        ]);
+            $request->merge([
+                'fgroupcode' => strtoupper($request->fgroupcode),
+            ]);
 
-        $newGroupCode = $request->fgroupcode;
-        $isUsed = $this->isGroupProductUsedInTransactions($oldGroupCode);
+            $newGroupCode = $request->fgroupcode;
+            $isUsed = $this->isGroupProductUsedInTransactions($oldGroupCode);
 
-        if ($isUsed && trim($oldGroupCode) !== trim($newGroupCode)) {
-            return redirect()->back()
-                ->withErrors(['fgroupcode' => 'Kode group produk tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.'])
-                ->withInput();
+            if ($isUsed && trim($oldGroupCode) !== trim($newGroupCode)) {
+                return redirect()->back()
+                    ->withErrors(['fgroupcode' => 'Kode group produk tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.'])
+                    ->withInput()
+                    ->with('error', 'Kode group produk tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.');
+            }
+
+            $validated = $request->validate(
+                [
+                    'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
+                    'fgroupname' => 'required|string',
+                ],
+                [
+                    'fgroupcode.unique' => 'Kode group produk sudah ada.',
+                    'fgroupcode.required' => 'Kode group produk wajib diisi.',
+                    'fgroupname.required' => 'Nama group produk wajib diisi.',
+                ]
+            );
+
+            $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+            $validated['fgroupname'] = strtoupper($validated['fgroupname']);
+
+            $userLogin = auth('sysuser')->user();
+            $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
+
+            if (trim($oldGroupCode) !== trim($newGroupCode) && !$isUsed) {
+                \Illuminate\Support\Facades\DB::table('msprd')
+                    ->whereRaw('TRIM(fgroupcode) = ?', [trim($oldGroupCode)])
+                    ->update(['fgroupcode' => $newGroupCode]);
+            }
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+                'fgroupid'     => $groupproduct->fgroupid,
+                'fgroupcode'   => $groupproduct->fgroupcode,
+                'fgroupname'   => $groupproduct->fgroupname,
+                'fcreatedat'   => $groupproduct->fcreatedat,
+                'fupdatedat'   => $groupproduct->fupdatedat,
+                'fcreatedby'   => $groupproduct->fcreatedby,
+                'fupdatedby'   => $groupproduct->fupdatedby,
+                'fnonactive'   => $groupproduct->fnonactive,
+                'feditmode'    => 'U', // Update
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
+            $groupproduct->update($validated);
+
+            return redirect()
+                ->route('groupproduct.index')
+                ->with('success', 'Group product berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate group product. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate group product: ' . $e->getMessage());
         }
-
-        $validated = $request->validate(
-            [
-                'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
-                'fgroupname' => 'required|string',
-            ],
-            [
-                'fgroupcode.unique' => 'Kode group produk sudah ada.',
-                'fgroupcode.required' => 'Kode group produk wajib diisi.',
-                'fgroupname.required' => 'Nama group produk wajib diisi.',
-            ]
-        );
-
-        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
-        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
-
-        $userLogin = auth('sysuser')->user();
-        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
-
-        if (trim($oldGroupCode) !== trim($newGroupCode) && !$isUsed) {
-            \Illuminate\Support\Facades\DB::table('msprd')
-                ->whereRaw('TRIM(fgroupcode) = ?', [trim($oldGroupCode)])
-                ->update(['fgroupcode' => $newGroupCode]);
-        }
-
-        // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
-            'fgroupid'     => $groupproduct->fgroupid,
-            'fgroupcode'   => $groupproduct->fgroupcode,
-            'fgroupname'   => $groupproduct->fgroupname,
-            'fcreatedat'   => $groupproduct->fcreatedat,
-            'fupdatedat'   => $groupproduct->fupdatedat,
-            'fcreatedby'   => $groupproduct->fcreatedby,
-            'fupdatedby'   => $groupproduct->fupdatedby,
-            'fnonactive'   => $groupproduct->fnonactive,
-            'feditmode'    => 'U', // Update
-            'fuseridlog'   => $userLogin->fname ?? null,
-            'fdatetimelog' => now(),
-        ]);
-
-        $groupproduct->update($validated);
-
-        return redirect()
-            ->route('groupproduct.index')
-            ->with('success', 'Group product berhasil diupdate.');
     }
 
     public function delete($fgroupid)

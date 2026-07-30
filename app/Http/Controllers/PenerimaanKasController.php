@@ -211,7 +211,8 @@ class PenerimaanKasController extends Controller
 
     public function update(Request $request, $fkasmtno)
     {
-        $header = $this->findHeader($fkasmtno);
+        try {
+            $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate)) {
             return redirect()->route('penerimaankas.edit', $header->fkasmtno)->with('error', $message);
@@ -361,6 +362,28 @@ class PenerimaanKasController extends Controller
         return redirect()
             ->route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update penerimaan kas.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate penerimaan kas. Cek data.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal mengupdate penerimaan kas: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate penerimaan kas: ' . $e->getMessage());
+        }
     }
 
     public function destroy($fkasmtno)

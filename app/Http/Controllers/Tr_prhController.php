@@ -546,7 +546,8 @@ class Tr_prhController extends Controller
 
     public function update(Request $request, int $fprhid)
     {
-        $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+        try {
+            $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($header->fprdate, 'Data ini')) {
             return redirect()->route('tr_prh.edit', $header->fprhid)->with('error', $message);
@@ -837,6 +838,20 @@ class Tr_prhController extends Controller
         return redirect()
             ->route('tr_prh.index')
             ->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate PR. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate PR: ' . $e->getMessage());
+        }
     }
 
     public function delete(Request $request, $fprhid)

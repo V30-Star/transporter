@@ -515,11 +515,11 @@ class ProductController extends Controller
             return $guard;
         }
 
-        $product = Product::findOrFail($fprdid);
-        if ($message = $this->getApprovalLockMessage($product)) {
-            return redirect()->back()->withInput()->with('error', $message);
-        }
         try {
+            $product = Product::findOrFail($fprdid);
+            if ($message = $this->getApprovalLockMessage($product)) {
+                return redirect()->back()->withInput()->with('error', $message);
+            }
             $usageInfo = $this->getProductUsageInfo($product);
             $enabledImageFields = $this->getEnabledProductImageFields();
 
@@ -749,12 +749,19 @@ class ProductController extends Controller
             return redirect()
                 ->route('product.index')
                 ->with('success', $message);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
             return redirect()
-                ->route('product.edit', $product->fprdid)
-                ->withErrors($e->errors())
+                ->back()
                 ->withInput()
-                ->with('error', 'Produk belum bisa diupdate. Cek data.');
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Produk belum bisa diupdate. Cek data.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate produk: ' . $e->getMessage());
         }
     }
 

@@ -1507,7 +1507,19 @@ class ReturPembelianController extends Controller
             return redirect()
                 ->route('returpembelian.index')
                 ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.');
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+
+            if (request()->expectsJson()) {
+                return response()->json(['message' => $firstError ?: 'Gagal update retur pembelian.'], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Retur pembelian belum bisa diupdate. Cek data.');
+        } catch (\Throwable $e) {
             if (request()->expectsJson()) {
                 return response()->json([
                     'message' => 'Retur pembelian belum bisa diupdate: ' . $e->getMessage(),
@@ -1515,7 +1527,7 @@ class ReturPembelianController extends Controller
             }
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Retur pembelian belum bisa diupdate. Cek data transaksi.']);
+                ->with('error', 'Retur pembelian belum bisa diupdate: ' . $e->getMessage());
         }
     }
 
