@@ -635,6 +635,8 @@
                                 famountbil: Number(invoice.famountbil ?? invoice.famount ?? 0),
                                 fongkos: Number(invoice.fongkos ?? 0),
                                 famount: Number(invoice.famount ?? 0),
+                                fcustno: invoice.fcustno || '',
+                                fcustomername: invoice.fcustomername || '',
                             }]
                         }
                     }));
@@ -675,7 +677,9 @@
                 const famountbil = Number(item.famountbil ?? item.famountso ?? 0);
                 const fongkos = Number(item.fongkos ?? item.fongkosangkut ?? 0);
                 const famount = Number(item.famount ?? item.famountremain ?? item.famountso ?? 0);
-                return { ftrtagihanid, frefsono, frefcode, fsodate, famountbil, fongkos, famount };
+                const fcustno = item.fcustno || '';
+                const fcustomername = item.fcustomername || '';
+                return { ftrtagihanid, frefsono, frefcode, fsodate, famountbil, fongkos, famount, fcustno, fcustomername };
             }
 
             function renderRow(item, index) {
@@ -820,6 +824,7 @@
                 
                 let currentIndex = tbody.querySelectorAll('tr:not(.empty-row)').length;
                 const existingRefs = Array.from(tbody.querySelectorAll('input[name^="frefsono"]')).map(input => input.value.trim().toLowerCase());
+                const customerHidden = document.getElementById('customerCodeHidden');
                 
                 itemsArray.forEach(item => {
                     const normalized = normalizeItem(item);
@@ -829,6 +834,16 @@
                         return;
                     }
                     
+                    // Auto-select Customer if customer input is currently empty
+                    if (customerHidden && !customerHidden.value.trim() && normalized.fcustno) {
+                        if (typeof window.applyTransactionCustomerSelection === 'function') {
+                            window.applyTransactionCustomerSelection({
+                                fcustomercode: normalized.fcustno,
+                                fcustomername: normalized.fcustomername
+                            });
+                        }
+                    }
+
                     const newRow = renderRow(normalized, currentIndex);
                     tbody.appendChild(newRow);
                     currentIndex++;
@@ -877,16 +892,22 @@
                 });
             }
             
-            // Listen to customer selection changes to clear invoice rows
+            // Listen to customer selection changes to clear invoice rows only if switching to a DIFFERENT non-empty customer
             const customerHidden = document.getElementById('customerCodeHidden');
             if (customerHidden) {
+                let previousCustomerCode = customerHidden.value ? customerHidden.value.trim() : '';
+
                 customerHidden.addEventListener('change', () => {
-                    const tbody = document.getElementById('tagihan-detail-body');
-                    if (tbody) {
-                        const dataRows = tbody.querySelectorAll('tr:not(.empty-row)');
-                        dataRows.forEach(tr => tr.remove());
-                        updateTableDOM();
+                    const newCustomerCode = customerHidden.value ? customerHidden.value.trim() : '';
+                    if (previousCustomerCode && newCustomerCode && previousCustomerCode !== newCustomerCode) {
+                        const tbody = document.getElementById('tagihan-detail-body');
+                        if (tbody) {
+                            const dataRows = tbody.querySelectorAll('tr:not(.empty-row)');
+                            dataRows.forEach(tr => tr.remove());
+                            updateTableDOM();
+                        }
                     }
+                    previousCustomerCode = newCustomerCode;
                 });
             }
             

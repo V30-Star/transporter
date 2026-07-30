@@ -604,7 +604,6 @@ class LembarPenagihanController extends Controller
     {
         foreach ($data['frefsono'] as $idx => $refNo) {
             DB::table('trtagihandt')->insert([
-                'ftrtagihanid' => substr($tagihanNo . '-' . str_pad((string) ($idx + 1), 3, '0', STR_PAD_LEFT), 0, 30),
                 'ftrancode' => self::CODE,
                 'frefcode' => substr((string) ($data['frefcode'][$idx] ?? 'INV'), 0, 3),
                 'ftagihanno' => $tagihanNo,
