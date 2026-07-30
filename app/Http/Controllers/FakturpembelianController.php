@@ -1587,7 +1587,7 @@ class FakturpembelianController extends Controller
                 $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
                 $isAdvancePayment = (int) $ftypebuy === 2;
-                $fstockmtcode = $isAdvancePayment ? 'UM' : 'BUY';
+                $fstockmtcode = 'BUY';
 
                 // B. Penomoran
                 if (empty($fstockmtno)) {
@@ -2196,7 +2196,7 @@ class FakturpembelianController extends Controller
             if ((string) $ftypebuy === '2') {
                 $invalidAdvanceCodes = collect($codes)
                     ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->filter(fn($code) => $code !== '')
                     ->unique()
                     ->values()
                     ->all();
