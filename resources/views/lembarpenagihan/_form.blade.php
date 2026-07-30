@@ -219,7 +219,12 @@
 
                     @if (!$isReadOnly)
                         <div class="mt-3 flex gap-2">
-                            <button type="button" @click="openNotaModal()"
+                            <button type="button" @click="openNotaModal('INV')"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
+                                <x-heroicon-o-plus class="w-4 h-4" />
+                                Add Faktur Penjualan
+                            </button>
+                            <button type="button" @click="openNotaModal('REJ')"
                                 class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
                                 <x-heroicon-o-plus class="w-4 h-4" />
                                 Add Retur
@@ -231,8 +236,8 @@
                             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                     <div>
-                                        <h3 class="text-xl font-bold text-gray-800">Browse Retur Penjualan</h3>
-                                        <p class="text-sm text-gray-500 mt-0.5">Pilih retur yang ingin ditambahkan</p>
+                                        <h3 class="text-xl font-bold text-gray-800" x-text="notaMode === 'INV' ? 'Browse Faktur Penjualan' : 'Browse Retur Penjualan'"></h3>
+                                        <p class="text-sm text-gray-500 mt-0.5" x-text="notaMode === 'INV' ? 'Pilih faktur yang ingin ditambahkan' : 'Pilih retur yang ingin ditambahkan'"></p>
                                     </div>
                                     <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                                 </div>
@@ -489,7 +494,9 @@
             return {
                 notaModalOpen: false,
                 notaTable: null,
-                openNotaModal() {
+                notaMode: 'REJ',
+                openNotaModal(mode = 'REJ') {
+                    this.notaMode = mode;
                     this.notaModalOpen = true;
                     this.$nextTick(() => this.initNotaTable());
                 },
@@ -510,11 +517,16 @@
 
                     $('#notaBrowseTable').off('.notapick');
 
+                    const pickableUrls = {
+                        INV: "{{ route('lembarpenagihan.pickable-invoices') }}",
+                        REJ: "{{ route('lembarpenagihan.pickable-returns') }}",
+                    };
+
                     this.notaTable = $('#notaBrowseTable').DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: {
-                            url: "{{ route('lembarpenagihan.pickable-returns') }}",
+                            url: pickableUrls[this.notaMode] || pickableUrls.REJ,
                             type: 'GET',
                             data: (d) => {
                                 const orderColumn = d.columns[d.order[0].column].data;
@@ -603,21 +615,21 @@
                         event.preventDefault();
                         event.stopPropagation();
                         const data = this.notaTable?.row($(event.currentTarget).closest('tr')).data();
-                        this.pickNota(data);
+                        this.pickNota(data, this.notaMode);
                     });
 
                     $('#notaBrowseTable').on('click.notapick', 'tbody tr', (event) => {
                         if ($(event.target).closest('button, a, input, select, textarea').length) return;
                         const data = this.notaTable?.row(event.currentTarget).data();
-                        this.pickNota(data);
+                        this.pickNota(data, this.notaMode);
                     });
                 },
-                pickNota(invoice) {
+                pickNota(invoice, mode = 'REJ') {
                     if (!invoice || !invoice.fsono) return;
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             items: [{
-                                frefcode: 'REJ',
+                                frefcode: mode === 'INV' ? 'INV' : 'REJ',
                                 fsono: invoice.fsono,
                                 fsodate: invoice.fsodate,
                                 famountbil: Number(invoice.famountbil ?? invoice.famount ?? 0),
