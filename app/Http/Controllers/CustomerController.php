@@ -240,13 +240,13 @@ class CustomerController extends Controller
             $request->merge([
                 'fcustomercode' => strtoupper($request->fcustomercode),
             ]);
-            // Validate incoming request data
+
             $validated = $request->validate([
-                'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',  // Validate customer code (max 10 chars)
-                'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
-                'fgroup' => '', // Validate the Group Produk field
-                'fsalesman' => '', // Validate the Group Produk field
-                'fwilayah' => '', // Validate the Group Produk field
+                'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',
+                'fcustomername' => 'required|string|max:50',
+                'fgroup' => '',
+                'fsalesman' => '',
+                'fwilayah' => '',
                 'fjadwaltukarfakturmingguan' => '',
                 'fjadwaltukarfakturhari' => '',
                 'fkodefp' => '',
@@ -261,7 +261,7 @@ class CustomerController extends Controller
                 'fkirimaddress2' => '',
                 'fkirimaddress3' => '',
                 'ftaxaddress' => '',
-                'fhargalevel' => '|in:0,1,2',
+                'fhargalevel' => 'nullable|in:0,1,2',
                 'fkontakperson' => '',
                 'fjabatan' => '',
                 'frekening' => '',
@@ -308,11 +308,8 @@ class CustomerController extends Controller
 
             $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
             $validated['fcreatedat'] = now();
-
             $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-
             $validated['fblokir'] = $request->boolean('fblokir') ? '1' : '0';
-
             $validated['fcurrency'] = 'IDR';
 
             if (isset($validated['fnamaktp']) && is_string($validated['fnamaktp'])) {
@@ -331,7 +328,13 @@ class CustomerController extends Controller
                 ->route('customer.create')
                 ->with('success', 'Customer berhasil disimpan.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal menyimpan customer. Cek data.');
         } catch (\Throwable $e) {
             return redirect()
                 ->back()
@@ -418,17 +421,11 @@ class CustomerController extends Controller
             $isTransactionLocked = $this->hasTransactionUsage($customer);
 
             // 2. LOGIKA PENANGANAN fcustomercode
-
-            // Kondisi: Jika input 'fcustomercode' kosong atau NULL
             if ($isTransactionLocked || empty($request->fcustomercode)) {
-
-                // JIKA KOSONG: Ambil dan gunakan nilai yang lama dari database
                 $request->merge([
                     'fcustomercode' => $customer->fcustomercode,
                 ]);
             } else {
-
-                // JIKA DIISI: Gunakan nilai baru dari request dan ubah menjadi uppercase
                 $request->merge([
                     'fcustomercode' => strtoupper($request->fcustomercode),
                 ]);
@@ -436,10 +433,10 @@ class CustomerController extends Controller
 
             $validated = $request->validate([
                 'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
-                'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
-                'fgroup' => '', // Validate the Group Produk field
-                'fsalesman' => '', // Validate the Group Produk field
-                'fwilayah' => '', // Validate the Group Produk field
+                'fcustomername' => 'required|string|max:50',
+                'fgroup' => '',
+                'fsalesman' => '',
+                'fwilayah' => '',
                 'fjadwaltukarfakturmingguan' => '',
                 'fjadwaltukarfakturhari' => '',
                 'fkodefp' => '',
@@ -454,7 +451,7 @@ class CustomerController extends Controller
                 'fkirimaddress2' => '',
                 'fkirimaddress3' => '',
                 'ftaxaddress' => '',
-                'fhargalevel' => '|in:0,1,2',
+                'fhargalevel' => 'nullable|in:0,1,2',
                 'fkontakperson' => '',
                 'fjabatan' => '',
                 'frekening' => '',
@@ -518,7 +515,7 @@ class CustomerController extends Controller
 
             $customer->update($validated);
 
-            // 2. Selalu INSERT log baru (feditmode = 'U')
+            // Selalu INSERT log baru (feditmode = 'U')
             \Illuminate\Support\Facades\DB::table('logmscustomer')->insert([
                 'fcustomerid'                => $customer->fcustomerid,
                 'fcustomercode'              => $customer->fcustomercode,
@@ -564,7 +561,13 @@ class CustomerController extends Controller
                 ->route('customer.index')
                 ->with('success', 'Customer berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $firstError ?: 'Gagal mengupdate customer. Cek data.');
         } catch (\Throwable $e) {
             return redirect()
                 ->back()
