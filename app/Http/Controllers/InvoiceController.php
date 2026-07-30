@@ -3412,6 +3412,22 @@ class InvoiceController extends Controller
 
     private function getCustomerAdvanceWarningMap(): array
     {
+        $documentsByCustomer = DB::table('trsisadp_penjualan')
+            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
+            ->addSelect(['fsono', 'fsodate', 'fsisadp'])
+            ->where('fsisadp', '>', 0)
+            ->orderBy('fsodate')
+            ->orderBy('fsono')
+            ->get()
+            ->map(fn ($doc) => [
+                'fcustno' => trim((string) ($doc->fcustno ?? '')),
+                'fsono' => trim((string) ($doc->fsono ?? '')),
+                'fsodate' => $doc->fsodate,
+                'fsisadp' => (float) ($doc->fsisadp ?? 0),
+            ])
+            ->filter(fn ($doc) => $doc['fcustno'] !== '' && $doc['fsono'] !== '')
+            ->groupBy('fcustno');
+
         return DB::table('trsisadp_penjualan')
             ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
             ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
@@ -3419,7 +3435,7 @@ class InvoiceController extends Controller
             ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fcustno ?? '')) !== '')
-            ->mapWithKeys(function ($row) {
+            ->mapWithKeys(function ($row) use ($documentsByCustomer) {
                 $customerCode = trim((string) ($row->fcustno ?? ''));
                 $remainRp = (float) ($row->total_remain ?? 0);
 
@@ -3428,6 +3444,7 @@ class InvoiceController extends Controller
                         'message' => $remainRp > 0
                             ? 'Customer ini memiliki DP sebesar ' . number_format($remainRp, 2, ',', '.') . '.'
                             : 'Customer ini memiliki DP.',
+                        'documents' => $documentsByCustomer->get($customerCode, collect())->values()->all(),
                     ],
                 ];
             })

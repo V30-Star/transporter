@@ -101,6 +101,7 @@ class LembarPenagihanController extends Controller
         $query = DB::table('tranmt as i')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'i.fcustno')
             ->where('i.ftrcode', 'INV')
+            ->whereRaw('COALESCE(i.famountremain, i.famountso, 0) <> 0')
             ->when($customerCode !== '', fn ($q) => $q->where('i.fcustno', $customerCode))
             ->select([
                 'i.fsono',
@@ -115,6 +116,7 @@ class LembarPenagihanController extends Controller
 
         $recordsTotal = DB::table('tranmt as i')
             ->where('i.ftrcode', 'INV')
+            ->whereRaw('COALESCE(i.famountremain, i.famountso, 0) <> 0')
             ->when($customerCode !== '', fn ($q) => $q->where('i.fcustno', $customerCode))
             ->count();
 
@@ -166,6 +168,7 @@ class LembarPenagihanController extends Controller
         $query = DB::table('tranmt as r')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'r.fcustno')
             ->where('r.ftrcode', 'REJ')
+            ->whereRaw('COALESCE(r.famountremain, r.famountso, 0) <> 0')
             ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
             ->select([
                 'r.fsono',
@@ -180,6 +183,7 @@ class LembarPenagihanController extends Controller
 
         $recordsTotal = DB::table('tranmt as r')
             ->where('r.ftrcode', 'REJ')
+            ->whereRaw('COALESCE(r.famountremain, r.famountso, 0) <> 0')
             ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
             ->count();
 
@@ -600,7 +604,6 @@ class LembarPenagihanController extends Controller
     {
         foreach ($data['frefsono'] as $idx => $refNo) {
             DB::table('trtagihandt')->insert([
-                'ftrtagihanid' => substr($tagihanNo . '-' . str_pad((string) ($idx + 1), 3, '0', STR_PAD_LEFT), 0, 30),
                 'ftrancode' => self::CODE,
                 'frefcode' => substr((string) ($data['frefcode'][$idx] ?? 'INV'), 0, 3),
                 'ftagihanno' => $tagihanNo,

@@ -7,7 +7,8 @@
     $submitLabel = $submitLabel ?? 'Simpan';
     $backRoute = $backRoute ?? route('pelunasancustomer.index');
     $draftKey = $draftKey ?? 'pelunasancustomer:create';
-    $headerData = $headerData ?? null;
+    $headerData = $headerData ?? $header ?? null;
+    $header = $headerData;
     $parseAmount = function ($value): float {
         if (is_string($value)) {
             $value = trim($value);
@@ -482,8 +483,8 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
     {{-- FOOTER INFO --}}
     @php
-        $lastUpdate = $header->fupdatedat ?: $header->fcreatedat;
-        $updatedBy = $header->fuserupdate ?: ($header->fusercreate ?: '—');
+        $lastUpdate = $header?->fupdatedat ?: $header?->fcreatedat;
+        $updatedBy = $header?->fuserupdate ?: ($header?->fusercreate ?: '—');
     @endphp
     <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
         <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
