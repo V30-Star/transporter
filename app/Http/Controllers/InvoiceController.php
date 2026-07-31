@@ -1177,18 +1177,23 @@ class InvoiceController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $sep = $hasPpn ? '.' : '/';
-        $prefix = sprintf('INV%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
+        $codeInit = trim((string) DB::table('setini')->value('finitinvoice'));
+        if ($codeInit === '') {
+            $codeInit = 'INV';
+        }
 
-        $lockKey = crc32('TRANMT|INV|' . $kodeCabang . '|' . $date->format('Y-m'));
+        $sep = $hasPpn ? '.' : '/';
+        $prefix = sprintf('%s%s%s%s%s%s', $codeInit, $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
+
+        $lockKey = crc32('TRANMT|' . $codeInit . '|' . $kodeCabang . '|' . $date->format('Y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tranmt')
-                ->where(function ($q) use ($kodeCabang, $date) {
+                ->where(function ($q) use ($codeInit, $kodeCabang, $date) {
                     $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fsono', 'like', "INV.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "INV/{$kodeCabang}/{$yymm}/%");
+                    $q->where('fsono', 'like', "{$codeInit}.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "{$codeInit}/{$kodeCabang}/{$yymm}/%");
                 })
                 ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
@@ -1197,9 +1202,9 @@ class InvoiceController extends Controller
         } else {
             $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('tranmt')
-                ->where(function ($q) use ($kodeCabang, $yymm) {
-                    $q->where('fsono', 'like', "INV.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "INV/{$kodeCabang}/{$yymm}/%");
+                ->where(function ($q) use ($codeInit, $kodeCabang, $yymm) {
+                    $q->where('fsono', 'like', "{$codeInit}.{$kodeCabang}.{$yymm}.%")
+                      ->orWhere('fsono', 'like', "{$codeInit}/{$kodeCabang}/{$yymm}/%");
                 })
                 ->orderByDesc('fsono')
                 ->value('fsono');
@@ -1707,7 +1712,8 @@ class InvoiceController extends Controller
                     $digits = 4;
 
                     // Tentukan prefix berdasarkan jenis penjualan
-                    $docType = $isAdvancePayment ? 'UMJ' : 'INV';
+                    $codeInit = trim((string) DB::table('setini')->value('finitinvoice')) ?: 'INV';
+                    $docType = $isAdvancePayment ? 'UMJ' : $codeInit;
                     $hasPpn = $fapplyppn === '1' || $fincludeppn === '1';
                     $sep = $hasPpn ? '.' : '/';
                     $prefix = sprintf('%s%s%s%s%s%s', $docType, $sep, $branchCode, $sep, $year . $month, $sep);
