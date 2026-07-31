@@ -209,7 +209,7 @@ class ListingJurnalController extends Controller
         $jurnalUmum = DB::table('jurnalmt as m')
             ->leftJoin('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
             ->leftJoin('account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, d.faccountnote AS fnote");
 
         // 2. Tambah placeholder fnote di Kas Header
         $kasHeader = DB::table('trkasmt as m')
