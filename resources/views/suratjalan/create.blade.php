@@ -1224,7 +1224,7 @@
             validateSoQtyRow(row, showToast = true) {
                 const refDoc = String(row?.frefso ?? '').trim();
                 if (!refDoc) return true;
-                const refLabel = refDoc.startsWith('INV.') ? 'Faktur Penjualan' : 'SO';
+                const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? 'Faktur Penjualan' : 'SO';
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {

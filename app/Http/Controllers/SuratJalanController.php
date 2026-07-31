@@ -2151,7 +2151,12 @@ class SuratJalanController extends Controller
 
     private function isInvoiceReferenceDoc(string $docNo): bool
     {
-        return str_starts_with(strtoupper(trim($docNo)), 'INV.');
+        $docNo = strtoupper(trim($docNo));
+        if ($docNo === '') {
+            return false;
+        }
+        $codeInit = strtoupper(trim((string) DB::table('setini')->value('finitinvoice')) ?: 'INV');
+        return str_starts_with($docNo, $codeInit . '.') || str_starts_with($docNo, $codeInit . '/') || str_starts_with($docNo, 'INV.') || str_starts_with($docNo, 'INV/');
     }
 
     private function extractSoReferenceDocsFromKeys(array $keys): array
@@ -2340,7 +2345,7 @@ class SuratJalanController extends Controller
             ->pluck('mt.fsono');
 
         $parts = [];
-        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => $this->isInvoiceReferenceDoc((string) $no));
         if ($usedByInvoice->isNotEmpty()) {
             $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
         }

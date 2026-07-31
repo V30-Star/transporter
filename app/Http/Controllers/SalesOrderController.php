@@ -2453,7 +2453,11 @@ class SalesOrderController extends Controller
             ->orderBy('mt.fsono')
             ->pluck('mt.fsono');
 
-        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        $codeInit = strtoupper(trim((string) DB::table('setini')->value('finitinvoice')) ?: 'INV');
+        $usedByInvoice = $usedBySalesDocs->filter(function ($no) use ($codeInit) {
+            $upperNo = strtoupper((string) $no);
+            return str_starts_with($upperNo, $codeInit . '.') || str_starts_with($upperNo, $codeInit . '/') || str_starts_with($upperNo, 'INV.') || str_starts_with($upperNo, 'INV/');
+        });
         $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
 
         if ($usedBySrj->isEmpty() && $usedByInvoice->isEmpty() && $usedByRetur->isEmpty()) {
