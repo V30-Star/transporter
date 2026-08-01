@@ -15,7 +15,8 @@
 
 <style>
     #{{ $tableId }}_wrapper .dt-layout-row,
-    #{{ $tableId }}_wrapper .dataTables_wrapper .row {
+    #{{ $tableId }}_wrapper .dataTables_wrapper .row,
+    #{{ $controlsId }} {
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
@@ -32,7 +33,12 @@
     #{{ $tableId }}_wrapper .dt-search,
     #{{ $tableId }}_wrapper .dt-length,
     #{{ $tableId }}_wrapper .dt-info,
-    #{{ $tableId }}_wrapper .dt-paging {
+    #{{ $tableId }}_wrapper .dt-paging,
+    #{{ $tableId }}_filter,
+    #{{ $controlsId }} .dataTables_filter,
+    #{{ $controlsId }} .dataTables_length,
+    #{{ $controlsId }} .dt-search,
+    #{{ $controlsId }} .dt-length {
         display: inline-flex !important;
         align-items: center !important;
         gap: 8px !important;
@@ -43,13 +49,18 @@
     }
 
     #{{ $tableId }}_wrapper .dataTables_filter,
-    #{{ $tableId }}_wrapper .dt-search {
+    #{{ $tableId }}_wrapper .dt-search,
+    #{{ $tableId }}_filter,
+    #{{ $controlsId }} .dataTables_filter,
+    #{{ $controlsId }} .dt-search {
         flex: 1 1 auto !important;
         justify-content: flex-start !important;
     }
 
     #{{ $tableId }}_wrapper .dataTables_length,
-    #{{ $tableId }}_wrapper .dt-length {
+    #{{ $tableId }}_wrapper .dt-length,
+    #{{ $controlsId }} .dataTables_length,
+    #{{ $controlsId }} .dt-length {
         margin-left: auto !important;
         flex: 0 0 auto !important;
         justify-content: flex-end !important;
@@ -58,13 +69,30 @@
     #{{ $tableId }}_wrapper .dataTables_filter label,
     #{{ $tableId }}_wrapper .dataTables_length label,
     #{{ $tableId }}_wrapper .dt-search label,
-    #{{ $tableId }}_wrapper .dt-length label {
+    #{{ $tableId }}_wrapper .dt-length label,
+    #{{ $tableId }}_filter label,
+    #{{ $controlsId }} .dataTables_filter label,
+    #{{ $controlsId }} .dataTables_length label,
+    #{{ $controlsId }} .dt-search label,
+    #{{ $controlsId }} .dt-length label {
         display: inline-flex !important;
         align-items: center !important;
         gap: 8px !important;
         white-space: nowrap !important;
         flex-wrap: nowrap !important;
         margin: 0 !important;
+    }
+
+    #{{ $tableId }}_filter input,
+    #{{ $tableId }}_wrapper .dataTables_filter input,
+    #{{ $tableId }}_wrapper .dt-search input,
+    #{{ $tableId }}_wrapper .dt-search .dt-input,
+    #{{ $controlsId }} .dataTables_filter input,
+    #{{ $controlsId }} .dt-search input,
+    #{{ $controlsId }} .dt-search .dt-input,
+    #{{ $controlsId }} input[type="search"] {
+        width: {{ $searchWidth }} !important;
+        max-width: 100% !important;
     }
 
     #{{ $tableId }}_wrapper .dataTables_paginate,
