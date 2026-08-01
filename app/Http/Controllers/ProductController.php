@@ -238,7 +238,7 @@ class ProductController extends Controller
 
         $term = (string) $request->get('term', '');
 
-        $q = DB::table('msprd')->whereNotNull('fprdname');
+        $q = DB::table('msprd')->whereNotNull('fprdname')->where('fapproval', 1);
 
         if ($term !== '') {
             $q->where('fprdname', 'ILIKE', "%{$term}%");
@@ -260,7 +260,7 @@ class ProductController extends Controller
 
         $term = (string) $request->get('term', '');
 
-        $q = DB::table('msprd')->whereNotNull('fprdcode');
+        $q = DB::table('msprd')->whereNotNull('fprdcode')->where('fapproval', 1);
 
         if ($term !== '') {
             $q->where('fprdcode', 'ILIKE', "%{$term}%");

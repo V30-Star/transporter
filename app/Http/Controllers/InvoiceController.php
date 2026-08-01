@@ -1343,6 +1343,7 @@ class InvoiceController extends Controller
             ->first(['fcustomercode', 'fhargalevel']);
         $product = DB::table('msprd')
             ->whereRaw('TRIM(fprdcode) = ?', [$productCode])
+            ->where('fapproval', 1)
             ->first($this->productSelectColumns());
 
         abort_if(! $customer || ! $product, 404, 'Customer atau produk tidak ditemukan.');
