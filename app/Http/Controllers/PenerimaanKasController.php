@@ -127,6 +127,7 @@ class PenerimaanKasController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $savedHeaderId,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'frefno' => $detail['frefno'] ?? null,
@@ -307,6 +308,7 @@ class PenerimaanKasController extends Controller
                 $createdDetail = Trkasdt::create([
                     'fkasdtid'    => $nextDetailId + $index,
                     'fkasmtid'    => $header->fkasmtid,
+                    'fkasmtno'    => $updatedHeader->fkasmtno,
                     'ftrancode'   => self::TRAN_CODE,
                     'faccount'    => $detail['faccount'],
                     'frefno'      => $detail['frefno'] ?? null,
@@ -355,12 +357,12 @@ class PenerimaanKasController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message'      => 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.',
-                'redirect_url' => route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno]),
+                'redirect_url' => route('penerimaankas.index', ['fkasmtno' => $header->fkasmtno]),
             ]);
         }
 
         return redirect()
-            ->route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno])
+            ->route('penerimaankas.index', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();

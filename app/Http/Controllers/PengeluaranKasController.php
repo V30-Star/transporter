@@ -124,6 +124,7 @@ class PengeluaranKasController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $savedHeaderId,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'frefno' => $detail['frefno'] ?? null,
@@ -304,6 +305,7 @@ class PengeluaranKasController extends Controller
                 $createdDetail = Trkasdt::create([
                     'fkasdtid'    => $nextDetailId + $index,
                     'fkasmtid'    => $header->fkasmtid,
+                    'fkasmtno'    => $updatedHeader->fkasmtno,
                     'ftrancode'   => self::TRAN_CODE,
                     'faccount'    => $detail['faccount'],
                     'frefno'      => $detail['frefno'] ?? null,
@@ -352,12 +354,12 @@ class PengeluaranKasController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message'      => 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.',
-                'redirect_url' => route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno]),
+                'redirect_url' => route('pengeluarankas.index', ['fkasmtno' => $header->fkasmtno]),
             ]);
         }
 
         return redirect()
-            ->route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno])
+            ->route('pengeluarankas.index', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
