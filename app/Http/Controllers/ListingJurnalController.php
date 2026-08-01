@@ -15,7 +15,7 @@ class ListingJurnalController extends Controller
 
         $typeOptions = DB::table('tbmaster')
             ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
-            ->orderBy('fmastercode')
+            ->orderBy('fmasternum', 'asc')
             ->get()
             ->map(function ($item) {
                 $item->fmastercode = trim((string) $item->fmastercode);

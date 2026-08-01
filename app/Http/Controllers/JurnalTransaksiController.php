@@ -145,7 +145,7 @@ class JurnalTransaksiController extends Controller
 
         $configured = DB::table('tbmaster')
             ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
-            ->orderBy('fmastercode')
+            ->orderBy('fmasternum', 'asc')
             ->get()
             ->map(function ($item) {
                 $item->fmastercode = trim($item->fmastercode);
