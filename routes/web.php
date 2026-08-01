@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdjstockController;
 use App\Http\Controllers\AnalisaUmurHutangController;
 use App\Http\Controllers\AnalisaUmurPiutangController;
@@ -88,9 +89,7 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Settings page
     Route::get('/settings', function () {
