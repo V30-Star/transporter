@@ -98,11 +98,11 @@
             color: #475569; /* Slate 600 */
         }
 
-        /* --- JOURNAL HEADER STYLES (4 Kolom) --- */
+        /* --- JOURNAL HEADER STYLES (5 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 60mm 40mm 1fr 18mm;
+            grid-template-columns: 20mm 45mm 30mm 1fr 18mm;
             gap: 1px;
             font-size: 8.5px;
             padding: 2px 8px;
@@ -168,7 +168,8 @@
         /* Fonts for Numbers & System Codes */
         .po-header > div:nth-child(1),
         .po-header > div:nth-child(2),
-        .po-header > div:nth-child(4) {
+        .po-header > div:nth-child(3),
+        .po-header > div:nth-child(5) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -377,6 +378,7 @@
 
         {{-- Header Labels --}}
         <div class="po-header-labels">
+            <div>Cabang</div>
             <div>No. Jurnal</div>
             <div>Tanggal</div>
             <div>Keterangan</div>
@@ -400,6 +402,7 @@
             @endphp
             <div class="journal-block">
                 <div class="po-header">
+                    <div>{{ $firstLine->fbranchcode }}</div>
                     <div class="truncate">{{ $jurnalNo }}</div>
                     <div>{{ $jurnalDateFormatted }}</div>
                     <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
@@ -571,7 +574,7 @@
 
                         // Append header clone with "(Lanjutan)" suffix
                         const headerClone = poHeader.cloneNode(true);
-                        const journalNoDiv = headerClone.firstElementChild;
+                        const journalNoDiv = headerClone.children[1];
                         if (journalNoDiv) {
                             journalNoDiv.textContent = journalNoDiv.textContent + " (Lanjutan)";
                         }
