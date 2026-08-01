@@ -84,7 +84,7 @@
         {{-- Card 4: Omset Penjualan Tahun Ini --}}
         <div class="bg-white border border-indigo-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider">Omset (Tahun {{ $selectedYear }})</span>
+                <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider">Omset (YTD)</span>
                 <div class="w-9 h-9 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
