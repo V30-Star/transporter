@@ -263,7 +263,7 @@ class Tr_pohController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dengan JOIN
+        // Base query dengan JOIN - Hanya tampilkan PR yang sudah disetujui (fapproval = 1)
         $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->leftJoin('mscabang', 'tr_prh.fbranchcode', '=', 'mscabang.fcabangkode')
             ->select(
@@ -273,10 +273,20 @@ class Tr_pohController extends Controller
                 'mscabang.fcabangname'
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
-            ->whereIn('tr_prh.fprdin', ['0', '']);
+            ->whereIn('tr_prh.fprdin', ['0', ''])
+            ->where(function ($q) {
+                $q->where('tr_prh.fapproval', 1)
+                  ->orWhere('tr_prh.fapproval', '1');
+            });
 
-        // Total records tanpa filter
-        $recordsTotal = Tr_prh::count();
+        // Total records sesuai kriteria dasar
+        $recordsTotal = Tr_prh::whereIn('tr_prh.fclose', ['0', ''])
+            ->whereIn('tr_prh.fprdin', ['0', ''])
+            ->where(function ($q) {
+                $q->where('tr_prh.fapproval', 1)
+                  ->orWhere('tr_prh.fapproval', '1');
+            })
+            ->count();
 
         // Search
         if ($request->filled('search') && $request->search != '') {
@@ -327,7 +337,11 @@ class Tr_pohController extends Controller
 
     public function items($id)
     {
-        $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+        $header = Tr_prh::where('fprhid', $id)
+            ->where(function ($q) {
+                $q->where('fapproval', 1)->orWhere('fapproval', '1');
+            })
+            ->firstOrFail();
 
         $items = DB::table('tr_prd as d')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'd.fprdcode')
