@@ -884,7 +884,7 @@ class ReturPenjualanController extends Controller
             $request->validate([
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
-                'ffrom' => ['nullable', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:30'],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
                 'fqty' => ['required', 'array'],
@@ -900,6 +900,8 @@ class ReturPenjualanController extends Controller
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
             ]);
         } catch (ValidationException $e) {
             return back()->withInput()->withErrors($e->errors());
@@ -2072,6 +2074,8 @@ class ReturPenjualanController extends Controller
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+        ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
         ]);
 
         // 2. LOAD HEADER

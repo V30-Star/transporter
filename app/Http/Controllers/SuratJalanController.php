@@ -762,7 +762,7 @@ class SuratJalanController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ], [
-                'ffrom.required' => 'Gudang wajib diisi.',
+                'ffrom.required' => 'Gudang wajib di isi.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             throw $ve;
@@ -1412,7 +1412,7 @@ class SuratJalanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
-            'ffrom.required' => 'Gudang wajib diisi.',
+            'ffrom.required' => 'Gudang wajib di isi.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes(

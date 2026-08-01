@@ -459,7 +459,7 @@ class PemakaianbarangController extends Controller
         $request->validate([
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
 
@@ -493,6 +493,7 @@ class PemakaianbarangController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'], // PPN nominal
         ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
@@ -1005,7 +1006,7 @@ class PemakaianbarangController extends Controller
         $request->validate([
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -1029,6 +1030,7 @@ class PemakaianbarangController extends Controller
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
         ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.min' => 'Qty tidak boleh 0.',

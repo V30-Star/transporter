@@ -630,6 +630,9 @@ class MutasiController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
+                'fto.required' => 'Gudang wajib di isi.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1012,6 +1015,9 @@ class MutasiController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
+                'fto.required' => 'Gudang wajib di isi.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));

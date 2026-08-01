@@ -545,7 +545,7 @@ class ReturPembelianController extends Controller
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
-                'ffrom' => ['nullable', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'fitemcode' => ['required', 'array', 'min:1'],
@@ -571,6 +571,7 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string', 'max:100'],
                 'frefpo' => ['nullable', 'string', 'max:100'],
             ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'fitemcode.required' => 'Minimal 1 item.',
@@ -1124,7 +1125,7 @@ class ReturPembelianController extends Controller
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
-                'ffrom' => ['nullable', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'fitemcode' => ['required', 'array', 'min:1'],
@@ -1150,6 +1151,7 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string'],
                 'frefpo' => ['nullable', 'string'],
             ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'fitemcode.required' => 'Minimal 1 item.',

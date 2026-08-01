@@ -580,7 +580,7 @@ class AdjstockController extends Controller
             $request->validate([
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
-                'ffrom' => ['nullable', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
                 'ftrancode' => ['nullable', 'string', 'max:3'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -606,6 +606,8 @@ class AdjstockController extends Controller
                 'fcurrency' => ['nullable', 'string', 'max:5'],
                 'frate' => ['nullable', 'numeric', 'min:0'],
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1077,7 +1079,7 @@ class AdjstockController extends Controller
             $validated = $request->validate([
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
-                'ffrom' => ['nullable', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
                 'ftrancode' => ['nullable', 'string', 'max:3'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -1103,6 +1105,8 @@ class AdjstockController extends Controller
                 'fcurrency' => ['nullable', 'string', 'max:5'],
                 'frate' => ['nullable', 'numeric', 'min:0'],
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
             ]);
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 

@@ -872,6 +872,8 @@ class PenerimaanBarangController extends Controller
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+        ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1298,6 +1300,8 @@ class PenerimaanBarangController extends Controller
             'fcurrency' => ['nullable', 'string', 'max:5'],
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+        ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));

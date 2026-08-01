@@ -1315,7 +1315,7 @@ class FakturpembelianController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
-                'ffrom.required' => 'Gudang wajib diisi.',
+                'ffrom.required' => 'Gudang wajib di isi.',
                 'frefno.required' => 'No faktur wajib diisi.',
                 'frefpo.required' => 'Faktur Pajak wajib diisi karena pembelian ada PPN.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
@@ -2122,7 +2122,7 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
-                'ffrom.required' => 'Gudang wajib diisi.',
+                'ffrom.required' => 'Gudang wajib di isi.',
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'frefno.required' => 'No. faktur wajib diisi.',

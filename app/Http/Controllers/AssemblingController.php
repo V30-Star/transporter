@@ -524,7 +524,7 @@ class AssemblingController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ], [
-            'ffrom.required' => 'Gudang wajib diisi.',
+            'ffrom.required' => 'Gudang wajib di isi.',
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
@@ -1051,6 +1051,7 @@ class AssemblingController extends Controller
             'fitemtype' => ['nullable', 'array'],
             'fitemtype.*' => ['nullable', 'string', 'in:bahan_baku,barang_jadi'],
         ], [
+            'ffrom.required' => 'Gudang wajib di isi.',
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.min' => 'Qty tidak boleh 0.',
