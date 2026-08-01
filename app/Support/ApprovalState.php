@@ -5,6 +5,13 @@ namespace App\Support;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 
+/**
+ * Simple approval helper.
+ *
+ * fapproval semantics:
+ *   0  = belum disetujui (not approved)
+ *   1  = sudah disetujui (approved)
+ */
 class ApprovalState
 {
     public static function normalize($value): string
@@ -12,120 +19,70 @@ class ApprovalState
         return trim((string) ($value ?? ''));
     }
 
-    public static function isApprovedValue($value): bool
-    {
-        $normalized = self::normalize($value);
-
-        if ($normalized === '2') {
-            return true;
-        }
-
-        return $normalized !== '' && ! in_array($normalized, ['0', '1', '2'], true);
-    }
-
-    public static function isApprovalNotRequiredValue($value): bool
-    {
-        return self::normalize($value) === '0';
-    }
-
-    public static function isRejectedValue($value): bool
-    {
-        return self::normalize($value) === '0';
-    }
-
-    public static function isPendingValue($value): bool
-    {
-        return self::normalize($value) === '1';
-    }
-
+    /** Returns true when the record's fapproval is 1 (approved). */
     public static function isApprovedRecord($record): bool
     {
-        return self::isUsableRecord($record);
+        return self::normalize(data_get($record, 'fapproval')) === '1';
     }
 
+    /** Alias for isApprovedRecord – kept for call-site compatibility. */
     public static function isUsableRecord($record): bool
     {
-        $stage1 = self::normalize(data_get($record, 'fapproval'));
-        $stage2 = self::normalize(data_get($record, 'fapproval2'));
-
-        if ($stage1 === '' && $stage2 === '') {
-            return true;
-        }
-
-        return self::isApprovalNotRequiredValue($stage1)
-            || self::isApprovedValue($stage1)
-            || self::isApprovedValue($stage2);
+        return self::isApprovedRecord($record);
     }
 
-    public static function hasApprovalProgress($record): bool
-    {
-        return self::normalize(data_get($record, 'fapproval')) !== ''
-            || self::normalize(data_get($record, 'fapproval2')) !== '';
-    }
-
+    /** A record blocks editing when it is already approved (fapproval = 1). */
     public static function isEditBlockedRecord($record): bool
     {
-        $stage1 = self::normalize(data_get($record, 'fapproval'));
-        $stage2 = self::normalize(data_get($record, 'fapproval2'));
-
-        if (self::isApprovedValue($stage1) || self::isApprovedValue($stage2)) {
-            return false;
-        }
-
-        if ($stage1 === '' && $stage2 === '') {
-            return false;
-        }
-
-        return in_array($stage1, ['0', '1'], true) || in_array($stage2, ['0', '1'], true);
+        return self::isApprovedRecord($record);
     }
 
+    /** Alias for isEditBlockedRecord. */
     public static function isLockedRecord($record): bool
     {
         return self::isEditBlockedRecord($record);
     }
 
-    public static function initializeApprovalColumns(array $recipients, callable $tokenFactory): array
+    /** Returns true when fapproval = 0 (pending / not yet approved). */
+    public static function isPendingValue($value): bool
     {
-        $stage1 = trim((string) ($recipients[0] ?? ''));
-        $stage2 = trim((string) ($recipients[1] ?? ''));
-
-        return [
-            'fapproval' => $stage1 !== '' ? '1' : '0',
-            'fuserapproved' => null,
-            'fdateapproved' => null,
-            'fapproval_reason' => null,
-            'fapproval_token' => $stage1 !== '' ? $tokenFactory() : null,
-            'fapproval2' => $stage2 !== '' ? '1' : null,
-            'fuserapproved2' => null,
-            'fdateapproved2' => null,
-            'fapproval_reason2' => null,
-            'fapproval_token2' => $stage2 !== '' ? $tokenFactory() : null,
-        ];
+        return self::normalize($value) === '0';
     }
 
+    /** Returns true when fapproval = 1 (approved). */
+    public static function isApprovedValue($value): bool
+    {
+        return self::normalize($value) === '1';
+    }
+
+    /** Returns true when fapproval = 0 (treated as "rejected / not approved"). */
+    public static function isRejectedValue($value): bool
+    {
+        return self::normalize($value) === '0';
+    }
+
+    /** Returns true when an approval value has been set (not null / empty). */
+    public static function hasApprovalProgress($record): bool
+    {
+        return self::normalize(data_get($record, 'fapproval')) !== '';
+    }
+
+    /**
+     * Raw SQL snippet that resolves to true when a row is approved.
+     * $prefix should end with a dot, e.g. 'tr_prh.' or 'mt.'.
+     */
     public static function approvedSql(string $prefix = ''): string
     {
-        $left = self::qualifiedText($prefix.'fapproval');
-        $right = self::qualifiedText($prefix.'fapproval2');
-
-        return "((({$left}) = '' AND ({$right}) = '') OR ({$left}) = '0' OR ({$left}) = '2' OR ({$right}) = '2' OR (({$left}) <> '' AND ({$left}) NOT IN ('0','1','2')) OR (({$right}) <> '' AND ({$right}) NOT IN ('0','1','2')))";
+        return "COALESCE(CAST({$prefix}fapproval AS TEXT), '') = '1'";
     }
 
-    public static function lockSql(string $prefix = ''): string
-    {
-        $left = self::qualifiedText($prefix.'fapproval');
-        $right = self::qualifiedText($prefix.'fapproval2');
-
-        return "(({$left}) IN ('0', '1') OR ({$right}) IN ('0', '1')) AND ({$left}) <> '2' AND ({$right}) <> '2'";
-    }
-
+    /**
+     * Apply an "approved only" WHERE clause to the given query.
+     *
+     * Usage:  ApprovalState::applyApprovedFilter($query, 'tr_prh.');
+     */
     public static function applyApprovedFilter(EloquentBuilder|Builder $query, string $prefix = ''): EloquentBuilder|Builder
     {
-        return $query->whereRaw(self::approvedSql($prefix));
-    }
-
-    private static function qualifiedText(string $column): string
-    {
-        return "COALESCE(TRIM(CAST({$column} AS TEXT)), '')";
+        return $query->where("{$prefix}fapproval", 1);
     }
 }

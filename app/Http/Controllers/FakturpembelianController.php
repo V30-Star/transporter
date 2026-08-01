@@ -391,10 +391,7 @@ class FakturpembelianController extends Controller
                 'tr_poh.fpodate',
             ])
             ->where('tr_poh.fprdin', '0')
-            ->where(function ($q) {
-                $q->where('tr_poh.fapproval', 1)
-                  ->orWhere('tr_poh.fapproval', '1');
-            });
+            ->where('tr_poh.fapproval', 1);
 
         if ($supplierCode !== '') {
             $query->where('tr_poh.fsupplier', $supplierCode);

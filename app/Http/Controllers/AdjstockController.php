@@ -237,9 +237,7 @@ class AdjstockController extends Controller
                 'fsupplier',
                 'fpodate as fprdate',   // FE expects fprdate
             ])
-            ->where(function ($w) {
-                $w->where('fapproval', 1)->orWhere('fapproval', '1');
-            });
+            ->where('fapproval', 1);
 
         if ($search !== '') {
             // cari di fpono / fsupplier / tanggal (yyyy-mm-dd)
@@ -280,9 +278,7 @@ class AdjstockController extends Controller
     {
         // Langkah ini sudah benar: mendapatkan header berdasarkan Primary Key (ID)
         $header = Tr_poh::where('fpohid', $id)
-            ->where(function ($q) {
-                $q->where('fapproval', 1)->orWhere('fapproval', '1');
-            })
+            ->where('fapproval', 1)
             ->firstOrFail();
 
         // Mengambil detail dari tr_pod

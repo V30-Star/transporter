@@ -386,10 +386,6 @@ class ApprovalController extends Controller
             return 1;
         }
 
-        if (trim((string) data_get($record, 'fapproval_token2')) === $token) {
-            return 2;
-        }
-
         return null;
     }
 
@@ -399,34 +395,23 @@ class ApprovalController extends Controller
             return true;
         }
 
-        $statusField = $stage === 2 ? 'fapproval2' : 'fapproval';
-
-        return ApprovalState::isRejectedValue(data_get($record, $statusField));
+        return ApprovalState::isRejectedValue(data_get($record, 'fapproval'));
     }
 
     private function markApproved($model, int $stage): void
     {
-        $statusField = $stage === 2 ? 'fapproval2' : 'fapproval';
-        $userField = $stage === 2 ? 'fuserapproved2' : 'fuserapproved';
-        $dateField = $stage === 2 ? 'fdateapproved2' : 'fdateapproved';
-
-        $model->{$statusField} = '2';
-        $model->{$userField} = 'Guest';
-        $model->{$dateField} = now();
+        $model->fapproval    = '1';
+        $model->fuserapproved = 'Guest';
+        $model->fdateapproved = now();
         $model->save();
     }
 
     private function markRejected($model, int $stage, string $note): void
     {
-        $statusField = $stage === 2 ? 'fapproval2' : 'fapproval';
-        $userField = $stage === 2 ? 'fuserapproved2' : 'fuserapproved';
-        $dateField = $stage === 2 ? 'fdateapproved2' : 'fdateapproved';
-        $reasonField = $stage === 2 ? 'fapproval_reason2' : 'fapproval_reason';
-
-        $model->{$statusField} = '0';
-        $model->{$reasonField} = $note;
-        $model->{$userField} = 'Guest';
-        $model->{$dateField} = now();
+        $model->fapproval        = '0';
+        $model->fapproval_reason = $note;
+        $model->fuserapproved    = 'Guest';
+        $model->fdateapproved    = now();
         $model->save();
     }
 
@@ -435,9 +420,9 @@ class ApprovalController extends Controller
         DB::table($table)
             ->where($key, $value)
             ->update([
-                $stage === 2 ? 'fapproval2' : 'fapproval' => '2',
-                $stage === 2 ? 'fuserapproved2' : 'fuserapproved' => 'Guest',
-                $stage === 2 ? 'fdateapproved2' : 'fdateapproved' => now(),
+                'fapproval'    => '1',
+                'fuserapproved' => 'Guest',
+                'fdateapproved' => now(),
             ]);
     }
 
@@ -446,10 +431,10 @@ class ApprovalController extends Controller
         DB::table($table)
             ->where($key, $value)
             ->update([
-                $stage === 2 ? 'fapproval2' : 'fapproval' => '0',
-                $stage === 2 ? 'fuserapproved2' : 'fuserapproved' => 'Guest',
-                $stage === 2 ? 'fdateapproved2' : 'fdateapproved' => now(),
-                $stage === 2 ? 'fapproval_reason2' : 'fapproval_reason' => $note,
+                'fapproval'        => '0',
+                'fuserapproved'    => 'Guest',
+                'fdateapproved'    => now(),
+                'fapproval_reason' => $note,
             ]);
     }
 }

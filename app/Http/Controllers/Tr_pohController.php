@@ -274,18 +274,12 @@ class Tr_pohController extends Controller
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', ''])
-            ->where(function ($q) {
-                $q->where('tr_prh.fapproval', 1)
-                  ->orWhere('tr_prh.fapproval', '1');
-            });
+            ->where('tr_prh.fapproval', 1);
 
         // Total records sesuai kriteria dasar
         $recordsTotal = Tr_prh::whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', ''])
-            ->where(function ($q) {
-                $q->where('tr_prh.fapproval', 1)
-                  ->orWhere('tr_prh.fapproval', '1');
-            })
+            ->where('tr_prh.fapproval', 1)
             ->count();
 
         // Search
@@ -338,9 +332,7 @@ class Tr_pohController extends Controller
     public function items($id)
     {
         $header = Tr_prh::where('fprhid', $id)
-            ->where(function ($q) {
-                $q->where('fapproval', 1)->orWhere('fapproval', '1');
-            })
+            ->where('fapproval', 1)
             ->firstOrFail();
 
         $items = DB::table('tr_prd as d')

@@ -339,16 +339,11 @@ class MutasiController extends Controller
                 'mssupplier.fsuppliername',
                 'mssupplier.fsuppliercode'
             )
-            ->where(function ($q) {
-                $q->where('tr_poh.fapproval', 1)
-                  ->orWhere('tr_poh.fapproval', '1');
-            });
+            ->where('tr_poh.fapproval', 1);
 
         // Total records sesuai kriteria dasar
         $recordsTotal = DB::table('tr_poh')
-            ->where(function ($q) {
-                $q->where('fapproval', 1)->orWhere('fapproval', '1');
-            })
+            ->where('fapproval', 1)
             ->count();
 
         // Search
