@@ -1261,7 +1261,7 @@ class Tr_pohController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
             return redirect()
-                ->route('tr_poh.edit', $tr_poh->fpohid)
+                ->route('tr_poh.view', $tr_poh->fpohid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($tr_poh->fbranchcode ?? null);
@@ -1282,7 +1282,7 @@ class Tr_pohController extends Controller
 
         if ($blockedByTerima) {
             return redirect()
-                ->route('tr_poh.edit', $tr_poh->fpohid)
+                ->route('tr_poh.view', $tr_poh->fpohid)
                 ->with('error', $this->getUsageLockMessage($tr_poh));
         }
 
@@ -1505,7 +1505,7 @@ class Tr_pohController extends Controller
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($header->fpodate, 'Data ini')) {
-            return redirect()->route('tr_poh.edit', $header->fpohid)->with('error', $message);
+            return redirect()->route('tr_poh.view', $header->fpohid)->with('error', $message);
         }
         $isCloseOnly = $request->boolean('close_only');
         $canClosePo = $isCloseOnly
@@ -2027,7 +2027,7 @@ class Tr_pohController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
             return redirect()
-                ->route('tr_poh.edit', $tr_poh->fpohid)
+                ->route('tr_poh.view', $tr_poh->fpohid)
                 ->with('error', $message);
         }
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
@@ -2043,7 +2043,7 @@ class Tr_pohController extends Controller
 
         if ($blockedByTerima) {
             return redirect()
-                ->route('tr_poh.edit', $tr_poh->fpohid)
+                ->route('tr_poh.view', $tr_poh->fpohid)
                 ->with('error', $this->getUsageLockMessage($tr_poh));
         }
 
@@ -2127,7 +2127,7 @@ class Tr_pohController extends Controller
             $tr_poh = Tr_poh::findOrFail($fpohid);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
-                return redirect()->route('tr_poh.edit', $tr_poh->fpohid)->with('error', $message);
+                return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($tr_poh)) {

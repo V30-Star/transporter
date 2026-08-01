@@ -862,13 +862,13 @@ class Tr_prhController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
             return redirect()
-                ->route('tr_prh.edit', $tr_prh->fprhid)
+                ->route('tr_prh.view', $tr_prh->fprhid)
                 ->with('error', $message);
         }
 
         if ($pageData['blockedByPO']) {
             return redirect()
-                ->route('tr_prh.edit', $tr_prh->fprhid)
+                ->route('tr_prh.view', $tr_prh->fprhid)
                 ->with('error', $this->getUsageLockMessage($tr_prh));
         }
 
