@@ -76,8 +76,8 @@
                         </thead>
                         <tbody>
                             <!-- 1. MASTER DATA -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Master Data</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Master Data</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Wilayah</td>
@@ -186,8 +186,8 @@
                             </tr>
 
                             <!-- 2. TRANSAKSI PENJUALAN -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Transaksi Penjualan</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Transaksi Penjualan</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Sales Order (SO)</td>
@@ -233,8 +233,8 @@
                             </tr>
 
                             <!-- 3. TRANSAKSI PEMBELIAN -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Transaksi Pembelian</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Transaksi Pembelian</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Permintaan Pembelian (PR)</td>
@@ -280,8 +280,8 @@
                             </tr>
 
                             <!-- 4. TRANSAKSI PERSEDIAAN & GUDANG -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Transaksi Persediaan & Gudang</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Transaksi Persediaan & Gudang</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Adjustment Stock</td>
@@ -313,8 +313,8 @@
                             </tr>
 
                             <!-- 5. KAS, BANK & AKUNTANSI -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Kas, Bank & Akuntansi</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Kas, Bank & Akuntansi</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Penerimaan Kas/Bank</td>
@@ -339,8 +339,8 @@
                             </tr>
 
                             <!-- 6. WEWENANG & KONFIGURASI KHUSUS -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Wewenang & Konfigurasi Khusus</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Wewenang & Konfigurasi Khusus</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Hak Kelola Wewenang User</td>
@@ -380,8 +380,8 @@
                             </tr>
 
                             <!-- 7. PERSETUJUAN (APPROVAL) -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Persetujuan (Approval)</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Persetujuan (Approval)</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Sales Order</td>
@@ -405,8 +405,8 @@
                             </tr>
 
                             <!-- 8. LAPORAN & LISTING -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Laporan & Listing</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Laporan & Listing</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Reporting Pelunasan Customer</td>
@@ -434,8 +434,8 @@
                             </tr>
 
                             <!-- 9. WIDGET DASHBOARD -->
-                            <tr class="bg-gray-700 text-white font-bold">
-                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Widget Dashboard</td>
+                            <tr class="bg-gray-700 text-blue-400 font-bold">
+                                <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Dashboard</td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Total Piutang Usaha</td>
