@@ -10,6 +10,7 @@
     'title' => 'Pilih Sub Account',
     'description' => '',
     'closeButtonClass' => 'px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm',
+    'searchWidth' => '500px',
 ])
 
 <style>
@@ -226,7 +227,8 @@
                         const $lengthSelect = $c.find('.dt-length select, .dataTables_length select');
 
                         $searchInput.css({
-                            width: @json($showControls ? '300px' : '280px'),
+                            width: @json($showControls ? $searchWidth : '450px'),
+                            maxWidth: '100%',
                             padding: '8px 12px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
@@ -300,7 +302,7 @@
                                     });
                                 controls.querySelectorAll('.dataTables_filter input, .dt-search .dt-input').forEach((field) => {
                                         field.style.width = '100%';
-                                        field.style.maxWidth = '300px';
+                                        field.style.maxWidth = @json($searchWidth);
                                     });
                             }
                         @endif

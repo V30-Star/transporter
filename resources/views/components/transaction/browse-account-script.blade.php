@@ -157,7 +157,8 @@
                     initComplete: function() {
                         const $c = $(this.api().table().container());
                         $c.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px',
+                            width: '500px',
+                            maxWidth: '100%',
                             padding: '8px 12px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',

@@ -530,8 +530,8 @@
 </div>
 
 @unless ($isReadOnly)
-    <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" />
-    <x-transaction.browse-subaccount-modal show-controls="true" show-pagination="true" />
+    <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" search-width="500px" />
+    <x-transaction.browse-subaccount-modal show-controls="true" show-pagination="true" search-width="500px" />
     <x-transaction.browse-customer-modal />
     <x-transaction.browse-supplier-modal />
     @include('components.transaction.browse-customer-script')
