@@ -125,6 +125,15 @@ class DashboardController extends Controller
             $topOverdueList = $topOverdueQuery->orderBy('days_overdue', 'desc')->limit(5)->get();
         }
 
+        // Last login timestamp (sysuser.updated_at)
+        $authUser = auth('sysuser')->user() ?? auth()->user();
+        $lastLogin = null;
+        if ($authUser) {
+            $lastLogin = DB::table('sysuser')
+                ->where('fuid', $authUser->fuid ?? null)
+                ->value('updated_at') ?? $authUser->updated_at ?? null;
+        }
+
         return view('dashboard', compact(
             'selectedYear',
             'availableYears',
@@ -140,7 +149,8 @@ class DashboardController extends Controller
             'canViewLewatJatuhTempo',
             'canViewOmsetYtd',
             'canViewOmsetPenjualanBulan',
-            'canViewTopPiutangLewatJatuhTempo'
+            'canViewTopPiutangLewatJatuhTempo',
+            'lastLogin'
         ));
     }
 }

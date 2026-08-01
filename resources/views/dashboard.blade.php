@@ -9,9 +9,10 @@
     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl font-bold text-gray-800">Selamat datang, {{ session('fname') ?? Auth::user()->name ?? 'User' }}! 👋</h1>
-            <p class="text-xs text-gray-500 mt-1">
-                Cabang: <span class="font-semibold font-mono text-gray-700">{{ session('fcabang') ?? 'Semua Cabang' }}</span>
-            </p>
+            <div class="text-xs text-gray-500 mt-1 space-y-0.5">
+                <p>Cabang: <span class="font-semibold font-mono text-gray-700">{{ session('fcabang') ?? 'Semua Cabang' }}</span></p>
+                <p>Last Login: <span class="font-semibold font-mono text-gray-700">{{ $lastLogin ? \Carbon\Carbon::parse($lastLogin)->isoFormat('D MMMM YYYY, HH:mm:ss') : '-' }}</span></p>
+            </div>
         </div>
         <div class="text-right">
             <span class="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5">

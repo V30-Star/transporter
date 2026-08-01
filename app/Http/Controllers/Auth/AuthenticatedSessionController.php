@@ -36,6 +36,9 @@ class AuthenticatedSessionController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             $user = Auth::user();
+            if ($user && method_exists($user, 'touch')) {
+                $user->touch();
+            }
 
             $restrictedPermissions = RoleAccess::where('fusercreate', $user->fuid)
                 ->pluck('fpermission')
