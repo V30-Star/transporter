@@ -320,7 +320,8 @@
                 },
                 {
                     data: 'fstockmtno',
-                    name: 'fstockmtno'
+                    name: 'fstockmtno',
+                    className: 'uppercase font-mono'
                 }, // data dari 'fstockmtno'
                 {
                     data: 'fstockmtdate',

@@ -201,7 +201,8 @@
                     data: 'fbranchcode'
                 }, // data dari 'fbranchcode'
                 {
-                    data: 'fstockmtno'
+                    data: 'fstockmtno',
+                    className: 'uppercase font-mono'
                 }, // data dari 'fstockmtno'
                 {
                     data: 'fstockmtdate',

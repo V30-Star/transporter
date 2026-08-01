@@ -743,7 +743,7 @@ class AdjstockController extends Controller
             $userName = Auth::user()->fname ?? 'system';
 
             $headerData = [
-                'fstockmtno' => trim((string) $request->input('fstockmtno')),
+                'fstockmtno' => strtoupper(trim((string) $request->input('fstockmtno'))),
                 'fstockmtcode' => 'ADJ',
                 'fstockmtdate' => $fstockmtdate,
                 'fprdout' => '0',

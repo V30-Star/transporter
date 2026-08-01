@@ -305,8 +305,8 @@
                                 {{-- Transaksi# --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Transaksi#</label>
-                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        value="{{ old('fstockmtno', $adjstock->fstockmtno) }}" readonly>
+                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                                        value="{{ strtoupper(old('fstockmtno', $adjstock->fstockmtno ?? '')) }}" readonly>
                                 </div>
 
                                 {{-- Adj. Type --}}
@@ -552,8 +552,8 @@
                             <label class="block text-xs font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fstockmtno"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-                                    value="{{ old('fstockmtno', $adjstock->fstockmtno) }}" :disabled="autoCode"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-50 text-gray-500 cursor-not-allowed"
+                                    value="{{ strtoupper(old('fstockmtno', $adjstock->fstockmtno ?? '')) }}" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'" readonly>
                                 <label class="inline-flex items-center select-none text-xs text-gray-500 font-medium">
                                     <input type="checkbox" x-model="autoCode" checked disabled

@@ -376,7 +376,7 @@ class PelunasanCustomerController extends Controller
                 'ftrcode' => 'ADM',
             ]);
         }
-        $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $validated['fbranchcode'], $headerAccount);
+        $voucherNo = strtoupper(trim((string) ($validated['fkasmtno'] ?? ''))) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $validated['fbranchcode'], $headerAccount);
         $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
         $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);

@@ -228,7 +228,8 @@
                 columns: [{
                         data: 'fbranchcode'
                     }, {
-                        data: 'fjurnalno'
+                        data: 'fjurnalno',
+                        className: 'uppercase font-mono'
                     },
                     {
                         data: 'fjurnaldate',

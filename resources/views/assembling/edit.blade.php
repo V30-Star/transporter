@@ -310,9 +310,10 @@
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
             <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-3">
-                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
+                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2 uppercase" value="{{ strtoupper(old('fstockmtno', $assembling->fstockmtno ?? '')) }}"
                     :disabled="autoCode"
-                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
+                    oninput="this.value = this.value.toUpperCase()">
                 <label class="inline-flex items-center select-none">
                     <input type="checkbox" x-model="autoCode" checked>
                     <span class="ml-2 text-sm text-gray-700">Auto</span>
@@ -875,9 +876,10 @@
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
             <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-3">
-                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                    :disabled="autoCode" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
-                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2 uppercase"
+                    :disabled="autoCode" value="{{ strtoupper(old('fstockmtno', $assembling->fstockmtno ?? '')) }}"
+                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
+                    oninput="this.value = this.value.toUpperCase()">
                 <label class="inline-flex items-center select-none">
                     <input type="checkbox" x-model="autoCode" checked>
                     <span class="ml-2 text-sm text-gray-700">Auto</span>

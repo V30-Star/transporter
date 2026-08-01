@@ -352,7 +352,8 @@
                 },
                 {
                     data: 'fstockmtno_display',
-                    name: 'fstockmtno'
+                    name: 'fstockmtno',
+                    className: 'uppercase font-mono'
                 },
                 {
                     data: 'fstockmtdate',

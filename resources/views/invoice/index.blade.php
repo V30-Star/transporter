@@ -410,7 +410,8 @@
                 },
                 {
                     data: 'fsono',
-                    name: 'fsono'
+                    name: 'fsono',
+                    className: 'uppercase font-mono'
                 },
                 {
                     data: 'fsodate',

@@ -49,7 +49,7 @@
                     <tr data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
                         data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
                         <td class="border px-2 py-2">{{ $record->fbranchcode }}</td>
-                        <td class="border px-2 py-2">{{ $record->fkasmtno }}</td>
+                        <td class="border px-2 py-2 uppercase font-mono">{{ $record->fkasmtno }}</td>
                         <td class="border px-2 py-2">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
                         </td>

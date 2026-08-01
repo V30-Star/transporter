@@ -754,7 +754,7 @@ class MutasiController extends Controller
             $grandTotal = $subtotal + $ppnAmount;
 
             $headerData = [
-                'fstockmtno' => trim((string) $request->input('fstockmtno')),
+                'fstockmtno' => strtoupper(trim((string) $request->input('fstockmtno'))),
                 'fstockmtcode' => 'MUT',
                 'fstockmtdate' => $fstockmtdate,
                 'fprdout' => '0',

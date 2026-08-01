@@ -74,7 +74,7 @@
                 ajax: '{{ route('lembarpenagihan.index') }}',
                 columns: [
                     { data: 'fcabang' },
-                    { data: 'ftagihanno' },
+                    { data: 'ftagihanno', className: 'uppercase font-mono' },
                     { data: 'ftagihandate' },
                     { data: 'invoice_refs' },
                     { data: 'fcustomername' },

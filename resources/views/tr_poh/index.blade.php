@@ -360,7 +360,8 @@
                 },
                 {
                     data: 'fpono',
-                    name: 'fpono'
+                    name: 'fpono',
+                    className: 'uppercase font-mono'
                 },
                 {
                     data: 'fpodate',

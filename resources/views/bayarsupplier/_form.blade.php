@@ -94,9 +94,10 @@
 
                 <div>
                     <label class="text-xs font-bold mb-1">{{ 'No. Voucher' }}</label>
-                    <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtno') border-red-500 @enderror"
-                        placeholder="Kosongkan untuk auto number">
+                    <input type="text" name="fkasmtno" value="{{ strtoupper(old('fkasmtno', $voucherNo ?? '')) }}"
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtno') border-red-500 @enderror"
+                        placeholder="Kosongkan untuk auto number"
+                        oninput="this.value = this.value.toUpperCase()">
                     @error('fkasmtno')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror

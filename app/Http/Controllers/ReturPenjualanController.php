@@ -1173,7 +1173,7 @@ class ReturPenjualanController extends Controller
                 $totalSalesNet
             ) {
 
-                $fsono = $request->input('fsono');
+                $fsono = strtoupper(trim((string) $request->input('fsono')));
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';

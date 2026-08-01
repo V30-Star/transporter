@@ -795,7 +795,7 @@ class JurnalTransaksiController extends Controller
             &$fjurnalno
         ) {
             // ── 4.1. Generate / ambil fjurnalno ──
-            $fjurnalno = trim((string) $request->input('fjurnalno', ''));
+            $fjurnalno = strtoupper(trim((string) $request->input('fjurnalno', '')));
 
             if (empty($fjurnalno)) {
                 $prefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $yy, $mm);

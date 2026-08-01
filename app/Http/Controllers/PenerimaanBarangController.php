@@ -1902,7 +1902,7 @@ class PenerimaanBarangController extends Controller
         $accountPersediaan = DB::table('set_account')->where('faccount_name', 'PEMBELIAN')->value('faccount');
         $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount');
 
-        $fjurnaltype  = 'JTB';
+        $fjurnaltype  = 'TER';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
@@ -1982,7 +1982,7 @@ class PenerimaanBarangController extends Controller
     {
         $jurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fstockmtno)
-            ->where('fjurnaltype', 'JTB')
+            ->where('fjurnaltype', 'TER')
             ->pluck('fjurnalmtid')
             ->filter(fn($id) => ! is_null($id))
             ->unique()

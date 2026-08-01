@@ -298,8 +298,8 @@
                                 <label class="block text-xs font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fsono"
-                                        value="{{ old('fsono', $displayFsono ?? $returpenjualan->fsono) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" :disabled="autoCode" readonly
+                                        value="{{ strtoupper(old('fsono', $displayFsono ?? $returpenjualan->fsono ?? '')) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase" :disabled="autoCode" readonly
                                         :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
 
                                     <label class="inline-flex items-center select-none">
@@ -758,9 +758,10 @@
                                 <div x-data="{ autoCode: true }">
                                     <label class="block text-xs font-bold mb-1">Transaksi#</label>
                                     <div class="flex items-center gap-3">
-                                        <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                            :disabled="autoCode" value="{{ $returpenjualan->fsono }}"
-                                            :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
+                                        <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            :disabled="autoCode" value="{{ strtoupper($returpenjualan->fsono ?? '') }}"
+                                            :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'"
+                                            oninput="this.value = this.value.toUpperCase()">
                                         <label class="inline-flex items-center select-none">
                                             <input type="checkbox" x-model="autoCode" checked>
                                             <span class="ml-2 text-sm text-gray-700">Auto</span>

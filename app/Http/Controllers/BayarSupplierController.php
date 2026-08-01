@@ -279,7 +279,7 @@ class BayarSupplierController extends Controller
                 ->firstOrFail(['faccid', 'faccount', 'faccname']);
         }
 
-        $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $validated['fbranchcode'], $headerAccount);
+        $voucherNo = strtoupper(trim((string) ($validated['fkasmtno'] ?? ''))) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $validated['fbranchcode'], $headerAccount);
         $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
         $now = now();

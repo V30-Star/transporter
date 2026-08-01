@@ -288,8 +288,8 @@
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Transaksi#</label>
                 <input type="text"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                    value="{{ old('fstockmtno', $mutasi->fstockmtno) }}" disabled>
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    value="{{ strtoupper(old('fstockmtno', $mutasi->fstockmtno ?? '')) }}" disabled>
                 <input type="hidden" name="fstockmtno" value="{{ old('fstockmtno', $mutasi->fstockmtno) }}">
             </div>
 
@@ -693,9 +693,10 @@
                 <label class="block text-xs font-bold mb-1">Transaksi#</label>
                 <div class="flex items-center gap-3">
                     <input type="text" name="fstockmtno"
-                        value="{{ old('fstockmtno', $mutasi->fstockmtno) }}"
-                        class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                        value="{{ strtoupper(old('fstockmtno', $mutasi->fstockmtno ?? '')) }}"
+                        class="w-full border rounded px-3 py-2 uppercase" :disabled="autoCode"
+                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
+                        oninput="this.value = this.value.toUpperCase()">
                     <label class="inline-flex items-center select-none">
                         <input type="checkbox" x-model="autoCode" checked>
                         <span class="ml-2 text-sm text-gray-700">Auto</span>

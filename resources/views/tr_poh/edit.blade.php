@@ -269,8 +269,8 @@
                             <div>
                                 <label class="block text-xs font-bold mb-1">PO#</label>
                                 <input type="text"
-                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ $displayFpono ?? $tr_poh->fpono }}" disabled>
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ strtoupper($displayFpono ?? $tr_poh->fpono ?? '') }}" disabled>
                             </div>
 
                             {{-- Supplier --}}
@@ -612,8 +612,8 @@
                             <div>
                                 <label class="block text-xs font-bold mb-1">PO#</label>
                                 <input type="text" name="fpohid"
-                                    value="{{ old('fpohid', $displayFpono ?? $tr_poh->fpono) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    value="{{ strtoupper(old('fpohid', $displayFpono ?? $tr_poh->fpono ?? '')) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                     disabled>
                             </div>
 

@@ -45,8 +45,9 @@
                                     <input type="text" name="ftagihanno" value="{{ old('ftagihanno') }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
-                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        :placeholder="autoCode ? 'Auto Generated' : ''">
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        :placeholder="autoCode ? 'Auto Generated' : ''"
+                                        oninput="this.value = this.value.toUpperCase()">
                                     <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                         <input type="checkbox" x-model="autoCode" checked
                                             class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
@@ -57,8 +58,8 @@
                         @else
                             <div>
                                 <label class="block text-xs font-bold mb-1">No. Tagihan</label>
-                                <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly
-                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                                <input type="text" name="ftagihanno" value="{{ strtoupper(old('ftagihanno', $header->ftagihanno ?? $nextNo ?? '')) }}" readonly
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed">
                             </div>
                         @endif
 

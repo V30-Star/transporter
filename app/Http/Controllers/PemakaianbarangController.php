@@ -501,7 +501,7 @@ class PemakaianbarangController extends Controller
         // =========================
         // 2) HEADER FIELDS
         // =========================
-        $fstockmtno = trim((string) $request->input('fstockmtno'));
+        $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');

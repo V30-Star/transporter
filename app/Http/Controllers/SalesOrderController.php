@@ -1072,7 +1072,7 @@ class SalesOrderController extends Controller
         // HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fsodate);
-        $fsono = $request->input('fsono');
+        $fsono = $request->filled('fsono') ? strtoupper(trim((string) $request->input('fsono'))) : null;
         $resolvedSalesmanCode = $this->resolveSalesmanCode(
             $request->input('fsalesman'),
             $request->input('filter_salesman_id')

@@ -211,8 +211,8 @@
                         {{-- Transaksi# --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Transaksi#</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ $displayFstockmtno ?? $penerimaanbarang->fstockmtno }}" disabled>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ strtoupper($displayFstockmtno ?? $penerimaanbarang->fstockmtno ?? '') }}" disabled>
                         </div>
 
                         {{-- Supplier --}}
@@ -492,8 +492,8 @@
                             {{-- Transaksi# --}}
                             <div>
                                 <label class="block text-xs font-bold mb-1">Transaksi#</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                    value="{{ $displayFstockmtno ?? $penerimaanbarang->fstockmtno }}" disabled>
+                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    value="{{ strtoupper($displayFstockmtno ?? $penerimaanbarang->fstockmtno ?? '') }}" disabled>
                                 <input type="hidden" name="fstockmtno" value="{{ $penerimaanbarang->fstockmtno }}">
                             </div>
 

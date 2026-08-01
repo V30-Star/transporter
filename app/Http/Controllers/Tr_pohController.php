@@ -941,7 +941,7 @@ class Tr_pohController extends Controller
         $fpodate = Carbon::parse($request->fpodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fpodate);
         $fkirimdate = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
-        $fpohid = $request->input('fpohid'); // can be null; we will generate if empty
+        $fpohid = $request->filled('fpohid') ? strtoupper(trim((string) $request->input('fpohid'))) : null; // can be null; we will generate if empty
         $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
         $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
         $userid = auth('sysuser')->user()->fname ?? 'admin';

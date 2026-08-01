@@ -52,8 +52,8 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-xs font-bold mb-1">No. Jurnal</label>
-                        <input type="text" value="{{ $jurnaltransaksi->fjurnalno }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                        <input type="text" value="{{ strtoupper($jurnaltransaksi->fjurnalno ?? '') }}"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 uppercase bg-gray-100 cursor-not-allowed" disabled>
                     </div>
 
                     <div class="lg:col-span-2">

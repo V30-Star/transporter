@@ -85,7 +85,7 @@ class PenerimaanKasController extends Controller
             $now = now();
             $details = $this->normalizeDetails($payload['details']);
             $totalAmount = $details->sum(fn(array $detail) => (float) $detail['fkasdtvalue']);
-            $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
+            $voucherNoInput = strtoupper(trim((string) ($payload['fkasmtno'] ?? '')));
             $isGiroMundur = ($payload['fgiromundur'] ?? '0') === '1';
 
             $headerAccount = $this->resolveHeaderAccount(
@@ -238,7 +238,7 @@ class PenerimaanKasController extends Controller
             $headerAccount = $this->resolveHeaderAccount(
                 $isGiroMundur ? $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME) : ($payload['faccountheader'] ?? null)
             );
-            $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
+            $voucherNoInput = strtoupper(trim((string) ($payload['fkasmtno'] ?? '')));
 
             // 1. Update Header Utama
             $header->update([

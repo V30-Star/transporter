@@ -228,7 +228,7 @@ class LembarPenagihanController extends Controller
         }
 
         $data = $this->validatedData($request);
-        $tagihanNo = trim((string) ($data['ftagihanno'] ?? '')) ?: $this->generateTagihanNo(Carbon::parse($data['ftagihandate']));
+        $tagihanNo = strtoupper(trim((string) ($data['ftagihanno'] ?? ''))) ?: $this->generateTagihanNo(Carbon::parse($data['ftagihandate']));
         $total = array_sum(array_map('floatval', $data['famount']));
         $userId = substr((string) (auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM'), 0, 10);
 

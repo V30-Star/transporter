@@ -267,11 +267,12 @@
                             <label class="block text-xs font-bold mb-1">SO#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fsono"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
                                         'bg-white'"
-                                    :placeholder="autoCode ? 'Auto Generated' : ''">
+                                    :placeholder="autoCode ? 'Auto Generated' : ''"
+                                    oninput="this.value = this.value.toUpperCase()">
                                 <label
                                     class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                     <input type="checkbox" x-model="autoCode" checked

@@ -1692,7 +1692,7 @@ class InvoiceController extends Controller
         }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
-        $fsono = trim((string) $request->input('fsono', ''));
+        $fsono = strtoupper(trim((string) $request->input('fsono', '')));
         $hasSrjReference = ! empty($srjReferenceDocs);
 
         // 5. DATABASE TRANSACTION

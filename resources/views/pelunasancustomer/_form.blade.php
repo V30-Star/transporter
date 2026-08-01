@@ -97,9 +97,10 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     <label class="block text-xs font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <div class="flex items-center gap-3">
                         <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
                             :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
-                            :placeholder="autoCode ? 'Kosongkan untuk auto number' : ''">
+                            :placeholder="autoCode ? 'Kosongkan untuk auto number' : ''"
+                            oninput="this.value = this.value.toUpperCase()">
                         <label class="inline-flex items-center select-none">
                             <input type="checkbox" x-model="autoCode">
                             <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
