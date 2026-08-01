@@ -91,13 +91,11 @@ class ListingJurnalController extends Controller
             'User-id',
             'Balance',
             'Balance Rp',
-            'Line',
             'Account',
             'Account Name',
             'Ref No',
             'Sub Account',
             'D/K',
-            'Rate',
             'Debet',
             'Kredit',
         ];
@@ -108,7 +106,7 @@ class ListingJurnalController extends Controller
             $col++;
         }
 
-        $sheet->getStyle('A1:P1')->applyFromArray([
+        $sheet->getStyle('A1:N1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -148,15 +146,13 @@ class ListingJurnalController extends Controller
                 $sheet->setCellValue('E' . $row, $firstLine->fuserid);
                 $sheet->setCellValue('F' . $row, $balance);
                 $sheet->setCellValue('G' . $row, $balanceRp);
-                $sheet->setCellValue('H' . $row, $dt->flineno);
-                $sheet->setCellValue('I' . $row, $dt->faccount);
-                $sheet->setCellValue('J' . $row, $dt->faccname);
-                $sheet->setCellValue('K' . $row, $dt->frefno);
-                $sheet->setCellValue('L' . $row, $dt->fsubaccount);
-                $sheet->setCellValue('M' . $row, $dt->fdk);
-                $sheet->setCellValue('N' . $row, (float) $dt->frate);
-                $sheet->setCellValue('O' . $row, $debet > 0 ? $debet : '');
-                $sheet->setCellValue('P' . $row, $kredit > 0 ? $kredit : '');
+                $sheet->setCellValue('H' . $row, $dt->faccount);
+                $sheet->setCellValue('I' . $row, $dt->faccname);
+                $sheet->setCellValue('J' . $row, $dt->frefno);
+                $sheet->setCellValue('K' . $row, $dt->fsubaccount);
+                $sheet->setCellValue('L' . $row, $dt->fdk);
+                $sheet->setCellValue('M' . $row, $debet > 0 ? $debet : '');
+                $sheet->setCellValue('N' . $row, $kredit > 0 ? $kredit : '');
 
                 $row++;
             }
@@ -164,11 +160,11 @@ class ListingJurnalController extends Controller
 
         // Grand Total Row
         $sheet->setCellValue('A' . $row, 'GRAND TOTAL');
-        $sheet->mergeCells("A{$row}:N{$row}");
-        $sheet->setCellValue('O' . $row, $grandTotalDebet);
-        $sheet->setCellValue('P' . $row, $grandTotalKredit);
+        $sheet->mergeCells("A{$row}:L{$row}");
+        $sheet->setCellValue('M' . $row, $grandTotalDebet);
+        $sheet->setCellValue('N' . $row, $grandTotalKredit);
 
-        $sheet->getStyle("A{$row}:P{$row}")->applyFromArray([
+        $sheet->getStyle("A{$row}:N{$row}")->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -179,15 +175,15 @@ class ListingJurnalController extends Controller
             ],
         ]);
 
-        foreach (range('A', 'P') as $column) {
+        foreach (range('A', 'N') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $numFormat = '#,##0.00';
         $sheet->getStyle('F2:G' . $row)->getNumberFormat()->setFormatCode($numFormat);
-        $sheet->getStyle('N2:P' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('M2:N' . $row)->getNumberFormat()->setFormatCode($numFormat);
 
-        $sheet->getStyle('A2:P' . ($row - 1))->applyFromArray([
+        $sheet->getStyle('A2:N' . ($row - 1))->applyFromArray([
             'borders' => [
                 'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
             ],
