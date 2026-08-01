@@ -934,6 +934,7 @@ class InvoiceController extends Controller
                 'mt.fprdout',
                 'c.fcustomername'
             );
+        ApprovalState::applyApprovedFilter($query, 'mt.');
 
         if ($customerCode !== '') {
             $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);

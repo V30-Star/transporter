@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Trkasdt;
 use App\Models\Trkasmt;
 use App\Models\Tranmt;
+use App\Support\ApprovalState;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -157,6 +158,7 @@ class PelunasanCustomerController extends Controller
             ->when($customerCode !== '', function ($query) use ($customerCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
             });
+        ApprovalState::applyApprovedFilter($baseQuery, 'mt.');
 
         $query = (clone $baseQuery)
             ->select([

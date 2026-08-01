@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Support\ApprovalState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -113,6 +114,7 @@ class LembarPenagihanController extends Controller
                 DB::raw('COALESCE(i.fongkosangkut, 0) as fongkos'),
                 DB::raw('COALESCE(i.famountremain, i.famountso, 0) as famount'),
             ]);
+        ApprovalState::applyApprovedFilter($query, 'i.');
 
         $recordsTotal = DB::table('tranmt as i')
             ->where('i.ftrcode', 'INV')
@@ -180,6 +182,7 @@ class LembarPenagihanController extends Controller
                 DB::raw('COALESCE(r.fongkosangkut, 0) as fongkos'),
                 DB::raw('COALESCE(r.famountremain, r.famountso, 0) as famount'),
             ]);
+        ApprovalState::applyApprovedFilter($query, 'r.');
 
         $recordsTotal = DB::table('tranmt as r')
             ->where('r.ftrcode', 'REJ')
