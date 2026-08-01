@@ -382,7 +382,7 @@ class Tr_prhController extends Controller
 
         $branchFromForm = $request->input('fbranchcode');
         $fprno = $request->filled('fprno')
-            ? $request->fprno
+            ? strtoupper(trim((string) $request->fprno))
             : $this->generatetr_prh_Code($fprdate, $branchFromForm);
 
         $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;

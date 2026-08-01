@@ -422,7 +422,8 @@
                 },
                 {
                     data: 'fprno',
-                    name: 'fprno'
+                    name: 'fprno',
+                    className: 'uppercase font-mono'
                 },
                 {
                     data: 'fprdate',

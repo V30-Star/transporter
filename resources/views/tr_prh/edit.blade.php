@@ -275,8 +275,8 @@
                                 <div>
                                     <label class="block text-xs font-bold mb-1">PR#</label>
                                     <input type="text"
-                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        value="{{ $tr_prh->fprno }}" disabled>
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                                        value="{{ strtoupper($tr_prh->fprno ?? '') }}" disabled>
                                 </div>
 
                                 {{-- Tanggal --}}
@@ -583,8 +583,8 @@
                                 <div>
                                     <label class="block text-xs font-bold mb-1">PR#</label>
                                     <input type="text" name="fprno"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        value="{{ $tr_prh->fprno }}" disabled>
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ strtoupper($tr_prh->fprno ?? '') }}" disabled>
                                 </div>
                                 {{-- Tanggal --}}
                                 <div>
