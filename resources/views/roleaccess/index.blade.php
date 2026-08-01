@@ -432,6 +432,35 @@
                                 <td class="px-3 py-2 font-semibold">Listing Pengeluaran Kas Bank</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewlistingpengeluarankasbank" {{ in_array('viewlistingpengeluarankasbank', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
+
+                            <!-- 9. WIDGET DASHBOARD -->
+                            <tr class="bg-gray-700 text-white font-bold">
+                                <td colspan="5" class="px-3 py-2 text-xs uppercase tracking-wider">Widget Dashboard</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Total Piutang Usaha</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardTotalPiutangUsaha" {{ in_array('dashboardTotalPiutangUsaha', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Belum Jatuh Tempo</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardBelumJatuhTempo" {{ in_array('dashboardBelumJatuhTempo', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Lewat Jatuh Tempo</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardLewatJatuhTempo" {{ in_array('dashboardLewatJatuhTempo', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Omset (YTD)</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardOmsetYtd" {{ in_array('dashboardOmsetYtd', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Omset Penjualan per Bulan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardOmsetPenjualanBulan" {{ in_array('dashboardOmsetPenjualanBulan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Top Piutang Lewat Jatuh Tempo</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="dashboardTopPiutangLewatJatuhTempo" {{ in_array('dashboardTopPiutangLewatJatuhTempo', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

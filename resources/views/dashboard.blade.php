@@ -24,10 +24,12 @@
         </div>
     </div>
 
-    {{-- KPI Stat Cards Grid (2x2) --}}
-    <div class="grid grid-cols-2 gap-4">
+    {{-- KPI Stat Cards Grid --}}
+    @if ($canViewTotalPiutangUsaha || $canViewBelumJatuhTempo || $canViewLewatJatuhTempo || $canViewOmsetYtd)
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {{-- Card 1: Total Piutang Usaha --}}
+        @if ($canViewTotalPiutangUsaha)
         <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Piutang Usaha</span>
@@ -44,8 +46,10 @@
                 <p class="text-xs text-gray-400 mt-1">Status Saldo Piutang Customer</p>
             </div>
         </div>
+        @endif
 
         {{-- Card 2: Belum Jatuh Tempo --}}
+        @if ($canViewBelumJatuhTempo)
         <div class="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Belum Jatuh Tempo</span>
@@ -62,8 +66,10 @@
                 <p class="text-xs text-emerald-600 mt-1">Jatuh tempo hari ini & akan datang</p>
             </div>
         </div>
+        @endif
 
         {{-- Card 3: Lewat Jatuh Tempo --}}
+        @if ($canViewLewatJatuhTempo)
         <div class="bg-white border border-rose-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-rose-700 uppercase tracking-wider">Lewat Jatuh Tempo</span>
@@ -80,8 +86,10 @@
                 <p class="text-xs text-rose-600 mt-1">Menunggak (Perlu Penagihan)</p>
             </div>
         </div>
+        @endif
 
         {{-- Card 4: Omset Penjualan Tahun Ini --}}
+        @if ($canViewOmsetYtd)
         <div class="bg-white border border-indigo-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider">Omset (YTD)</span>
@@ -98,13 +106,17 @@
                 <p class="text-xs text-indigo-600 mt-1">Total Sales Net (Faktur Penjualan)</p>
             </div>
         </div>
+        @endif
 
     </div>
+    @endif
 
-    {{-- Main Section: Bar Chart & Top Overdue Table (50/50) --}}
-    <div class="grid grid-cols-2 gap-6">
+    {{-- Main Section: Bar Chart & Top Overdue Table --}}
+    @if ($canViewOmsetPenjualanBulan || $canViewTopPiutangLewatJatuhTempo)
+    <div class="grid grid-cols-1 {{ ($canViewOmsetPenjualanBulan && $canViewTopPiutangLewatJatuhTempo) ? 'lg:grid-cols-2' : '' }} gap-6">
 
         {{-- Omset Penjualan Bar Chart --}}
+        @if ($canViewOmsetPenjualanBulan)
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-gray-100 pb-4">
                 <div>
@@ -136,8 +148,10 @@
                 <canvas id="omsetBarChart"></canvas>
             </div>
         </div>
+        @endif
 
         {{-- Top Overdue Invoices --}}
+        @if ($canViewTopPiutangLewatJatuhTempo)
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col">
             <div class="border-b border-gray-100 pb-4 mb-4">
                 <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
@@ -189,16 +203,21 @@
                 </a>
             </div>
         </div>
+        @endif
 
     </div>
+    @endif
 
 </div>
 
 @push('scripts')
+@if ($canViewOmsetPenjualanBulan)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('omsetBarChart').getContext('2d');
+        const chartEl = document.getElementById('omsetBarChart');
+        if (!chartEl) return;
+        const ctx = chartEl.getContext('2d');
         const chartLabels = @json($chartLabels);
         const chartData = @json($chartData);
 
@@ -271,5 +290,6 @@
         });
     });
 </script>
+@endif
 @endpush
 @endsection
