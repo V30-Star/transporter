@@ -200,6 +200,10 @@ class PenerimaanBarangController extends Controller
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode')
             ->whereIn('tr_poh.fclose', ['0', ''])
+            ->where(function ($q) {
+                $q->where('tr_poh.fapproval', 1)
+                  ->orWhere('tr_poh.fapproval', '1');
+            })
             ->whereExists(function ($sub) use ($receiptSub) {
                 $sub->select(DB::raw(1))
                     ->from('tr_pod as d')

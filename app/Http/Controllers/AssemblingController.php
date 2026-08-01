@@ -262,7 +262,10 @@ class AssemblingController extends Controller
                 'fpono as fprno',       // FE expects fprno
                 'fsupplier',
                 'fpodate as fprdate',   // FE expects fprdate
-            ]);
+            ])
+            ->where(function ($w) {
+                $w->where('fapproval', 1)->orWhere('fapproval', '1');
+            });
 
         if ($search !== '') {
             // cari di fpono / fsupplier / tanggal (yyyy-mm-dd)

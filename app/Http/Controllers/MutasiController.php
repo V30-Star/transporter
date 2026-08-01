@@ -331,17 +331,25 @@ class MutasiController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dengan JOIN
+        // Base query dengan JOIN - Hanya tampilkan PO yang sudah disetujui (fapproval = 1)
         $query = DB::table('tr_poh')
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select(
                 'tr_poh.*',
                 'mssupplier.fsuppliername',
                 'mssupplier.fsuppliercode'
-            );
+            )
+            ->where(function ($q) {
+                $q->where('tr_poh.fapproval', 1)
+                  ->orWhere('tr_poh.fapproval', '1');
+            });
 
-        // Total records tanpa filter
-        $recordsTotal = DB::table('tr_poh')->count();
+        // Total records sesuai kriteria dasar
+        $recordsTotal = DB::table('tr_poh')
+            ->where(function ($q) {
+                $q->where('fapproval', 1)->orWhere('fapproval', '1');
+            })
+            ->count();
 
         // Search
         if ($request->filled('search') && $request->search != '') {
