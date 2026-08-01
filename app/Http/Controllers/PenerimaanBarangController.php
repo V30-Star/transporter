@@ -1183,6 +1183,11 @@ class PenerimaanBarangController extends Controller
                 ? ($poMetricMap[(int) $d->frefdtid] ?? ['fqtysisapo' => 0, 'fqtyditer' => 0])
                 : ['fqtysisapo' => 0, 'fqtyditer' => 0];
 
+            $itemQty = (float) ($d->fqty ?? 0);
+            $itemPrice = (float) ($d->fprice ?? 0);
+            $itemTotPrice = (float) ($d->ftotprice ?? 0);
+            $itemTotal = $itemTotPrice > 0 ? $itemTotPrice : ($itemQty * $itemPrice);
+
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? $d->fprdcode ?? '',
@@ -1193,12 +1198,12 @@ class PenerimaanBarangController extends Controller
                 'frefdtid' => $d->frefdtid ?? null,
                 'fnoacak' => $d->fnoacak ?? '',
                 'frefnoacak' => $d->frefnoacak ?? '',
-                'fqty' => (float) ($d->fqty ?? 0),
+                'fqty' => $itemQty,
                 'fterima' => (float) ($d->fterima ?? 0),
-                'fprice' => (float) ($d->fprice ?? 0),
+                'fprice' => $itemPrice,
                 'famount' => (float) ($d->famount ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->ftotprice ?? 0),
+                'ftotal' => $itemTotal,
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'fketdt' => $d->fketdt ?? '',
                 'fqtyremain' => $remainKecil,
@@ -1223,6 +1228,15 @@ class PenerimaanBarangController extends Controller
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
 
+        $sumDetailsTotal = (float) $savedItems->sum('ftotal');
+        $headerAmountMt = (float) ($penerimaanbarang->famountmt ?? 0);
+        $headerAmount = (float) ($penerimaanbarang->famount ?? 0);
+        $headerAmountPajak = (float) ($penerimaanbarang->famountpajak ?? $penerimaanbarang->famountpopajak ?? 0);
+
+        $calcFamountponet = $headerAmountMt > 0
+            ? $headerAmountMt
+            : ($headerAmount > 0 ? ($headerAmount + $headerAmountPajak) : $sumDetailsTotal);
+
         return view($viewName, [
             'suppliers' => $suppliers,
             'selectedSupplierCode' => $penerimaanbarang->fsupplier,
@@ -1234,9 +1248,9 @@ class PenerimaanBarangController extends Controller
             'penerimaanbarang' => $penerimaanbarang,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno ?? null, false),
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($penerimaanbarang->famountpopajak ?? 0),
-            'famountponet' => (float) ($penerimaanbarang->famountponet ?? 0),
-            'famountpo' => (float) ($penerimaanbarang->famountpo ?? 0),
+            'ppnAmount' => $headerAmountPajak,
+            'famountponet' => $calcFamountponet,
+            'famountpo' => $headerAmount > 0 ? $headerAmount : $sumDetailsTotal,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,

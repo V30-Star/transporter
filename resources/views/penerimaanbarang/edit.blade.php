@@ -349,14 +349,17 @@
                                             <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($item['fqty'], 2) }}</div>
                                         </td>
 
-                                        {{-- @ Harga & Total --}}
+                                         {{-- @ Harga & Total --}}
                                         @if ($canViewHpp)
+                                            @php
+                                                $rowTotal = ($item['ftotal'] ?? 0) > 0 ? $item['ftotal'] : (($item['fqty'] ?? 0) * ($item['fprice'] ?? 0));
+                                            @endphp
                                             <td class="p-2 text-right">
                                                 <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($item['fprice'], 2) }}</div>
                                             </td>
 
                                             <td class="p-2 text-right">
-                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($item['ftotal'], 2) }}</div>
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($rowTotal, 2) }}</div>
                                             </td>
                                         @endif
                                     </tr>
@@ -367,12 +370,15 @@
 
                     {{-- Totals --}}
                     @if ($canViewHpp)
+                        @php
+                            $calculatedHeaderTotal = ($famountponet ?? 0) > 0 ? $famountponet : collect($savedItems)->sum(fn($i) => ($i['ftotal'] ?? 0) > 0 ? $i['ftotal'] : (($i['fqty'] ?? 0) * ($i['fprice'] ?? 0)));
+                        @endphp
                         <div class="mt-3 flex justify-end">
                             <div class="w-[480px] shrink-0 max-w-full">
                                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Harga</span>
-                                        <span class="font-bold text-gray-900">{{ number_format($famountponet, 2) }}</span>
+                                        <span class="font-bold text-gray-900">{{ number_format($calculatedHeaderTotal, 2) }}</span>
                                     </div>
                                 </div>
                             </div>
