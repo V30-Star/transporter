@@ -305,6 +305,8 @@ class Tr_prhController extends Controller
 
         abort_if(! $hdr, 404);
 
+        DB::table('tr_prh')->where('fprno', $hdr->fprno)->update(['fprint' => 1]);
+
         $dt = Tr_prd::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
             ->where('tr_prd.fprno', $hdr->fprno)

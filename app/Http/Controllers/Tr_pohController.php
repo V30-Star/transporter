@@ -761,6 +761,8 @@ class Tr_pohController extends Controller
             return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
+        DB::table('tr_poh')->where('fpono', $hdr->fpono)->update(['fprint' => 1]);
+
         $dt = DB::table('tr_pod')
             ->leftJoin('msprd as p', function ($j) {
                 $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));

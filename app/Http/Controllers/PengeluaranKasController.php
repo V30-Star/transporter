@@ -502,6 +502,8 @@ class PengeluaranKasController extends Controller
             return redirect()->back()->with('error', 'Pengeluaran kas tidak ada.');
         }
 
+        DB::table('trkasmt')->where('fkasmtno', $header->fkasmtno)->update(['fprint' => 1]);
+
         $details = DB::table('trkasdt as dt')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
             ->leftJoin('mssubaccount as sub', 'sub.fsubaccountcode', '=', 'dt.fsubaccount')

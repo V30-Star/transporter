@@ -469,6 +469,8 @@ class JurnalTransaksiController extends Controller
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
+        DB::table('jurnalmt')->where('fjurnalno', $hdr->fjurnalno)->update(['fprint' => 1]);
+
         $dt = DB::table('jurnaldt')
             ->leftJoin('account as a', 'a.faccount', '=', 'jurnaldt.faccount')
             ->leftJoin('mssubaccount as sa', 'sa.fsubaccountcode', '=', 'jurnaldt.fsubaccount')

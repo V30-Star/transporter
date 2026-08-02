@@ -1438,8 +1438,9 @@
                                 <x-heroicon-o-check class="w-6 h-6" /> Simpan
                             </button>
                         @elseif ($action === 'view')
+                            @php $isPrinted = (int) ($adjstock->fprint ?? 0) === 1; @endphp
                             <a href="{{ route('adjstock.print', $adjstock->fstockmtno) }}" target="_blank"
-                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                                class="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }}">
                                 <x-heroicon-o-printer class="w-6 h-6" /> Print
                             </a>
                         @endif
