@@ -430,6 +430,7 @@ class Tr_prhController extends Controller
                 'fdateapproved' => $isApproved ? now() : null,
                 'fupdatedat' => null,
                 'fapproval' => $isApproved ? 1 : 0,
+                'fprint' => 0,
             ]);
 
             $detailRows = [];

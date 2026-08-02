@@ -327,6 +327,7 @@ class BayarSupplierController extends Controller
                 'faccountnoid' => $headerAccount->faccid,
                 'fstatusgiro' => '0',
                 'fbranchcode' => $validated['fbranchcode'],
+                'fprint' => 0,
             ]);
 
             foreach ($detailRows->values() as $index => $row) {

@@ -1192,6 +1192,7 @@ class Tr_pohController extends Controller
                     'fppnpersen' => (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) > 0 ? (float) $request->input('ppn_rate', $this->getDefaultPpnTarif()) : $this->getDefaultPpnTarif(),
                     'fclose' => '0',
                     'fprdin' => '0',
+                    'fprint' => 0,
                 ], 'fpohid');
 
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');

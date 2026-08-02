@@ -838,6 +838,7 @@ class JurnalTransaksiController extends Controller
                 'fdatetime' => $now,
                 'fuserid' => $fuserid,
                 'fuserupdate' => null,
+                'fprint' => 0,
             ], 'fjurnalmtid');
 
             if (! $newJurnalMtId) {

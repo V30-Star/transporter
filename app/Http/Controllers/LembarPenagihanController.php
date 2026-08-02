@@ -264,6 +264,7 @@ class LembarPenagihanController extends Controller
                 'fuserid' => $userId,
                 'fdatetime' => now(),
                 'fbranchcode' => $kodeCabang,
+                'fprint' => 0,
             ]);
             $this->replaceDetails($tagihanNo, $data, $userId);
         });

@@ -116,6 +116,7 @@ class PengeluaranKasController extends Controller
                 'faccountno' => $headerAccount?->faccount,
                 'faccountnoid' => $headerAccount?->faccid,
                 'fstatusgiro' => '0',
+                'fprint' => 0,
             ]);
 
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');

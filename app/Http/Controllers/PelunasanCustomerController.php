@@ -419,6 +419,7 @@ class PelunasanCustomerController extends Controller
                 'fadjustment2' => (float) ($validated['fhargaadmin2'] ?? 0),
                 'ftotdiscountrp' => $ftotdiscountrp,
                 'fadminbank' => $bankAdminFee,
+                'fprint' => 0,
             ]);
 
             foreach ($detailEntries as $index => $entry) {
