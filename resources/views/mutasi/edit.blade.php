@@ -1154,6 +1154,11 @@
                                 class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 Simpan
                             </button>
+                        @elseif ($action === 'view')
+                            <a href="{{ route('mutasi.print', $mutasi->fstockmtno) }}" target="_blank"
+                                class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <x-heroicon-o-printer class="w-5 h-5" /> Print
+                            </a>
                         @endif
                         <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
                             class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">

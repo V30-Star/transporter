@@ -1437,6 +1437,11 @@
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm">
                                 <x-heroicon-o-check class="w-6 h-6" /> Simpan
                             </button>
+                        @elseif ($action === 'view')
+                            <a href="{{ route('adjstock.print', $adjstock->fstockmtno) }}" target="_blank"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                                <x-heroicon-o-printer class="w-6 h-6" /> Print
+                            </a>
                         @endif
                         <button type="button" @click="window.location.href='{{ route('adjstock.index') }}'"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
