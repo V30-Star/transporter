@@ -885,10 +885,10 @@
                                 const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
 
                                 if (/Produk ini Qty Stok tidak cukup/i.test(trimmed)) {
-                                    return `<div style="text-align: center; font-weight: 600; margin-bottom: 8px;">${escapedLine}</div>`;
+                                    return `<div style="text-align: center; margin-bottom: 8px;">${escapedLine}</div>`;
                                 }
                                 if (/Apakah anda ingin melanjutkan penyimpanan\?/i.test(trimmed)) {
-                                    return `<div style="text-align: center; font-weight: 600; margin-top: 12px;">${escapedLine}</div>`;
+                                    return `<div style="text-align: center; margin-top: 12px;">${escapedLine}</div>`;
                                 }
                                 return `<div style="text-align: left; word-break: break-word; overflow: hidden;">${escapedLine}</div>`;
                             }).filter(Boolean).join('');
@@ -1446,10 +1446,10 @@
                     const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
 
                     if (/Produk ini Qty Stok tidak cukup/i.test(trimmed)) {
-                        return `<div style="text-align: center; font-weight: 600; margin-bottom: 8px;">${escapedLine}</div>`;
+                        return `<div style="text-align: center; margin-bottom: 8px;">${escapedLine}</div>`;
                     }
                     if (/Apakah anda ingin melanjutkan penyimpanan\?/i.test(trimmed)) {
-                        return `<div style="text-align: center; font-weight: 600; margin-top: 12px;">${escapedLine}</div>`;
+                        return `<div style="text-align: center; margin-top: 12px;">${escapedLine}</div>`;
                     }
                     return `<div style="text-align: left; word-break: break-word;">${escapedLine}</div>`;
                 }).filter(Boolean).join('');
