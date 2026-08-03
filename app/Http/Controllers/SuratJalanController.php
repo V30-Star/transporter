@@ -1089,12 +1089,12 @@ class SuratJalanController extends Controller
             });
         $redirect = redirect()
             ->route('suratjalan.create')
-            ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
+            ->with('success', 'Surat jalan berhasil disimpan.');
 
         if (! $this->canCreateInvoice() || ! $newStockMasterId || ! empty($invoiceReferenceDocs)) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
+                    'message' => 'Surat jalan berhasil disimpan.',
                     'redirect_url' => route('suratjalan.create'),
                 ]);
             }
@@ -1103,7 +1103,7 @@ class SuratJalanController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
+                'message' => 'Surat jalan berhasil disimpan.',
                 'redirect_url' => route('suratjalan.create'),
                 'success_prompt' => [
                     'type' => 'suratjalan_create_invoice',
@@ -1815,7 +1815,7 @@ class SuratJalanController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil diupdate.',
+                'message' => 'Surat jalan berhasil diupdate.',
                 'redirect_url' => route('suratjalan.index'),
                 'success_prompt' => ! $this->canCreateInvoice() ? null : [
                     'type' => 'suratjalan_create_invoice',
@@ -1826,7 +1826,7 @@ class SuratJalanController extends Controller
 
         $redirect = redirect()
             ->route('suratjalan.index')
-            ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil diupdate.');
+            ->with('success', 'Surat jalan berhasil diupdate.');
 
         if (! $this->canCreateInvoice()) {
             return $redirect;
@@ -2091,12 +2091,12 @@ class SuratJalanController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($suratjalan->fstockmtno, false) . ' berhasil dihapus.',
+                    'message' => 'Surat jalan berhasil dihapus.',
                     'redirect_url' => route('suratjalan.index'),
                 ]);
             }
 
-            return redirect()->route('suratjalan.index')->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($suratjalan->fstockmtno, false) . ' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Surat jalan berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

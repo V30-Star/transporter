@@ -457,14 +457,14 @@ class PelunasanCustomerController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.',
+                'message' => 'Pelunasan customer berhasil disimpan.',
                 'redirect_url' => route('pelunasancustomer.create'),
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.create')
-            ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.');
+            ->with('success', 'Pelunasan customer berhasil disimpan.');
     }
 
     public function update(Request $request, $fkasmtno)
@@ -736,14 +736,14 @@ class PelunasanCustomerController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.',
+                'message'      => 'Pelunasan customer berhasil diupdate.',
                 'redirect_url' => route('pelunasancustomer.edit', $voucherNo),
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.edit', $voucherNo)
-            ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.');
+            ->with('success', 'Pelunasan customer berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -865,14 +865,14 @@ class PelunasanCustomerController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message'      => 'Pelunasan customer ' . $fkasmtno . ' berhasil dihapus.',
+                'message'      => 'Pelunasan customer berhasil dihapus.',
                 'redirect_url' => route('pelunasancustomer.index'),
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.index')
-            ->with('success', 'Pelunasan customer ' . $fkasmtno . ' berhasil dihapus.');
+            ->with('success', 'Pelunasan customer berhasil dihapus.');
     }
 
     /**

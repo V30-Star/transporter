@@ -1096,12 +1096,12 @@ class PenerimaanBarangController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
+                'message' => 'Penerimaan barang berhasil disimpan.',
                 'redirect_url' => route('penerimaanbarang.create'),
             ]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
+        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang berhasil disimpan.');
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1655,13 +1655,13 @@ class PenerimaanBarangController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($header->fstockmtno, false) . ' berhasil diupdate.',
+                'message' => 'Penerimaan barang berhasil diupdate.',
                 'redirect_url' => route('penerimaanbarang.index'),
             ]);
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($header->fstockmtno, false) . ' berhasil diupdate.');
+            ->with('success', 'Penerimaan barang berhasil diupdate.');
     }
 
     public function destroy($fstockmtid)
@@ -1795,13 +1795,13 @@ class PenerimaanBarangController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno, false) . ' berhasil dihapus.',
+                    'message' => 'Penerimaan barang berhasil dihapus.',
                     'redirect_url' => route('penerimaanbarang.index'),
                 ]);
             }
 
             return redirect()->route('penerimaanbarang.index')
-                ->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno, false) . ' berhasil dihapus.');
+                ->with('success', 'Penerimaan barang berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

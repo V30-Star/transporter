@@ -1572,7 +1572,7 @@ class Tr_pohController extends Controller
 
             return redirect()
                 ->route('tr_poh.index')
-                ->with('success', 'Status close PO ' . $this->formatDisplayTransactionNumber($header->fpono, (int) ($header->fapplyppn ?? 1) === 0) . ' berhasil diupdate.');
+                ->with('success', 'Status close PO berhasil diupdate.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -2216,7 +2216,7 @@ class Tr_pohController extends Controller
             });
 
             return redirect()->route('tr_poh.index')
-                ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($tr_poh->fpono, (int) ($tr_poh->fapplyppn ?? 1) === 0) . ' berhasil dihapus.');
+                ->with('success', 'Order pembelian berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Order pembelian belum bisa dihapus. Coba lagi.');
         }

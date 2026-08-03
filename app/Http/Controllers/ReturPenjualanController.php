@@ -1292,12 +1292,12 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '0').' berhasil disimpan.',
+                    'message' => 'Retur penjualan berhasil disimpan.',
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '0').' berhasil disimpan.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil disimpan.');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -2622,12 +2622,12 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0').' berhasil diupdate.',
+                    'message' => 'Retur penjualan berhasil diupdate.',
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0').' berhasil diupdate.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -3025,15 +3025,14 @@ class ReturPenjualanController extends Controller
                 $returpenjualan->delete();
             });
 
-            $displayNo = $this->formatDisplayTransactionNumber((string) ($deletedHeader->fsono ?? ''), (string) ($deletedHeader->fincludeppn ?? '1') === '0');
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan '.$displayNo.' berhasil dihapus.',
+                    'message' => 'Retur penjualan berhasil dihapus.',
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$displayNo.' berhasil dihapus.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

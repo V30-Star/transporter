@@ -839,14 +839,14 @@ class MutasiController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Mutasi {$finalNo} berhasil disimpan.",
+                    'message' => "Mutasi berhasil disimpan.",
                     'redirect_url' => route('mutasi.create'),
                 ]);
             }
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "Mutasi {$finalNo} berhasil disimpan.");
+                ->with('success', "Mutasi berhasil disimpan.");
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Mutasi belum bisa disimpan: ' . $e->getMessage()], 500);
@@ -1281,14 +1281,14 @@ class MutasiController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Mutasi {$header->fstockmtno} berhasil diupdate.",
+                    'message' => "Mutasi berhasil diupdate.",
                     'redirect_url' => route('mutasi.index'),
                 ]);
             }
 
             return redirect()
                 ->route('mutasi.index')
-                ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
+                ->with('success', "Mutasi berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -1576,12 +1576,12 @@ class MutasiController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Mutasi ' . $docNo . ' berhasil dihapus.',
+                    'message' => 'Mutasi berhasil dihapus.',
                     'redirect_url' => route('mutasi.index'),
                 ]);
             }
 
-            return redirect()->route('mutasi.index')->with('success', 'Mutasi ' . $docNo . ' berhasil dihapus.');
+            return redirect()->route('mutasi.index')->with('success', 'Mutasi berhasil dihapus.');
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();

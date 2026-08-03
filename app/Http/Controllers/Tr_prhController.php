@@ -618,7 +618,7 @@ class Tr_prhController extends Controller
 
             return redirect()
                 ->route('tr_prh.index')
-                ->with('success', "Status close PR {$header->fprno} berhasil diupdate.");
+                ->with('success', "Status close PR berhasil diupdate.");
         }
 
         $this->validateUpdateRequest($request);
@@ -964,7 +964,7 @@ class Tr_prhController extends Controller
                 $tr_prh->delete();
             });
 
-            return redirect()->route('tr_prh.index')->with('success', 'Permintaan pembelian '.$tr_prh->fprno.' berhasil dihapus.');
+            return redirect()->route('tr_prh.index')->with('success', 'Permintaan pembelian berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Permintaan pembelian belum bisa dihapus. Coba lagi.');
         }

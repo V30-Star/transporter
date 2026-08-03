@@ -843,14 +843,14 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil disimpan.',
+                    'message' => 'Retur pembelian berhasil disimpan.',
                     'redirect_url' => route('returpembelian.create'),
                 ]);
             }
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil disimpan.');
+                ->with('success', 'Retur pembelian berhasil disimpan.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([
@@ -1486,14 +1486,14 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil diupdate.',
+                    'message' => 'Retur pembelian berhasil diupdate.',
                     'redirect_url' => route('returpembelian.index'),
                 ]);
             }
 
             return redirect()
                 ->route('returpembelian.index')
-                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil diupdate.');
+                ->with('success', 'Retur pembelian berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -1762,12 +1762,12 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '1') === '0') . ' berhasil dihapus.',
+                    'message' => 'Retur pembelian berhasil dihapus.',
                     'redirect_url' => route('returpembelian.index'),
                 ]);
             }
 
-            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '1') === '0') . ' berhasil dihapus.');
+            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

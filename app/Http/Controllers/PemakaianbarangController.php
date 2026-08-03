@@ -716,14 +716,14 @@ class PemakaianbarangController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Pemakaian barang {$fstockmtno} berhasil disimpan.",
+                'message' => "Pemakaian barang berhasil disimpan.",
                 'redirect_url' => route('pemakaianbarang.create'),
             ]);
         }
 
         return redirect()
             ->route('pemakaianbarang.create')
-            ->with('success', "Pemakaian barang {$fstockmtno} berhasil disimpan.");
+            ->with('success', "Pemakaian barang berhasil disimpan.");
     }
 
     public function edit($fstockmtid)
@@ -1326,14 +1326,14 @@ class PemakaianbarangController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Pemakaian barang {$header->fstockmtno} berhasil diupdate.",
+                'message' => "Pemakaian barang berhasil diupdate.",
                 'redirect_url' => route('pemakaianbarang.index'),
             ]);
         }
 
         return redirect()
             ->route('pemakaianbarang.index')
-            ->with('success', "Pemakaian barang {$header->fstockmtno} berhasil diupdate.");
+            ->with('success', "Pemakaian barang berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -1616,12 +1616,12 @@ class PemakaianbarangController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Pemakaian barang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.',
+                    'message' => 'Pemakaian barang berhasil dihapus.',
                     'redirect_url' => route('pemakaianbarang.index'),
                 ]);
             }
 
-            return redirect()->route('pemakaianbarang.index')->with('success', 'Pemakaian barang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('pemakaianbarang.index')->with('success', 'Pemakaian barang berhasil dihapus.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([

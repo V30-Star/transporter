@@ -2258,12 +2258,12 @@ class SalesOrderController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 1) === 0) . ' berhasil dihapus.',
+                    'message' => 'Sales Order berhasil dihapus.',
                     'redirect_url' => route('salesorder.index'),
                 ]);
             }
 
-            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 1) === 0) . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'Sales Order berhasil dihapus.');
         } catch (\Exception $e) {
             report($e);
             if (request()->expectsJson()) {
