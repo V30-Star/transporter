@@ -874,7 +874,7 @@ class InvoiceController extends Controller
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => trim((string) ($row->fsono ?? '')),
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
                     'ftaxno' => trim((string) ($row->ftaxno ?? '')),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
@@ -1266,7 +1266,7 @@ class InvoiceController extends Controller
         return view('invoice.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1814,7 +1814,7 @@ class InvoiceController extends Controller
                 );
             });
 
-            $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
+            $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '0') . ' berhasil disimpan.');
 
             // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {

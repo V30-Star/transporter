@@ -1397,7 +1397,7 @@ class Tr_pohController extends Controller
             'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 1),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,   // <-- currency aktif dari join

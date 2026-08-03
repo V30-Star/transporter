@@ -858,14 +858,14 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil disimpan.',
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil disimpan.',
                     'redirect_url' => route('returpembelian.create'),
                 ]);
             }
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil disimpan.');
+                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil disimpan.');
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([
@@ -1501,14 +1501,14 @@ class ReturPembelianController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.',
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil diupdate.',
                     'redirect_url' => route('returpembelian.index'),
                 ]);
             }
 
             return redirect()
                 ->route('returpembelian.index')
-                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.');
+                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, $fincludeppn === 0) . ' berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
