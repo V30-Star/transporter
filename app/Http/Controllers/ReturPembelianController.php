@@ -391,22 +391,14 @@ class ReturPembelianController extends Controller
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('trstockmt')
-                ->where(function ($q) use ($kodeCabang, $date) {
-                    $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fstockmtno', 'like', "REB.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fstockmtno', 'like', "REB/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fstockmtno', 'like', "{$prefix}%")
                 ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('trstockmt')
-                ->where(function ($q) use ($kodeCabang, $yymm) {
-                    $q->where('fstockmtno', 'like', "REB.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fstockmtno', 'like', "REB/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fstockmtno', 'like', "{$prefix}%")
                 ->orderByDesc('fstockmtno')
                 ->value('fstockmtno');
 
@@ -775,22 +767,14 @@ class ReturPembelianController extends Controller
                         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                         $last = DB::table('trstockmt')
-                            ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yy, $mm) {
-                                $yymm = $yy . $mm;
-                                $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                  ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
-                            })
+                            ->where('fstockmtno', 'like', "{$prefix}%")
                             ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                             ->value('lastno');
 
                         $next = (int) $last + 1;
                     } else {
-                        $yymm = $yy . $mm;
                         $lastCode = DB::table('trstockmt')
-                            ->where(function ($q) use ($fstockmtcode, $kodeCabang, $yymm) {
-                                $q->where('fstockmtno', 'like', "{$fstockmtcode}.{$kodeCabang}.{$yymm}.%")
-                                  ->orWhere('fstockmtno', 'like', "{$fstockmtcode}/{$kodeCabang}/{$yymm}/%");
-                            })
+                            ->where('fstockmtno', 'like', "{$prefix}%")
                             ->orderByDesc('fstockmtno')
                             ->value('fstockmtno');
 

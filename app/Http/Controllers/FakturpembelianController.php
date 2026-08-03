@@ -1111,22 +1111,14 @@ class FakturpembelianController extends Controller
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('trstockmt')
-                ->where(function ($q) use ($kodeCabang, $date) {
-                    $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
-                        ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fstockmtno', 'like', "{$prefix}%")
                 ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('trstockmt')
-                ->where(function ($q) use ($kodeCabang, $yymm) {
-                    $q->where('fstockmtno', 'like', "BUY.{$kodeCabang}.{$yymm}.%")
-                        ->orWhere('fstockmtno', 'like', "BUY/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fstockmtno', 'like', "{$prefix}%")
                 ->orderByDesc('fstockmtno')
                 ->value('fstockmtno');
 
@@ -1603,13 +1595,11 @@ class FakturpembelianController extends Controller
                         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                         $last = DB::table('trstockmt')
-                            ->where(function ($q) use ($prefixCode, $kodeCabang, $yy, $mm) {
+                            ->where(function ($q) use ($prefix, $prefixCode, $sep, $kodeCabang, $yy, $mm) {
                                 $yymm = $yy . $mm;
-                                $q->where('fstockmtno', 'like', "{$prefixCode}.{$kodeCabang}.{$yymm}.%")
-                                    ->orWhere('fstockmtno', 'like', "{$prefixCode}/{$kodeCabang}/{$yymm}/%");
+                                $q->where('fstockmtno', 'like', "{$prefix}%");
                                 if ($prefixCode === 'UM') {
-                                    $q->orWhere('fstockmtno', 'like', "UMB.{$kodeCabang}.{$yymm}.%")
-                                      ->orWhere('fstockmtno', 'like', "UMB/{$kodeCabang}/{$yymm}/%");
+                                    $q->orWhere('fstockmtno', 'like', "UMB{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
                                 }
                             })
                             ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
@@ -1617,14 +1607,12 @@ class FakturpembelianController extends Controller
 
                         $next = (int) $last + 1;
                     } else {
-                        $yymm = $yy . $mm;
                         $lastCode = DB::table('trstockmt')
-                            ->where(function ($q) use ($prefixCode, $kodeCabang, $yymm) {
-                                $q->where('fstockmtno', 'like', "{$prefixCode}.{$kodeCabang}.{$yymm}.%")
-                                    ->orWhere('fstockmtno', 'like', "{$prefixCode}/{$kodeCabang}/{$yymm}/%");
+                            ->where(function ($q) use ($prefix, $prefixCode, $sep, $kodeCabang, $yy, $mm) {
+                                $yymm = $yy . $mm;
+                                $q->where('fstockmtno', 'like', "{$prefix}%");
                                 if ($prefixCode === 'UM') {
-                                    $q->orWhere('fstockmtno', 'like', "UMB.{$kodeCabang}.{$yymm}.%")
-                                      ->orWhere('fstockmtno', 'like', "UMB/{$kodeCabang}/{$yymm}/%");
+                                    $q->orWhere('fstockmtno', 'like', "UMB{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
                                 }
                             })
                             ->orderByDesc('fstockmtno')

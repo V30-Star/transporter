@@ -714,22 +714,14 @@ class Tr_pohController extends Controller
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tr_poh')
-                ->where(function ($q) use ($kodeCabang, $date) {
-                    $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fpono', 'like', "{$prefix}%")
                 ->selectRaw("MAX(CAST(SUBSTRING(fpono FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('tr_poh')
-                ->where(function ($q) use ($kodeCabang, $yymm) {
-                    $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fpono', 'like', "{$prefix}%")
                 ->orderByDesc('fpono')
                 ->value('fpono');
 
@@ -1137,22 +1129,14 @@ class Tr_pohController extends Controller
                         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                         $last = DB::table('tr_poh')
-                            ->where(function ($q) use ($kodeCabang, $yy, $mm) {
-                                $yymm = $yy . $mm;
-                                $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
-                                  ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
-                            })
+                            ->where('fpono', 'like', "{$prefix}%")
                             ->selectRaw("MAX(CAST(SUBSTRING(fpono FROM '([0-9]+)$') AS int)) AS lastno")
                             ->value('lastno');
 
                         $next = (int) $last + 1;
                     } else {
-                        $yymm = $yy . $mm;
                         $lastCode = DB::table('tr_poh')
-                            ->where(function ($q) use ($kodeCabang, $yymm) {
-                                $q->where('fpono', 'like', "PO.{$kodeCabang}.{$yymm}.%")
-                                  ->orWhere('fpono', 'like', "PO/{$kodeCabang}/{$yymm}/%");
-                            })
+                            ->where('fpono', 'like', "{$prefix}%")
                             ->orderByDesc('fpono')
                             ->value('fpono');
 

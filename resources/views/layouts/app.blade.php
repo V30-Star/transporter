@@ -883,26 +883,47 @@
                                 const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
 
                                 return /^\d+\.&nbsp;/.test(escapedLine)
-                                    ? `<span style="white-space: nowrap;">${escapedLine}</span>`
+                                    ? `<span style="word-break: break-word; overflow: hidden;">${escapedLine}</span>`
                                     : escapedLine;
                             }).join('<br>');
+
+                            const containerHtml = `<div style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; word-break: break-word; max-width: 100%; text-align: left;">${htmlMessage}</div>`;
+
+                            const swalOptions = {
+                                customClass: {
+                                    popup: 'overflow-hidden',
+                                    htmlContainer: 'overflow-hidden text-left',
+                                },
+                                didOpen: (popup) => {
+                                    popup.style.overflow = 'hidden';
+                                    const htmlCont = popup.querySelector('.swal2-html-container');
+                                    if (htmlCont) {
+                                        htmlCont.style.overflow = 'hidden';
+                                        htmlCont.style.overflowX = 'hidden';
+                                        htmlCont.style.overflowY = 'hidden';
+                                    }
+                                }
+                            };
+
                             if (!data.allow_force) {
                                 await Swal.fire({
                                     title: 'Information',
-                                    html: htmlMessage,
+                                    html: containerHtml,
                                     icon: 'warning',
                                     confirmButtonText: 'Tidak, Batalkan',
+                                    ...swalOptions,
                                 });
                                 return;
                             }
 
                             const result = await Swal.fire({
                                 title: 'Information',
-                                html: htmlMessage,
+                                html: containerHtml,
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonText: 'Ya, Lanjutkan',
                                 cancelButtonText: 'Tidak, Batalkan',
+                                ...swalOptions,
                             });
 
                             if (!result.isConfirmed) {

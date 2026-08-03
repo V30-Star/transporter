@@ -98,8 +98,10 @@ class InvoiceController extends Controller
 
         $messageLines = array_map(function ($i, $row) {
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
+            $rawName = trim((string) ($row['fprdname'] ?? ''));
+            $productName = mb_strlen($rawName) > 80 ? mb_substr($rawName, 0, 80) . '...' : $rawName;
 
-            return ($i + 1) . '. ' . $row['fprdname'] . ' - Stok => ' . $available;
+            return ($i + 1) . '. ' . $productName . ' - Stok => ' . $available;
         }, array_keys($shortages), $shortages);
 
         $message = "Produk ini Qty Stok tidak cukup :\n \n" . implode("\n", $messageLines);
@@ -1191,22 +1193,14 @@ class InvoiceController extends Controller
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tranmt')
-                ->where(function ($q) use ($codeInit, $kodeCabang, $date) {
-                    $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fsono', 'like', "{$codeInit}.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "{$codeInit}/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fsono', 'like', "{$prefix}%")
                 ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('tranmt')
-                ->where(function ($q) use ($codeInit, $kodeCabang, $yymm) {
-                    $q->where('fsono', 'like', "{$codeInit}.{$kodeCabang}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "{$codeInit}/{$kodeCabang}/{$yymm}/%");
-                })
+                ->where('fsono', 'like', "{$prefix}%")
                 ->orderByDesc('fsono')
                 ->value('fsono');
 
@@ -1722,22 +1716,14 @@ class InvoiceController extends Controller
 
                     if (DB::getDriverName() === 'pgsql') {
                         $lastRecord = DB::table('tranmt')
-                            ->where(function ($q) use ($docType, $branchCode, $year, $month) {
-                                $yymm = $year . $month;
-                                $q->where('fsono', 'like', "{$docType}.{$branchCode}.{$yymm}.%")
-                                  ->orWhere('fsono', 'like', "{$docType}/{$branchCode}/{$yymm}/%");
-                            })
+                            ->where('fsono', 'like', "{$prefix}%")
                             ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer)) AS lastno")
                             ->value('lastno');
 
                         $last = (int) $lastRecord;
                     } else {
-                        $yymm = $year . $month;
                         $lastCode = DB::table('tranmt')
-                            ->where(function ($q) use ($docType, $branchCode, $yymm) {
-                                $q->where('fsono', 'like', "{$docType}.{$branchCode}.{$yymm}.%")
-                                  ->orWhere('fsono', 'like', "{$docType}/{$branchCode}/{$yymm}/%");
-                            })
+                            ->where('fsono', 'like', "{$prefix}%")
                             ->orderByDesc('fsono')
                             ->value('fsono');
 

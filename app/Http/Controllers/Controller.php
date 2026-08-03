@@ -258,7 +258,8 @@ abstract class Controller
 
         $products = array_map(function ($i, $row) {
             $no = $i + 1;
-            $label = $row['fprdname'];
+            $rawName = trim((string) ($row['fprdname'] ?? ''));
+            $label = mb_strlen($rawName) > 80 ? mb_substr($rawName, 0, 80) . '...' : $rawName;
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
 
             return $no . '. ' . $label . ' - Stok => ' . $available;

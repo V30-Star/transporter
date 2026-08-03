@@ -727,22 +727,14 @@ class ReturPenjualanController extends Controller
 
         if (DB::getDriverName() === 'pgsql') {
             $last = DB::table('tranmt')
-                ->where(function ($q) use ($branchCode, $date) {
-                    $yymm = $date->format('y') . $date->format('m');
-                    $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
-                })
+                ->where('fsono', 'like', "{$prefix}%")
                 ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
-            $yymm = $date->format('y') . $date->format('m');
             $lastCode = DB::table('tranmt')
-                ->where(function ($q) use ($branchCode, $yymm) {
-                    $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
-                      ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
-                })
+                ->where('fsono', 'like', "{$prefix}%")
                 ->orderByDesc('fsono')
                 ->value('fsono');
 
@@ -1185,22 +1177,14 @@ class ReturPenjualanController extends Controller
 
                     if (DB::getDriverName() === 'pgsql') {
                         $last = DB::table('tranmt')
-                            ->where(function ($q) use ($branchCode, $fsodate) {
-                                $yymm = $fsodate->format('y') . $fsodate->format('m');
-                                $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
-                                  ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
-                            })
+                            ->where('fsono', 'like', "{$prefix}%")
                             ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS int)) AS lastno")
                             ->value('lastno');
 
                         $nextNumber = (int) $last + 1;
                     } else {
-                        $yymm = $fsodate->format('y') . $fsodate->format('m');
                         $lastCode = DB::table('tranmt')
-                            ->where(function ($q) use ($branchCode, $yymm) {
-                                $q->where('fsono', 'like', "REJ.{$branchCode}.{$yymm}.%")
-                                  ->orWhere('fsono', 'like', "REJ/{$branchCode}/{$yymm}/%");
-                            })
+                            ->where('fsono', 'like', "{$prefix}%")
                             ->orderByDesc('fsono')
                             ->value('fsono');
 
