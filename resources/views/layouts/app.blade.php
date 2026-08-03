@@ -880,19 +880,25 @@
                                 messageLines.push(line);
                             });
                             const htmlMessage = messageLines.map((line) => {
+                                const trimmed = line.trim();
+                                if (!trimmed) return '';
                                 const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
 
-                                return /^\d+\.&nbsp;/.test(escapedLine)
-                                    ? `<span style="word-break: break-word; overflow: hidden;">${escapedLine}</span>`
-                                    : escapedLine;
-                            }).join('<br>');
+                                if (/Produk ini Qty Stok tidak cukup/i.test(trimmed)) {
+                                    return `<div style="text-align: center; font-weight: 600; margin-bottom: 8px;">${escapedLine}</div>`;
+                                }
+                                if (/Apakah anda ingin melanjutkan penyimpanan\?/i.test(trimmed)) {
+                                    return `<div style="text-align: center; font-weight: 600; margin-top: 12px;">${escapedLine}</div>`;
+                                }
+                                return `<div style="text-align: left; word-break: break-word; overflow: hidden;">${escapedLine}</div>`;
+                            }).filter(Boolean).join('');
 
-                            const containerHtml = `<div style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; word-break: break-word; max-width: 100%; text-align: left;">${htmlMessage}</div>`;
+                            const containerHtml = `<div style="overflow: hidden; overflow-x: hidden; overflow-y: hidden; word-break: break-word; max-width: 100%;">${htmlMessage}</div>`;
 
                             const swalOptions = {
                                 customClass: {
                                     popup: 'overflow-hidden',
-                                    htmlContainer: 'overflow-hidden text-left',
+                                    htmlContainer: 'overflow-hidden',
                                 },
                                 didOpen: (popup) => {
                                     popup.style.overflow = 'hidden';
@@ -1435,12 +1441,18 @@
                 });
 
                 return messageLines.map((line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return '';
                     const escapedLine = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
 
-                    return /^\d+\.&nbsp;/.test(escapedLine)
-                        ? `<span style="white-space: nowrap;">${escapedLine}</span>`
-                        : escapedLine;
-                }).join('<br>');
+                    if (/Produk ini Qty Stok tidak cukup/i.test(trimmed)) {
+                        return `<div style="text-align: center; font-weight: 600; margin-bottom: 8px;">${escapedLine}</div>`;
+                    }
+                    if (/Apakah anda ingin melanjutkan penyimpanan\?/i.test(trimmed)) {
+                        return `<div style="text-align: center; font-weight: 600; margin-top: 12px;">${escapedLine}</div>`;
+                    }
+                    return `<div style="text-align: left; word-break: break-word;">${escapedLine}</div>`;
+                }).filter(Boolean).join('');
             }
 
             window.showTransactionErrorModal = function(messages, options = {}) {
