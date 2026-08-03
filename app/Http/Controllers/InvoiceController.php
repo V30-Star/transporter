@@ -1688,7 +1688,8 @@ class InvoiceController extends Controller
         }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
-        $fsono = strtoupper(trim((string) $request->input('fsono', '')));
+        $fsonoRaw = strtoupper(trim((string) $request->input('fsono', '')));
+        $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fincludeppn === '0') : '';
         $hasSrjReference = ! empty($srjReferenceDocs);
 
         // 5. DATABASE TRANSACTION
@@ -2917,8 +2918,12 @@ class InvoiceController extends Controller
                 $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
+                $targetFsono = $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0');
+                $header->fsono = $targetFsono;
+
                 $headerUpdate = [
-                    'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) ($header->fsono ?? ''), 0, 50),
+                    'fsono'            => $targetFsono,
+                    'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) $targetFsono, 0, 50),
                     'fsodate'          => $fsodate,
                     'fcustno'          => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp'          => $fkodefp,

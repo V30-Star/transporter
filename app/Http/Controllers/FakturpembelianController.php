@@ -1319,7 +1319,8 @@ class FakturpembelianController extends Controller
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // 2) HEADER FIELDS
-            $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
+            $fstockmtnoRaw = strtoupper(trim((string) $request->input('fstockmtno')));
+            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) ($request->input('fapplyppn') ?? 1) === 0) : '';
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));

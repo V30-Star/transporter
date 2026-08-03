@@ -1167,7 +1167,8 @@ class ReturPenjualanController extends Controller
                 $totalSalesNet
             ) {
 
-                $fsono = strtoupper(trim((string) $request->input('fsono')));
+                $fsonoRaw = strtoupper(trim((string) $request->input('fsono')));
+                $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fincludeppn === '0') : '';
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';

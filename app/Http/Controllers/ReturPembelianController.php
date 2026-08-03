@@ -573,7 +573,8 @@ class ReturPembelianController extends Controller
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // HEADER FIELDS
-            $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
+            $fstockmtnoRaw = strtoupper(trim((string) $request->input('fstockmtno')));
+            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) $request->input('fincludeppn', 0) === 0) : '';
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
