@@ -3,6 +3,10 @@
 @section('title', 'Master Produk - New')
 
 @section('content')
+    @php
+        $lastProductFields = session('last_product_fields', []);
+    @endphp
+
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
@@ -398,7 +402,7 @@
                                             <option value="">-- Pilih Group Produk --</option>
                                             @foreach ($groups as $group)
                                                 <option value="{{ $group->fgroupid }}"
-                                                    {{ old('fgroupid', old('fgroupcode')) == $group->fgroupid ? 'selected' : '' }}>
+                                                    {{ old('fgroupid', old('fgroupcode', $lastProductFields['fgroupid'] ?? '')) == $group->fgroupid ? 'selected' : '' }}>
                                                     {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                                 </option>
                                             @endforeach
@@ -407,9 +411,9 @@
                                             @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
                                     </div>
                                     <input type="hidden" name="fgroupid" id="groupIdHidden"
-                                        value="{{ old('fgroupid', old('fgroupcode')) }}">
+                                        value="{{ old('fgroupid', old('fgroupcode', $lastProductFields['fgroupid'] ?? '')) }}">
                                     <input type="hidden" name="fgroupcode" id="groupCodeHidden"
-                                        value="{{ old('fgroupcode', '') }}">
+                                        value="{{ old('fgroupcode', $lastProductFields['fgroupcode'] ?? '') }}">
                                     <button type="button"
                                         @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                         class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -437,7 +441,7 @@
                                             <option value="">-- Pilih Merek --</option>
                                             @foreach ($merks as $merk)
                                                 <option value="{{ $merk->fmerekcode }}"
-                                                    {{ old('fmerek') == $merk->fmerekcode ? 'selected' : '' }}>
+                                                    {{ old('fmerek', $lastProductFields['fmerek'] ?? '') == $merk->fmerekcode ? 'selected' : '' }}>
                                                     {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
                                                 </option>
                                             @endforeach
@@ -445,7 +449,7 @@
                                         <div class="absolute inset-0" role="button" aria-label="Browse Merek"
                                             @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
                                     </div>
-                                    <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
+                                    <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek', $lastProductFields['fmerek'] ?? '') }}">
                                     <button type="button"
                                         @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
                                         class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -539,7 +543,7 @@
                                         <option value="" selected>Pilih Satuan 1</option>
                                         @foreach ($satuan as $satu)
                                             <option value="{{ $satu->fsatuancode }}"
-                                                {{ old('fsatuankecil') == $satu->fsatuancode ? 'selected' : '' }}>
+                                                {{ old('fsatuankecil', $lastProductFields['fsatuankecil'] ?? '') == $satu->fsatuancode ? 'selected' : '' }}>
                                                 {{ $satu->fsatuancode }}
                                             </option>
                                         @endforeach
