@@ -1624,7 +1624,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                     </svg>
-                                                    {{ 'Tambah SO' }}
+                                                    {{ 'Add SO' }}
                                                 </button>
 
                                                 <div x-show="show" x-cloak x-transition.opacity
@@ -1955,7 +1955,7 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Customer wajib dipilih sebelum input produk manual. Untuk Tambah SO atau Add
+                                        Customer wajib dipilih sebelum input produk manual. Untuk Add SO atau Add
                                         SRJ,
                                         customer tidak wajib dipilih terlebih dahulu.
                                     </p>
