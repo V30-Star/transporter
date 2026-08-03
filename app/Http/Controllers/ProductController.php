@@ -449,8 +449,14 @@ class ProductController extends Controller
 
             $message = $isApproved ? 'Produk berhasil disimpan' : 'Produk butuh approval';
             return redirect()
-                ->route('product.index')
-                ->with('success', $message);
+                ->route('product.create')
+                ->with('success', $message)
+                ->with('last_product_fields', $request->only([
+                    'fgroupid',
+                    'fgroupcode',
+                    'fmerek',
+                    'fsatuankecil',
+                ]));
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
