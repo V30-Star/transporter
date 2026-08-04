@@ -527,20 +527,24 @@
                                 return;
                             }
                             onSubmit($event);
-                            const _completeDrafts = draftRows.filter(dr => dr.fitemcode && dr.fitemname && dr.fsatuan && Number(dr.fqty) > 0);
-                            if (savedItems.length > 0 || _completeDrafts.length > 0) { $el.submit(); }
+                            $el.submit();
                         ">
                         @csrf
                         @method('PATCH')
 
                         @if ($errors->any())
-                            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                                <p class="font-semibold mb-1">Tidak dapat menyimpan</p>
-                                <ul class="list-disc list-inside space-y-0.5">
-                                    @foreach ($errors->all() as $err)
-                                        <li>{{ $err }}</li>
-                                    @endforeach
-                                </ul>
+                            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 class="text-sm font-bold text-red-800">Terjadi Kesalahan Validasi</h3>
+                                        <ul class="mt-1.5 list-disc list-inside text-xs space-y-1">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         @endif
 
@@ -567,9 +571,15 @@
                                     {{-- Transaksi# --}}
                                     <div>
                                         <label class="block text-xs font-bold mb-1">No.Transaksi#</label>
-                                        <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        <input type="text" class="w-full border rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fstockmtno') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                             value="{{ strtoupper(old('fpono', $displayFstockmtno ?? $returpembelian->fstockmtno ?? '')) }}" disabled>
                                         <input type="hidden" name="fpono" value="{{ $returpembelian->fstockmtno }}">
+                                        @error('fstockmtno')
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
                                     </div>
 
                                     {{-- Tanggal --}}
@@ -577,9 +587,12 @@
                                         <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                                         <input type="date" id="fstockmtdate" name="fstockmtdate"
                                             value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($returpembelian->fstockmtdate)) }}"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
+                                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-500 text-red-600 @else border-gray-300 @enderror">
                                         @error('fstockmtdate')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
                                         @enderror
                                     </div>
                                 </div>
@@ -591,7 +604,7 @@
                                         <div class="flex">
                                             <div class="relative flex-1">
                                                 <select id="modal_filter_supplier_id" name="filter_supplier_id"
-                                                    class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-55 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                                    class="w-full border rounded-l-lg px-3 py-2 text-sm bg-gray-55 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 @error('fsupplier') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                     disabled>
                                                     <option value=""></option>
                                                     @foreach ($suppliers as $supplier)
@@ -607,20 +620,23 @@
                                             <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier', $returpembelian->fsupplier) }}">
                                             <button type="button"
                                                 @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fsupplier') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                 title="Browse Supplier">
                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                             </button>
                                             @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
                                                 <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fsupplier') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                     title="Tambah Supplier">
                                                     <x-heroicon-o-plus class="w-4 h-4" />
                                                 </a>
                                             @endif
                                         </div>
                                         @error('fsupplier')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
                                         @enderror
                                     </div>
 
@@ -630,7 +646,7 @@
                                         <div class="flex">
                                             <div class="relative flex-1">
                                                 <select id="warehouseSelect"
-                                                    class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-55 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                                    class="w-full border rounded-l-lg px-3 py-2 text-sm bg-gray-55 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                     disabled>
                                                     <option value=""></option>
                                                     @foreach ($warehouses as $wh)
@@ -646,18 +662,21 @@
                                             </div>
                                             <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom', $returpembelian->ffrom) }}">
                                             <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                 title="Browse Gudang">
                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                             </button>
                                             <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                                 title="Tambah Gudang">
                                                 <x-heroicon-o-plus class="w-4 h-4" />
                                             </a>
                                         </div>
                                         @error('ffrom')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
                                         @enderror
                                     </div>
                                 </div>
@@ -772,6 +791,16 @@
                                                     </td>
                                                 </tr>
                                             </template>
+                                            </tbody>
+                                    </table>
+                                </div>
+
+                                @error('fitemcode')
+                                    <p class="text-red-500 text-xs mt-2 font-semibold flex items-center gap-1">
+                                        <x-heroicon-o-exclamation-circle class="w-4 h-4 flex-shrink-0" />
+                                        {{ $message }}
+                                    </p>
+                                @enderror
 
                                             {{-- ROW EDIT UTAMA --}}
                                             <tr x-show="editingIndex !== null" class="border-t align-top hover:bg-gray-50 bg-amber-50" x-cloak>
@@ -958,6 +987,19 @@
                                         </tbody>
                                     </table>
                                 </div>
+
+                                @error('fitemcode')
+                                    <p class="text-red-500 text-xs mt-2 font-semibold flex items-center gap-1">
+                                        <x-heroicon-o-exclamation-circle class="w-4 h-4 flex-shrink-0" />
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                @error('detail')
+                                    <p class="text-red-500 text-xs mt-2 font-semibold flex items-center gap-1">
+                                        <x-heroicon-o-exclamation-circle class="w-4 h-4 flex-shrink-0" />
+                                        {{ $message }}
+                                    </p>
+                                @enderror
 
                                 {{-- MODAL SELECTORS & TOTALS --}}
                                 <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
