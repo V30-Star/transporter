@@ -471,7 +471,7 @@ class ReturPembelianController extends Controller
             ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
             ->orderByDesc('m.fstockmtdate')
             ->orderByDesc('m.fstockmtno')
-            ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+            ->select('d.fprice', 'd.fpricenet', 'd.fsatuan', 'd.fdiscpersen')
             ->first();
     }
 
@@ -501,13 +501,14 @@ class ReturPembelianController extends Controller
                 ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
                 ->orderByDesc('m.fstockmtdate')
                 ->orderByDesc('m.fstockmtno')
-                ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+                ->select('d.fprice', 'd.fpricenet', 'd.fsatuan', 'd.fdiscpersen')
                 ->first();
         }
 
         if ($history) {
+            $effectivePrice = (float) (($history->fpricenet ?? 0) > 0 ? $history->fpricenet : ($history->fprice ?? 0));
             return response()->json([
-                'price' => (float) ($history->fprice ?? 0),
+                'price' => $effectivePrice,
                 'unit' => trim((string) ($history->fsatuan ?? $unit)),
                 'discount' => (string) ($history->fdiscpersen ?? '0'),
                 'source' => 'history',
@@ -667,7 +668,7 @@ class ReturPembelianController extends Controller
             $ppnAmount = (float) $request->input('famountpajak', 0);
             $grandTotal = (float) $request->input('famountmt', 0);
 
-            $fincludeppn = (int) $request->input('fincludeppn', 0);
+            $fincludeppn = 0; // PPN Retur Pembelian selalu Exclude
             $defaultPpnTarif = $this->getDefaultPpnTarif();
             $fppnpersen = (float) $request->input('famountpopajak', $defaultPpnTarif);
             if ($fppnpersen <= 0 && $fincludeppn === 1) {
@@ -1249,7 +1250,7 @@ class ReturPembelianController extends Controller
             $ppnAmount = (float) $request->input('famountpajak', 0);
             $grandTotal = (float) $request->input('famountmt', 0);
 
-            $fincludeppn = (int) $request->input('fincludeppn', 0);
+            $fincludeppn = 0; // PPN Retur Pembelian selalu Exclude
             $defaultPpnTarif = $this->getDefaultPpnTarif();
             $fppnpersen = (float) $request->input('famountpopajak', $defaultPpnTarif);
             if ($fppnpersen <= 0 && $fincludeppn === 1) {

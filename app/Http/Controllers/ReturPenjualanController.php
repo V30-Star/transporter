@@ -548,7 +548,7 @@ class ReturPenjualanController extends Controller
             ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
             ->orderByDesc('m.fsodate')
             ->orderByDesc('m.fsono')
-            ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
+            ->select('d.fprice', 'd.fsalesnet', 'd.fpricenet', 'd.fsatuan', 'd.fdisc')
             ->first();
     }
 
@@ -583,8 +583,9 @@ class ReturPenjualanController extends Controller
         }
 
         if ($history) {
+            $effectivePrice = (float) (($history->fsalesnet ?? 0) > 0 ? $history->fsalesnet : (($history->fpricenet ?? 0) > 0 ? $history->fpricenet : ($history->fprice ?? 0)));
             return response()->json([
-                'price' => (float) ($history->fprice ?? 0),
+                'price' => $effectivePrice,
                 'unit' => trim((string) ($history->fsatuan ?? $unit)),
                 'discount' => (string) ($history->fdisc ?? '0'),
                 'source' => 'history',
@@ -626,6 +627,8 @@ class ReturPenjualanController extends Controller
                 'trandt.fqtyremain',
                 'trandt.fsatuan as fsatuan',
                 'trandt.fprice as fprice',
+                'trandt.fsalesnet as fsalesnet',
+                'trandt.fpricenet as fpricenet',
                 DB::raw("COALESCE(NULLIF(TRIM(trandt.fdisc), ''), '0') as fdisc"),
                 'trandt.fdesc',
                 'trandt.frefso',
@@ -669,7 +672,7 @@ class ReturPenjualanController extends Controller
                     'maxqty' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
                     'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
-                    'fprice' => (float) ($item->fprice ?? 0),
+                    'fprice' => (float) (($item->fsalesnet ?? 0) > 0 ? $item->fsalesnet : (($item->fpricenet ?? 0) > 0 ? $item->fpricenet : ($item->fprice ?? 0))),
                     'fdisc' => $this->normalizeDiscountInput($item->fdisc ?? 0),
                     'fdesc' => (string) ($item->fdesc ?? ''),
                     'fnouref' => trim((string) ($header->fsono ?? '')),
@@ -972,7 +975,7 @@ class ReturPenjualanController extends Controller
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate);
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fincludeppn = '0'; // PPN Retur Penjualan selalu Exclude
         $fapplyppn = $request->input('fapplyppn', '0');
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
@@ -2157,7 +2160,7 @@ class ReturPenjualanController extends Controller
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fincludeppn = '0'; // PPN Retur Penjualan selalu Exclude
         $fapplyppn = $request->input('fapplyppn', '0');
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
