@@ -471,7 +471,7 @@ class ReturPembelianController extends Controller
             ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
             ->orderByDesc('m.fstockmtdate')
             ->orderByDesc('m.fstockmtno')
-            ->select('d.fprice', 'd.fpricenet', 'd.fsatuan', 'd.fdiscpersen')
+            ->select('d.fprice', 'd.fpricenet', 'd.fbiaya', 'd.fsatuan', 'd.fdiscpersen')
             ->first();
     }
 
@@ -501,12 +501,12 @@ class ReturPembelianController extends Controller
                 ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
                 ->orderByDesc('m.fstockmtdate')
                 ->orderByDesc('m.fstockmtno')
-                ->select('d.fprice', 'd.fpricenet', 'd.fsatuan', 'd.fdiscpersen')
+                ->select('d.fprice', 'd.fpricenet', 'd.fbiaya', 'd.fsatuan', 'd.fdiscpersen')
                 ->first();
         }
 
         if ($history) {
-            $effectivePrice = (float) (($history->fpricenet ?? 0) > 0 ? $history->fpricenet : ($history->fprice ?? 0));
+            $effectivePrice = (float) (($history->fpricenet ?? 0) > 0 ? max(0, (float)$history->fpricenet - (float)($history->fbiaya ?? 0)) : ($history->fprice ?? 0));
             return response()->json([
                 'price' => $effectivePrice,
                 'unit' => trim((string) ($history->fsatuan ?? $unit)),

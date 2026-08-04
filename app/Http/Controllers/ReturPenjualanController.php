@@ -593,12 +593,12 @@ class ReturPenjualanController extends Controller
                 ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
                 ->orderByDesc('m.fsodate')
                 ->orderByDesc('m.fsono')
-                ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
+                ->select('d.fprice', 'd.fsalesnet', 'd.fpricenet', 'd.fsatuan', 'd.fdisc')
                 ->first();
         }
 
         if ($history) {
-            $effectivePrice = (float) (($history->fsalesnet ?? 0) > 0 ? $history->fsalesnet : (($history->fpricenet ?? 0) > 0 ? $history->fpricenet : ($history->fprice ?? 0)));
+            $effectivePrice = (float) (($history->fsalesnet ?? 0) > 0 ? $history->fsalesnet : ($history->fprice ?? 0));
             return response()->json([
                 'price' => $effectivePrice,
                 'unit' => trim((string) ($history->fsatuan ?? $unit)),
@@ -690,7 +690,7 @@ class ReturPenjualanController extends Controller
                     'maxqty' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
                     'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
-                    'fprice' => (float) (($item->fsalesnet ?? 0) > 0 ? $item->fsalesnet : (($item->fpricenet ?? 0) > 0 ? $item->fpricenet : ($item->fprice ?? 0))),
+                    'fprice' => (float) (($item->fsalesnet ?? 0) > 0 ? $item->fsalesnet : ($item->fprice ?? 0)),
                     'fdisc' => $this->normalizeDiscountInput($item->fdisc ?? 0),
                     'fdesc' => (string) ($item->fdesc ?? ''),
                     'fnouref' => trim((string) ($header->fsono ?? '')),

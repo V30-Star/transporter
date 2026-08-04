@@ -266,7 +266,7 @@
                         <div>
                             <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ trim($fbranchcode) }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang && trim($fcabang) !== trim($fbranchcode ?? '') ? ' - ' . trim($fcabang) : '')) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
@@ -1029,7 +1029,6 @@
                                             class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
                                             <option value="0">Exclude</option>
-                                            <option value="1">Include</option>
                                         </select>
 
                                         <!-- Input Rate + Nominal -->
