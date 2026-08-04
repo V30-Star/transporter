@@ -600,8 +600,11 @@
 
                                                 {{-- No Refrensi --}}
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
-                                                        x-text="it.frefdtno || '-'"></div>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
+                                                        x-model="it.frefdtno"
+                                                        :disabled="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'"
+                                                        placeholder="No Ref">
                                                 </td>
 
                                                 {{-- Satuan --}}

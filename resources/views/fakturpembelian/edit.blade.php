@@ -1030,8 +1030,10 @@
                                                     {{-- No Refrensi --}}
                                                     <td class="p-2">
                                                         <input type="text"
-                                                            class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-55 text-gray-500 text-sm cursor-not-allowed"
-                                                            :value="it.frefdtno || '-'" disabled placeholder="No Ref">
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed disabled:border-gray-200"
+                                                            x-model="it.frefdtno"
+                                                            :disabled="String(it.fitemcode || '').toUpperCase().trim() !== 'UM' || '{{ $action }}' === 'view'"
+                                                            placeholder="No Ref">
                                                     </td>
 
                                                     {{-- Satuan --}}

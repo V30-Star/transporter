@@ -621,8 +621,11 @@
                                             </td>
                                             <td class="p-2 text-blue-600">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="it.frefno_display || it.frefdtno || '-'" disabled>
+                                                    class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
+                                                    :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || '')"
+                                                    @input="if (String(it.fitemcode || '').toUpperCase().trim() === 'UM') { it.frefdtno = $event.target.value; it.frefno_display = $event.target.value; it.frefso = $event.target.value; }"
+                                                    :disabled="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'"
+                                                    placeholder="No Ref">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number"

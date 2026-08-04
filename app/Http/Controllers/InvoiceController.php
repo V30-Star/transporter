@@ -1458,6 +1458,7 @@ class InvoiceController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
 
+        $frefdtno = $request->input('frefdtno', []);
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -1519,7 +1520,11 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            $refDtNo = trim((string) ($frefdtno[$i] ?? ''));
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
+            if ($refSoNo === '' && $refDtNo !== '') {
+                $refSoNo = $refDtNo;
+            }
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
             if ($refSrjNo !== '') {
                 $refSoNo = ''; // Will resolve from trstockdt later
@@ -2616,6 +2621,7 @@ class InvoiceController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
         $frefcodes = $request->input('frefcode', []);
+        $frefdtno = $request->input('frefdtno', []);
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -2678,7 +2684,11 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            $refDtNo = trim((string) ($frefdtno[$i] ?? ''));
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
+            if ($refSoNo === '' && $refDtNo !== '') {
+                $refSoNo = $refDtNo;
+            }
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
             if ($refSrjNo !== '') {
                 $refSoNo = '';
