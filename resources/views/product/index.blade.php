@@ -49,11 +49,11 @@
                         <div class="flex items-center justify-between">
                             <span>Kode Produk</span>
                             <div class="flex items-center gap-1">
-                                {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
-                                </button> --}}
+                                </button>
                                 <span class="sort-icon cursor-pointer" data-column="0">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
