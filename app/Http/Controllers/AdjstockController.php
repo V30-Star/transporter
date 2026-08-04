@@ -9,10 +9,10 @@ use App\Models\Supplier;
 use App\Models\Tr_pod;
 use App\Models\Tr_poh;
 use Carbon\Carbon;
-// <-- TAMBAHKAN INI
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToArray;
 use Maatwebsite\Excel\Facades\Excel;
@@ -1149,7 +1149,7 @@ class AdjstockController extends Controller
             $subtotal = 0;
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $now = now();
-            $trxLogId = (string) Str::uuid();
+            $trxLogId = (string) \Illuminate\Support\Str::uuid();
 
             foreach ($items as $idx => $code) {
                 $code = trim((string) $code);
