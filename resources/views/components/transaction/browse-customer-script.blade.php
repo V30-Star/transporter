@@ -239,7 +239,7 @@
                 });
 
                 // Pilih button click (delegated on table)
-                $('#{{ $tableId }}').on('click.custpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').off('click.custpick').on('click.custpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -252,7 +252,7 @@
                 });
 
                 // Single-row click (delegated on table, targeting tbody tr)
-                $('#{{ $tableId }}').on('click.custpick', 'tbody tr', (e) => {
+                $('#{{ $tableId }}').off('click.custpick').on('click.custpick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }

@@ -3100,7 +3100,7 @@
                 });
 
                 // Handle button click
-                $('#accountTable').on('click', '.btn-choose', (e) => {
+                $('#accountTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     const data = this.table.row($(e.target).closest('tr')).data();
                     this.choose(data);
                 });

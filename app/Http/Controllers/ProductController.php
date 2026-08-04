@@ -148,7 +148,7 @@ class ProductController extends Controller
                 'msprd.fprdname',
                 'msmerek.fmerekname',
                 'msprd.fsatuankecil',
-                'msprd.fminstock',
+                'msprd.fstok',
             ];
             foreach ($columnFields as $index => $field) {
                 $colSearch = $request->input("columns.{$index}.search.value");
@@ -166,7 +166,7 @@ class ProductController extends Controller
                 'msprd.fprdname',
                 'msmerek.fmerekname',
                 'msprd.fsatuankecil',
-                'msprd.fminstock',
+                'msprd.fstok',
                 'msprd.fnonactive',
             ];
             if (isset($columns[$orderColumnIndex])) {
@@ -184,7 +184,7 @@ class ProductController extends Controller
                 'msprd.fsatuanbesar2',
                 'msprd.fsatuandefault',
                 'msprd.fsatuandefaultlaporan',
-                'msprd.fminstock',
+                'msprd.fstok',
                 'msprd.fimage1',
                 'msprd.fprdid',
                 'msprd.fnonactive',
@@ -205,7 +205,7 @@ class ProductController extends Controller
                     'fprdname' => $item->fprdname,
                     'fmerek' => $item->merek_name,
                     'fsatuankecil' => $this->resolveProductDefaultUnit($item),
-                    'fminstock' => $item->fminstock,
+                    'fstok' => $item->fstok,
                     'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
                     'fimage1' => $item->fimage1,
                     'status' => $statusBadge,

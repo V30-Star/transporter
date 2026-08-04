@@ -190,7 +190,7 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click.accpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').off('click.accpick').on('click.accpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -198,7 +198,7 @@
                     if (data) this.choose(data);
                 });
 
-                $('#{{ $tableId }} tbody').on('click.accpick', 'tr', (e) => {
+                $('#{{ $tableId }} tbody').off('click.accpick').on('click.accpick', 'tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }

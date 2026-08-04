@@ -144,7 +144,7 @@
 
                 const self = this;
                 $('#srjTable').off('click.srjpick');
-                $('#srjTable').on('click.srjpick', '.btn-pick-srj', function(e) {
+                $('#srjTable').off('click.srjpick').on('click.srjpick', '.btn-pick-srj', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     const data = self.table.row($(this).closest('tr')).data();

@@ -1252,7 +1252,7 @@
                     });
 
                     // Handle button click
-                    $('#warehouseTable').on('click.whpick', '.btn-choose', (e) => {
+                    $('#warehouseTable').off('click.whpick').on('click.whpick', '.btn-choose', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
 
@@ -1439,7 +1439,7 @@
                     });
 
                     // Handle button click
-                    $('#productTable').on('click', '.btn-choose', (e) => {
+                    $('#productTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                         const data = this.table.row($(e.target).closest('tr')).data();
                         this.choose(data);
                     });

@@ -218,7 +218,7 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click.prodpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').off('click.prodpick').on('click.prodpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -228,7 +228,7 @@
                     }
                 });
 
-                $('#{{ $tableId }} tbody').on('click.prodpick', 'tr', (e) => {
+                $('#{{ $tableId }} tbody').off('click.prodpick').on('click.prodpick', 'tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }

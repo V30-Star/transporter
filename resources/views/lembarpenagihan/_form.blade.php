@@ -613,14 +613,14 @@
                         },
                     });
 
-                    $('#notaBrowseTable').on('click.notapick', '.btn-choose', (event) => {
+                    $('#notaBrowseTable').off('click.notapick').on('click.notapick', '.btn-choose', (event) => {
                         event.preventDefault();
                         event.stopPropagation();
                         const data = this.notaTable?.row($(event.currentTarget).closest('tr')).data();
                         this.pickNota(data, this.notaMode);
                     });
 
-                    $('#notaBrowseTable').on('click.notapick', 'tbody tr', (event) => {
+                    $('#notaBrowseTable').off('click.notapick').on('click.notapick', 'tbody tr', (event) => {
                         if ($(event.target).closest('button, a, input, select, textarea').length) return;
                         const data = this.notaTable?.row(event.currentTarget).data();
                         this.pickNota(data, this.notaMode);

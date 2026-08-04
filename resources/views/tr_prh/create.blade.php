@@ -845,7 +845,7 @@
                         });
                     }
                 });
-                $('#supplierBrowseTable').on('click', '.btn-choose', (e) => {
+                $('#supplierBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     this.chooseSupplier(this.dataTable.row($(e.target).closest('tr')).data());
                 });
             },

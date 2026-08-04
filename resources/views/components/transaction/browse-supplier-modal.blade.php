@@ -291,7 +291,7 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click.suppick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').off('click.suppick').on('click.suppick', '.btn-choose', (e) => {
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (data) this.chooseSupplier(data);
                 });

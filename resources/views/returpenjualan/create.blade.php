@@ -1686,7 +1686,7 @@
                 $('#customerBrowseTable').off('click.custpick');
                 $('#customerBrowseTable tbody').off('click.custpick');
 
-                $('#customerBrowseTable').on('click.custpick', '.btn-choose', (e) => {
+                $('#customerBrowseTable').off('click.custpick').on('click.custpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -1901,7 +1901,7 @@
                 $('#salesmanBrowseTable').off('click.salespick');
                 $('#salesmanBrowseTable tbody').off('click.salespick');
 
-                $('#salesmanBrowseTable').on('click.salespick', '.btn-choose', (e) => {
+                $('#salesmanBrowseTable').off('click.salespick').on('click.salespick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -3510,7 +3510,7 @@
                     $('#productTable').off('click.prodpick');
                     $('#productTable tbody').off('click.prodpick');
 
-                    $('#productTable').on('click.prodpick', '.btn-choose', (e) => {
+                    $('#productTable').off('click.prodpick').on('click.prodpick', '.btn-choose', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
 

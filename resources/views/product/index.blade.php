@@ -704,8 +704,8 @@
                     searchable: true
                 },
                 {
-                    data: 'fminstock',
-                    name: 'fminstock',
+                    data: 'fstok',
+                    name: 'fstok',
                     orderable: false,
                     searchable: true,
                     render: function(value) {

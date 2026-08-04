@@ -251,7 +251,7 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click.whpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').off('click.whpick').on('click.whpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -264,7 +264,7 @@
                     this.choose(data);
                 });
 
-                $('#{{ $tableId }} tbody').on('click.whpick', 'tr', (e) => {
+                $('#{{ $tableId }} tbody').off('click.whpick').on('click.whpick', 'tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }

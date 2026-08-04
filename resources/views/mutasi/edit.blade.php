@@ -1952,7 +1952,7 @@
                 });
 
                 // Handle button click
-                $('#warehouseTable').on('click.whpick', '.btn-choose', (e) => {
+                $('#warehouseTable').off('click.whpick').on('click.whpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -1961,7 +1961,7 @@
                     this.choose(data);
                 });
 
-                $('#warehouseTable tbody').on('click.whpick', 'tr', (e) => {
+                $('#warehouseTable tbody').off('click.whpick').on('click.whpick', 'tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) return;
 
                     const data = this.table?.row(e.currentTarget).data();
@@ -2175,7 +2175,7 @@
                     $('#productTable').off('click.prodpick');
                     $('#productTable tbody').off('click.prodpick');
 
-                    $('#productTable').on('click.prodpick', '.btn-choose', (e) => {
+                    $('#productTable').off('click.prodpick').on('click.prodpick', '.btn-choose', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
 
@@ -2183,7 +2183,7 @@
                         if (data) this.choose(data);
                     });
 
-                    $('#productTable tbody').on('click.prodpick', 'tr', (e) => {
+                    $('#productTable tbody').off('click.prodpick').on('click.prodpick', 'tr', (e) => {
                         if ($(e.target).closest('button, a, input, select, textarea').length) return;
 
                         const data = this.table?.row(e.currentTarget).data();
