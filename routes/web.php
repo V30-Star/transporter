@@ -529,6 +529,8 @@ Route::middleware('auth')->group(function () {
             ->name('returpenjualan.pickable');
         Route::get('/returpenjualan/browse', [ReturPenjualanController::class, 'browse'])
             ->name('returpenjualan.browse');
+        Route::get('/returpenjualan/product-price', [ReturPenjualanController::class, 'productPrice'])
+            ->name('returpenjualan.product-price');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

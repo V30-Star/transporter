@@ -3608,6 +3608,40 @@
                 }, 3000);
             },
 
+            async fetchProductPriceHistory(row, index = null) {
+                const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                if (!customerCode || !productCode) return;
+                if (row.frefsrj || row.frefso || row.frefcode === 'SRJ' || row.frefcode === 'INV') return;
+
+                try {
+                    const params = new URLSearchParams({
+                        fcustno: customerCode,
+                        fprdcode: productCode,
+                        fsatuan: (row.fsatuan || '').toString().trim(),
+                    });
+                    const res = await fetch(`{{ route('returpenjualan.product-price') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!res.ok) return;
+                    const json = await res.json();
+                    if (json.source === 'history' || json.price > 0) {
+                        row.fprice = Number(json.price ?? 0);
+                        row.fpriceInput = this.fmt(row.fprice);
+                        if (json.discount !== undefined && json.discount !== null && json.discount !== '') {
+                            row.fdisc = json.discount;
+                        }
+                        if (typeof index === 'number') {
+                            this.onRowUpdated(index);
+                        } else {
+                            this.recalc(row);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching product price history:', e);
+                }
+            },
+
             init() {
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
@@ -3646,7 +3680,7 @@
                     passive: true
                 });
 
-                window.addEventListener('product-chosen', (e) => {
+                window.addEventListener('product-chosen', async (e) => {
                     const {
                         product
                     } = e.detail || {};
@@ -3670,6 +3704,7 @@
                     const row = this.savedItems[index];
                     apply(row);
                     this.onRowUpdated(index);
+                    await this.fetchProductPriceHistory(row, index);
                     this.$nextTick(() => this.focusRowQty(index));
                 }, {
                     passive: true

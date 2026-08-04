@@ -538,6 +538,72 @@ class ReturPenjualanController extends Controller
         ]);
     }
 
+    private function latestSalesHistory(string $customerCode, string $productCode, string $unit): ?object
+    {
+        return DB::table('tranmt as m')
+            ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
+            ->where('m.fsono', 'like', 'INV.%')
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
+            ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
+            ->orderByDesc('m.fsodate')
+            ->orderByDesc('m.fsono')
+            ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
+            ->first();
+    }
+
+    public function productPrice(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+        $unit = trim((string) $request->input('fsatuan', ''));
+
+        if ($customerCode === '' || $productCode === '') {
+            return response()->json([
+                'price' => 0,
+                'discount' => '0',
+                'source' => 'default',
+            ]);
+        }
+
+        $history = $unit !== ''
+            ? $this->latestSalesHistory($customerCode, $productCode, $unit)
+            : null;
+
+        if (! $history) {
+            $history = DB::table('tranmt as m')
+                ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
+                ->where('m.fsono', 'like', 'INV.%')
+                ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+                ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
+                ->orderByDesc('m.fsodate')
+                ->orderByDesc('m.fsono')
+                ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
+                ->first();
+        }
+
+        if ($history) {
+            return response()->json([
+                'price' => (float) ($history->fprice ?? 0),
+                'unit' => trim((string) ($history->fsatuan ?? $unit)),
+                'discount' => (string) ($history->fdisc ?? '0'),
+                'source' => 'history',
+            ]);
+        }
+
+        $product = DB::table('msprd')->where('fprdcode', $productCode)->first();
+        $price = 0.0;
+        if ($product) {
+            $price = (float) ($product->fhargajuallevel1 ?? $product->fhpp ?? 0);
+        }
+
+        return response()->json([
+            'price' => $price,
+            'discount' => '0',
+            'source' => 'master',
+        ]);
+    }
+
     public function items($id)
     {
         $header = DB::table('tranmt')
