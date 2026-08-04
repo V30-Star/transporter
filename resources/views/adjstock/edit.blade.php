@@ -821,7 +821,7 @@
                             </div>
                         </template>
                     </div>
-                    <div class="flex justify-between items-center mt-3">
+                    <div class="flex justify-end mt-3">
                         <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
                             <div class="flex justify-between items-center font-bold text-gray-800">
                                 <span class="text-sm">Total Harga</span>
