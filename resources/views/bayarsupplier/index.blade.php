@@ -22,6 +22,7 @@
                 ->unique()
                 ->sortDesc()
                 ->values();
+        @endphp
         @php
             $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
             $canCreate = empty($permissions) || in_array('createBayarSupplier', $permissions, true);
