@@ -1868,18 +1868,33 @@
                 row.fitemcode = typedCode;
                 const meta = this.productMeta(row.fitemcode);
 
-                if (typedCode !== '' && String(this.selectedType) === '1' && meta && meta.name) {
+                if (typedCode !== '' && meta && meta.name) {
                     const prodType = (meta.ftype || '').toString().trim().toLowerCase();
-                    if (prodType !== 'jasa') {
-                        row.fitemcode = '';
-                        this.hydrateRowFromMeta(row, null);
-                        const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
-                        if (typeof window.showAppWarningAlert === 'function') {
-                            window.showAppWarningAlert('Informasi', message);
-                        } else if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                    if (String(this.selectedType) === '1') {
+                        if (prodType !== 'jasa') {
+                            row.fitemcode = '';
+                            this.hydrateRowFromMeta(row, null);
+                            const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('Informasi', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                            }
+                            return;
                         }
-                        return;
+                    } else {
+                        if (prodType === 'jasa') {
+                            row.fitemcode = '';
+                            this.hydrateRowFromMeta(row, null);
+                            const typeName = String(this.selectedType) === '2' ? 'Uang Muka' : (String(this.selectedType) === '3' ? 'Lain-lain' : 'Stok');
+                            const message = `Tipe Pembelian: ${typeName}.\nProduk dengan tipe Jasa tidak boleh dipilih untuk tipe ini !!!`;
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('Informasi', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                            }
+                            return;
+                        }
                     }
                 }
 
@@ -2364,11 +2379,22 @@
                     } = e.detail || {};
                     if (!product) return;
 
+                    const meta = this.productMeta(product.fprdcode);
+                    const prodType = (product.ftype || meta?.ftype || '').toString().trim().toLowerCase();
                     if (String(this.selectedType) === '1') {
-                        const meta = this.productMeta(product.fprdcode);
-                        const prodType = (product.ftype || meta?.ftype || '').toString().trim().toLowerCase();
                         if (prodType !== 'jasa') {
                             const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('Informasi', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                            }
+                            return;
+                        }
+                    } else {
+                        if (prodType === 'jasa') {
+                            const typeName = String(this.selectedType) === '2' ? 'Uang Muka' : (String(this.selectedType) === '3' ? 'Lain-lain' : 'Stok');
+                            const message = `Tipe Pembelian: ${typeName}.\nProduk dengan tipe Jasa tidak boleh dipilih untuk tipe ini !!!`;
                             if (typeof window.showAppWarningAlert === 'function') {
                                 window.showAppWarningAlert('Informasi', message);
                             } else if (typeof Swal !== 'undefined') {

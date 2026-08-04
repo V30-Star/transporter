@@ -1380,16 +1380,16 @@ class FakturpembelianController extends Controller
                 }
             }
 
-            if ((string) $ftypebuy === '1') {
-                $nonServiceCodes = collect($codes)
-                    ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '')
-                    ->unique()
-                    ->values();
+            $submittedCodes = collect($codes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '')
+                ->unique()
+                ->values();
 
-                if ($nonServiceCodes->isNotEmpty()) {
+            if ($submittedCodes->isNotEmpty()) {
+                if ((string) $ftypebuy === '1') {
                     $invalidServiceCodes = DB::table('msprd')
-                        ->whereIn('fprdcode', $nonServiceCodes->all())
+                        ->whereIn('fprdcode', $submittedCodes->all())
                         ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) != ?", ['jasa'])
                         ->pluck('fprdcode')
                         ->all();
@@ -1400,6 +1400,31 @@ class FakturpembelianController extends Controller
                         if ($request->expectsJson()) {
                             return response()->json(['message' => $message], 422);
                         }
+
+                        return back()->withInput()->withErrors([
+                            'detail' => $message,
+                        ]);
+                    }
+                } else {
+                    $invalidJasaCodes = DB::table('msprd')
+                        ->whereIn('fprdcode', $submittedCodes->all())
+                        ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", ['jasa'])
+                        ->pluck('fprdcode')
+                        ->all();
+
+                    if (! empty($invalidJasaCodes)) {
+                        $invalidList = implode(', ', $invalidJasaCodes);
+                        $typeName = match ((string) $ftypebuy) {
+                            '0' => 'Stok',
+                            '2' => 'Uang Muka',
+                            '3' => 'Lain-lain',
+                            default => 'Stok',
+                        };
+                        $message = "Tipe Pembelian: {$typeName}.\nProduk dengan tipe Jasa tidak boleh diinput untuk tipe ini !!! (Kode item: {$invalidList})";
+                        if ($request->expectsJson()) {
+                            return response()->json(['message' => $message], 422);
+                        }
+
                         return back()->withInput()->withErrors([
                             'detail' => $message,
                         ]);
@@ -2229,16 +2254,16 @@ class FakturpembelianController extends Controller
                 }
             }
 
-            if ((string) $ftypebuy === '1') {
-                $nonServiceCodes = collect($codes)
-                    ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '')
-                    ->unique()
-                    ->values();
+            $submittedCodes = collect($codes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '')
+                ->unique()
+                ->values();
 
-                if ($nonServiceCodes->isNotEmpty()) {
+            if ($submittedCodes->isNotEmpty()) {
+                if ((string) $ftypebuy === '1') {
                     $invalidServiceCodes = DB::table('msprd')
-                        ->whereIn('fprdcode', $nonServiceCodes->all())
+                        ->whereIn('fprdcode', $submittedCodes->all())
                         ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) != ?", ['jasa'])
                         ->pluck('fprdcode')
                         ->all();
@@ -2249,6 +2274,31 @@ class FakturpembelianController extends Controller
                         if ($request->expectsJson()) {
                             return response()->json(['message' => $message], 422);
                         }
+
+                        return back()->withInput()->withErrors([
+                            'detail' => $message,
+                        ]);
+                    }
+                } else {
+                    $invalidJasaCodes = DB::table('msprd')
+                        ->whereIn('fprdcode', $submittedCodes->all())
+                        ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", ['jasa'])
+                        ->pluck('fprdcode')
+                        ->all();
+
+                    if (! empty($invalidJasaCodes)) {
+                        $invalidList = implode(', ', $invalidJasaCodes);
+                        $typeName = match ((string) $ftypebuy) {
+                            '0' => 'Stok',
+                            '2' => 'Uang Muka',
+                            '3' => 'Lain-lain',
+                            default => 'Stok',
+                        };
+                        $message = "Tipe Pembelian: {$typeName}.\nProduk dengan tipe Jasa tidak boleh diinput untuk tipe ini !!! (Kode item: {$invalidList})";
+                        if ($request->expectsJson()) {
+                            return response()->json(['message' => $message], 422);
+                        }
+
                         return back()->withInput()->withErrors([
                             'detail' => $message,
                         ]);
