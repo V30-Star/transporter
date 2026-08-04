@@ -674,8 +674,6 @@
                                                         <input type="hidden" name="fketdt[]" :value="dr.fketdt || ''">
                                                         <input type="hidden" name="frefdtno[]" :value="dr.frefdtno || ''">
                                                     </td>
-                                                </template>
-                                            </tr>
                                         </template>
                                     </tbody>
                                 </table>
