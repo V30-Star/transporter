@@ -2034,10 +2034,9 @@
                     row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
                     const discPercent = this.parseDiscount(row.fdiscpersen);
 
-                    const basePrice = (row.fprice + row.fbiaya) * row.fqty;
-                    const diskon = (row.fqty * row.fprice) * (discPercent / 100);
-
-                    row.ftotprice = +(basePrice - diskon).toFixed(2);
+                    const discAmount = row.fprice * (discPercent / 100);
+                    row.fpricenet = +(row.fprice - discAmount + row.fbiaya).toFixed(2);
+                    row.ftotprice = +(row.fqty * row.fpricenet).toFixed(2);
 
                     this.recalcTotals();
                 },
@@ -2714,6 +2713,7 @@
                         'fprice',
                         'fbiaya',
                         'fdiscpersen',
+                        'fpricenet',
                         'ftotprice',
                         'fdesc',
                         'fketdt',
@@ -2999,7 +2999,9 @@
                         const price = +item.fprice || 0;
                         const disc = this.parseDiscount(item.fdiscpersen);
                         const biaya = +item.fbiaya || 0;
-                        item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
+                        const unitDisc = price * (disc / 100);
+                        item.fpricenet = +(price - unitDisc + biaya).toFixed(2);
+                        item.ftotprice = +(qty * item.fpricenet).toFixed(2);
                         item.fpriceInput = this.fmt(price);
                     });
                     if (ACTION === 'delete' || ACTION === 'view') {

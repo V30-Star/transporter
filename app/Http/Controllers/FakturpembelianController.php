@@ -1535,7 +1535,8 @@ class FakturpembelianController extends Controller
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
                 $isAdvancePaymentDetail = (string) $ftypebuy === '2';
 
-                $priceNet = ($price + $biaya) - ($price * ($discP / 100));
+                $discAmount = $price * ($discP / 100);
+                $priceNet = $price - $discAmount + $biaya;
                 $amount = $qty * $priceNet;
                 $subtotal += $amount;
 
@@ -2424,7 +2425,8 @@ class FakturpembelianController extends Controller
                     $qtyKecil = 0;
                 }
 
-                $priceNet = ($price + $biaya) - ($price * ($discP / 100));
+                $discAmount = $price * ($discP / 100);
+                $priceNet = $price - $discAmount + $biaya;
                 $amount = $qty * $priceNet;
                 $subtotal += $amount;
 
