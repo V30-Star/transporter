@@ -242,43 +242,13 @@
                     return;
                 }
 
-                const canApproval = @json(!empty($canApproval));
-                const approveInput = document.getElementById('approveNowInput');
-                if (canApproval) {
-                    $event.preventDefault();
-                    Swal.fire({
-                        icon: 'question',
-                        title: 'Konfirmasi Approval',
-                        text: 'Apakah Adjustment Stock ini mau langsung di Approve?',
-                        showConfirmButton: true,
-                        confirmButtonText: 'Yes',
-                        showDenyButton: true,
-                        denyButtonText: 'No',
-                        showCancelButton: true,
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#2563eb',
-                        denyButtonColor: '#4b5563',
-                        cancelButtonColor: '#9ca3af',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        if (result.isConfirmed || result.isDenied) {
-                            if (approveInput) approveInput.value = result.isConfirmed ? '1' : '0';
-                            window.submitFormWithStockMinusConfirmation?.($event.target);
-                        }
-                    });
-                    return;
-                }
-
-                if (approveInput) approveInput.value = '0';
-
                 return window.submitFormWithStockMinusConfirmation?.($event);
             }
         }">
             <form action="{{ route('adjstock.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="adjstock:create" @submit="onSubmit($event)">
                 @csrf
-                <input type="hidden" name="approve_now" id="approveNowInput" value="0">
+
 
                 {{-- ─── CARD 1: Identitas Adjustment ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">

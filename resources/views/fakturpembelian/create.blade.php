@@ -575,7 +575,7 @@
                                                         <input type="text"
                                                             class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0 focus:ring-1 focus:ring-blue-500"
                                                             x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
-                                                            @blur="activeRow = null" @input="onCodeTypedRow(it, i)"
+                                                            @blur="activeRow = null" @input="onCodeTypedRow(it, i, $event.target.value)"
                                                             @keydown.enter.prevent="$refs['qty_saved_' + i]?.focus()">
                                                         <button type="button" @click="openBrowseFor('saved', i)"
                                                             class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
@@ -1209,6 +1209,7 @@
 </style>
 <script>
     window.FAKTUR_PEMBELIAN_PRICE_INFO_URL = @json(route('fakturpembelian.price-info'));
+    window.PRODUCT_BROWSE_URL = @json(route('products.browse'));
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
@@ -1537,6 +1538,52 @@
                 return meta;
             },
 
+            productMetaFromPayload(product) {
+                const smallUnit = (product?.fsatuankecil || '').toString().trim();
+                const largeUnit = (product?.fsatuanbesar || '').toString().trim();
+                const largeUnit2 = (product?.fsatuanbesar2 || '').toString().trim();
+                const defaultKey = (product?.fsatuandefault || '').toString().trim();
+                const units = [smallUnit, largeUnit, largeUnit2].filter(Boolean);
+                const defaultUnit = defaultKey === '2' ? largeUnit : (defaultKey === '3' ? largeUnit2 : (smallUnit || largeUnit || largeUnit2));
+
+                return {
+                    code: (product?.fprdcode || '').toString().trim(),
+                    name: product?.fprdname || '',
+                    ftype: (product?.ftype || '').toString().trim(),
+                    default_unit: defaultUnit,
+                    units: [...new Set([defaultUnit, ...units].filter(Boolean))],
+                    stock: product?.fminstock || 0,
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: Number(product?.fqtykecil || 1),
+                        satuanbesar2: Number(product?.fqtykecil2 || 1),
+                    },
+                };
+            },
+
+            async fetchProductMetaByCode(code) {
+                const productCode = (code || '').toString().trim();
+                if (!productCode || !window.PRODUCT_BROWSE_URL) return this.productMeta(productCode);
+
+                try {
+                    const params = new URLSearchParams({ fprdcode_exact: productCode, length: 1 });
+                    const response = await fetch(`${window.PRODUCT_BROWSE_URL}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!response.ok) return this.productMeta(productCode);
+                    const product = (await response.json())?.data?.[0];
+                    if (!product) return this.productMeta(productCode);
+
+                    const meta = this.productMetaFromPayload(product);
+                    window.PRODUCT_MAP = window.PRODUCT_MAP || {};
+                    window.PRODUCT_MAP[meta.code] = meta;
+                    return meta;
+                } catch (error) {
+                    console.warn('Gagal mengambil data produk:', error);
+                    return this.productMeta(productCode);
+                }
+            },
+
             formatStockLimit(code, qty, satuan) {
                 return '';
             },
@@ -1855,8 +1902,8 @@
                 this.ensureTrailingRow(index);
             },
 
-            onCodeTypedRow(row, index = null) {
-                const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
+            async onCodeTypedRow(row, index = null, inputValue = null) {
+                const typedCode = (inputValue ?? row.fitemcode ?? '').toString().trim().toUpperCase();
 
                 if (typedCode !== '' && !this.requireSupplierBeforeManualProduct()) {
                     row.fitemcode = '';
@@ -1870,7 +1917,11 @@
                     return;
                 }
                 row.fitemcode = typedCode;
-                const meta = this.productMeta(row.fitemcode);
+                let meta = this.productMeta(row.fitemcode);
+                if (typedCode !== '' && !meta.name) {
+                    meta = await this.fetchProductMetaByCode(typedCode);
+                    if ((row.fitemcode || '').toString().trim().toUpperCase() !== typedCode) return;
+                }
 
                 if (typedCode !== '' && meta && meta.name) {
                     const prodType = (meta.ftype || '').toString().trim().toLowerCase();

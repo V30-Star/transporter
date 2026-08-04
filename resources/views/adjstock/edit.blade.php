@@ -7,9 +7,6 @@
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updatePenerimaanBarang', $permissions, true);
         $canDeletePermission = in_array('deletePenerimaanBarang', $permissions, true);
-        $isApproved = !empty($adjstock->fuserapproved) || (int) ($adjstock->fapproval ?? 0) === 1;
-        $needsApproval = !$isApproved;
-        $canApprovePermission = !empty($canApproval);
     @endphp
     <style>
         input:focus,
@@ -523,7 +520,7 @@
             @submit="onSubmit($event)">
             @csrf
             @method('PATCH')
-            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
+
 
             {{-- ─── CARD 1: Identitas Adjustment ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -1415,20 +1412,6 @@
             {{-- ─── CARD 3: Aksi ──────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden allow-action">
                 <div class="p-4 border-b border-gray-100">
-                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
-                        <div>
-                            <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                            <p class="text-xs text-gray-400 mt-0.5">{{ $isApproved ? 'Dokumen ini disetujui' : 'Dokumen ini belum disetujui' }}</p>
-                        </div>
-                        @if ($action !== 'view' && $canEditPermission && $needsApproval && $canApprovePermission && !$usageLocked)
-                            <button type="button"
-                                @click="Swal.fire({ icon: 'question', title: 'Konfirmasi Approval', text: 'Apakah Anda yakin ingin menyetujui Adjustment Stock ini sekarang?', showConfirmButton: true, confirmButtonText: 'Yes', showCancelButton: true, cancelButtonText: 'No', confirmButtonColor: '#059669', cancelButtonColor: '#6b7280', allowOutsideClick: false, allowEscapeKey: false }).then((result) => { if (result.isConfirmed) { const form = $el.closest('form'); const approveInput = document.getElementById('approveNowInput'); if (approveInput) approveInput.value = '1'; if (form) form.dataset.approveSubmit = '1'; window.submitFormWithStockMinusConfirmation?.(form); } })"
-                                class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
-                                <x-heroicon-o-check-circle class="w-4 h-4" /> Setujui Sekarang
-                            </button>
-                        @endif
-                    </div>
-                </div>
                 <div class="flex items-center justify-end gap-3 px-4 py-3">
                     <div class="flex items-center gap-3">
                         @if ($action !== 'view' && $canEditPermission)

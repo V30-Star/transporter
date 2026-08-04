@@ -458,7 +458,6 @@ class AdjstockController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
-            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -744,7 +743,6 @@ class AdjstockController extends Controller
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
-            $isApproved = $this->canApproveAdjustmentStock() && $request->boolean('approve_now');
             $userName = Auth::user()->fname ?? 'system';
 
             $headerData = [
@@ -769,9 +767,9 @@ class AdjstockController extends Controller
                 'fket' => trim((string) $request->input('fket', '')) ?: null,
                 'fusercreate' => $userName,
                 'fdatetime' => $now,
-                'fapproval' => $isApproved ? 1 : 0,
-                'fuserapproved' => $isApproved ? $userName : null,
-                'fdateapproved' => $isApproved ? $now : null,
+                'fapproval' => 1,
+                'fuserapproved' => $userName,
+                'fdateapproved' => $now,
                 'fbranchcode' => $request->input('fbranchcode'),
                 'fprint' => 0,
                 'fsudahtagih' => '0',
@@ -830,14 +828,14 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => $isApproved ? "Adjustment stock {$finalNo} berhasil disimpan." : "Adjustment stock {$finalNo} butuh approval.",
+                    'message' => "Adjustment stock {$finalNo} berhasil disimpan.",
                     'redirect_url' => route('adjstock.create'),
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', $isApproved ? "Adjustment stock {$finalNo} berhasil disimpan." : "Adjustment stock {$finalNo} butuh approval.");
+                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -962,7 +960,6 @@ class AdjstockController extends Controller
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
-            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -1065,7 +1062,6 @@ class AdjstockController extends Controller
         'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'view',
-            'canApproval' => $this->canApproveAdjustmentStock(),
         ]);
     }
 
@@ -1270,9 +1266,9 @@ class AdjstockController extends Controller
                     'fprdjadi' => $fprdjadi,
                     'fket' => $fket,
                     'fuserupdate' => $userName,
-                    'fapproval' => $isApproved ? 1 : 0,
-                    'fuserapproved' => $isApproved ? ($header->fuserapproved ?: $userName) : null,
-                    'fdateapproved' => $isApproved ? ($header->fdateapproved ?: $now) : null,
+                    'fapproval' => 1,
+                    'fuserapproved' => $header->fuserapproved ?: $userName,
+                    'fdateapproved' => $header->fdateapproved ?: $now,
                     'fbranchcode' => $kodeCabang,
                 ];
 

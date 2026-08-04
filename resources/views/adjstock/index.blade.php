@@ -100,7 +100,6 @@
                         </div>
             </th>
             <th class="border px-2 py-1">Keterangan</th>
-            <th class="border px-2 py-1">Approval</th>
 
             @if ($showActionsColumn)
                 <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -398,21 +397,8 @@
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
 
-            const renderOtorisasi = (row) => {
-                const value = (row?.fapproval ?? '').toString().trim();
 
-                if (value === '1') {
-                    return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Approve</span>';
-                }
-
-                if (value === '0') {
-                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Belum Approve</span>';
-                }
-
-                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">-</span>';
-            };
-
-            // 1. Definisi Kolom - HARUS SELALU ADA 3 KOLOM (sesuai dengan <th> di HTML)
+            // 1. Definisi Kolom (sesuai dengan <th> di HTML)
             const columns = [{
                     data: 'fcabang',
                     name: 'fcabang'
@@ -449,17 +435,6 @@
                 {
                     data: 'fket',
                     name: 'fket'
-                },
-                {
-                    data: 'fapproval',
-                    name: 'fapproval',
-                    render: function(data, type, row) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        return renderOtorisasi(row);
-                    }
                 },
                 @if ($showActionsColumn)
                 {

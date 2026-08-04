@@ -63,9 +63,12 @@ class ProductBrowseController extends Controller
                 'msprd.ftype',
                 'msprd.fmerek',
                 'msmerek.fmerekname',
+                'msprd.fsatuandefault',
                 'msprd.fsatuankecil',
                 'msprd.fsatuanbesar',
                 'msprd.fsatuanbesar2',
+                'msprd.fqtykecil',
+                'msprd.fqtykecil2',
                 DB::raw("
                 CASE 
                     WHEN msprd.fminstock ~ '^[0-9]+(\\.[0-9]+)?$' 
