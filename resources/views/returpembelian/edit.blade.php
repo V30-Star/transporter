@@ -900,7 +900,8 @@
                                                     <td class="p-2">
                                                         <template x-if="dr.units.length > 1">
                                                             <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                                x-model="dr.fsatuan">
+                                                                x-model="dr.fsatuan"
+                                                                @change="fetchProductPriceHistory(dr)">
                                                                 <template x-for="u in dr.units" :key="u">
                                                                     <option :value="u" x-text="u"></option>
                                                                 </template>
@@ -1851,7 +1852,7 @@
                     passive: true
                 });
 
-                window.addEventListener('product-chosen', (e) => {
+                window.addEventListener('product-chosen', async (e) => {
                     const {
                         product
                     } = e.detail || {};
@@ -1864,11 +1865,13 @@
                     };
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
+                        await this.fetchProductPriceHistory(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
                     } else if (typeof this.browseTarget === 'number') {
                         const dr = this.draftRows[this.browseTarget];
                         if (dr) {
                             apply(dr);
+                            await this.fetchProductPriceHistory(dr);
                             this.draftRows.splice(this.browseTarget, 1, {
                                 ...dr
                             });

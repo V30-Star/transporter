@@ -592,7 +592,8 @@
                                                 <td class="p-2">
                                                     <template x-if="dr.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                            x-model="dr.fsatuan">
+                                                            x-model="dr.fsatuan"
+                                                            @change="fetchProductPriceHistory(dr)">
                                                             <template x-for="u in dr.units" :key="u">
                                                                 <option :value="u" x-text="u"></option>
                                                             </template>
@@ -1474,6 +1475,36 @@
                 this.editRow = this.normalizeRestoredRow(editRow, 'edit');
             },
 
+            async fetchProductPriceHistory(row) {
+                const supplierCode = (document.getElementById('supplierCodeHidden')?.value || '').trim();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                if (!productCode) return;
+                if (row.frefpr || row.frefdtno) return;
+
+                try {
+                    const params = new URLSearchParams({
+                        fsupplier: supplierCode,
+                        fprdcode: productCode,
+                        fsatuan: (row.fsatuan || '').toString().trim(),
+                    });
+                    const res = await fetch(`{{ route('returpembelian.product-price') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!res.ok) return;
+                    const json = await res.json();
+                    if (json.source === 'history' || json.price > 0) {
+                        row.fprice = Number(json.price ?? 0);
+                        row.fpriceInput = this.fmt(row.fprice);
+                        if (json.discount !== undefined && json.discount !== null && json.discount !== '') {
+                            row.fdisc = json.discount;
+                        }
+                        this.recalc(row);
+                    }
+                } catch (e) {
+                    console.error('Error fetching purchase product price history:', e);
+                }
+            },
+
             init() {
                 // If there are restored items from a failed POST, put them in draftRows
                 this.draftRows = [];
@@ -1502,7 +1533,7 @@
                 });
 
                 // Listen for product picked from product modal
-                window.addEventListener('product-chosen', (e) => {
+                window.addEventListener('product-chosen', async (e) => {
                     const {
                         product
                     } = e.detail || {};
@@ -1515,12 +1546,14 @@
                     };
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
+                        await this.fetchProductPriceHistory(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
                     } else if (typeof this.browseTarget === 'number') {
                         // draft row by index
                         const dr = this.draftRows[this.browseTarget];
                         if (dr) {
                             apply(dr);
+                            await this.fetchProductPriceHistory(dr);
                             // Force Alpine reactivity
                             this.draftRows.splice(this.browseTarget, 1, { ...dr });
                             this.$nextTick(() => document.getElementById('draft-qty-' + this.browseTarget)?.focus());

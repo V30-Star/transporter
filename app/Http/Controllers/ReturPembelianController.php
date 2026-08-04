@@ -461,6 +461,72 @@ class ReturPembelianController extends Controller
         ]);
     }
 
+    private function latestPurchaseHistory(string $supplierCode, string $productCode, string $unit): ?object
+    {
+        return DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->where('m.fstockmtcode', 'BUY')
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
+            ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
+            ->orderByDesc('m.fstockmtdate')
+            ->orderByDesc('m.fstockmtno')
+            ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+            ->first();
+    }
+
+    public function productPrice(Request $request)
+    {
+        $supplierCode = trim((string) $request->input('fsupplier', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+        $unit = trim((string) $request->input('fsatuan', ''));
+
+        if ($productCode === '') {
+            return response()->json([
+                'price' => 0,
+                'discount' => '0',
+                'source' => 'default',
+            ]);
+        }
+
+        $history = ($supplierCode !== '' && $unit !== '')
+            ? $this->latestPurchaseHistory($supplierCode, $productCode, $unit)
+            : null;
+
+        if (! $history && $supplierCode !== '') {
+            $history = DB::table('trstockmt as m')
+                ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+                ->where('m.fstockmtcode', 'BUY')
+                ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+                ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
+                ->orderByDesc('m.fstockmtdate')
+                ->orderByDesc('m.fstockmtno')
+                ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+                ->first();
+        }
+
+        if ($history) {
+            return response()->json([
+                'price' => (float) ($history->fprice ?? 0),
+                'unit' => trim((string) ($history->fsatuan ?? $unit)),
+                'discount' => (string) ($history->fdiscpersen ?? '0'),
+                'source' => 'history',
+            ]);
+        }
+
+        $product = DB::table('msprd')->where('fprdcode', $productCode)->first();
+        $price = 0.0;
+        if ($product) {
+            $price = (float) ($product->fhpp ?? 0);
+        }
+
+        return response()->json([
+            'price' => $price,
+            'discount' => '0',
+            'source' => 'master',
+        ]);
+    }
+
     public function create(Request $request)
     {
         if ($this->hasReachedDailyCreateLimit()) {

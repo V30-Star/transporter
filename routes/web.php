@@ -433,6 +433,8 @@ Route::middleware('auth')->group(function () {
             ->name('returpembelian.items');
         Route::get('/returpembelian/pickable', [ReturPembelianController::class, 'pickable'])
             ->name('returpembelian.pickable');
+        Route::get('/returpembelian/product-price', [ReturPembelianController::class, 'productPrice'])
+            ->name('returpembelian.product-price');
 
         Route::get('/assembling', [AssemblingController::class, 'index'])->name('assembling.index');
         Route::post('/assembling', [AssemblingController::class, 'store'])->name('assembling.store');
