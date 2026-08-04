@@ -330,8 +330,30 @@ class ProductController extends Controller
                 'fsatuankecil' => 'required',
                 'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
                 'fsatuanbesar2' => ['nullable', 'string', 'different:fsatuankecil', 'different:fsatuanbesar'],
-                'fsatuandefault' => 'in:1,2,3',
-                'fsatuandefaultlaporan' => 'in:1,2,3',
+                'fsatuandefault' => [
+                    'required',
+                    'in:1,2,3',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($value == '2' && ! $request->filled('fsatuanbesar')) {
+                            $fail('Satuan Default Transaksi tidak dapat memilih Satuan 2 karena Jenis Satuan 2 belum dipilih.');
+                        }
+                        if ($value == '3' && ! $request->filled('fsatuanbesar2')) {
+                            $fail('Satuan Default Transaksi tidak dapat memilih Satuan 3 karena Jenis Satuan 3 belum dipilih.');
+                        }
+                    },
+                ],
+                'fsatuandefaultlaporan' => [
+                    'nullable',
+                    'in:1,2,3',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($value == '2' && ! $request->filled('fsatuanbesar')) {
+                            $fail('Satuan Default Laporan tidak dapat memilih Satuan 2 karena Jenis Satuan 2 belum dipilih.');
+                        }
+                        if ($value == '3' && ! $request->filled('fsatuanbesar2')) {
+                            $fail('Satuan Default Laporan tidak dapat memilih Satuan 3 karena Jenis Satuan 3 belum dipilih.');
+                        }
+                    },
+                ],
                 'fqtykecil' => [
                     'nullable',
                     'numeric',
@@ -544,8 +566,30 @@ class ProductController extends Controller
                     'different:fsatuankecil',
                     'different:fsatuanbesar',
                 ],
-                'fsatuandefault' => 'in:1,2,3',
-                'fsatuandefaultlaporan' => 'in:1,2,3',
+                'fsatuandefault' => [
+                    'required',
+                    'in:1,2,3',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($value == '2' && ! $request->filled('fsatuanbesar')) {
+                            $fail('Satuan Default Transaksi tidak dapat memilih Satuan 2 karena Jenis Satuan 2 belum dipilih.');
+                        }
+                        if ($value == '3' && ! $request->filled('fsatuanbesar2')) {
+                            $fail('Satuan Default Transaksi tidak dapat memilih Satuan 3 karena Jenis Satuan 3 belum dipilih.');
+                        }
+                    },
+                ],
+                'fsatuandefaultlaporan' => [
+                    'nullable',
+                    'in:1,2,3',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($value == '2' && ! $request->filled('fsatuanbesar')) {
+                            $fail('Satuan Default Laporan tidak dapat memilih Satuan 2 karena Jenis Satuan 2 belum dipilih.');
+                        }
+                        if ($value == '3' && ! $request->filled('fsatuanbesar2')) {
+                            $fail('Satuan Default Laporan tidak dapat memilih Satuan 3 karena Jenis Satuan 3 belum dipilih.');
+                        }
+                    },
+                ],
                 'fqtykecil' => [
                     'nullable',
                     'numeric',

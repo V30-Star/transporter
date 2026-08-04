@@ -2991,6 +2991,26 @@
             }
         }
 
+        // Update Satuan Default Transaksi & Laporan options
+        const defaultSelects = document.querySelectorAll('select[name="fsatuandefault"], select[name="fsatuandefaultlaporan"]');
+        const hasSat1 = !!(smallSatuanValue && smallSatuanValue.trim());
+        const hasSat2 = !!(hasSat1 && largeSatuan1Value && largeSatuan1Value.trim());
+        const hasSat3 = !!(hasSat2 && largeSatuan2Value && largeSatuan2Value.trim());
+
+        defaultSelects.forEach(function(sel) {
+            const opt2 = sel.querySelector('option[value="2"]');
+            const opt3 = sel.querySelector('option[value="3"]');
+            if (opt2) opt2.disabled = !hasSat2;
+            if (opt3) opt3.disabled = !hasSat3;
+
+            if (sel.value === '3' && !hasSat3) {
+                sel.value = hasSat2 ? '2' : '1';
+            }
+            if (sel.value === '2' && !hasSat2) {
+                sel.value = '1';
+            }
+        });
+
         isInitialSatuanRender = false;
         isUpdating = false;
         syncSatuanQtyFieldLayout();
