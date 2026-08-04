@@ -515,7 +515,7 @@
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        x-text="it.frefpr || it.fnouref || it.frefcode || '-'"></div>
+                                                        x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                     <button type="button" @click="openProductHistory(it)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                         :disabled="!canOpenHistory(it)"
@@ -2362,7 +2362,7 @@
                 row.fitemname = meta.name || '';
                 if (row.frefcode !== 'SRJ' && row.frefcode !== 'SO' && row.frefcode !== 'INV' && row.frefcode !==
                     'UM' && row.frefcode !== 'REJ') {
-                    row.frefcode = meta.id || meta.fprdid || '';
+                    row.frefcode = '';
                 }
                 const currentUnit = (row.fsatuan ?? '').toString().trim();
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
@@ -2840,7 +2840,12 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefcode = product.fprdid || product.id || '';
+                        row.frefcode = '';
+                        row.frefpr = '';
+                        row.fnouref = '';
+                        row.frefdtno = '';
+                        row.frefso = '';
+                        row.frefsrj = '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 0;
