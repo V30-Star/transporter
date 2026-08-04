@@ -3242,7 +3242,7 @@
 
                 // Handle button click
                 const self = this;
-                $('#poTable').on('click', '.btn-pick', function() {
+                $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
                     const data = self.table.row($(this).closest('tr')).data();
                     self.pick(data);
                 });
