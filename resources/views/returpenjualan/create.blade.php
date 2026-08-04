@@ -3190,7 +3190,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
+                    dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
                     language: {
                         processing: @json('Memuat data...'),
                         search: @json('Search' . ':'),
@@ -3215,11 +3215,18 @@
                         const api = this.api();
                         const $container = $(api.table().container());
 
-                        // Move controls to designated areas
-                        const $filter = $container.find('.dataTables_filter');
-                        const $length = $container.find('.dataTables_length');
-                        const $info = $container.find('.dataTables_info');
-                        const $paginate = $container.find('.dataTables_paginate');
+                        // Move controls to designated areas (Search left, Tampilkan 10 right)
+                        const $filter = $container.find('.dt-search, .dataTables_filter');
+                        const $length = $container.find('.dt-length, .dataTables_length');
+
+                        $filter.css({ float: 'none', margin: 0 });
+                        $length.css({ float: 'none', margin: 0 });
+                        $('#poTableControls').css({
+                            display: 'flex',
+                            'justify-content': 'space-between',
+                            'align-items': 'center',
+                            width: '100%'
+                        }).empty().append($filter).append($length);
 
                         // Style search input
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
