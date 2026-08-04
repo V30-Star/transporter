@@ -574,13 +574,18 @@
 
     {{-- FOOTER INFO --}}
     @php
-        $lastUpdate = $header->fupdatedat ?: $header->fcreatedat;
-        $updatedBy = $header->fuserupdate ?: ($header->fusercreate ?: '—');
+        $hdrObj = $headerData ?? ($header ?? null);
     @endphp
-    <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
-        <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
-        <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
-    </div>
+    @if ($hdrObj)
+        @php
+            $lastUpdate = $hdrObj->fupdatedat ?? ($hdrObj->fcreatedat ?? null);
+            $updatedBy = $hdrObj->fuserupdate ?? ($hdrObj->fusercreate ?? '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
+    @endif
 </div>
 
 @if (!$isReadOnly)
