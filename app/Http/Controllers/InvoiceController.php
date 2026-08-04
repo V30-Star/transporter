@@ -566,7 +566,9 @@ class InvoiceController extends Controller
 
     private function canApproveCreditLimit(): bool
     {
-        return in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvefakturpenjualan', $permissions, true)
+            || in_array('approveinvoice', $permissions, true);
     }
 
     private function canCreateSuratJalan(): bool

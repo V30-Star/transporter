@@ -403,6 +403,10 @@
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Produk</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveProduct" {{ in_array('approveProduct', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Adjustment Stock</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveadjustmentstock" {{ in_array('approveadjustmentstock', $selectedPermissions) || in_array('approveadjstock', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
 
                             <!-- 8. LAPORAN & LISTING -->
                             <tr class="bg-gray-700 text-blue-400 font-bold">
