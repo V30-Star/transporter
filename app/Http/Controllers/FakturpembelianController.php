@@ -1632,7 +1632,8 @@ class FakturpembelianController extends Controller
                 $ftrancode = match ((string) $ftypebuy) {
                     '0' => '0',
                     '1' => '1',
-                    '2', '3' => '3',
+                    '2' => '2',
+                    '3' => '3',
                     default => '0',
                 };
 
@@ -2456,7 +2457,8 @@ class FakturpembelianController extends Controller
                 $ftrancode = match ((string) $ftypebuy) {
                     '0' => '0',
                     '1' => '1',
-                    '2', '3' => '3',
+                    '2' => '2',
+                    '3' => '3',
                     default => '0',
                 };
 
