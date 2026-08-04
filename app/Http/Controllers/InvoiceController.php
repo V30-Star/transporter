@@ -1776,6 +1776,7 @@ class InvoiceController extends Controller
                     'fprdout' => $fprdoutVal,
                     'fneedacc' => '0',
                     'fuseracc' => mb_substr($userid, 0, 30),
+                    'fapproval' => $headerRefNo !== '' ? 1 : 0,
                     'fprint' => 0,
                     'ftunai' => 0,
                     'fjatuhtempo' => $fjatuhtempo,
@@ -2954,6 +2955,7 @@ class InvoiceController extends Controller
                     'fprdout'          => $fprdoutVal,
                     'fneedacc'         => '0',
                     'fuseracc'         => mb_substr($userid, 0, 30),
+                    'fapproval'        => $headerRefNo !== '' ? 1 : 0,
                     'fjatuhtempo'      => $fjatuhtempo,
                 ];
 
