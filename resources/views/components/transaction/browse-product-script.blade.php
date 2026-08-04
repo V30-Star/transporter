@@ -33,6 +33,7 @@
             forEdit: false,
             table: null,
             productCodeFilter: '',
+            ftypeFilter: '',
 
             focusSearch() {
                 const focus = (attempt = 0) => {
@@ -77,7 +78,8 @@
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir,
-                                fprdcode_exact: this.productCodeFilter || ''
+                                fprdcode_exact: this.productCodeFilter || '',
+                                ftype_filter: this.ftypeFilter || ''
                             };
                         }
                     },
@@ -278,6 +280,9 @@
                     this.open = true;
                     this.productCodeFilter = (e.detail && e.detail.productCodeFilter)
                         ? String(e.detail.productCodeFilter).trim()
+                        : '';
+                    this.ftypeFilter = (e.detail && e.detail.ftypeFilter)
+                        ? String(e.detail.ftypeFilter).trim()
                         : '';
 
                     if (@json($supportsForEdit)) {

@@ -2419,6 +2419,22 @@
                     }
                     row.fitemcode = typedCode;
                     const meta = this.productMeta(row.fitemcode);
+
+                    if (typedCode !== '' && String(this.selectedType) === '1' && meta && meta.name) {
+                        const prodType = (meta.ftype || '').toString().trim().toLowerCase();
+                        if (prodType !== 'jasa') {
+                            row.fitemcode = '';
+                            this.hydrateRowFromMeta(row, null);
+                            const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('Informasi', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                            }
+                            return;
+                        }
+                    }
+
                     if (meta.code) row.fitemcode = meta.code;
                     this.hydrateRowFromMeta(row, meta, true);
                     if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
@@ -2952,6 +2968,21 @@
                             product
                         } = e.detail || {};
                         if (!product) return;
+
+                        if (String(this.selectedType) === '1') {
+                            const meta = this.productMeta(product.fprdcode);
+                            const prodType = (product.ftype || meta?.ftype || '').toString().trim().toLowerCase();
+                            if (prodType !== 'jasa') {
+                                const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
+                                if (typeof window.showAppWarningAlert === 'function') {
+                                    window.showAppWarningAlert('Informasi', message);
+                                } else if (typeof Swal !== 'undefined') {
+                                    Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                                }
+                                return;
+                            }
+                        }
+
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
                             row.hideQtyLimitHint = true;
@@ -3056,11 +3087,12 @@
                 openBrowseFor(where, index = null) {
                     this.browseTarget = where;
                     this.browseIndex = index;
+                    const ftypebuy = (document.querySelector('select[name="ftypebuy"]')?.value || '').toString().trim();
                     window.dispatchEvent(new CustomEvent('browse-open', {
                         detail: {
                             forEdit: false,
-                            productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value ===
-                                '2' ? 'UM' : ''
+                            productCodeFilter: ftypebuy === '2' ? 'UM' : '',
+                            ftypeFilter: ftypebuy === '1' ? 'JASA' : ''
                         }
                     }));
                 },

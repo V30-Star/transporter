@@ -13,6 +13,7 @@ class ProductBrowseController extends Controller
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
         $exactCode = trim((string) $request->input('fprdcode_exact', ''));
+        $ftypeFilter = trim((string) $request->input('ftype_filter', ''));
         $searchParam = $request->input('search');
         $searchValue = trim(is_array($searchParam) ? ($searchParam['value'] ?? '') : (string) $searchParam);
         $orderColumn = $request->input('order_column', 'fprdname');
@@ -28,6 +29,9 @@ class ProductBrowseController extends Controller
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
             })
+            ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
+                $q->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", [strtolower($ftypeFilter)]);
+            })
             ->count();
 
         // Base untuk filtered count & data
@@ -37,6 +41,9 @@ class ProductBrowseController extends Controller
             ->where('msprd.fapproval', 1)
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(msprd.fprdcode) = ?', [$exactCode]);
+            })
+            ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
+                $q->whereRaw("LOWER(TRIM(COALESCE(msprd.ftype, ''))) = ?", [strtolower($ftypeFilter)]);
             })
             ->when($searchValue !== '', function ($q) use ($searchValue) {
                 $q->where(function ($w) use ($searchValue) {
@@ -53,6 +60,7 @@ class ProductBrowseController extends Controller
             ->select([
                 'msprd.fprdcode',
                 'msprd.fprdname',
+                'msprd.ftype',
                 'msprd.fmerek',
                 'msmerek.fmerekname',
                 'msprd.fsatuankecil',

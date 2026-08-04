@@ -1380,6 +1380,33 @@ class FakturpembelianController extends Controller
                 }
             }
 
+            if ((string) $ftypebuy === '1') {
+                $nonServiceCodes = collect($codes)
+                    ->map(fn($code) => trim((string) $code))
+                    ->filter(fn($code) => $code !== '')
+                    ->unique()
+                    ->values();
+
+                if ($nonServiceCodes->isNotEmpty()) {
+                    $invalidServiceCodes = DB::table('msprd')
+                        ->whereIn('fprdcode', $nonServiceCodes->all())
+                        ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) != ?", ['jasa'])
+                        ->pluck('fprdcode')
+                        ->all();
+
+                    if (! empty($invalidServiceCodes)) {
+                        $invalidList = implode(', ', $invalidServiceCodes);
+                        $message = "Tipe Pembelian: Non Stok.\nHanya boleh input produk dengan tipe Jasa !!! (Kode item: {$invalidList})";
+                        if ($request->expectsJson()) {
+                            return response()->json(['message' => $message], 422);
+                        }
+                        return back()->withInput()->withErrors([
+                            'detail' => $message,
+                        ]);
+                    }
+                }
+            }
+
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
                 $message = 'Item awal tidak boleh digabung dengan item referensi PO / TER.';
                 if ($request->expectsJson()) {
@@ -2199,6 +2226,33 @@ class FakturpembelianController extends Controller
                     return back()->withInput()->withErrors([
                         'detail' => "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!",
                     ]);
+                }
+            }
+
+            if ((string) $ftypebuy === '1') {
+                $nonServiceCodes = collect($codes)
+                    ->map(fn($code) => trim((string) $code))
+                    ->filter(fn($code) => $code !== '')
+                    ->unique()
+                    ->values();
+
+                if ($nonServiceCodes->isNotEmpty()) {
+                    $invalidServiceCodes = DB::table('msprd')
+                        ->whereIn('fprdcode', $nonServiceCodes->all())
+                        ->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) != ?", ['jasa'])
+                        ->pluck('fprdcode')
+                        ->all();
+
+                    if (! empty($invalidServiceCodes)) {
+                        $invalidList = implode(', ', $invalidServiceCodes);
+                        $message = "Tipe Pembelian: Non Stok.\nHanya boleh input produk dengan tipe Jasa !!! (Kode item: {$invalidList})";
+                        if ($request->expectsJson()) {
+                            return response()->json(['message' => $message], 422);
+                        }
+                        return back()->withInput()->withErrors([
+                            'detail' => $message,
+                        ]);
+                    }
                 }
             }
 
