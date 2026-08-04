@@ -1300,7 +1300,10 @@ class InvoiceController extends Controller
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
-        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $products = Product::select($this->productSelectColumns())
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $this->buildProductMap($products);
 
@@ -2400,7 +2403,10 @@ class InvoiceController extends Controller
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
 
-        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $products = Product::select($this->productSelectColumns())
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);
@@ -2494,7 +2500,10 @@ class InvoiceController extends Controller
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
 
-        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $products = Product::select($this->productSelectColumns())
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);
@@ -3221,7 +3230,10 @@ class InvoiceController extends Controller
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
 
-        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $products = Product::select($this->productSelectColumns())
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);

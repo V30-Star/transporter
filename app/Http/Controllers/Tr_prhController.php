@@ -1228,6 +1228,7 @@ class Tr_prhController extends Controller
             'fqtykecil2',
             'fminstock'
         )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
             ->orderBy('fprdname')
             ->get();
     }

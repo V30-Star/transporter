@@ -574,7 +574,10 @@ class ReturPembelianController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         return view('returpembelian.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -1023,7 +1026,10 @@ class ReturPembelianController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
@@ -1137,7 +1143,10 @@ class ReturPembelianController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
@@ -1678,7 +1687,10 @@ class ReturPembelianController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [

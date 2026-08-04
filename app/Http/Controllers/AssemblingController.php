@@ -465,7 +465,10 @@ class AssemblingController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         return view('assembling.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -870,7 +873,10 @@ class AssemblingController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
@@ -987,7 +993,10 @@ class AssemblingController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
@@ -1514,7 +1523,10 @@ class AssemblingController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [

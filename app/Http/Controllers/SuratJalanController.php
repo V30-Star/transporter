@@ -688,7 +688,10 @@ class SuratJalanController extends Controller
             'fqtykecil',
             'fqtykecil2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $this->buildProductMap($products);
 
@@ -1230,7 +1233,10 @@ class SuratJalanController extends Controller
             'fqtykecil',
             'fqtykecil2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $this->buildProductMap($products);
 
@@ -1343,7 +1349,10 @@ class SuratJalanController extends Controller
             'fqtykecil',
             'fqtykecil2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $this->buildProductMap($products);
 
@@ -1945,7 +1954,10 @@ class SuratJalanController extends Controller
             'fqtykecil',
             'fqtykecil2',
             'fminstock'
-        )->orderBy('fprdname')->get();
+        )
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fprdname')
+            ->get();
 
         $productMap = $this->buildProductMap($products);
 
