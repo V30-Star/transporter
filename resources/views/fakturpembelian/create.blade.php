@@ -1239,6 +1239,7 @@
             "{{ trim($p->fprdcode) }}": {
                 code: @json(trim((string) $p->fprdcode)),
                 name: @json($p->fprdname),
+                ftype: @json(trim((string) ($p->ftype ?? ''))),
                 default_unit: @json($resolvedDefaultUnit),
                 units: @json($orderedUnits),
                 stock: @json($p->fminstock ?? 0),
