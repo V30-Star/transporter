@@ -512,7 +512,10 @@ class ReturPenjualanController extends Controller
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
             ->where('h.fcustno', $customerCode)
             ->where('d.fprdcode', $productCode)
-            ->where('h.fsono', 'like', 'INV.%')
+            ->where(function ($q) {
+                $q->where('h.fsono', 'like', 'INV.%')
+                  ->orWhere('h.fsono', 'like', 'INV/%');
+            })
             ->orderByDesc('h.fsodate')
             ->orderByDesc('h.fsono')
             ->get([
@@ -548,7 +551,10 @@ class ReturPenjualanController extends Controller
     {
         return DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-            ->where('m.fsono', 'like', 'INV.%')
+            ->where(function ($q) {
+                $q->where('m.fsono', 'like', 'INV.%')
+                  ->orWhere('m.fsono', 'like', 'INV/%');
+            })
             ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
             ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
             ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
@@ -579,7 +585,10 @@ class ReturPenjualanController extends Controller
         if (! $history) {
             $history = DB::table('tranmt as m')
                 ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-                ->where('m.fsono', 'like', 'INV.%')
+                ->where(function ($q) {
+                    $q->where('m.fsono', 'like', 'INV.%')
+                      ->orWhere('m.fsono', 'like', 'INV/%');
+                })
                 ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
                 ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
                 ->orderByDesc('m.fsodate')
@@ -616,7 +625,10 @@ class ReturPenjualanController extends Controller
         $header = DB::table('tranmt')
             ->leftJoin('mscustomer', 'mscustomer.fcustomercode', '=', 'tranmt.fcustno')
             ->where('tranmt.ftranmtid', $id)
-            ->where('tranmt.fsono', 'like', 'INV.%')
+            ->where(function ($q) {
+                $q->where('tranmt.fsono', 'like', 'INV.%')
+                  ->orWhere('tranmt.fsono', 'like', 'INV/%');
+            })
             ->select('tranmt.*', 'mscustomer.fcustomername')
             ->firstOrFail();
 
@@ -1698,7 +1710,10 @@ class ReturPenjualanController extends Controller
                 ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
                 ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
                 ->whereIn('d.fsono', $docNos)
-                ->where('h.fsono', 'like', 'INV.%')
+                ->where(function ($q) {
+                    $q->where('h.fsono', 'like', 'INV.%')
+                      ->orWhere('h.fsono', 'like', 'INV/%');
+                })
                 ->selectRaw("
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
