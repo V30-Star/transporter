@@ -409,6 +409,15 @@
                                     @error('fsupplier')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
+
+                                    <div id="supplierAdvanceWarningBox" class="hidden mt-2">
+                                        <div class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800">
+                                            <div class="flex items-start gap-1.5">
+                                                <x-heroicon-o-exclamation-triangle class="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                                <p class="text-xs font-medium leading-snug" id="supplierAdvanceWarningText"></p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- Gudang --}}
@@ -446,15 +455,6 @@
                                     @error('ffrom')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
-                                </div>
-                            </div>
-
-                            <div id="supplierAdvanceWarningBox" class="hidden my-2">
-                                <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800">
-                                    <div class="flex items-start gap-2">
-                                        <x-heroicon-o-exclamation-triangle class="w-5 h-5 mt-0.5 flex-shrink-0" />
-                                        <p class="text-sm font-medium" id="supplierAdvanceWarningText"></p>
-                                    </div>
                                 </div>
                             </div>
 
@@ -3125,31 +3125,8 @@
         const warningText = document.getElementById('supplierAdvanceWarningText');
         const hiddenInput = document.getElementById('supplierCodeHidden');
         const selectInput = document.getElementById('modal_filter_supplier_id');
-        let lastPopupSupplierCode = '';
 
-        const showSupplierAdvancePopup = (message) => {
-            if (!message) {
-                return;
-            }
-
-            if (typeof window.showAppWarningAlert === 'function') {
-                window.showAppWarningAlert('Informasi', message, {
-                    confirmButtonText: 'Ok'
-                });
-                return;
-            }
-
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Informasi',
-                    text: message,
-                    confirmButtonText: 'Ok'
-                });
-            }
-        };
-
-        const updateSupplierAdvanceWarning = (supplierCode = null, shouldPopup = false) => {
+        const updateSupplierAdvanceWarning = (supplierCode = null) => {
             if (!warningBox || !warningText) {
                 return;
             }
@@ -3160,25 +3137,17 @@
             if (!warning || !warning.message) {
                 warningBox.classList.add('hidden');
                 warningText.textContent = '';
-                if (code !== lastPopupSupplierCode) {
-                    lastPopupSupplierCode = '';
-                }
                 return;
             }
 
             warningText.textContent = warning.message;
             warningBox.classList.remove('hidden');
-
-            if (shouldPopup && code !== '' && code !== lastPopupSupplierCode) {
-                lastPopupSupplierCode = code;
-                showSupplierAdvancePopup(warning.message);
-            }
         };
 
-        hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
-        selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+        hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning());
+        selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning());
         window.addEventListener('supplier-picked', (event) => {
-            updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '', true);
+            updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '');
         });
 
         updateSupplierAdvanceWarning();
