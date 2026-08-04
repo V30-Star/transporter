@@ -391,8 +391,6 @@
                                         </th>
                                         <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan
                                         </th>
-                                        <th class="px-3 py-2 text-center text-xs font-bold text-gray-800 uppercase">Ccy
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -412,8 +410,6 @@
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
                                                 x-text="item.fsatuan"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center"
-                                                x-text="item.fcurrency"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.supplierData.length === 0">
@@ -472,7 +468,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
-                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding SO/KNY.</td>
+                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding SO.</td>
                                     </tr>
                                 </tbody>
                             </table>
