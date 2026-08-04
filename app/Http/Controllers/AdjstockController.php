@@ -1149,7 +1149,6 @@ class AdjstockController extends Controller
             $subtotal = 0;
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $now = now();
-            $trxLogId = (string) \Illuminate\Support\Str::uuid();
 
             foreach ($items as $idx => $code) {
                 $code = trim((string) $code);
@@ -1240,7 +1239,6 @@ class AdjstockController extends Controller
                 $userName,
                 $isApproved,
                 $now,
-                $trxLogId,
                 $rowsDt,
                 $userIdLog
             ) {
@@ -1282,6 +1280,12 @@ class AdjstockController extends Controller
 
                 $updatedHeader = PenerimaanPembelianHeader::findOrFail($header->fstockmtid);
 
+                $logSeqCount = DB::table('log_trstockmt')
+                    ->where('fstockmtno', $updatedHeader->fstockmtno)
+                    ->count();
+                $logSeq = str_pad((string) ($logSeqCount + 1), 4, '0', STR_PAD_LEFT);
+                $trxLogId = 'LOG' . $updatedHeader->fstockmtno . $logSeq;
+
                 // 1. INSERT Log Header (Update)
                 DB::table('log_trstockmt')->insert([
                     'ftrxlogid'        => $trxLogId,
@@ -1301,16 +1305,12 @@ class AdjstockController extends Controller
                     'fjatuhtempo'      => $updatedHeader->fjatuhtempo,
                     'fprint'           => $updatedHeader->fprint,
                     'fsudahtagih'      => $updatedHeader->fsudahtagih,
-                    'fdiscpersen'      => $updatedHeader->fdiscpersen,
-                    'fdisc'            => $updatedHeader->fdisc,
                     'famount'          => $updatedHeader->famount,
                     'famountpajak'     => $updatedHeader->famountpajak,
                     'famountmt'        => $updatedHeader->famountmt,
                     'famountremain'    => $updatedHeader->famountremain,
                     'fket'             => $updatedHeader->fket,
                     'frefno'           => $updatedHeader->frefno,
-                    'fbiayakirim'      => $updatedHeader->fbiayakirim,
-                    'fbiayalain'       => $updatedHeader->fbiayalain,
                     'fusercreate'      => $updatedHeader->fusercreate,
                     'fdatetime'        => $updatedHeader->fdatetime,
                     'fuserupdate'      => $updatedHeader->fuserupdate,
@@ -1318,29 +1318,9 @@ class AdjstockController extends Controller
                     'ffrom'            => $updatedHeader->ffrom,
                     'fto'              => $updatedHeader->fto,
                     'fprdjadi'         => $updatedHeader->fprdjadi,
-                    'fnorekening'      => $updatedHeader->fnorekening,
-                    'fbank'            => $updatedHeader->fbank,
-                    'fbgno'            => $updatedHeader->fbgno,
-                    'fbgcairdate'      => $updatedHeader->fbgcairdate,
-                    'fsudahbayar'      => $updatedHeader->fsudahbayar,
-                    'fbeban'           => $updatedHeader->fbeban,
-                    'fdiscpersen2'     => $updatedHeader->fdiscpersen2,
-                    'fdiscpersen3'     => $updatedHeader->fdiscpersen3,
-                    'fdisc2'           => $updatedHeader->fdisc2,
-                    'fdisc3'           => $updatedHeader->fdisc3,
-                    'fpo'              => $updatedHeader->fpo,
-                    'famount_rp'       => $updatedHeader->famount_rp,
                     'famountpajak_rp'  => $updatedHeader->famountpajak_rp,
                     'famountmt_rp'     => $updatedHeader->famountmt_rp,
                     'famountremain_rp' => $updatedHeader->famountremain_rp,
-                    'fbiayakirim_rp'   => $updatedHeader->fbiayakirim_rp,
-                    'fbiayalain_rp'    => $updatedHeader->fbiayalain_rp,
-                    'fdisc_rp'         => $updatedHeader->fdisc_rp,
-                    'fdisc2_rp'        => $updatedHeader->fdisc2_rp,
-                    'fdisc3_rp'        => $updatedHeader->fdisc3_rp,
-                    'fapproval'        => $updatedHeader->fapproval,
-                    'fuserapproved'    => $updatedHeader->fuserapproved,
-                    'fdateapproved'    => $updatedHeader->fdateapproved,
                     'feditmode'        => 'U',
                     'fuseridlog'       => $userIdLog,
                     'fdatetimelog'     => $now,
@@ -1350,6 +1330,7 @@ class AdjstockController extends Controller
                 DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
                 foreach ($rowsDt as &$r) {
+                    $r['fstockmtcode'] = 'ADJ';
                     $r['fstockmtno'] = $header->fstockmtno;
                     $r['fusercreate'] = $userName;
                     $r['fuserupdate'] = $userName;
@@ -1572,7 +1553,12 @@ class AdjstockController extends Controller
 
             DB::transaction(function () use ($adjstock, $userIdLog) {
                 $now = now();
-                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
+
+                $logSeqCount = DB::table('log_trstockmt')
+                    ->where('fstockmtno', $adjstock->fstockmtno)
+                    ->count();
+                $logSeq = str_pad((string) ($logSeqCount + 1), 4, '0', STR_PAD_LEFT);
+                $trxLogId = 'LOG' . $adjstock->fstockmtno . $logSeq;
 
                 // 1. INSERT Log Header (Delete)
                 DB::table('log_trstockmt')->insert([
@@ -1763,5 +1749,28 @@ class AdjstockController extends Controller
         $usedNumbers[] = $candidate;
 
         return $candidate;
+    }
+
+    private function calculateQtyKecil($product, string $sat, float $qty): float
+    {
+        if (! $product) {
+            return $qty;
+        }
+
+        $sat = trim($sat);
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+        $qtyKecilRatio1 = (float) ($product->fqtykecil ?? 0);
+        $qtyKecilRatio2 = (float) ($product->fqtykecil2 ?? 0);
+
+        if ($sat !== '' && $sat === $largeUnit && $qtyKecilRatio1 > 0) {
+            return $qty * $qtyKecilRatio1;
+        }
+
+        if ($sat !== '' && $sat === $largeUnit2 && $qtyKecilRatio2 > 0) {
+            return $qty * $qtyKecilRatio2;
+        }
+
+        return $qty;
     }
 }
