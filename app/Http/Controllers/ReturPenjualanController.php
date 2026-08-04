@@ -581,6 +581,7 @@ class ReturPenjualanController extends Controller
                     ? trim((string) ($header->frefno ?? ''))
                     : trim((string) ($header->fsono ?? '')),
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
+                'fcustomername' => trim((string) ($header->fcustomername ?? '')),
                 'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
             ],
             'items' => $items->map(function ($item) use ($header) {

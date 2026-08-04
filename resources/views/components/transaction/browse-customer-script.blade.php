@@ -24,7 +24,7 @@
         }
 
         const name = normalize(customer.fcustomername ?? customer.customer_name ?? customer.fsuppliername);
-        const label = name ? `${name} (${code})` : code;
+        const label = name ? `${code} - ${name}` : code;
 
         selects.forEach((sel) => {
             let opt = [...sel.options].find(o => normalize(o.value) === code);
