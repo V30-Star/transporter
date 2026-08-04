@@ -335,7 +335,10 @@ class ReturPenjualanController extends Controller
                 'mt.fcustno',
                 'cust.fcustomername'
             );
-        $query->where('mt.fsono', 'like', 'INV.%');
+        $query->where(function ($q) {
+            $q->where('mt.fsono', 'like', 'INV.%')
+              ->orWhere('mt.fsono', 'like', 'INV/%');
+        });
         ApprovalState::applyApprovedFilter($query, 'mt.');
 
         if ($customerCode !== '') {
@@ -352,7 +355,10 @@ class ReturPenjualanController extends Controller
         }
 
         $recordsTotal = DB::table('tranmt as mt')
-            ->where('mt.fsono', 'like', 'INV.%')
+            ->where(function ($q) {
+                $q->where('mt.fsono', 'like', 'INV.%')
+                  ->orWhere('mt.fsono', 'like', 'INV/%');
+            })
             ->whereRaw(ApprovalState::approvedSql('mt.'))
             ->when($customerCode !== '', function ($q) use ($customerCode) {
                 $q->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
