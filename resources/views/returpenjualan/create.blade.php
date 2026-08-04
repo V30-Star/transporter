@@ -247,7 +247,7 @@
             return;
         }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items')) } else { $el.submit() }
+        $el.submit();
       ">
             @csrf
 
@@ -286,22 +286,22 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold mb-1">Tanggal</label>
+                            <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" id="fsodate" name="fsodate"
                                 value="{{ old('fsodate') ?? date('Y-m-d') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 text-red-600 @else border-gray-300 @enderror">
                             @error('fsodate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Customer --}}
                         <div>
-                            <label class="block text-xs font-bold mb-1">Customer</label>
+                            <label class="block text-xs font-bold mb-1">Customer <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        class="w-full border rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none @error('fcustno') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
@@ -317,20 +317,20 @@
                                 <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fcustno') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                     title="{{ 'Browse Customer' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fcustno') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                         title="Tambah Customer">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
                                 @endif
                             </div>
                             @error('fcustno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
                             @enderror
                         </div>
 
@@ -340,7 +340,7 @@
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        class="w-full border rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none @error('fsalesman') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
@@ -357,30 +357,30 @@
                                     value="{{ old('fsalesman', '0') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fsalesman') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                     title="{{ 'Browse Salesman' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fsalesman') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                         title="Tambah Salesman">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
                                 @endif
                             </div>
                             @error('fsalesman')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Gudang --}}
                         <div>
-                            <label class="block text-xs font-bold mb-1">Gudang</label>
+                            <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1" for="warehouseSelect">
                                     <select id="warehouseSelect" name="filter_warehouse_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        class="w-full border rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
@@ -397,13 +397,13 @@
                                     value="{{ old('ffrom') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                             </div>
                             @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
                             @enderror
                         </div>
 

@@ -960,7 +960,10 @@ class ReturPenjualanController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ], [
-                'ffrom.required' => 'Gudang wajib di isi.',
+                'ffrom.required' => 'Gudang wajib diisi.',
+                'fcustno.required' => 'Customer wajib diisi.',
+                'fsodate.required' => 'Tanggal transaksi wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
             ]);
         } catch (ValidationException $e) {
             return back()->withInput()->withErrors($e->errors());
@@ -2127,7 +2130,10 @@ class ReturPenjualanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
-            'ffrom.required' => 'Gudang wajib di isi.',
+            'ffrom.required' => 'Gudang wajib diisi.',
+            'fcustno.required' => 'Customer wajib diisi.',
+            'fsodate.required' => 'Tanggal transaksi wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
         ]);
 
         // 2. LOAD HEADER

@@ -762,7 +762,10 @@ class SuratJalanController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ], [
-                'ffrom.required' => 'Gudang wajib di isi.',
+                'ffrom.required' => 'Gudang wajib diisi.',
+                'fsupplier.required' => 'Customer wajib diisi.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             throw $ve;
@@ -1412,7 +1415,10 @@ class SuratJalanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
-            'ffrom.required' => 'Gudang wajib di isi.',
+            'ffrom.required' => 'Gudang wajib diisi.',
+            'fsupplier.required' => 'Customer wajib diisi.',
+            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes(

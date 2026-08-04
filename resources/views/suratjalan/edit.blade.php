@@ -602,18 +602,10 @@
                     confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
                 }
             });
-            return;
+            return false;
         }
-        const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
-        showWarehouseRequired = false;
-        if (!warehouseCode) {
-            showWarehouseRequired = true;
-            window.toast?.error('Gudang wajib diisi sebelum simpan.');
-            return;
-        }
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { window.submitFormWithStockMinusConfirmation?.($el) }
-      ">
+        window.submitFormWithStockMinusConfirmation?.($el);
+    ">
                             @csrf
                             @method('PATCH')
 
