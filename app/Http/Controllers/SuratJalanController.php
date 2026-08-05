@@ -1097,30 +1097,20 @@ class SuratJalanController extends Controller
             ->route('suratjalan.create')
             ->with('success', 'Surat jalan berhasil disimpan.');
 
-        if (! $this->canCreateInvoice() || ! $newStockMasterId || ! empty($invoiceReferenceDocs)) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Surat jalan berhasil disimpan.',
-                    'redirect_url' => route('suratjalan.create'),
-                ]);
-            }
-            return $redirect;
-        }
-
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Surat jalan berhasil disimpan.',
                 'redirect_url' => route('suratjalan.create'),
                 'success_prompt' => [
-                    'type' => 'suratjalan_create_invoice',
-                    'redirect_url' => route('invoice.create', ['surat_jalan_id' => $newStockMasterId]),
+                    'type' => 'suratjalan_create',
+                    'redirect_url' => route('suratjalan.print', $fstockmtno),
                 ]
             ]);
         }
 
         return $redirect->with('success_prompt', [
-            'type' => 'suratjalan_create_invoice',
-            'redirect_url' => route('invoice.create', ['surat_jalan_id' => $newStockMasterId]),
+            'type' => 'suratjalan_create',
+            'redirect_url' => route('suratjalan.print', $fstockmtno),
         ]);
         } catch (\Throwable $e) {
             if ($request->expectsJson()) {
