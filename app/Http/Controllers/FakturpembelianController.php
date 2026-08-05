@@ -1776,7 +1776,11 @@ class FakturpembelianController extends Controller
             }
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', $successMessage);
+                ->with('success', $successMessage)
+                ->with('success_prompt', [
+                    'type' => 'fakturpembelian_create',
+                    'redirect_url' => route('fakturpembelian.print', $fstockmtno),
+                ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('FakturPembelian@store VALIDATION ERROR: ' . $e->getMessage(), [
                 'errors' => $e->errors(),

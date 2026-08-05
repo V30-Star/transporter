@@ -1149,6 +1149,8 @@ class Tr_pohController extends Controller
                     $fpohid = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
+                $fpono = $fpohid;
+
                 $fcurrency = $request->input('fcurrency', 'IDR');
                 $frate = $request->input('frate', 15500);
                 $ftempohr = $request->input('ftempohr', 0);
@@ -1203,7 +1205,11 @@ class Tr_pohController extends Controller
         $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', $message);
+            ->with('success', $message)
+            ->with('success_prompt', [
+                'type' => 'tr_poh_create',
+                'redirect_url' => route('tr_poh.print', $fpono),
+            ]);
     }
 
     public function edit(Request $request, $fpohid)

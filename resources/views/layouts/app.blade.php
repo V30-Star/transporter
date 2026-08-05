@@ -1544,7 +1544,15 @@
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
-                if (successPrompt?.type === 'tr_prh_create' && successPrompt.redirect_url) {
+                const printPrompts = {
+                    'tr_prh_create': 'Print PR ini?',
+                    'tr_poh_create': 'Print PO ini?',
+                    'penerimaanbarang_create': 'Print Penerimaan Barang ini?',
+                    'fakturpembelian_create': 'Print Faktur Pembelian ini?',
+                    'returpembelian_create': 'Print Retur Pembelian ini?',
+                };
+
+                if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {
                     Swal.fire({
                         icon: 'success',
                         title: successMessage,
@@ -1555,7 +1563,7 @@
                     }).then(() => {
                         Swal.fire({
                             icon: 'question',
-                            title: 'Print PR ini?',
+                            title: printPrompts[successPrompt.type],
                             showCancelButton: true,
                             confirmButtonText: 'Yes',
                             cancelButtonText: 'No',

@@ -1101,7 +1101,12 @@ class PenerimaanBarangController extends Controller
             ]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang berhasil disimpan.');
+        return redirect()->route('penerimaanbarang.create')
+            ->with('success', 'Penerimaan barang berhasil disimpan.')
+            ->with('success_prompt', [
+                'type' => 'penerimaanbarang_create',
+                'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
+            ]);
     }
 
     public function edit(Request $request, $fstockmtid)

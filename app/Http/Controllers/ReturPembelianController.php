@@ -920,7 +920,11 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', 'Retur pembelian berhasil disimpan.');
+                ->with('success', 'Retur pembelian berhasil disimpan.')
+                ->with('success_prompt', [
+                    'type' => 'returpembelian_create',
+                    'redirect_url' => route('returpembelian.print', $fstockmtno),
+                ]);
         } catch (\Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([
