@@ -262,14 +262,11 @@
             height: 100vh;
             background: rgba(15, 23, 42, 0.45);
             backdrop-filter: blur(4px);
-            display: none !important;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 99999;
             animation: trxModalFadeIn 0.15s ease-out;
-        }
-        .trx-modal-backdrop.active {
-            display: flex !important;
         }
         .trx-modal-card {
             background: #ffffff;
@@ -709,7 +706,7 @@
     </div>
 
     <!-- Action Modal -->
-    <div id="trxActionModal" class="trx-modal-backdrop no-print" style="display: none !important;" onclick="closeTrxActionModal(event)">
+    <div id="trxActionModal" class="trx-modal-backdrop no-print" style="display: none;" onclick="closeTrxActionModal(event)">
         <div class="trx-modal-card" onclick="event.stopPropagation()">
             <div class="trx-modal-header">
                 <div class="trx-modal-title">
@@ -906,18 +903,21 @@
     }
 
     function openTrxActionModal(event, sono, viewUrl, editUrl) {
-        if (event) event.preventDefault();
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         document.getElementById('modalTrxNo').textContent = sono;
         document.getElementById('btnViewTrx').href = viewUrl;
         document.getElementById('btnEditTrx').href = editUrl;
         const modal = document.getElementById('trxActionModal');
-        modal.classList.add('active');
+        modal.style.display = 'flex';
     }
 
     function closeTrxActionModal(event) {
         if (!event || event.target === document.getElementById('trxActionModal') || event.target.closest('.trx-modal-close') || event.target.closest('.trx-btn')) {
             const modal = document.getElementById('trxActionModal');
-            modal.classList.remove('active');
+            modal.style.display = 'none';
         }
     }
 </script>
