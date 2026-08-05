@@ -112,7 +112,7 @@
         .sales-header-labels,
         .sales-header {
             display: grid;
-            grid-template-columns: 8mm 18mm 15mm 20mm 19mm 18mm 14mm 20mm 14mm 14mm 15mm;
+            grid-template-columns: 8mm 22mm 15mm 18mm 19mm 18mm 14mm 18mm 14mm 14mm 15mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -920,3 +920,4 @@
             modal.classList.remove('active');
         }
     }
+</script>
