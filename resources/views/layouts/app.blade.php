@@ -1556,6 +1556,14 @@
                     'returpenjualan_create': 'Print Retur Penjualan ini?',
                     'lembarpenagihan_create': 'Print Lembar Penagihan ini?',
                     'jurnaltransaksi_create': 'Print Voucher Jurnal ini?',
+                    'adjstock_create': 'Print Adjustment Stock ini?',
+                    'mutasi_create': 'Print Mutasi ini?',
+                    'pemakaianbarang_create': 'Print Pemakaian Barang ini?',
+                    'assembling_create': 'Print Assembling ini?',
+                    'pengeluarankas_create': 'Print Pengeluaran Kas/Bank ini?',
+                    'penerimaankas_create': 'Print Penerimaan Kas/Bank ini?',
+                    'pelunasancustomer_create': 'Print Pelunasan Customer ini?',
+                    'bayarsupplier_create': 'Print Bayar Supplier ini?',
                 };
 
                 if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {
