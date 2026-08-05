@@ -214,10 +214,10 @@ class LaporanKartuStokController extends Controller
     private function detailUnionQuery(string $whcode, Request $request, string $dateFrom, string $dateTo)
     {
         $in = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'in')
-            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
 
         $out = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'out')
-            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
 
         $inSql = $in->toSql();
         $outSql = $out->toSql();

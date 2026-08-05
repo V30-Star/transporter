@@ -91,8 +91,15 @@ class BukuHutangController extends Controller
             ->orderBy('l.fsubaccoun')
             ->orderBy('l.fjurnalref')
             ->orderBy('l.fjurnaltgl')
-            ->orderBy('l.fpriority')
             ->get();
+
+        $stockMap = DB::table('trstockmt')->select('fstockmtno', 'fstockmtid', 'fstockmtcode')->get()->keyBy('fstockmtno');
+        foreach ($rows as $row) {
+            $ref = trim((string) ($row->faccountno ?? ''));
+            $stock = $stockMap->get($ref);
+            $row->fstockmtid = $stock->fstockmtid ?? null;
+            $row->fstockmtcode = $stock->fstockmtcode ?? 'BUY';
+        }
 
         return $this->attachRunningBalance($rows);
     }

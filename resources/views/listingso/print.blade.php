@@ -239,6 +239,124 @@
             z-index: 1000;
         }
 
+        .trx-action-trigger {
+            color: #2563eb;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.15s ease-in-out;
+        }
+        .trx-action-trigger:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .trx-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            animation: trxModalFadeIn 0.15s ease-out;
+        }
+        .trx-modal-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 330px;
+            max-width: 90vw;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            transform: scale(0.95);
+            animation: trxModalPopIn 0.15s ease-out forwards;
+        }
+        @keyframes trxModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes trxModalPopIn { from { transform: scale(0.95); } to { transform: scale(1); } }
+
+        .trx-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .trx-modal-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .trx-modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748b;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .trx-modal-close:hover { color: #0f172a; }
+        .trx-modal-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+        .trx-action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .trx-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .trx-btn-view {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .trx-btn-view:hover {
+            background-color: #dcfce7;
+            color: #14532d;
+            transform: translateY(-1px);
+        }
+        .trx-btn-edit {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .trx-btn-edit:hover {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+            transform: translateY(-1px);
+        }
+
+        @media print {
+            .trx-action-trigger {
+                color: inherit !important;
+                text-decoration: none !important;
+                cursor: default !important;
+            }
+            .trx-modal-backdrop {
+                display: none !important;
+            }
+        }
+
         .print-button {
             background-color: #0f172a; /* Navy slate default */
             color: white;
@@ -434,10 +552,16 @@
         @php($showDescription = request()->boolean('show_description'))
 
         @foreach ($soData as $mt)
+            @php
+                $viewUrl = route('salesorder.view', $mt->ftrsomtid);
+                $editUrl = route('salesorder.edit', $mt->ftrsomtid);
+            @endphp
             <div class="journal-block">
                 <div class="po-header" style="margin-top: 5px;">
                     <div class="truncate">{{ $mt->fbranchcode }}</div>
-                    <div class="truncate" title="{{ $mt->fsono }}">{{ $mt->fsono }}</div>
+                    <div class="truncate" title="{{ $mt->fsono }}">
+                        <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $mt->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $mt->fsono }}</span>
+                    </div>
                     <div>{{ \Carbon\Carbon::parse($mt->fsodate)->format('d/m/Y') }}</div>
                     <div class="truncate" title="{{ $mt->fcustomername }}">{{ $mt->fcustomername }}</div>
                     <div class="truncate" title="{{ $mt->fsalesmanname }}">{{ $mt->fsalesmanname }}</div>
@@ -505,6 +629,31 @@
                 </div>
             </div>
         @endif
+    </div>
+
+    <!-- Action Modal -->
+    <div id="trxActionModal" class="trx-modal-backdrop no-print" style="display: none;" onclick="closeTrxActionModal(event)">
+        <div class="trx-modal-card" onclick="event.stopPropagation()">
+            <div class="trx-modal-header">
+                <div class="trx-modal-title">
+                    📄 Transaksi <strong id="modalTrxNo"></strong>
+                </div>
+                <button type="button" class="trx-modal-close" onclick="closeTrxActionModal()">&times;</button>
+            </div>
+            <div class="trx-modal-body">
+                <p class="trx-modal-desc">Pilih tindakan untuk data transaksi ini:</p>
+                <div class="trx-action-buttons">
+                    <a id="btnViewTrx" href="#" target="_blank" class="trx-btn trx-btn-view" onclick="closeTrxActionModal()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>View Page</span>
+                    </a>
+                    <a id="btnEditTrx" href="#" target="_blank" class="trx-btn trx-btn-edit" onclick="closeTrxActionModal()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Edit Page</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 
@@ -670,5 +819,24 @@
         document.getElementById('reportWrapper').style.transform = `scale(${currentZoom})`;
         document.getElementById('reportWrapper').style.transformOrigin = 'top center';
         document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+
+    function openTrxActionModal(event, sono, viewUrl, editUrl) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        document.getElementById('modalTrxNo').textContent = sono;
+        document.getElementById('btnViewTrx').href = viewUrl;
+        document.getElementById('btnEditTrx').href = editUrl;
+        const modal = document.getElementById('trxActionModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeTrxActionModal(event) {
+        if (!event || event.target === document.getElementById('trxActionModal') || event.target.closest('.trx-modal-close') || event.target.closest('.trx-btn')) {
+            const modal = document.getElementById('trxActionModal');
+            modal.style.display = 'none';
+        }
     }
 </script>

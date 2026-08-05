@@ -179,6 +179,7 @@ class ListingPOController extends Controller
                     ->on('ter.fprdcode', '=', 'p.fprdcode');
             })
             ->select(
+                'h.ftrpohid',
                 'h.fbranchcode',
                 'h.fpono',
                 'h.fpodate',

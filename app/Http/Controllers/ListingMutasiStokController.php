@@ -102,12 +102,7 @@ class ListingMutasiStokController extends Controller
             ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->where('m.fstockmtcode', 'MUT')
-            ->selectRaw("\n                m.fbranchcode,\n                
-            m.fstockmtno,\n                m.fstockmtdate,\n                
-            m.fket,\n                m.ffrom,\n                m.fto,\n                
-            m.fusercreate,\n                d.fprdcode,\n                p.fprdname,\n                
-            d.fqty,\n                d.fsatuan,\n                d.fprice,\n                
-            d.ftotprice,\n                m.famount\n            ");
+            ->selectRaw("m.fstockmtid, m.fbranchcode, m.fstockmtno, m.fstockmtdate, m.fket, m.ffrom, m.fto, m.fusercreate, d.fprdcode, p.fprdname, d.fqty, d.fsatuan, d.fprice, d.ftotprice, m.famount");
 
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 

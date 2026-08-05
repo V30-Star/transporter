@@ -43,7 +43,7 @@ class AnalisaUmurHutangController extends Controller
 
         $base = DB::table('trstockmt as h')
             ->join('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
-            ->selectRaw("h.fbranchcode, h.fstockmtno AS fsono, h.fstockmtcode, h.fstockmtdate AS fsodate, h.fjatuhtempo, s.fsuppliername AS fcustname, s.fsuppliername AS fsuppliername, h.fsupplier AS fcustno, h.fsupplier AS fsuppliercode, h.fcurrency, h.frate, h.fusercreate AS fuserid, h.frefno, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountso, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt_rp ELSE h.famountmt_rp * -1 END AS famountmt_rp, h.famountmt AS fnilainota, h.famountmt_rp AS fnilainota_rp")
+            ->selectRaw("h.fstockmtid, h.fbranchcode, h.fstockmtno AS fsono, h.fstockmtcode, h.fstockmtdate AS fsodate, h.fjatuhtempo, s.fsuppliername AS fcustname, s.fsuppliername AS fsuppliername, h.fsupplier AS fcustno, h.fsupplier AS fsuppliercode, h.fcurrency, h.frate, h.fusercreate AS fuserid, h.frefno, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountso, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt_rp ELSE h.famountmt_rp * -1 END AS famountmt_rp, h.famountmt AS fnilainota, h.famountmt_rp AS fnilainota_rp")
             ->whereIn('h.fstockmtcode', ['BUY', 'REB'])
             ->where('h.fstockmtdate', '>=', $dateFrom)
             ->where('h.fstockmtdate', '<=', $dateTo . ' 23:59:59');

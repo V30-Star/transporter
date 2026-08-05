@@ -178,6 +178,7 @@ class ListingFakturPembelianController extends Controller
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->leftJoin('mssupplier as s', 'm.fsupplier', '=', 's.fsuppliercode')
             ->select(
+                'm.fstockmtid',
                 'm.fstockmtno',
                 'm.fstockmtdate',
                 'm.fsupplier',

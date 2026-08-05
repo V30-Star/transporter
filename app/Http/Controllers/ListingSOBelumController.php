@@ -387,6 +387,7 @@ class ListingSOBelumController extends Controller
         }
 
         $query->select(
+            'm.ftrsomtid',
             'm.fsono',
             'm.fsodate',
             'm.fcustno',

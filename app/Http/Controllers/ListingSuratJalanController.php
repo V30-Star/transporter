@@ -140,6 +140,7 @@ class ListingSuratJalanController extends Controller
 
             // PERBAIKAN UTAMA: Tanda koma setelah d.frefdtno dihapus total sebelum penutupan quotes selectRaw
             ->selectRaw("
+            m.fstockmtid,
             m.fstockmtno,
             m.fstockmtdate,
             m.fbranchcode,

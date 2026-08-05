@@ -42,7 +42,7 @@ class ListingHutangDagangController extends Controller
 
         $base = DB::table('trstockmt as h')
             ->join('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
-            ->selectRaw("h.fbranchcode, h.fstockmtno, h.fstockmtdate, h.fjatuhtempo, h.fstockmtcode, s.fsuppliername, h.fsupplier, h.fcurrency, h.frate, h.famountmt AS fnilainota, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountmt, h.fusercreate AS fuserid, h.frefno AS fnofaktur")
+            ->selectRaw("h.fstockmtid, h.fbranchcode, h.fstockmtno, h.fstockmtdate, h.fjatuhtempo, h.fstockmtcode, s.fsuppliername, h.fsupplier, h.fcurrency, h.frate, h.famountmt AS fnilainota, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountmt, h.fusercreate AS fuserid, h.frefno AS fnofaktur")
             ->whereIn('h.fstockmtcode', ['BUY', 'REB']);
 
         if ($request->input('date_mode', 'per_tanggal') === 'periode') {
