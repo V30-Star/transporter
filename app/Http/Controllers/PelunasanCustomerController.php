@@ -459,12 +459,20 @@ class PelunasanCustomerController extends Controller
             return response()->json([
                 'message' => 'Pelunasan customer berhasil disimpan.',
                 'redirect_url' => route('pelunasancustomer.create'),
+                'success_prompt' => [
+                    'type' => 'pelunasancustomer_create',
+                    'redirect_url' => route('pelunasancustomer.print', $voucherNo),
+                ],
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.create')
-            ->with('success', 'Pelunasan customer berhasil disimpan.');
+            ->with('success', 'Pelunasan customer berhasil disimpan.')
+            ->with('success_prompt', [
+                'type' => 'pelunasancustomer_create',
+                'redirect_url' => route('pelunasancustomer.print', $voucherNo),
+            ]);
     }
 
     public function update(Request $request, $fkasmtno)
@@ -1580,5 +1588,45 @@ class PelunasanCustomerController extends Controller
     private function resolveHeaderDk(float $amount): string
     {
         return $amount >= 0 ? 'D' : 'K';
+    }
+
+    public function print(string $fkasmtno)
+    {
+        $header = Trkasmt::query()
+            ->leftJoin('account as acc', 'acc.faccount', '=', 'trkasmt.faccountheader')
+            ->where('trkasmt.fkasmtno', $fkasmtno)
+            ->first([
+                'trkasmt.*',
+                'acc.faccname as header_account_name',
+            ]);
+
+        if (! $header) {
+            return redirect()->back()->with('error', 'Pelunasan customer tidak ada.');
+        }
+
+        DB::table('trkasmt')->where('fkasmtno', $header->fkasmtno)->update(['fprint' => 1]);
+
+        $details = DB::table('trkasdt as dt')
+            ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
+            ->leftJoin('mssubaccount as sub', 'sub.fsubaccountcode', '=', 'dt.fsubaccount')
+            ->where('dt.fkasmtid', $header->fkasmtid)
+            ->orderBy('dt.fnou')
+            ->get([
+                'dt.*',
+                'acc.faccname as account_name',
+                'sub.fsubaccountname as subaccount_name',
+            ]);
+
+        $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
+
+        return view('penerimaankas.print', [
+            'hdr' => $header,
+            'dt' => $details,
+            'fmt' => $fmt,
+            'totalAmount' => $totalAmount,
+            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_city' => config('app.company_city', 'Tangerang'),
+        ]);
     }
 }

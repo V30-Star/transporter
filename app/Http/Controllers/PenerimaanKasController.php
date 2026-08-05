@@ -152,12 +152,20 @@ class PenerimaanKasController extends Controller
             return response()->json([
                 'message' => 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.',
                 'redirect_url' => route('penerimaankas.create'),
+                'success_prompt' => [
+                    'type' => 'penerimaankas_create',
+                    'redirect_url' => route('penerimaankas.print', $header->fkasmtno),
+                ],
             ]);
         }
 
         return redirect()
             ->route('penerimaankas.create')
-            ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.');
+            ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.')
+            ->with('success_prompt', [
+                'type' => 'penerimaankas_create',
+                'redirect_url' => route('penerimaankas.print', $header->fkasmtno),
+            ]);
     }
 
     public function view($fkasmtno)

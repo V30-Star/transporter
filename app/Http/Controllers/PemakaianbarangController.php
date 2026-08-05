@@ -721,12 +721,20 @@ class PemakaianbarangController extends Controller
             return response()->json([
                 'message' => "Pemakaian barang berhasil disimpan.",
                 'redirect_url' => route('pemakaianbarang.create'),
+                'success_prompt' => [
+                    'type' => 'pemakaianbarang_create',
+                    'redirect_url' => route('pemakaianbarang.print', $fstockmtno),
+                ],
             ]);
         }
 
         return redirect()
             ->route('pemakaianbarang.create')
-            ->with('success', "Pemakaian barang berhasil disimpan.");
+            ->with('success', "Pemakaian barang berhasil disimpan.")
+            ->with('success_prompt', [
+                'type' => 'pemakaianbarang_create',
+                'redirect_url' => route('pemakaianbarang.print', $fstockmtno),
+            ]);
     }
 
     public function edit($fstockmtid)

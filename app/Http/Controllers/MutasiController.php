@@ -844,12 +844,20 @@ class MutasiController extends Controller
                 return response()->json([
                     'message' => "Mutasi berhasil disimpan.",
                     'redirect_url' => route('mutasi.create'),
+                    'success_prompt' => [
+                        'type' => 'mutasi_create',
+                        'redirect_url' => route('mutasi.print', $fstockmtno),
+                    ],
                 ]);
             }
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "Mutasi berhasil disimpan.");
+                ->with('success', "Mutasi berhasil disimpan.")
+                ->with('success_prompt', [
+                    'type' => 'mutasi_create',
+                    'redirect_url' => route('mutasi.print', $fstockmtno),
+                ]);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Mutasi belum bisa disimpan: ' . $e->getMessage()], 500);

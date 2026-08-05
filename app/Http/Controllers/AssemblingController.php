@@ -770,12 +770,20 @@ class AssemblingController extends Controller
             return response()->json([
                 'message' => "Assembling {$fstockmtno} berhasil disimpan.",
                 'redirect_url' => route('assembling.create'),
+                'success_prompt' => [
+                    'type' => 'assembling_create',
+                    'redirect_url' => route('assembling.print', $fstockmtno),
+                ],
             ]);
         }
 
         return redirect()
             ->route('assembling.create')
-            ->with('success', "Assembling {$fstockmtno} berhasil disimpan.");
+            ->with('success', "Assembling {$fstockmtno} berhasil disimpan.")
+            ->with('success_prompt', [
+                'type' => 'assembling_create',
+                'redirect_url' => route('assembling.print', $fstockmtno),
+            ]);
     }
 
     public function edit($fstockmtid)

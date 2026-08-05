@@ -290,6 +290,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pelunasancustomer/{fkasmtno}/view', [PelunasanCustomerController::class, 'view'])->name('pelunasancustomer.view');
         Route::get('/pelunasancustomer/{fkasmtno}/edit', [PelunasanCustomerController::class, 'edit'])->name('pelunasancustomer.edit');
         Route::get('/pelunasancustomer/{fkasmtno}/delete', [PelunasanCustomerController::class, 'delete'])->name('pelunasancustomer.delete');
+        Route::get('/pelunasancustomer/{fkasmtno}/print', [PelunasanCustomerController::class, 'print'])->name('pelunasancustomer.print');
         Route::patch('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'update'])->name('pelunasancustomer.update');
         Route::delete('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'destroy'])->name('pelunasancustomer.destroy');
         Route::get('/bayarsupplier', [BayarSupplierController::class, 'index'])->name('bayarsupplier.index');
@@ -299,6 +300,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/bayarsupplier/{fkasmtno}/view', [BayarSupplierController::class, 'view'])->name('bayarsupplier.view');
         Route::get('/bayarsupplier/{fkasmtno}/edit', [BayarSupplierController::class, 'edit'])->name('bayarsupplier.edit');
         Route::get('/bayarsupplier/{fkasmtno}/delete', [BayarSupplierController::class, 'delete'])->name('bayarsupplier.delete');
+        Route::get('/bayarsupplier/{fkasmtno}/print', [BayarSupplierController::class, 'print'])->name('bayarsupplier.print');
         Route::patch('/bayarsupplier/{fkasmtno}', [BayarSupplierController::class, 'update'])->name('bayarsupplier.update');
         Route::delete('/bayarsupplier/{fkasmtno}', [BayarSupplierController::class, 'destroy'])->name('bayarsupplier.destroy');
 

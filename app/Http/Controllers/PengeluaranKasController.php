@@ -149,12 +149,20 @@ class PengeluaranKasController extends Controller
             return response()->json([
                 'message' => 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.',
                 'redirect_url' => route('pengeluarankas.create'),
+                'success_prompt' => [
+                    'type' => 'pengeluarankas_create',
+                    'redirect_url' => route('pengeluarankas.print', $header->fkasmtno),
+                ],
             ]);
         }
 
         return redirect()
             ->route('pengeluarankas.create')
-            ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.');
+            ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.')
+            ->with('success_prompt', [
+                'type' => 'pengeluarankas_create',
+                'redirect_url' => route('pengeluarankas.print', $header->fkasmtno),
+            ]);
     }
 
     public function view($fkasmtno)

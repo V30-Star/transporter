@@ -833,12 +833,20 @@ class AdjstockController extends Controller
                 return response()->json([
                     'message' => "Adjustment stock {$finalNo} berhasil disimpan.",
                     'redirect_url' => route('adjstock.create'),
+                    'success_prompt' => [
+                        'type' => 'adjstock_create',
+                        'redirect_url' => route('adjstock.print', $finalNo),
+                    ],
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
+                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.")
+                ->with('success_prompt', [
+                    'type' => 'adjstock_create',
+                    'redirect_url' => route('adjstock.print', $finalNo),
+                ]);
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
