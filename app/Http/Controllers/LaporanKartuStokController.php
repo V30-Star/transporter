@@ -74,10 +74,11 @@ class LaporanKartuStokController extends Controller
      * Query tunggal per gudang: saldo awal + masuk + keluar
      * sudah dihitung SUM di level SQL lewat subquery, bukan PHP array.
      */
-    private function rekapAggregatedQuery(string $whcode, Request $request, string $dateFrom, string $dateTo)
+    private function rekapAggregatedQuery(string $whcode, Request $request, ?string $dateFrom, ?string $dateTo)
     {
-        $openingIn = $this->movementTotalSubquery($whcode, $request, null, $dateFrom, 'in');
-        $openingOut = $this->movementTotalSubquery($whcode, $request, null, $dateFrom, 'out');
+        $openingCutoff = ! empty($dateFrom) ? $dateFrom : $dateTo;
+        $openingIn = $this->movementTotalSubquery($whcode, $request, null, $openingCutoff, 'in');
+        $openingOut = $this->movementTotalSubquery($whcode, $request, null, $openingCutoff, 'out');
         $periodIn = $this->movementTotalSubquery($whcode, $request, $dateFrom, $dateTo, 'in');
         $periodOut = $this->movementTotalSubquery($whcode, $request, $dateFrom, $dateTo, 'out');
 
@@ -110,17 +111,19 @@ class LaporanKartuStokController extends Controller
             ", [$whcode]);
     }
 
-    private function movementTotalSubquery(string $whcode, Request $request, ?string $dateFrom, string $dateTo, string $direction)
+    private function movementTotalSubquery(string $whcode, Request $request, ?string $dateFrom, ?string $dateTo, string $direction)
     {
         $query = $this->movementBaseQuery($whcode, $request, $direction)
             ->selectRaw('d.fprdcode, SUM(COALESCE(d.fqtykecil, d.fqty, 0)) as qty')
             ->groupBy('d.fprdcode');
 
-        if ($dateFrom) {
+        if (! empty($dateFrom) && ! empty($dateTo)) {
             $query->where('m.fstockmtdate', '>=', $dateFrom)
                 ->where('m.fstockmtdate', '<=', $dateTo . ' 23:59:59');
-        } else {
+        } elseif (! empty($dateTo)) {
             $query->where('m.fstockmtdate', '<', $dateTo);
+        } elseif (! empty($dateFrom)) {
+            $query->where('m.fstockmtdate', '>=', $dateFrom);
         }
 
         return $query;
@@ -142,7 +145,7 @@ class LaporanKartuStokController extends Controller
 
         foreach ($warehouses as $wh) {
             // Saldo awal per produk (hasil sudah teragregasi dari query rekap)
-            $openingBalances = $this->rekapAggregatedQuery($wh->fwhcode, $request, '', $dateFrom)
+            $openingBalances = $this->rekapAggregatedQuery($wh->fwhcode, $request, null, $dateFrom)
                 ->get()
                 ->keyBy(fn($r) => trim($r->fprdcode));
 
@@ -220,8 +223,8 @@ class LaporanKartuStokController extends Controller
         $outSql = $out->toSql();
 
         return DB::table(DB::raw("({$inSql} UNION ALL {$outSql}) as u"))
-            ->mergeBindings($in->getQuery())
-            ->mergeBindings($out->getQuery())
+            ->mergeBindings($in)
+            ->mergeBindings($out)
             ->orderBy('fprdcode')
             ->orderBy('fstockdate');
     }
