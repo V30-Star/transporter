@@ -45,7 +45,7 @@ class ListingPiutangPenjualanController extends Controller
 
         $base = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->selectRaw("m.fbranchcode, m.fsono, m.ftrcode AS fstockmtcode, m.fsodate, m.fjatuhtempo, m.frefno, m.fcustno AS fcustomer, 
+            ->selectRaw("m.ftranmtid, m.fbranchcode, m.fsono, m.ftrcode AS fstockmtcode, m.fsodate, m.fjatuhtempo, m.frefno, m.fcustno AS fcustomer, 
             c.fcustomername AS fcustname, m.famountso AS fnilainota, 
             CASE WHEN m.ftrcode = 'REJ' THEN m.famountso * -1 ELSE m.famountso END AS famountso, m.fuserid, m.fsalesman, c.fwilayah")
             ->whereIn('m.ftrcode', ['INV', 'REJ'])

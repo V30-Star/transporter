@@ -94,6 +94,14 @@ class BukuPiutangController extends Controller
             ->orderBy('l.fpriority')
             ->get();
 
+        $tranMap = DB::table('tranmt')->select('fsono', 'ftranmtid', 'ftrcode')->get()->keyBy('fsono');
+        foreach ($rows as $row) {
+            $ref = trim((string) ($row->faccountno ?? ''));
+            $tran = $tranMap->get($ref);
+            $row->ftranmtid = $tran->ftranmtid ?? null;
+            $row->ftrcode = $tran->ftrcode ?? 'INV';
+        }
+
         return $this->attachRunningBalance($rows);
     }
 

@@ -44,7 +44,7 @@ class AnalisaUmurPiutangController extends Controller
         $invoice = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             // PERUBAHAN DI SINI: m.fsalesman di-cast ke ::text
-            ->selectRaw("m.fbranchcode, m.fsono, 'INV' AS fstockmtcode, m.fsodate, m.fcurrency, m.frate, m.fjatuhtempo, m.frefno, m.fcustno, c.fcustomername AS fcustname, m.fsalesman::text AS fsalesman, m.famountso, m.famountso_rp, m.famountso AS fnilainota, m.famountso_rp AS fnilainota_rp")
+            ->selectRaw("m.ftranmtid, m.fbranchcode, m.fsono, 'INV' AS fstockmtcode, m.fsodate, m.fcurrency, m.frate, m.fjatuhtempo, m.frefno, m.fcustno, c.fcustomername AS fcustname, m.fsalesman::text AS fsalesman, m.famountso, m.famountso_rp, m.famountso AS fnilainota, m.famountso_rp AS fnilainota_rp")
             ->where('m.ftrcode', 'INV')
             ->where('m.fsodate', '>=', $dateFrom)
             ->where('m.fsodate', '<=', $dateTo . ' 23:59:59');
@@ -54,7 +54,7 @@ class AnalisaUmurPiutangController extends Controller
         $retur = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             // PERUBAHAN DI SINI: m.fsalesman di-cast ke ::text
-            ->selectRaw("m.fbranchcode, m.fsono, 'INV' AS fstockmtcode, m.fsodate, m.fcurrency, m.frate, m.fjatuhtempo, m.frefno, m.fcustno, c.fcustomername AS fcustname, m.fsalesman::text AS fsalesman, m.famountso, m.famountso_rp, m.famountso AS fnilainota, m.famountso_rp AS fnilainota_rp")
+            ->selectRaw("m.ftranmtid, m.fbranchcode, m.fsono, 'REJ' AS fstockmtcode, m.fsodate, m.fcurrency, m.frate, m.fjatuhtempo, m.frefno, m.fcustno, c.fcustomername AS fcustname, m.fsalesman::text AS fsalesman, m.famountso, m.famountso_rp, m.famountso AS fnilainota, m.famountso_rp AS fnilainota_rp")
             ->where('m.ftrcode', 'REJ')
             ->where('m.fsodate', '>=', $dateFrom)
             ->where('m.fsodate', '<=', $dateTo . ' 23:59:59');

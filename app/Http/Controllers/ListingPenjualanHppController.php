@@ -41,7 +41,7 @@ class ListingPenjualanHppController extends Controller
             ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
+            ->selectRaw("m.ftranmtid, m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
             m.fcustno::varchar AS fcustno, c.fcustomername AS fcustname, 
             COALESCE(m.fdiscpersen, 0) AS fdiscpersen, ROUND(m.fdiscount, 0) AS fdiscount, 
             ROUND(m.ftotalsalesnet, 0) AS famountgross, 
@@ -70,7 +70,7 @@ class ListingPenjualanHppController extends Controller
            ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
+            ->selectRaw("m.ftranmtid, m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
             m.fcustno::varchar AS fcustno, c.fcustomername AS fcustname, 
             COALESCE(m.fdiscpersen, 0) AS fdiscpersen, ROUND(m.fdiscount, 0) AS fdiscount, 
             ROUND(m.ftotalsalesnet, 0) AS famountgross, 
