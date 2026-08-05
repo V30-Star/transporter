@@ -1387,11 +1387,20 @@ class ReturPenjualanController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Retur penjualan berhasil disimpan.',
-                    'redirect_url' => route('returpenjualan.index'),
+                    'redirect_url' => route('returpenjualan.create'),
+                    'success_prompt' => [
+                        'type' => 'returpenjualan_create',
+                        'redirect_url' => route('returpenjualan.print', $fstockmtno),
+                    ]
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil disimpan.');
+            return redirect()->route('returpenjualan.create')
+                ->with('success', 'Retur penjualan berhasil disimpan.')
+                ->with('success_prompt', [
+                    'type' => 'returpenjualan_create',
+                    'redirect_url' => route('returpenjualan.print', $fstockmtno),
+                ]);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([

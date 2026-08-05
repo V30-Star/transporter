@@ -1550,6 +1550,12 @@
                     'penerimaanbarang_create': 'Print Penerimaan Barang ini?',
                     'fakturpembelian_create': 'Print Faktur Pembelian ini?',
                     'returpembelian_create': 'Print Retur Pembelian ini?',
+                    'salesorder_create': 'Print Sales Order ini?',
+                    'suratjalan_create': 'Print Surat Jalan ini?',
+                    'invoice_create': 'Print Faktur Penjualan ini?',
+                    'returpenjualan_create': 'Print Retur Penjualan ini?',
+                    'lembarpenagihan_create': 'Print Lembar Penagihan ini?',
+                    'jurnaltransaksi_create': 'Print Voucher Jurnal ini?',
                 };
 
                 if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {

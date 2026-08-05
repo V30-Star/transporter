@@ -1320,30 +1320,20 @@ class SalesOrderController extends Controller
                 ->route('salesorder.index')
                 ->with('success', $message);
 
-            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => $message,
-                        'redirect_url' => route('salesorder.index'),
-                    ]);
-                }
-                return $redirect;
-            }
-
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $message,
                     'redirect_url' => route('salesorder.index'),
                     'success_prompt' => [
-                        'type' => 'salesorder_create_suratjalan',
-                        'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+                        'type' => 'salesorder_create',
+                        'redirect_url' => route('salesorder.print', $fsono),
                     ]
                 ]);
             }
 
             return $redirect->with('success_prompt', [
-                'type' => 'salesorder_create_suratjalan',
-                'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+                'type' => 'salesorder_create',
+                'redirect_url' => route('salesorder.print', $fsono),
             ]);
         } catch (\Exception $e) {
             Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);

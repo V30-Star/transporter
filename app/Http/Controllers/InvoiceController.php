@@ -1814,31 +1814,20 @@ class InvoiceController extends Controller
 
             $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan berhasil disimpan.');
 
-            // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
-            if ($fprdoutVal === '0') {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => 'Faktur penjualan berhasil disimpan.',
-                        'redirect_url' => route('invoice.create'),
-                        'success_prompt' => [
-                            'type' => 'invoice_create_suratjalan',
-                            'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-                        ]
-                    ]);
-                }
-                return $redirect->with('success_prompt', [
-                    'type' => 'invoice_create_suratjalan',
-                    'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-                ]);
-            }
-
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Faktur penjualan berhasil disimpan.',
                     'redirect_url' => route('invoice.create'),
+                    'success_prompt' => [
+                        'type' => 'invoice_create',
+                        'redirect_url' => route('invoice.print', $fsono),
+                    ]
                 ]);
             }
-            return $redirect;
+            return $redirect->with('success_prompt', [
+                'type' => 'invoice_create',
+                'redirect_url' => route('invoice.print', $fsono),
+            ]);
         } catch (\Exception $e) {
             Log::error('Invoice@store ERROR: ' . $e->getMessage());
             report($e);

@@ -272,11 +272,20 @@ class LembarPenagihanController extends Controller
         if (request()->expectsJson()) {
             return response()->json([
                 'message' => 'Lembar penagihan berhasil disimpan.',
-                'redirect_url' => route('lembarpenagihan.index'),
+                'redirect_url' => route('lembarpenagihan.create'),
+                'success_prompt' => [
+                    'type' => 'lembarpenagihan_create',
+                    'redirect_url' => route('lembarpenagihan.print', $tagihanNo),
+                ]
             ]);
         }
 
-        return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil disimpan.');
+        return redirect()->route('lembarpenagihan.create')
+            ->with('success', 'Lembar penagihan berhasil disimpan.')
+            ->with('success_prompt', [
+                'type' => 'lembarpenagihan_create',
+                'redirect_url' => route('lembarpenagihan.print', $tagihanNo),
+            ]);
     }
 
     public function edit(int $id)
