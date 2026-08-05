@@ -1544,6 +1544,34 @@
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
+                if (successPrompt?.type === 'tr_prh_create' && successPrompt.redirect_url) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: successMessage,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#2563eb',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then(() => {
+                        Swal.fire({
+                            icon: 'question',
+                            title: 'Print PR ini?',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes',
+                            cancelButtonText: 'No',
+                            confirmButtonColor: '#2563eb',
+                            cancelButtonColor: '#6b7280',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.open(successPrompt.redirect_url, '_blank');
+                            }
+                        });
+                    });
+                    return;
+                }
+
                 if (successMessage === "PR berhasil disimpan" || successMessage === "PR butuh approval" || successMessage === "PO berhasil disimpan" || successMessage === "PO butuh approval" || successMessage === "Produk berhasil disimpan" || successMessage === "Produk butuh approval") {
                     Swal.fire({
                         icon: 'success',

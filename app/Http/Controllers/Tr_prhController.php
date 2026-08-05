@@ -480,7 +480,11 @@ class Tr_prhController extends Controller
 
         $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
         return redirect()->route('tr_prh.create')
-            ->with('success', $message);
+            ->with('success', $message)
+            ->with('success_prompt', [
+                'type' => 'tr_prh_create',
+                'redirect_url' => route('tr_prh.print', $fprno),
+            ]);
     }
 
     public function view(Request $request, $fprhid)
