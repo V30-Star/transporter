@@ -327,8 +327,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_poh', [Tr_pohController::class, 'index'])->name('tr_poh.index');
         Route::post('/tr_poh', [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
-        Route::get('/tr_poh/{fpohid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
-        Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
+        Route::get('/tr_poh/{fpohid}/view', [Tr_pohController::class, 'view'])->where('fpohid', '.*')->name('tr_poh.view');
+        Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->where('fpohid', '.*')->name('tr_poh.edit');
         Route::get('/tr_poh/{fpohid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
         Route::patch('/tr_poh/{fpohid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
         Route::delete('/tr_poh/{fpohid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
@@ -358,8 +358,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/fakturpembelian', [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
         Route::get('/fakturpembelian/price-info', [FakturpembelianController::class, 'priceInfo'])->name('fakturpembelian.price-info');
-        Route::get('/fakturpembelian/{fstockmtid}/view', [FakturpembelianController::class, 'view'])->name('fakturpembelian.view');
-        Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
+        Route::get('/fakturpembelian/{fstockmtid}/view', [FakturpembelianController::class, 'view'])->where('fstockmtid', '.*')->name('fakturpembelian.view');
+        Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->where('fstockmtid', '.*')->name('fakturpembelian.edit');
         Route::get('/fakturpembelian/{fstockmtid}/delete', [FakturpembelianController::class, 'delete'])->name('fakturpembelian.delete');
         Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
         Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
@@ -459,8 +459,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/salesorder/price-info', [SalesOrderController::class, 'priceInfo'])->name('salesorder.price-info');
         Route::post('/salesorder/credit-check', [SalesOrderController::class, 'creditCheck'])->name('salesorder.credit-check');
         Route::post('/salesorder/duplicate-refpo-check', [SalesOrderController::class, 'duplicateRefPoCheck'])->name('salesorder.duplicate-refpo-check');
-        Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
-        Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
+        Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->where('ftrsomtid', '.*')->name('salesorder.view');
+        Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->where('ftrsomtid', '.*')->name('salesorder.edit');
         Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
         Route::patch('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'update'])->name('salesorder.update');
         Route::delete('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'destroy'])->name('salesorder.destroy');
@@ -491,8 +491,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
         Route::get('/invoice/price-info', [InvoiceController::class, 'priceInfo'])->name('invoice.price-info');
         Route::post('/invoice/credit-check', [InvoiceController::class, 'creditCheck'])->name('invoice.credit-check');
-        Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
-        Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
+        Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->where('ftranmtid', '.*')->name('invoice.view');
+        Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->where('ftranmtid', '.*')->name('invoice.edit');
         Route::get('/invoice/{ftranmtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');
         Route::patch('/invoice/{ftranmtid}', [InvoiceController::class, 'update'])->name('invoice.update');
         Route::delete('/invoice/{ftranmtid}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');

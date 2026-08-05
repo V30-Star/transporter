@@ -1487,7 +1487,16 @@ class SalesOrderController extends Controller
                     'msprd.fqtykecil  as fprd_qtykonversi',
                     'msprd.fqtykecil2 as fprd_qtykonversi2'
                 );
-        }])->findOrFail($ftrsomtid);
+        }])->where(function ($q) use ($ftrsomtid) {
+            if (is_numeric($ftrsomtid)) {
+                $q->where('ftrsomtid', (int) $ftrsomtid);
+            }
+            $slash = str_replace('.', '/', $ftrsomtid);
+            $dot = str_replace('/', '.', $ftrsomtid);
+            $q->orWhere('fsono', $ftrsomtid)
+              ->orWhere('fsono', $slash)
+              ->orWhere('fsono', $dot);
+        })->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
@@ -1589,7 +1598,16 @@ class SalesOrderController extends Controller
                     'msprd.fqtykecil2    as fprd_qtykonversi2',
                     'msprd.fqtykecil     as fprd_qtykonversi'  // alias jelas, tidak konflik
                 );
-        }])->findOrFail($ftrsomtid);
+        }])->where(function ($q) use ($ftrsomtid) {
+            if (is_numeric($ftrsomtid)) {
+                $q->where('ftrsomtid', (int) $ftrsomtid);
+            }
+            $slash = str_replace('.', '/', $ftrsomtid);
+            $dot = str_replace('/', '.', $ftrsomtid);
+            $q->orWhere('fsono', $ftrsomtid)
+              ->orWhere('fsono', $slash)
+              ->orWhere('fsono', $dot);
+        })->firstOrFail();
 
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());

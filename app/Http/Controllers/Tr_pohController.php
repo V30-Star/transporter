@@ -1256,7 +1256,16 @@ class Tr_pohController extends Controller
                     DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
-        }])->findOrFail($fpohid);
+        }])->where(function ($q) use ($fpohid) {
+            if (is_numeric($fpohid)) {
+                $q->where('fpohid', (int) $fpohid);
+            }
+            $slash = str_replace('.', '/', $fpohid);
+            $dot = str_replace('/', '.', $fpohid);
+            $q->orWhere('fpono', $fpohid)
+              ->orWhere('fpono', $slash)
+              ->orWhere('fpono', $dot);
+        })->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
             return redirect()
@@ -1423,7 +1432,16 @@ class Tr_pohController extends Controller
                     'msprd.fsatuanbesar2',
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
-        }])->findOrFail($fpohid);
+        }])->where(function ($q) use ($fpohid) {
+            if (is_numeric($fpohid)) {
+                $q->where('fpohid', (int) $fpohid);
+            }
+            $slash = str_replace('.', '/', $fpohid);
+            $dot = str_replace('/', '.', $fpohid);
+            $q->orWhere('fpono', $fpohid)
+              ->orWhere('fpono', $slash)
+              ->orWhere('fpono', $dot);
+        })->firstOrFail();
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($tr_poh->fbranchcode ?? null);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 

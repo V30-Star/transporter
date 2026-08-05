@@ -2315,7 +2315,16 @@ class InvoiceController extends Controller
                     'sj_hdr.fstockmtno as fstockno_ref'
                 )
                 ->orderBy('trandt.ftrandtid', 'asc');
-        }])->findOrFail($ftranmtid);
+        }])->where(function ($q) use ($ftranmtid) {
+            if (is_numeric($ftranmtid)) {
+                $q->where('ftranmtid', (int) $ftranmtid);
+            }
+            $slash = str_replace('.', '/', $ftranmtid);
+            $dot = str_replace('/', '.', $ftranmtid);
+            $q->orWhere('fsono', $ftranmtid)
+              ->orWhere('fsono', $slash)
+              ->orWhere('fsono', $dot);
+        })->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
             return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
@@ -2446,7 +2455,16 @@ class InvoiceController extends Controller
                     'sj_hdr.fstockmtno as fstockno_ref'
                 )
                 ->orderBy('trandt.ftrandtid', 'asc');
-        }])->findOrFail($ftranmtid);
+        }])->where(function ($q) use ($ftranmtid) {
+            if (is_numeric($ftranmtid)) {
+                $q->where('ftranmtid', (int) $ftranmtid);
+            }
+            $slash = str_replace('.', '/', $ftranmtid);
+            $dot = str_replace('/', '.', $ftranmtid);
+            $q->orWhere('fsono', $ftranmtid)
+              ->orWhere('fsono', $slash)
+              ->orWhere('fsono', $dot);
+        })->firstOrFail();
 
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());

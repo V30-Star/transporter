@@ -311,8 +311,9 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.customerData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
-                                                x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                <a :href="'{{ route('invoice.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
+                                            </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
                                                 x-text="item.fcustomername"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
@@ -396,8 +397,9 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.supplierData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
-                                                x-text="item.fstockmtno"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                <a :href="'{{ route('fakturpembelian.index') }}/' + encodeURIComponent(item.fstockmtno) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fstockmtno"></a>
+                                            </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
                                                 x-text="item.fsuppliername"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
@@ -433,7 +435,9 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingPoData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fpono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                <a :href="'{{ route('tr_poh.index') }}/' + encodeURIComponent(item.fpono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fpono"></a>
+                                            </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fpodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsuppliername"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
@@ -460,7 +464,9 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingSoData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                <a :href="'{{ route('salesorder.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
+                                            </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fcustname"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>

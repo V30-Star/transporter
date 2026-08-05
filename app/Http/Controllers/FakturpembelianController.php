@@ -1823,7 +1823,16 @@ class FakturpembelianController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
-            ->findOrFail($fstockmtid);
+            ->where(function ($q) use ($fstockmtid) {
+                if (is_numeric($fstockmtid)) {
+                    $q->where('fstockmtid', (int) $fstockmtid);
+                }
+                $slash = str_replace('.', '/', $fstockmtid);
+                $dot = str_replace('/', '.', $fstockmtid);
+                $q->orWhere('fstockmtno', $fstockmtid)
+                  ->orWhere('fstockmtno', $slash)
+                  ->orWhere('fstockmtno', $dot);
+            })->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
             return redirect()
@@ -2015,7 +2024,16 @@ class FakturpembelianController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
-            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+            ->where(function ($q) use ($fstockmtid) {
+                if (is_numeric($fstockmtid)) {
+                    $q->where('fstockmtid', (int) $fstockmtid);
+                }
+                $slash = str_replace('.', '/', $fstockmtid);
+                $dot = str_replace('/', '.', $fstockmtid);
+                $q->orWhere('fstockmtno', $fstockmtid)
+                  ->orWhere('fstockmtno', $slash)
+                  ->orWhere('fstockmtno', $dot);
+            })->firstOrFail();
 
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $fakturpembelian->fprdjadi;
