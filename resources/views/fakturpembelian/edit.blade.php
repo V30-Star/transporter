@@ -2024,6 +2024,22 @@
                     }
                 },
 
+                applyOutstandingDpRef(row) {
+                    const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
+                    const ftypebuy = (document.querySelector('select[name="ftypebuy"]')?.value || '').toString().trim();
+                    // Hanya berlaku untuk Tipe Pembelian Uang Muka (ftypebuy=2) dan item UM
+                    if (ftypebuy !== '2' || productCode !== 'UM') return;
+
+                    const supplierCode = this.getSelectedSupplierCode();
+                    if (!supplierCode) return;
+
+                    const documents = window.FPB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
+                    const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
+                    if (!doc) return;
+
+                    row.frefdtno = doc.fstockmtno;
+                },
+
                 recalc(row) {
                     row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                     row.fprice = Math.max(0, +row.fprice || 0);
@@ -3076,6 +3092,7 @@
                                 stock: product.fminstock || 0,
                             }, true);
                             this.applyPurchasePrice(row);
+                            this.applyOutstandingDpRef(row);
                             if (!(Number(row.fqty) > 0)) row.fqty = 1;
                             this.recalc(row);
                             const index = this.savedItems.findIndex((item) => item.uid === row.uid);
@@ -3629,6 +3646,10 @@
                 }
             });
         });
+    </script>
+
+    <script>
+        window.FPB_SUPPLIER_ADVANCE_WARNINGS = @json($supplierAdvanceWarnings ?? []);
     </script>
 
     <script>

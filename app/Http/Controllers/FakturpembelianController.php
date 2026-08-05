@@ -163,6 +163,26 @@ class FakturpembelianController extends Controller
 
     private function getSupplierAdvanceWarningMap(): array
     {
+        $documentsBySupplier = DB::table('trsisadp_pembelian')
+            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
+            ->addSelect(['fstockmtno', 'fstockmtdate', 'fsisadp', 'fsisadp_rp'])
+            ->where(function ($query) {
+                $query->where('fsisadp', '>', 0)
+                    ->orWhere('fsisadp_rp', '>', 0);
+            })
+            ->orderBy('fstockmtdate')
+            ->orderBy('fstockmtno')
+            ->get()
+            ->map(fn ($doc) => [
+                'fsupplier'    => trim((string) ($doc->fsupplier ?? '')),
+                'fstockmtno'   => trim((string) ($doc->fstockmtno ?? '')),
+                'fstockmtdate' => $doc->fstockmtdate,
+                'fsisadp'      => (float) ($doc->fsisadp ?? 0),
+                'fsisadp_rp'   => (float) ($doc->fsisadp_rp ?? 0),
+            ])
+            ->filter(fn ($doc) => $doc['fsupplier'] !== '' && $doc['fstockmtno'] !== '')
+            ->groupBy('fsupplier');
+
         return DB::table('trsisadp_pembelian')
             ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
             ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
@@ -174,15 +194,16 @@ class FakturpembelianController extends Controller
             ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fsupplier ?? '')) !== '')
-            ->mapWithKeys(function ($row) {
+            ->mapWithKeys(function ($row) use ($documentsBySupplier) {
                 $supplierCode = trim((string) ($row->fsupplier ?? ''));
                 $remainRp = (float) ($row->total_remain_rp ?? 0);
 
                 return [
                     $supplierCode => [
                         'message' => $remainRp > 0
-                            ? 'Supplier ini memiliki DP sebesar' . number_format($remainRp, 2, ',', '.') . '.'
+                            ? 'Supplier ini memiliki DP sebesar ' . number_format($remainRp, 2, ',', '.') . '.'
                             : 'Supplier ini memiliki DP.',
+                        'documents' => $documentsBySupplier->get($supplierCode, collect())->values()->all(),
                     ],
                 ];
             })
