@@ -287,6 +287,7 @@ class ReportingPelunasanSupplierController extends Controller
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) IN ('PBL', 'REB')")
             ->selectRaw("
+                m.fkasmtid,
                 m.fkasmtno,
                 d.freftype,
                 m.fkasmtdate,

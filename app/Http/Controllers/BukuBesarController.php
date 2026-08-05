@@ -40,7 +40,7 @@ class BukuBesarController extends Controller
             ->join('trkasdt as d', 'm.fkasmtid', '=', 'd.fkasmtid')
             ->join('account as a', 'a.faccount', '=', 'd.faccount')
             ->where('m.fkasmtdate', '<', $dateFrom)
-            ->selectRaw("d.faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = d.fdk THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END) * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
+            ->selectRaw("d.faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, 'SALDO' AS fjurnaltype, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = d.fdk THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END) * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
             ->groupBy('d.faccount', 'd.fdk', 'a.fnormal');
 
         $this->applyFilters($saldoKasDetail, $request, 'm', 'd.faccount');
@@ -49,7 +49,7 @@ class BukuBesarController extends Controller
             ->join('account as a', 'a.faccount', '=', 'm.faccountheader')
             ->where('m.fkasmtdate', '<', $dateFrom)
             ->whereRaw('ABS(COALESCE(m.famountpay_rp, 0)) > 0')
-            ->selectRaw("m.faccountheader AS faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = m.fdkheader THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END) * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
+            ->selectRaw("m.faccountheader AS faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, 'SALDO' AS fjurnaltype, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = m.fdkheader THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END) * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
             ->groupBy('m.faccountheader', 'm.fdkheader', 'a.fnormal');
 
         $this->applyFilters($saldoKasHeader, $request, 'm', 'm.faccountheader');
@@ -58,7 +58,7 @@ class BukuBesarController extends Controller
             ->join('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
             ->join('account as a', 'a.faccount', '=', 'd.faccount')
             ->where('m.fjurnaldate', '<', $dateFrom)
-            ->selectRaw("d.faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
+            ->selectRaw("d.faccount, MIN(a.faccname) AS faccname, 'Saldo Awal' AS fjurnalno, CAST(? AS DATE) - 1 AS fjurnaltgl, 'Saldo Awal' AS fjurnalref, 'SALDO' AS fjurnaltype, MIN(a.fnormal) AS fnormal, 'D' AS fdk, 0 AS famountdb, 0 AS famountcr, SUM(CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END) AS fsaldo_awal, '0' AS fpriority", [$dateFrom])
             ->groupBy('d.faccount', 'd.fdk', 'a.fnormal');
 
         $this->applyFilters($saldoJurnal, $request, 'm', 'd.faccount');
@@ -68,7 +68,7 @@ class BukuBesarController extends Controller
             ->join('account as a', 'a.faccount', '=', 'd.faccount')
             ->where('m.fkasmtdate', '>=', $dateFrom)
             ->where('m.fkasmtdate', '<=', $dateTo . ' 23:59:59')
-            ->selectRaw("d.faccount, a.faccname, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.frefno, ''), NULLIF(d.fnote, ''), m.fket)) AS fjurnalref, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END) * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
+            ->selectRaw("d.faccount, a.faccname, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.frefno, ''), NULLIF(d.fnote, ''), m.fket)) AS fjurnalref, m.ftrancode AS fjurnaltype, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN d.fjurnal_rp ELSE d.fjurnal END) * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
 
         $this->applyFilters($mutasiKasDetail, $request, 'm', 'd.faccount');
 
@@ -77,7 +77,7 @@ class BukuBesarController extends Controller
             ->where('m.fkasmtdate', '>=', $dateFrom)
             ->where('m.fkasmtdate', '<=', $dateTo . ' 23:59:59')
             ->whereRaw('ABS(COALESCE(m.famountpay_rp, 0)) > 0')
-            ->selectRaw("m.faccountheader AS faccount, a.faccname, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaltgl, TRIM(m.fket) AS fjurnalref, a.fnormal, m.fdkheader AS fdk, CASE WHEN m.fdkheader = 'D' THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE 0 END AS famountdb, CASE WHEN m.fdkheader = 'K' THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE 0 END AS famountcr, CASE WHEN a.fnormal = m.fdkheader THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END) * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = m.fdkheader THEN '0' ELSE '1' END AS fpriority");
+            ->selectRaw("m.faccountheader AS faccount, a.faccname, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaltgl, TRIM(m.fket) AS fjurnalref, m.ftrancode AS fjurnaltype, a.fnormal, m.fdkheader AS fdk, CASE WHEN m.fdkheader = 'D' THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE 0 END AS famountdb, CASE WHEN m.fdkheader = 'K' THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE 0 END AS famountcr, CASE WHEN a.fnormal = m.fdkheader THEN CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END ELSE (CASE WHEN a.fcurrency = 'IDR' THEN ABS(m.famountpay_rp) ELSE ABS(m.famountpay) END) * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = m.fdkheader THEN '0' ELSE '1' END AS fpriority");
 
         $this->applyFilters($mutasiKasHeader, $request, 'm', 'm.faccountheader');
 
@@ -86,7 +86,7 @@ class BukuBesarController extends Controller
             ->join('account as a', 'a.faccount', '=', 'd.faccount')
             ->where('m.fjurnaldate', '>=', $dateFrom)
             ->where('m.fjurnaldate', '<=', $dateTo . ' 23:59:59')
-            ->selectRaw("d.faccount, a.faccname, m.fjurnalno AS fjurnalno, m.fjurnaldate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.frefno, ''), NULLIF(d.faccountnote, ''))) AS fjurnalref, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN d.famount ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN d.famount ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
+            ->selectRaw("d.faccount, a.faccname, m.fjurnalno AS fjurnalno, m.fjurnaldate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.frefno, ''), NULLIF(d.faccountnote, ''))) AS fjurnalref, m.fjurnaltype AS fjurnaltype, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN d.famount ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN d.famount ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
 
         $this->applyFilters($mutasiJurnal, $request, 'm', 'd.faccount');
 
@@ -99,7 +99,7 @@ class BukuBesarController extends Controller
 
         $rows = DB::query()
             ->fromSub($ledger, 'l')
-            ->selectRaw("l.faccount, l.faccname, l.fjurnalno, l.fjurnaltgl, l.fjurnalref AS faccountno, l.fdk, l.famountdb, l.famountcr, l.fsaldo_awal, l.fpriority")
+            ->selectRaw("l.faccount, l.faccname, l.fjurnalno, l.fjurnaltgl, l.fjurnalref AS faccountno, l.fjurnaltype, l.fdk, l.famountdb, l.famountcr, l.fsaldo_awal, l.fpriority")
             ->orderBy('l.faccount')
             ->orderBy('l.fjurnalref')
             ->orderBy('l.fjurnaltgl')

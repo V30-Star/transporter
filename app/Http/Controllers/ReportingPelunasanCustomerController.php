@@ -287,7 +287,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'INV'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
+            ->selectRaw("m.fkasmtid, m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $reject = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
@@ -306,7 +306,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'REJ'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
+            ->selectRaw("m.fkasmtid, m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomercode, COALESCE(c.fcustomercode, m.fcustomercode) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $this->applyFilters($invoice, $filters, 'n.fsalesman');
         $this->applyFilters($reject, $filters, 'n.fsalesman');
