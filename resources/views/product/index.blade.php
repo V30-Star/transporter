@@ -364,7 +364,7 @@
                                                 x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
-                                                x-text="item.fsatuanbesar"></td>
+                                                x-text="item.fsatuan"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.stokData.length === 0">

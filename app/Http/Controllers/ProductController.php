@@ -53,6 +53,22 @@ class ProductController extends Controller
         } ?: trim((string) ($product->fsatuankecil ?? ''));
     }
 
+    /**
+     * Konversi fstok (satuan kecil) ke satuan default laporan.
+     * fsatuandefaultlaporan: 1=kecil, 2=besar, 3=besar2
+     */
+    protected function resolveProductLaporanStock(object $item): float
+    {
+        $raw  = (float) ($item->fstok ?? 0);
+        $mode = trim((string) ($item->fsatuandefaultlaporan ?? '')) ?: '1';
+
+        return match ($mode) {
+            '2' => ($raw / max(1, (float) ($item->fqtykecil ?? 1))),
+            '3' => ($raw / max(1, (float) ($item->fqtykecil2 ?? 1))),
+            default => $raw,
+        };
+    }
+
     protected function initializeApprovalState(): array
     {
         return [
@@ -185,6 +201,8 @@ class ProductController extends Controller
                 'msprd.fsatuandefault',
                 'msprd.fsatuandefaultlaporan',
                 'msprd.fstok',
+                'msprd.fqtykecil',
+                'msprd.fqtykecil2',
                 'msprd.fimage1',
                 'msprd.fprdid',
                 'msprd.fnonactive',
@@ -205,7 +223,7 @@ class ProductController extends Controller
                     'fprdname' => $item->fprdname,
                     'fmerek' => $item->merek_name,
                     'fsatuankecil' => $this->resolveProductDefaultUnit($item),
-                    'fstok' => $item->fstok,
+                    'fstok' => $this->resolveProductLaporanStock($item),
                     'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
                     'fimage1' => $item->fimage1,
                     'status' => $statusBadge,
@@ -998,15 +1016,26 @@ class ProductController extends Controller
         $product = Product::findOrFail($fprdid);
 
         $stokData = DB::select('
-            SELECT 
-                v.fwhcode AS fwhcode, 
+            SELECT
+                v.fwhcode,
                 w.fwhname,
-                (v.fsaldo / p.fqtykecil) AS fsaldo, 
-                p.fsatuanbesar
-            FROM prdwh v  
+                CASE
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), \'\'), \'1\') = \'2\' THEN
+                        v.fsaldo / NULLIF(p.fqtykecil, 0)
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), \'\'), \'1\') = \'3\' THEN
+                        v.fsaldo / NULLIF(p.fqtykecil2, 0)
+                    ELSE
+                        v.fsaldo
+                END AS fsaldo,
+                CASE
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), \'\'), \'1\') = \'2\' THEN p.fsatuanbesar
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), \'\'), \'1\') = \'3\' THEN p.fsatuanbesar2
+                    ELSE p.fsatuankecil
+                END AS fsatuan
+            FROM prdwh v
             LEFT OUTER JOIN mswh w ON v.fwhcode = w.fwhcode
-            LEFT OUTER JOIN msprd p ON p.fprdcode = v.fprdcode 
-            WHERE v.fprdcode = :fprdcode
+            LEFT OUTER JOIN msprd p ON TRIM(p.fprdcode) = TRIM(v.fprdcode)
+            WHERE TRIM(v.fprdcode) = :fprdcode
         ', ['fprdcode' => $product->fprdcode]);
 
         $customerData = DB::select('
