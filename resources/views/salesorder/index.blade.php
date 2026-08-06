@@ -415,15 +415,7 @@
                 return normalized === '2' || (normalized !== '' && !['0', '1', '2'].includes(normalized));
             };
 
-            const isEditBlockedApproval = (row) => {
-                const left = (row?.fapproval ?? '').toString().trim();
-
-                if (isApprovedValue(left)) {
-                    return false;
-                }
-
-                return left === '1';
-            };
+            const isEditBlockedApproval = (row) => false;
 
             const renderSoStatus = (row) => {
                 const closeValue = (row?.fclose ?? '').toString().trim();
