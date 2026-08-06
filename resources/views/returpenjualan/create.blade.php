@@ -285,10 +285,18 @@
                             </div>
                         </div>
 
+                        @php
+                            $currentSodate = old('fsodate', session('last_header.fsodate', date('Y-m-d')));
+                            $currentCustNo = old('fcustno', session('last_header.fcustno', $filterSupplierId));
+                            $currentSalesman = old('fsalesman', session('last_header.fsalesman', $filterSalesmanId ?: '0'));
+                            $currentWarehouse = old('ffrom', session('last_header.ffrom', ''));
+                            $currentKet = old('fket', session('last_header.fket', ''));
+                        @endphp
+
                         <div>
                             <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" id="fsodate" name="fsodate"
-                                value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                value="{{ $currentSodate }}"
                                 class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 text-red-600 @else border-gray-300 @enderror">
                             @error('fsodate')
                                 <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
@@ -306,7 +314,7 @@
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomercode }}"
-                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $currentCustNo == $customer->fcustomercode ? 'selected' : '' }}>
                                                 {{ $customer->fcustomercode }} - {{ $customer->fcustomername }}
                                             </option>
                                         @endforeach
@@ -314,7 +322,7 @@
                                     <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="{{ 'Browse Customer' }}"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
+                                <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ $currentCustNo }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                     class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fcustno') border-red-500 text-red-600 @else border-gray-300 @enderror"
@@ -345,7 +353,7 @@
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
                                             <option value="{{ $salesman->fsalesmancode }}"
-                                                {{ $filterSalesmanId == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ $currentSalesman == $salesman->fsalesmancode ? 'selected' : '' }}>
                                                 {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
@@ -354,7 +362,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                    value="{{ old('fsalesman', '0') }}">
+                                    value="{{ $currentSalesman }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                     class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('fsalesman') border-red-500 text-red-600 @else border-gray-300 @enderror"
@@ -385,7 +393,7 @@
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
                                             <option value="{{ $wh->fwhcode }}"
-                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ $currentWarehouse == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhname }} ({{ $wh->fwhcode }})
                                             </option>
                                         @endforeach
@@ -394,7 +402,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                                    value="{{ old('ffrom') }}">
+                                    value="{{ $currentWarehouse }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border border-l-0 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors @error('ffrom') border-red-500 text-red-600 @else border-gray-300 @enderror"
@@ -413,7 +421,7 @@
                             <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini..."></textarea>
+                                placeholder="Keterangan isi di sini...">{{ $currentKet }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror

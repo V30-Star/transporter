@@ -1381,8 +1381,16 @@ class ReturPenjualanController extends Controller
                     (string) $userid
                 );
 
-                // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
+
+            $lastHeader = [
+                'fsodate' => $fsodate->format('Y-m-d'),
+                'fcustno' => $request->input('fcustno'),
+                'fsalesman' => $request->input('fsalesman'),
+                'ffrom' => $request->input('ffrom'),
+                'fket' => $request->input('fket'),
+            ];
+            session()->flash('last_header', $lastHeader);
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -1396,6 +1404,7 @@ class ReturPenjualanController extends Controller
             }
 
             return redirect()->route('returpenjualan.create')
+                ->with('last_header', $lastHeader)
                 ->with('success', 'Retur penjualan berhasil disimpan.')
                 ->with('success_prompt', [
                     'type' => 'returpenjualan_create',
