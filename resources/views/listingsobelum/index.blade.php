@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Listing SO Belum Kirim')
+
 @section('content')
     <div id="filterModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="fixed inset-0 bg-black bg-opacity-50" onclick="window.location.href='/dashboard'"></div>

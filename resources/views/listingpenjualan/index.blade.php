@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Listing Penjualan')
+
 @section('content')
     <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">

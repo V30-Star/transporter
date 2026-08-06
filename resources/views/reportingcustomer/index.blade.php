@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '')
+@section('title', 'Laporan Master Customer')
 
 @section('content')
 <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">

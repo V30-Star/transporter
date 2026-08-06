@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '')
+@section('title', 'Laporan Master Sub Account')
 
 @section('content')
     {{-- --- MODAL FILTER --- --}}
