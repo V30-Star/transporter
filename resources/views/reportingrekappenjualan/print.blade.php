@@ -413,7 +413,7 @@
 
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
+                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Total {{ $groupName }}</div>
                     <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
                 </div>
             </div>
