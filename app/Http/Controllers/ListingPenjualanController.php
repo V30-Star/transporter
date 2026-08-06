@@ -75,7 +75,8 @@ class ListingPenjualanController extends Controller
                 'd.fdesc',
                 'd.fnou',
                 'd.fpricenet',
-                'd.frefsrj as frefso',
+                'd.frefso',
+                'd.frefsrj',
                 'p.fprdname',
                 's.fsalesmanname',
                 DB::raw('ROUND(m.ftotalsalesnet) as famountgross'),
@@ -213,13 +214,14 @@ class ListingPenjualanController extends Controller
         $makeRow([]);   // baris kosong
 
         // ── Header kolom utama ────────────────────────────────────
-        // Kolom 1-10: info faktur | Kolom 11-18: detail barang (menyamping)
+        // Kolom 1-10: info faktur | Kolom 11-19: detail barang (menyamping)
         $headerRow = ['No.Faktur', 'No.Pajak', 'Tanggal', 'Customer', 'Salesman', 'Disc', 'Netto', 'PPN', 'Ongkos', 'Total'];
 
         if ($type === 'detail') {
             $headerRow = array_merge($headerRow, [
                 'Kode Barang',
                 'Nama Barang',
+                'No.SO',
                 'No.Ref',
                 'Qty.Kirim',
                 'Qty.Jual',
@@ -258,6 +260,7 @@ class ListingPenjualanController extends Controller
                         $d->fprdcode,
                         $d->fprdname,
                         $d->frefso ?? '-',
+                        $d->frefsrj ?? '-',
                         (float) ($d->fqtydeliver ?? 0),
                         (float) $d->fqty,
                         (float) $d->fprice,
