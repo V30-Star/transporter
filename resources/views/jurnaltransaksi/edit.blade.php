@@ -200,21 +200,14 @@
 
                     <div class="lg:col-span-2">
                         <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
-                        @if (!empty($lockJournalType))
-                            <input type="text" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}"
-                                class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
-                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
-                        @else
-                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
-                            <select name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                onchange="document.querySelector('input[name=fjurnaltype]').value = this.value">
-                                @foreach ($journalTypes as $type)
-                                    <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
-                                        {{ $type->fmastercode }} - {{ $type->fmastername }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        @endif
+                        @php
+                            $currentType = old('fjurnaltype', $jurnaltransaksi->fjurnaltype ?? 'SJU');
+                            $currentTypeObj = collect($journalTypes)->firstWhere('fmastercode', $currentType);
+                            $currentTypeName = $currentTypeObj->fmastername ?? 'Jurnal Umum';
+                        @endphp
+                        <input type="text" value="{{ $currentType }} - {{ $currentTypeName }}"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed text-sm font-medium text-gray-700" disabled>
+                        <input type="hidden" name="fjurnaltype" value="{{ $currentType }}">
                     </div>
 
                     <div class="lg:col-span-2">
