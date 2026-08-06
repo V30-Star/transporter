@@ -989,13 +989,22 @@ class ReturPenjualanController extends Controller
                 'fsodate.required' => 'Tanggal transaksi wajib diisi.',
                 'fitemcode.required' => 'Minimal 1 item.',
             ]);
+
+            $fsodate = Carbon::parse($request->fsodate);
+            $this->ensureCreateDateWithinEditPeriod($fsodate);
         } catch (ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Retur penjualan belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
             return back()->withInput()->withErrors($e->errors());
         }
 
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
-        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->has('fincludeppn') || $request->input('fincludeppn') == '1' ? '1' : '0';
         $fapplyppn = '0'; // PPN Retur Penjualan selalu Exclude (0)
         $defaultPpnTarif = $this->getDefaultPpnTarif();
@@ -1043,10 +1052,18 @@ class ReturPenjualanController extends Controller
         $hasUM = in_array('UM', $itemCodes);
 
         if ($hasUM && $typeSales === 0) {
-            return back()->withInput()->with('error', 'Produk UM hanya untuk tipe Uang Muka.');
+            $msg = 'Produk UM hanya untuk tipe Uang Muka.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
         }
         if (! $hasUM && $typeSales === 1) {
-            return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk UM.');
+            $msg = 'Transaksi Uang Muka wajib menggunakan produk UM.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
         }
 
         // QUERY PRODUK
@@ -1086,7 +1103,11 @@ class ReturPenjualanController extends Controller
             $product = $products->get($code);
 
             if ($product && $product->fnonactive == '1') {
-                return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} sudah discontinue.");
+                $msg = "Produk [{$code}] {$product->fprdname} sudah discontinue.";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
@@ -1204,14 +1225,20 @@ class ReturPenjualanController extends Controller
             ];
         }
 
-        // GUARD: detailRows kosong
         if (empty($detailRows)) {
-            return back()->withInput()->with('error', 'Tidak ada item valid. Periksa kode produk dan qty.');
+            $msg = 'Tidak ada item valid. Periksa kode produk dan qty.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
         }
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
         if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->with('error', $validationMessage);
         }
 
@@ -2154,50 +2181,69 @@ class ReturPenjualanController extends Controller
     public function update(Request $request, $ftranmtid)
     {
         $allowNegativeStockQty = stock_boleh_minus();
-        // 1. VALIDASI
-        $request->validate([
-            'fsodate' => ['required', 'date'],
-            'fcustno' => ['required', 'string', 'max:10'],
-            'ffrom' => ['required', 'string', 'max:10'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:30'],
-            'fqty' => ['required', 'array'],
-            'fqty.*' => [
-                'required',
-                'numeric',
-                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
-                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
-                    }
-                },
-            ],
-            'fprice' => ['required', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
-            'fdisc' => ['nullable', 'array'],
-            'frefso' => ['nullable'],
-            'frefsrj' => ['nullable'],
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'ffrom.required' => 'Gudang wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fsodate.required' => 'Tanggal transaksi wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-        ]);
+        try {
+            $request->validate([
+                'fsodate' => ['required', 'date'],
+                'fcustno' => ['required', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:30'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
+                'fprice' => ['required', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
+                'fdisc' => ['nullable', 'array'],
+                'frefso' => ['nullable'],
+                'frefsrj' => ['nullable'],
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib diisi.',
+                'fcustno.required' => 'Customer wajib diisi.',
+                'fsodate.required' => 'Tanggal transaksi wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Retur penjualan belum bisa diupdate. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Faktur penjualan tidak ada.'], 404);
+            }
             return abort(404, 'Faktur penjualan tidak ada.');
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
             return redirect()->route('returpenjualan.edit', $ftranmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
             return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
@@ -2207,7 +2253,18 @@ class ReturPenjualanController extends Controller
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
-        $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
+        try {
+            $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Retur penjualan belum bisa diupdate. Cek tanggal.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
         $fincludeppn = $request->has('fincludeppn') || $request->input('fincludeppn') == '1' ? '1' : '0';
         $fapplyppn = '0'; // PPN Retur Penjualan selalu Exclude (0)
         $defaultPpnTarif = $this->getDefaultPpnTarif();
@@ -2272,11 +2329,19 @@ class ReturPenjualanController extends Controller
         $hasUM = in_array('UM', $itemCodes);
 
         if ($hasUM && $typeSales === 0) {
-            return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+            $msg = 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
         }
 
         if (! $hasUM && $typeSales === 1) {
-            return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
+            $msg = 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
         }
 
         $stockDetailRows = [];
@@ -2413,6 +2478,9 @@ class ReturPenjualanController extends Controller
             $srjUsageByReference,
             $header->fsono
         )) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->with('error', $validationMessage);
         }
 

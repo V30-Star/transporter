@@ -8,6 +8,71 @@
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateReturPenjualan', $permissions, true);
         $canDeletePermission = in_array('deleteReturPenjualan', $permissions, true);
+
+        $oldReturJualCodes = old('fitemcode', []);
+        $oldReturJualNames = old('fitemname', []);
+        $oldReturJualUnits = old('fsatuan', []);
+        $oldReturJualRefCodes = old('frefcode', []);
+        $oldReturJualRefNos = old('frefdtno', []);
+        $oldReturJualNouRefs = old('fnouref', []);
+        $oldReturJualRefPrs = old('frefpr', []);
+        $oldReturJualRefSos = old('frefso', []);
+        $oldReturJualRefSrjs = old('frefsrj', []);
+        $oldReturJualNoAcaks = old('fnoacak', []);
+        $oldReturJualRefNoAcaks = old('frefnoacak', []);
+        $oldReturJualQtys = old('fqty', []);
+        $oldReturJualTerimas = old('fterima', []);
+        $oldReturJualPrices = old('fprice', []);
+        $oldReturJualDiscs = old('fdisc', []);
+        $oldReturJualTotals = old('ftotal', []);
+        $oldReturJualDescs = old('fdesc', []);
+        $oldReturJualKetdts = old('fketdt', []);
+        $initialEditReturPenjualanItems = [];
+
+        $oldReturJualIndexes = array_keys(is_array($oldReturJualCodes) ? $oldReturJualCodes : []);
+
+        foreach ($oldReturJualIndexes as $index) {
+            $itemCode = $oldReturJualCodes[$index] ?? '';
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldReturJualNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldReturJualUnits[$index] ?? ''));
+            $refSo = trim((string) ($oldReturJualRefSos[$index] ?? ''));
+            $refSrj = trim((string) ($oldReturJualRefSrjs[$index] ?? ''));
+
+            $initialEditReturPenjualanItems[] = [
+                'uid' => 'old-edit-returjual-' . $index,
+                'formIndex' => (int) $index,
+                'is_restored_old' => true,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'frefcode' => trim((string) ($oldReturJualRefCodes[$index] ?? '')),
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefdtno' => trim((string) ($oldReturJualRefNos[$index] ?? '')),
+                'fnouref' => trim((string) ($oldReturJualNouRefs[$index] ?? '')),
+                'frefpr' => trim((string) ($oldReturJualRefPrs[$index] ?? '')),
+                'frefso' => $refSo,
+                'frefsrj' => $refSrj,
+                'fnoacak' => trim((string) ($oldReturJualNoAcaks[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldReturJualRefNoAcaks[$index] ?? '')),
+                'fqty' => (float) ($oldReturJualQtys[$index] ?? 0),
+                'fterima' => (float) ($oldReturJualTerimas[$index] ?? 0),
+                'fprice' => (float) ($oldReturJualPrices[$index] ?? 0),
+                'fdisc' => $oldReturJualDiscs[$index] ?? 0,
+                'ftotal' => (float) ($oldReturJualTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldReturJualDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldReturJualKetdts[$index] ?? ''),
+                'maxqty' => max(0, (float) ($oldReturJualQtys[$index] ?? 0)),
+            ];
+        }
+
+        $nextReturPenjualanItemIndex = empty($oldReturJualIndexes)
+            ? (count($savedItems ?? []) + 1)
+            : max(array_map('intval', $oldReturJualIndexes)) + 1;
     @endphp
     <style>
         input:focus,
@@ -737,6 +802,39 @@
                     ">
                 @csrf
                 @method('PATCH')
+
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-3" role="alert">
+                        <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                            <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                            <strong class="text-white fs-6">{{ session('error') }}</strong>
+                            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                @endif
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-3" role="alert">
+                        <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                            <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                            <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
+                            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                            <p class="mb-2 text-danger fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i>
+                                {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
+                            </p>
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li class="text-danger mb-1">
+                                        <i class="bi bi-dot fs-5 align-middle"></i>
+                                        {{ $error }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- ─── CARD 1: Identitas (Edit/View) ──────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -3641,6 +3739,10 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    if (item.fitemname) {
+                        row.fitemname = item.fitemname;
+                    }
                     this.recalc(row);
                     return row;
                 });
