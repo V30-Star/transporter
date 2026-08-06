@@ -812,7 +812,7 @@ class JurnalTransaksiController extends Controller
 
                     $lastNo = DB::table('jurnalmt')
                         ->where('fjurnalno', 'like', $prefix.'%')
-                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(SUBSTRING(fjurnalno FROM '([0-9]+)$') AS integer)) AS lastno")
                         ->value('lastno');
                 } else {
                     $lastNo = DB::table('jurnalmt')

@@ -458,7 +458,7 @@ public static function create(
 
             $lastNo = DB::table('jurnalmt')
                 ->where('fjurnalno', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(SUBSTRING(fjurnalno FROM '([0-9]+)$') AS integer)) AS lastno")
                 ->value('lastno');
 
             // Jika belum ada jurnal bulan ini -> $lastNo = null -> nextNo = 1 (0001)

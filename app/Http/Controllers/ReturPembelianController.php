@@ -1966,7 +1966,7 @@ class ReturPembelianController extends Controller
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
             $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+                ->selectRaw("MAX(CAST(SUBSTRING(fjurnalno FROM '([0-9]+)$') AS integer)) AS lastno")->value('lastno');
             $nextJ = (int) $lastJ + 1;
         } else {
             $lastJurnalNo = DB::table('jurnalmt')
