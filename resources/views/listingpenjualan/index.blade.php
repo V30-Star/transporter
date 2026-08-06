@@ -14,6 +14,7 @@
                 </div>
 
                 <form method="GET" action="{{ route('listingpenjualan.print') }}" target="_blank">
+                    <input type="hidden" name="selected_products" id="selected_products_input">
                     <div class="space-y-4">
                         {{-- Cabang checkboxes --}}
                         <div>
@@ -69,14 +70,47 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Customer From</label>
-                                <input type="text" name="cust_from" class="w-full border rounded px-3 py-2 text-sm"
-                                    placeholder="Mulai...">
+                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Customer From</label>
+                                <select name="cust_from" class="select2 w-full border rounded px-3 py-2 text-sm">
+                                    <option value="">-- Semua / Mulai --</option>
+                                    @foreach ($customers as $c)
+                                        <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Customer To</label>
-                                <input type="text" name="cust_to" class="w-full border rounded px-3 py-2 text-sm"
-                                    placeholder="Sampai...">
+                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Customer To</label>
+                                <select name="cust_to" class="select2 w-full border rounded px-3 py-2 text-sm">
+                                    <option value="">-- Semua / Sampai --</option>
+                                    @foreach ($customers as $c)
+                                        <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Filter Produk (Multi-select like Listing SO) --}}
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Filter Produk</p>
+                            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <div class="flex gap-2 mb-2">
+                                    <select id="prd_selector"
+                                        class="select2 flex-1 border border-gray-300 rounded-lg text-sm">
+                                        <option value="">-- Pilih Produk --</option>
+                                        @foreach ($products as $p)
+                                            <option value="{{ $p->fprdcode }}">{{ $p->fprdcode }} - {{ $p->fprdname }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" onclick="addProduct()"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                                        + Add
+                                    </button>
+                                </div>
+                                <div id="prd_list"
+                                    class="flex flex-wrap gap-2 min-h-[38px] p-2 bg-white border border-gray-200 rounded-lg">
+                                    <span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>
+                                </div>
                             </div>
                         </div>
 
@@ -121,17 +155,6 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Produk From</label>
-                                <input type="text" name="prd_from" class="w-full border rounded px-3 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Produk To</label>
-                                <input type="text" name="prd_to" class="w-full border rounded px-3 py-2 text-sm">
-                            </div>
-                        </div>
-
                         <div class="bg-gray-50 p-3 rounded border space-y-3">
                             <div class="flex gap-6">
                                 <label class="flex items-center text-sm font-semibold">
@@ -172,6 +195,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        let selectedProducts = [];
+
         function toggleModal(show) {
             $('#filterModal').toggleClass('hidden', !show);
         }
@@ -181,6 +206,37 @@
                 checkbox.checked = status;
             });
         }
+
+        function addProduct() {
+            const sel = document.getElementById('prd_selector');
+            const code = sel.value;
+            if (code && !selectedProducts.includes(code)) {
+                selectedProducts.push(code);
+                renderPrdList();
+            }
+        }
+
+        function removePrd(code) {
+            selectedProducts = selectedProducts.filter(c => c !== code);
+            renderPrdList();
+        }
+
+        function renderPrdList() {
+            const container = document.getElementById('prd_list');
+            if (selectedProducts.length === 0) {
+                container.innerHTML =
+                    '<span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>';
+            } else {
+                container.innerHTML = selectedProducts.map(c =>
+                    `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md flex items-center gap-1 border border-blue-200">
+                    ${c}
+                    <button type="button" onclick="removePrd('${c}')" class="text-red-500 font-bold leading-none">&times;</button>
+                </span>`
+                ).join('');
+            }
+            document.getElementById('selected_products_input').value = selectedProducts.join(',');
+        }
+
         $(document).ready(function() {
             $('.select2').select2({
                 width: '100%'

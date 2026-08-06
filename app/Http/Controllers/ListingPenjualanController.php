@@ -17,11 +17,13 @@ class ListingPenjualanController extends Controller
         $mereks = DB::table('msmerek')->get();
         $salesmans = DB::table('mssalesman')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $products = DB::table('msprd')->orderBy('fprdcode')->get(['fprdcode', 'fprdname']);
+        $customers = DB::table('mscustomer')->orderBy('fcustomercode')->get(['fcustomercode', 'fcustomername']);
 
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
-        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches', 'isAuthorized', 'userBranchCode'));
+        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches', 'products', 'customers', 'isAuthorized', 'userBranchCode'));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -92,10 +94,19 @@ class ListingPenjualanController extends Controller
         if ($request->date_to) {
             $query->where('m.fsodate', '<=', $request->date_to . ' 23:59:59');
         }
-        if ($request->prd_from) {
+        $selectedProducts = collect(explode(',', (string) $request->selected_products))
+            ->map(fn ($code) => trim($code))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (!empty($selectedProducts)) {
+            $query->whereIn('d.fprdcode', $selectedProducts);
+        } elseif ($request->prd_from && $request->prd_to) {
+            $query->whereBetween('d.fprdcode', [$request->prd_from, $request->prd_to]);
+        } elseif ($request->prd_from) {
             $query->where('d.fprdcode', '>=', $request->prd_from);
-        }
-        if ($request->prd_to) {
+        } elseif ($request->prd_to) {
             $query->where('d.fprdcode', '<=', $request->prd_to);
         }
         if ($request->cust_from) {
