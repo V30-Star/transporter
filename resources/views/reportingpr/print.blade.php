@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listing Permintaan Pembelian / PR</title>
+    <title>Laporan Permintaan Pembelian</title>
     <style>
         * {
             margin: 0;
