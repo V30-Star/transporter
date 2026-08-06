@@ -1727,14 +1727,24 @@ class InvoiceController extends Controller
 
                     if (DB::getDriverName() === 'pgsql') {
                         $lastRecord = DB::table('tranmt')
-                            ->where('fsono', 'like', "{$prefix}%")
+                            ->where(function ($q) use ($prefix, $docType, $sep, $branchCode, $year, $month) {
+                                $q->where('fsono', 'like', "{$prefix}%");
+                                if ($docType === 'UMJ') {
+                                    $q->orWhere('fsono', 'like', "UM{$sep}{$branchCode}{$sep}{$year}{$month}{$sep}%");
+                                }
+                            })
                             ->selectRaw("MAX(CAST(SUBSTRING(fsono FROM '([0-9]+)$') AS integer)) AS lastno")
                             ->value('lastno');
 
                         $last = (int) $lastRecord;
                     } else {
                         $lastCode = DB::table('tranmt')
-                            ->where('fsono', 'like', "{$prefix}%")
+                            ->where(function ($q) use ($prefix, $docType, $sep, $branchCode, $year, $month) {
+                                $q->where('fsono', 'like', "{$prefix}%");
+                                if ($docType === 'UMJ') {
+                                    $q->orWhere('fsono', 'like', "UM{$sep}{$branchCode}{$sep}{$year}{$month}{$sep}%");
+                                }
+                            })
                             ->orderByDesc('fsono')
                             ->value('fsono');
 

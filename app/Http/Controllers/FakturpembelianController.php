@@ -1658,7 +1658,7 @@ class FakturpembelianController extends Controller
                 $mm = $fstockmtdate->format('m');
                 $isAdvancePayment = (int) $ftypebuy === 2;
                 $fstockmtcode = 'BUY';
-                $prefixCode = $isAdvancePayment ? 'UM' : 'BUY';
+                $prefixCode = $isAdvancePayment ? 'UMB' : 'BUY';
 
                 // B. Penomoran
                 if (empty($fstockmtno)) {
@@ -1673,8 +1673,8 @@ class FakturpembelianController extends Controller
                             ->where(function ($q) use ($prefix, $prefixCode, $sep, $kodeCabang, $yy, $mm) {
                                 $yymm = $yy . $mm;
                                 $q->where('fstockmtno', 'like', "{$prefix}%");
-                                if ($prefixCode === 'UM') {
-                                    $q->orWhere('fstockmtno', 'like', "UMB{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
+                                if ($prefixCode === 'UMB') {
+                                    $q->orWhere('fstockmtno', 'like', "UM{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
                                 }
                             })
                             ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
@@ -1686,8 +1686,8 @@ class FakturpembelianController extends Controller
                             ->where(function ($q) use ($prefix, $prefixCode, $sep, $kodeCabang, $yy, $mm) {
                                 $yymm = $yy . $mm;
                                 $q->where('fstockmtno', 'like', "{$prefix}%");
-                                if ($prefixCode === 'UM') {
-                                    $q->orWhere('fstockmtno', 'like', "UMB{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
+                                if ($prefixCode === 'UMB') {
+                                    $q->orWhere('fstockmtno', 'like', "UM{$sep}{$kodeCabang}{$sep}{$yymm}{$sep}%");
                                 }
                             })
                             ->orderByDesc('fstockmtno')
