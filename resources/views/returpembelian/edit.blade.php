@@ -205,11 +205,11 @@
 
         foreach ($oldReturBeliCodes as $index => $itemCode) {
             $code = trim((string) $itemCode);
-            $name = trim((string) ($oldReturBeliNames[$index] ?? ''));
-            if ($code === '' && $name === '') {
+            if ($code === '') {
                 continue;
             }
 
+            $name = trim((string) ($oldReturBeliNames[$index] ?? ''));
             $unit = trim((string) ($oldReturBeliUnits[$index] ?? ''));
             $initialEditReturPembelianItems[] = [
                 'uid' => 'old-returbeli-edit-' . $index,
@@ -527,7 +527,6 @@
                                 return;
                             }
                             onSubmit($event);
-                            $el.submit();
                         ">
                         @csrf
                         @method('PATCH')
@@ -1638,17 +1637,20 @@
 
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
+                    if (!row.fitemname) row.fitemname = '';
+                    if (!row.units) row.units = [];
+                    if (!row.fsatuan) row.fsatuan = '';
                     row.maxqty = 0;
                     return;
                 }
-                row.fitemname = meta.name || '';
+                if (!row.fitemname) row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
+                if (units.length > 0) {
+                    row.units = units;
+                    if (!row.fsatuan || !units.includes(row.fsatuan)) {
+                        row.fsatuan = row.fsatuan || units[0] || '';
+                    }
+                }
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
@@ -1856,21 +1858,21 @@
                     this.recalc(item);
                 });
 
-                // If there are restored items from a failed POST, put them in draftRows
-                this.draftRows = [];
+                // If there are restored items from a failed POST, put them in savedItems
                 if (Array.isArray(_restoredItems) && _restoredItems.length > 0) {
+                    this.savedItems = [];
                     _restoredItems.forEach(item => {
-                        const dr = {
-                            ...newDraftRow(),
+                        const row = {
+                            ...newRow(),
                             ...item,
-                            _uid: cryptoRandom()
+                            uid: item.uid || cryptoRandom()
                         };
-                        if (typeof dr.fqty === 'string') dr.fqty = parseFloat(dr.fqty) || 0;
-                        if (typeof dr.fprice === 'string') dr.fprice = parseFloat(dr.fprice) || 0;
-                        dr.fpriceInput = this.fmt(dr.fprice);
-                        this.hydrateRowFromMeta(dr, this.productMeta(dr.fitemcode));
-                        this.recalc(dr);
-                        this.draftRows.push(dr);
+                        if (typeof row.fqty === 'string') row.fqty = parseFloat(row.fqty) || 0;
+                        if (typeof row.fprice === 'string') row.fprice = parseFloat(row.fprice) || 0;
+                        row.fpriceInput = this.fmt(row.fprice);
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        this.recalc(row);
+                        this.savedItems.push(row);
                     });
                 }
                 this.ensureMinimumDraftRows();

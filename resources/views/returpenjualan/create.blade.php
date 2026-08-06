@@ -246,8 +246,7 @@
             });
             return;
         }
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        $el.submit();
+        onSubmit($event);
       ">
             @csrf
 

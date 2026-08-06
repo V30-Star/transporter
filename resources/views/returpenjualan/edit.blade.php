@@ -728,8 +728,7 @@
                             });
                             return;
                         }
-                        const n = Number(document.getElementById('itemsCount')?.value || 0);
-                        if (n < 1) { window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items')) } else { $el.submit() }
+                        onSubmit($event);
                     ">
                 @csrf
                 @method('PATCH')
