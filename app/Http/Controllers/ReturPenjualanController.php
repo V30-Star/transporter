@@ -996,11 +996,11 @@ class ReturPenjualanController extends Controller
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate);
-        $fincludeppn = '0'; // PPN Retur Penjualan selalu Exclude
-        $fapplyppn = $request->input('fapplyppn', '0');
+        $fincludeppn = $request->has('fincludeppn') || $request->input('fincludeppn') == '1' ? '1' : '0';
+        $fapplyppn = '0'; // PPN Retur Penjualan selalu Exclude (0)
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
-        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+        if ($ppnPersen <= 0) {
             $ppnPersen = $defaultPpnTarif;
         }
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
@@ -1216,7 +1216,7 @@ class ReturPenjualanController extends Controller
         }
 
         // KALKULASI TOTAL
-        $fapplyppn = $request->input('fapplyppn', '0'); // 0: Exclude, 1: Include
+        $fapplyppn = '0'; // 0: Exclude
         $amountNet = $totalGross - $totalDisc;
         $ppnPersen = (float) $request->input('fppnpersen', 11);
 
@@ -2199,11 +2199,11 @@ class ReturPenjualanController extends Controller
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
-        $fincludeppn = '0'; // PPN Retur Penjualan selalu Exclude
-        $fapplyppn = $request->input('fapplyppn', '0');
+        $fincludeppn = $request->has('fincludeppn') || $request->input('fincludeppn') == '1' ? '1' : '0';
+        $fapplyppn = '0'; // PPN Retur Penjualan selalu Exclude (0)
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
-        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+        if ($ppnPersen <= 0) {
             $ppnPersen = $defaultPpnTarif;
         }
         $userid = $userName;
@@ -2408,11 +2408,11 @@ class ReturPenjualanController extends Controller
         }
 
         // 5. KALKULASI TOTAL
-        $fapplyppn = $request->input('fapplyppn', '0');
+        $fapplyppn = '0';
         $amountNet = $totalGross - $totalDisc;
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $ppnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
-        if ($ppnPersen <= 0 && $fapplyppn === '1') {
+        if ($ppnPersen <= 0) {
             $ppnPersen = $defaultPpnTarif;
         }
 

@@ -1638,18 +1638,13 @@
                                                     <span class="font-bold">PPN</span>
                                                 </label>
 
-                                                <!-- Dropdown Include / Exclude -->
-                                                <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
-                                                    :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                                    <option value="0">Exclude</option>
-                                                </select>
+                                                <!-- Hidden fapplyppn (always Exclude = 0) -->
+                                                <input type="hidden" name="fapplyppn" value="0">
 
                                                 <!-- Input Rate + Nominal -->
                                                 <input type="number" min="0" max="100" name="ppn_rate"
                                                     step="0.01" x-model.number="ppnRate"
-                                                    :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
+                                                    :disabled="!includePPN || action === 'delete' || action === 'view'"
                                                     class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -2792,48 +2787,36 @@
             ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $returpenjualan->fppnpersen ?? ($defaultPpnTarif ?? 11)))),
 
             includePPN: @json($returpenjualan->fincludeppn == '1'),
-            fapplyppn: @json((int) ($returpenjualan->fapplyppn ?? 0)),
+            fapplyppn: 0,
             ftypesales: @json((int) ($returpenjualan->ftypesales ?? 0)),
 
             get ppnIncluded() {
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn || !this.includePPN) return 0;
-                return Math.round(total * (rate / 100));
+                return 0;
             },
 
             get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
+                return +this.totalHarga || 0;
             },
 
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
-                if (!this.includePPN || this.fapplyppn) return 0;
+                if (!this.includePPN) return 0;
                 const total = +this.totalHarga || 0;
                 return Math.round(total * (rate / 100));
             },
 
             get ppnAmount() {
                 if (!this.includePPN) return 0;
-                if (this.fapplyppn) {
-                    return this.ppnIncluded;
-                }
                 return this.ppnAdded;
             },
 
             get netTotal() {
-                const total = +this.totalHarga || 0;
-                if (!this.includePPN) return total;
-                if (this.fapplyppn) {
-                    return this.netFromGross;
-                }
-                return total;
+                return +this.totalHarga || 0;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (!this.includePPN || this.fapplyppn) {
+                if (!this.includePPN) {
                     return total;
                 }
                 return total + this.ppnAdded;
@@ -3643,7 +3626,6 @@
 
             init() {
                 this.$watch('includePPN', () => this.recalcTotals());
-                this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 this.savedItems = (this.savedItems || []).map(item => {
