@@ -42,12 +42,22 @@ class ReportingRekapPenjualanController extends Controller
     {
         $groupCodeExpr = $groupBy === 'group' ? 'p.fgroupcode' : 'p.fmerek';
         $groupNameExpr = $groupBy === 'group' ? 'CAST(MIN(g.fgroupname) AS VARCHAR(50))' : 'CAST(MIN(merek.fmerekname) AS VARCHAR(50))';
-        $qtyExpr = config('app.laporan_sales_satuan_besar', env('LaporanSalesSatuanBesar', '0')) === '1'
-            ? 'SUM(CAST(d.fqtykecil AS NUMERIC) / NULLIF(CAST(p.fqtykecil AS NUMERIC), 0))'
-            : 'SUM(d.fqtykecil)';
-        $unitExpr = config('app.laporan_sales_satuan_besar', env('LaporanSalesSatuanBesar', '0')) === '1'
-            ? 'CAST(MIN(p.fsatuanbesar) AS VARCHAR(10))'
-            : 'CAST(MIN(p.fsatuankecil) AS VARCHAR(10))';
+        $qtyExpr = "SUM(
+            CASE 
+                WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '2' THEN CAST(d.fqtykecil AS NUMERIC) / NULLIF(CAST(p.fqtykecil AS NUMERIC), 0)
+                WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '3' THEN CAST(d.fqtykecil AS NUMERIC) / NULLIF(CAST(p.fqtykecil2 AS NUMERIC), 0)
+                ELSE CAST(d.fqtykecil AS NUMERIC)
+            END
+        )";
+        $unitExpr = "CAST(
+            MIN(
+                CASE 
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '2' THEN p.fsatuanbesar
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '3' THEN p.fsatuanbesar2
+                    ELSE p.fsatuankecil
+                END
+            ) AS VARCHAR(20)
+        )";
 
         $query = DB::table('tranmt as m')
             ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
@@ -66,7 +76,7 @@ class ReportingRekapPenjualanController extends Controller
         $this->applyCommonFilters($query, $request, 'm', 'd', 'p');
 
         return $query
-            ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname")
+            ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname, p.fsatuandefaultlaporan, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fqtykecil2")
             ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
             ->orderBy('fmerek')
             ->orderBy('d.fprdcode')
@@ -140,40 +150,36 @@ class ReportingRekapPenjualanController extends Controller
 
         $grandTotal = 0;
 
-        foreach ($groupedData as $source => $sourceRows) {
-            $isReturn = $source === 'REJ';
+        foreach ($rows->groupBy('fmerek') as $groupCode => $items) {
+            $groupName = $items->first()->fgroupname ?: $groupCode;
+            $groupTotal = $items->sum(fn ($item) => $item->fsource === 'REJ' ? -abs((float) $item->famount) : abs((float) $item->famount));
+            $grandTotal += $groupTotal;
 
+            // Group Row
             $writer->addRow($makeRow([
-                $isReturn ? 'RETUR PENJUALAN' : 'PENJUALAN', '', '', '', '', ''
-            ], $isReturn ? $styleReturn : $styleGroup));
+                'Group: '.$groupCode.' - '.$groupName, '', '', '', '', ''
+            ], $styleGroup));
 
-            foreach ($sourceRows->groupBy('fmerek') as $groupCode => $items) {
-                $groupName = $items->first()->fgroupname ?: $groupCode;
-                $groupTotal = $items->sum(fn ($item) => $isReturn ? abs((float) $item->famount) * -1 : abs((float) $item->famount));
-                $grandTotal += $groupTotal;
+            foreach ($items as $index => $row) {
+                $isReturn = $row->fsource === 'REJ';
+                $rowQty = $isReturn ? -abs((float) $row->fqty) : abs((float) $row->fqty);
+                $rowAmount = $isReturn ? -abs((float) $row->famount) : abs((float) $row->famount);
 
-                // Group Row
                 $writer->addRow($makeRow([
-                    'Group: '.$groupCode.' - '.$groupName, '', '', '', '', ''
-                ], $isReturn ? $styleReturn : $styleGroup));
-
-                foreach ($items as $index => $row) {
-                    $writer->addRow($makeRow([
-                        $index + 1,
-                        $row->fprdcode,
-                        $row->fprdname,
-                        (float) $row->fqty,
-                        $row->fsatuan,
-                        $isReturn ? abs((float) $row->famount) * -1 : abs((float) $row->famount)
-                    ], $isReturn ? $styleReturn : null));
-                }
-
-                // Subtotal Row
-                $writer->addRow($makeRow([
-                    'Subtotal '.$groupName, '', '', '', '',
-                    (float) $groupTotal
-                ], $isReturn ? $styleReturnSubtotal : $styleSubtotal));
+                    $index + 1,
+                    $row->fprdcode,
+                    $row->fprdname,
+                    (float) $rowQty,
+                    $row->fsatuan,
+                    (float) $rowAmount
+                ], $isReturn ? $styleReturn : null));
             }
+
+            // Subtotal Row
+            $writer->addRow($makeRow([
+                'Subtotal '.$groupName, '', '', '', '',
+                (float) $groupTotal
+            ], $styleSubtotal));
         }
 
         // Grand Total Row

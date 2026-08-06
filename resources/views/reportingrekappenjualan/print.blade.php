@@ -97,12 +97,12 @@
             color: #475569; /* Slate 600 */
         }
 
-        /* --- TABLE HEADERS & ROWS (5 Kolom) --- */
+        /* --- TABLE HEADERS & ROWS (6 Kolom) --- */
         .po-header-labels,
         .item-row,
         .group-total-row {
             display: grid;
-            grid-template-columns: 12mm 35mm 1fr 25mm 35mm;
+            grid-template-columns: 12mm 35mm 1fr 22mm 18mm 35mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -132,17 +132,22 @@
         }
 
         .item-row > div:nth-child(4),
-        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6),
         .po-header-labels > div:nth-child(4),
-        .po-header-labels > div:nth-child(5),
+        .po-header-labels > div:nth-child(6),
         .group-total-row > div:nth-child(2) {
             text-align: right;
+        }
+
+        .item-row > div:nth-child(5),
+        .po-header-labels > div:nth-child(5) {
+            text-align: center;
         }
 
         /* Fonts for Numbers & System Codes */
         .item-row > div:nth-child(2),
         .item-row > div:nth-child(4),
-        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6),
         .group-total-row > div:nth-child(2) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
@@ -369,47 +374,49 @@
             <div>Kode Barang</div>
             <div>Nama Barang</div>
             <div>Quantity</div>
+            <div>Satuan</div>
             <div>Total Penjualan</div>
         </div>
 
-        @forelse ($rows->groupBy('fsource') as $source => $sourceRows)
+        @php
+            $grandTotal = 0;
+        @endphp
+
+        @forelse ($rows->groupBy('fmerek') as $groupCode => $items)
             @php
-                $isReturn = $source === 'REJ';
+                $groupName = $items->first()->fgroupname ?: $groupCode;
+                $groupTotal = $items->sum(fn($item) => $item->fsource === 'REJ' ? -abs((float) $item->famount) : abs((float) $item->famount));
+                $grandTotal += $groupTotal;
             @endphp
-            <div class="journal-block group-row {{ $isReturn ? 'force-new-page-before text-rej' : '' }}">
-                {{ $isReturn ? 'RETUR PENJUALAN' : 'PENJUALAN' }}
+
+            <div class="journal-block group-row">
+                {{ $groupCode }} - {{ $groupName }}
             </div>
 
-            @foreach ($sourceRows->groupBy('fmerek') as $groupCode => $items)
+            @foreach ($items as $index => $row)
                 @php
-                    $groupName = $items->first()->fgroupname ?: $groupCode;
-                    $groupTotal = $items->sum(fn($item) => $isReturn ? abs((float) $item->famount) * -1 : abs((float) $item->famount));
-                    $grandTotal += $groupTotal;
+                    $isReturn = $row->fsource === 'REJ';
+                    $rowQty = $isReturn ? -abs((float) $row->fqty) : abs((float) $row->fqty);
+                    $rowAmount = $isReturn ? -abs((float) $row->famount) : abs((float) $row->famount);
                 @endphp
-
-                <div class="journal-block group-row {{ $isReturn ? 'text-rej' : '' }}">
-                    {{ $groupCode }} - {{ $groupName }}
-                </div>
-
-                @foreach ($items as $index => $row)
-                    <div class="journal-block">
-                        <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
-                            <div>{{ $index + 1 }}</div>
-                            <div>{{ $row->fprdcode }}</div>
-                            <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
-                            <div>{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
-                            <div>{{ number_format($isReturn ? abs((float) $row->famount) * -1 : abs((float) $row->famount), 2, ',', '.') }}</div>
-                        </div>
-                    </div>
-                @endforeach
-
                 <div class="journal-block">
-                    <div class="group-total-row {{ $isReturn ? 'text-rej' : '' }}">
-                        <div style="grid-column: span 4; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
-                        <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
+                    <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
+                        <div>{{ $index + 1 }}</div>
+                        <div>{{ $row->fprdcode }}</div>
+                        <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                        <div>{{ number_format($rowQty, 2, ',', '.') }}</div>
+                        <div>{{ $row->fsatuan ?? '-' }}</div>
+                        <div>{{ number_format($rowAmount, 2, ',', '.') }}</div>
                     </div>
                 </div>
             @endforeach
+
+            <div class="journal-block">
+                <div class="group-total-row">
+                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
+                    <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
+                </div>
+            </div>
         @empty
             <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">
                 Tidak ada data ditemukan.
