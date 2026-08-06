@@ -17,10 +17,36 @@
             font-weight: normal !important;
         }
     </style>
+    @php
+        $oldAccounts = old('faccount', []);
+        $initialItems = [];
+        if (!empty($oldAccounts) && is_array($oldAccounts)) {
+            $oldSubaccounts = old('fsubaccount', []);
+            $oldDks = old('fdk', []);
+            $oldNotes = old('faccountnote', []);
+            $oldRefnos = old('frefno', []);
+            $oldAmounts = old('famount', []);
+            $oldRates = old('frate', []);
+            foreach ($oldAccounts as $idx => $acc) {
+                if ($acc !== '' || !empty($oldAmounts[$idx])) {
+                    $initialItems[] = [
+                        'faccount' => $acc,
+                        'fsubaccountcode' => $oldSubaccounts[$idx] ?? '',
+                        'fdk' => $oldDks[$idx] ?? 'D',
+                        'faccountnote' => $oldNotes[$idx] ?? '',
+                        'frefno' => $oldRefnos[$idx] ?? '',
+                        'famount' => $oldAmounts[$idx] ?? 0,
+                        'frate' => $oldRates[$idx] ?? 1,
+                    ];
+                }
+            }
+        }
+    @endphp
     <script>
         window.ACCOUNTS_DATA = @json($accounts);
         window.SUBACCOUNTS_DATA = @json($subaccounts);
         window.REFERENCE_ALLOWED_ACCOUNT_CODES = @json($referenceAllowedAccountCodes ?? []);
+        window.INITIAL_ITEMS = @json($initialItems);
     </script>
 
     <div>
@@ -70,9 +96,11 @@
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
                         @else
-                            <select disabled name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', ($journalType ?: 'SJU')) }}">
+                            <select name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                onchange="document.querySelector('input[name=fjurnaltype]').value = this.value">
                                 @foreach ($journalTypes as $type)
-                                    <option disabled value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', ($journalType ?: 'SJU')) === $type->fmastercode)>
+                                    <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', ($journalType ?: 'SJU')) === $type->fmastercode)>
                                         {{ $type->fmastercode }} - {{ $type->fmastername }}
                                     </option>
                                 @endforeach
@@ -301,7 +329,7 @@
         function itemsTable() {
             return {
                 showNoItems: false,
-                savedItems: [],
+                savedItems: (window.INITIAL_ITEMS && window.INITIAL_ITEMS.length) ? window.INITIAL_ITEMS : [],
                 browseIndex: null,
 
                 accounts: window.ACCOUNTS_DATA ?? [],
