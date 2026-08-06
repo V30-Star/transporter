@@ -918,6 +918,17 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian berhasil disimpan.',
+                    'redirect_url' => route('returpembelian.create'),
+                    'success_prompt' => [
+                        'type' => 'returpembelian_create',
+                        'redirect_url' => route('returpembelian.print', $fstockmtno),
+                    ]
+                ]);
+            }
+
             return redirect()
                 ->route('returpembelian.create')
                 ->with('success', 'Retur pembelian berhasil disimpan.')
@@ -925,7 +936,16 @@ class ReturPembelianController extends Controller
                     'type' => 'returpembelian_create',
                     'redirect_url' => route('returpembelian.print', $fstockmtno),
                 ]);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Retur pembelian belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
             if (request()->expectsJson()) {
                 return response()->json([
                     'message' => 'Retur pembelian belum bisa disimpan: ' . $e->getMessage(),
@@ -933,7 +953,7 @@ class ReturPembelianController extends Controller
             }
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Retur pembelian belum bisa disimpan. Cek data transaksi.']);
+                ->withErrors(['error' => 'Retur pembelian belum bisa disimpan: ' . $e->getMessage()]);
         }
     }
 
@@ -1229,9 +1249,15 @@ class ReturPembelianController extends Controller
             // 1. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Retur Pembelian ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
                 return redirect()->route('returpembelian.edit', $header->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($header)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }
 

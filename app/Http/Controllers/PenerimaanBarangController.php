@@ -978,10 +978,17 @@ class PenerimaanBarangController extends Controller
         }
 
         if (empty($rowsDt)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid diperlukan.']);
+            $msg = 'Minimal satu item valid diperlukan.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->withErrors(['detail' => $msg]);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 

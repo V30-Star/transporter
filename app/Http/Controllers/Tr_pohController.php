@@ -1066,10 +1066,17 @@ class Tr_pohController extends Controller
         }
 
         if (empty($rowsPod)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+            $msg = 'Minimal satu item valid (Kode, Satuan, Qty > 0).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->withErrors(['detail' => $msg]);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsPod)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 
@@ -1199,10 +1206,23 @@ class Tr_pohController extends Controller
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         }
 
         $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect_url' => route('tr_poh.index'),
+                'success_prompt' => [
+                    'type' => 'tr_poh_create',
+                    'redirect_url' => route('tr_poh.print', $fpono),
+                ],
+            ]);
+        }
         return redirect()
             ->route('tr_poh.index')
             ->with('success', $message)
