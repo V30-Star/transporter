@@ -115,14 +115,16 @@ class ReportingProductController extends Controller
         $totalStok = 0;
 
         foreach ($data as $i => $row) {
-            $totalStok += (float) $row->fstok;
+            $stokVal = (float) ($row->fstok_laporan ?? $row->fstok);
+            $satuanVal = $row->fsatuan_laporan ?? $row->fsatuankecil;
+            $totalStok += $stokVal;
 
             $cols = [
                 $i + 1,
                 $row->fprdcode,
                 $row->fprdname,
-                $row->fsatuankecil,
-                (float) $row->fstok,
+                $satuanVal,
+                $stokVal,
             ];
 
             if ($showCols['hpp']) {
@@ -160,7 +162,20 @@ class ReportingProductController extends Controller
 
     private function getData(Request $request)
     {
-        $query = DB::table('msprd');
+        $query = DB::table('msprd')
+            ->selectRaw("
+                msprd.*,
+                CASE 
+                    WHEN COALESCE(NULLIF(TRIM(fsatuandefaultlaporan), ''), '1') = '2' THEN CAST(COALESCE(fstok, '0') AS NUMERIC) / NULLIF(CAST(fqtykecil AS NUMERIC), 0)
+                    WHEN COALESCE(NULLIF(TRIM(fsatuandefaultlaporan), ''), '1') = '3' THEN CAST(COALESCE(fstok, '0') AS NUMERIC) / NULLIF(CAST(fqtykecil2 AS NUMERIC), 0)
+                    ELSE CAST(COALESCE(fstok, '0') AS NUMERIC)
+                END AS fstok_laporan,
+                CASE 
+                    WHEN COALESCE(NULLIF(TRIM(fsatuandefaultlaporan), ''), '1') = '2' THEN fsatuanbesar
+                    WHEN COALESCE(NULLIF(TRIM(fsatuandefaultlaporan), ''), '1') = '3' THEN fsatuanbesar2
+                    ELSE fsatuankecil
+                END AS fsatuan_laporan
+            ");
 
         if ($request->prd_from && $request->prd_to) {
             $query->whereBetween('fprdcode', [$request->prd_from, $request->prd_to]);

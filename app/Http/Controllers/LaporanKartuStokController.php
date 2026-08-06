@@ -55,6 +55,19 @@ class LaporanKartuStokController extends Controller
             // cursor() -> baris diambil satu-satu dari DB, tidak sekaligus
             // load semua ke Collection besar sebelum diproses.
             foreach ($this->rekapAggregatedQuery($wh->fwhcode, $request, $dateFrom, $dateTo)->cursor() as $row) {
+                $ratio = 1.0;
+                $defaultMode = trim((string) ($row->fsatuandefaultlaporan ?? '1'));
+                if ($defaultMode === '2') {
+                    $ratio = (float) ($row->qtykecil ?? 1);
+                    if ($ratio <= 0) { $ratio = 1.0; }
+                } elseif ($defaultMode === '3') {
+                    $ratio = (float) ($row->qtykecil2 ?? 1);
+                    if ($ratio <= 0) { $ratio = 1.0; }
+                }
+
+                $row->qtyawalkecil = ((float) $row->qtyawalkecil) / $ratio;
+                $row->qtymasukkecil = ((float) $row->qtymasukkecil) / $ratio;
+                $row->qtykeluarkecil = ((float) $row->qtykeluarkecil) / $ratio;
                 $row->qtysaldokecil = (float) $row->qtyawalkecil + (float) $row->qtymasukkecil - (float) $row->qtykeluarkecil;
                 if ($this->matchStatus($row, $request)) {
                     $rows->push($row);
@@ -98,8 +111,9 @@ class LaporanKartuStokController extends Controller
 
         return $query->selectRaw("
                 ? as fwhcode,
-                p.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2,
+                p.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fsatuandefaultlaporan,
                 COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil,
+                COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2,
                 p.fgroupcode, COALESCE(g.fgroupname, p.fgroupcode) as fgroupname,
                 p.fmerek, COALESCE(mr.fmerekname, p.fmerek) as fmerekname,
                 COALESCE(CAST(NULLIF(p.fminstock::text,'') AS NUMERIC),0) * COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC),1) as fminstock,
@@ -107,7 +121,11 @@ class LaporanKartuStokController extends Controller
                     + COALESCE(oi.qty, 0) - COALESCE(oo.qty, 0) as qtyawalkecil,
                 COALESCE(pi.qty, 0) as qtymasukkecil,
                 COALESCE(po.qty, 0) as qtykeluarkecil,
-                COALESCE(p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2) as fsatuan
+                CASE 
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '2' THEN p.fsatuanbesar
+                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '3' THEN p.fsatuanbesar2
+                    ELSE p.fsatuankecil
+                END as fsatuan
             ", [$whcode]);
     }
 

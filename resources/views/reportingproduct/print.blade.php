@@ -557,8 +557,8 @@
                         <span class="truncate" style="display: block;">{{ $row->fprdname }}</span>
                         <small style="color: #64748b; display: block;" class="truncate">[<span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fprdcode }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fprdcode }}</span>]</small>
                     </div>
-                    <div>{{ $row->fsatuankecil }}</div>
-                    <div>{{ number_format((float) $row->fstok, 0) }}</div>
+                    <div>{{ $row->fsatuan_laporan ?? $row->fsatuankecil }}</div>
+                    <div>{{ number_format((float) ($row->fstok_laporan ?? $row->fstok), 2, ',', '.') }}</div>
 
                     @if ($showCols['hpp'])
                         <div>{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>
