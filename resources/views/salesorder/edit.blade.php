@@ -627,14 +627,8 @@
                                                 <span class="font-bold text-gray-700">PPN</span>
                                             </label>
 
-                                            <!-- Dropdown Include / Exclude -->
-                                            <select disabled id="ppnMode_ro"
-                                                x-model.number="ppnMode"
-                                                :disabled="!includePPN"
-                                                class="w-24 h-8 px-2 text-xs border border-gray-300 rounded-lg transition-opacity appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <option value="0">Exclude</option>
-                                                <option value="1">Include</option>
-                                            </select>
+                                            <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                            <input type="hidden" name="fincludeppn" value="0">
 
                                             <!-- Input Rate + Nominal -->
                                             <input disabled type="number" min="0" max="100"
@@ -1266,14 +1260,8 @@
                                                     <span class="font-bold">PPN</span>
                                                 </label>
 
-                                                <!-- Dropdown Include / Exclude -->
-                                                <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
-                                                    x-init="ppnMode = {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) }}" :disabled="!includePPN"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                       disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
+                                                <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                                <input type="hidden" name="fincludeppn" value="0">
 
                                                 <!-- Input Rate + Nominal -->
                                                 <input type="number" name="fppnpersen" min="0"
@@ -1862,13 +1850,7 @@
             },
 
             get totalDPP() {
-                const total = this.ppnBaseAmount;
-                if (!this.includePPN) return +total.toFixed(2);
-                const rate = +this.ppnRate || 0;
-                if (this.ppnMode === 1) { // Include
-                    return +((100 / (100 + rate)) * total).toFixed(2);
-                }
-                return +total.toFixed(2); // Exclude
+                return +this.ppnBaseAmount.toFixed(2);
             },
 
             get ppnAmount() {
@@ -1885,8 +1867,7 @@
 
                 const total = this.ppnBaseAmount;
                 if (!this.includePPN) return +total.toFixed(2);
-                if (this.ppnMode === 1) return +total.toFixed(2); // Include: total already has PPN
-                return +(total + this.ppnAmount).toFixed(2); // Exclude: total + PPN
+                return +(total + this.ppnAmount).toFixed(2);
             },
 
             fmt(n) {

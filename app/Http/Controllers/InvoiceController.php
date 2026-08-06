@@ -1437,8 +1437,8 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate);
-        $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
-        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
+        $fincludeppn = '0'; // PPN Faktur Penjualan selalu Exclude (0)
+        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1') ? '1' : '0';
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $rawPpnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
         $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : $defaultPpnTarif) : 0.0;
@@ -2615,8 +2615,8 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
-        $fincludeppn = ($request->boolean('fincludeppn') || $request->input('fincludeppn') == '1') ? '1' : '0';
-        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1') ? '1' : '0';
+        $fincludeppn = '0'; // PPN Faktur Penjualan selalu Exclude (0)
+        $fapplyppn = ($request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1') ? '1' : '0';
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = $userName;
         $now = now();

@@ -1035,14 +1035,8 @@
                                             <span class="font-bold">PPN</span>
                                         </label>
 
-                                        <!-- Dropdown Include / Exclude -->
-                                        <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
-                                            :disabled="!includePPN"
-                                            class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
-                                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                            <option value="0">Exclude</option>
-                                            <option value="1">Include</option>
-                                        </select>
+                                        <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                        <input type="hidden" name="fincludeppn" value="0">
 
                                         <!-- Input Rate + Nominal -->
                                         <input type="number" min="0" max="100" name="ppn_rate"
@@ -1755,14 +1749,14 @@
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: @json(old('fapplyppn') !== null || old('fincludeppn') !== null),
-            fapplyppn: @json(old('fincludeppn', '0') == '1'),
+            fapplyppn: false,
 
             get ppnMode() {
-                return this.fapplyppn ? 1 : 0;
+                return 0;
             },
 
             set ppnMode(value) {
-                this.fapplyppn = Number(value) === 1;
+                this.fapplyppn = false;
             },
 
             get headerDiscAmount() {
@@ -1777,44 +1771,32 @@
             },
 
             get ppnIncluded() {
-                const total = this.totalSetelahDisc;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn || !this.includePPN) return 0;
-                return Math.round(total * (rate / 100));
+                return 0;
             },
 
             get netFromGross() {
-                const total = this.totalSetelahDisc;
-                return total - this.ppnIncluded;
+                return this.totalSetelahDisc;
             },
 
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
-                if (!this.includePPN || this.fapplyppn) return 0;
+                if (!this.includePPN) return 0;
                 const total = this.totalSetelahDisc;
                 return Math.round(total * (rate / 100));
             },
 
             get ppnAmount() {
                 if (!this.includePPN) return 0;
-                if (this.fapplyppn) {
-                    return this.ppnIncluded;
-                }
                 return this.ppnAdded;
             },
 
             get netTotal() {
-                const total = this.totalSetelahDisc;
-                if (!this.includePPN) return total;
-                if (this.fapplyppn) {
-                    return this.netFromGross;
-                }
-                return total;
+                return this.totalSetelahDisc;
             },
 
             get grandTotal() {
                 const total = this.totalSetelahDisc;
-                if (!this.includePPN || this.fapplyppn) {
+                if (!this.includePPN) {
                     return total;
                 }
                 return total + this.ppnAdded;

@@ -444,17 +444,8 @@
                                             <span class="font-bold">PPN</span>
                                         </label>
 
-                                        <!-- Dropdown Include / Exclude -->
-                                        <select
-                                            class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none bg-gray-100 text-gray-500 cursor-not-allowed"
-                                            disabled>
-                                            <option value="0"
-                                                {{ (int) ($tr_poh->fincludeppn ?? 0) === 0 ? 'selected' : '' }}>Exclude
-                                            </option>
-                                            <option value="1"
-                                                {{ (int) ($tr_poh->fincludeppn ?? 0) === 1 ? 'selected' : '' }}>Include
-                                            </option>
-                                        </select>
+                                        <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                        <input type="hidden" name="fincludeppn" value="0">
 
                                         <!-- Input Rate + Nominal -->
                                         <input type="text"
@@ -961,13 +952,8 @@
                                                 <span class="font-bold">PPN</span>
                                             </label>
 
-                                            <!-- Dropdown Include / Exclude -->
-                                            <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
-                                                class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
-                                                       disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                                <option value="0">Exclude</option>
-                                                <option value="1">Include</option>
-                                            </select>
+                                            <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                            <input type="hidden" name="fincludeppn" value="0">
 
                                             <!-- Input Rate + Nominal -->
                                             <input type="number" min="0" max="100" name="ppn_rate"
@@ -1645,7 +1631,7 @@
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;
-                return this.ppnMode === 1 ? this.totalHarga : this.totalHarga + this.ppnNominal;
+                return this.totalHarga + this.ppnNominal;
             },
             get grandTotalRp() {
                 if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return this.grandTotal;

@@ -117,7 +117,7 @@ window.trPohSummaryMethods = {
     },
     get grandTotal() {
         if (!this.includePPN) return this.totalHarga;
-        return this.ppnMode === 1 ? this.totalHarga : this.totalHarga + this.ppnNominal;
+        return this.totalHarga + this.ppnNominal;
     },
     get grandTotalRp() {
         if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return this.grandTotal;

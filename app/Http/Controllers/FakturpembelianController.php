@@ -1358,7 +1358,7 @@ class FakturpembelianController extends Controller
             $frate = max(1, (float) $request->input('frate', 1));
             $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
             $now = now();
-            $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+            $fincludeppn = 0; // PPN Faktur Pembelian selalu Exclude (0)
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
             if ($fapplyppn === 0) {
                 $fincludeppn = 0;
@@ -2254,7 +2254,7 @@ class FakturpembelianController extends Controller
             if ($frate <= 0) {
                 $frate = 1;
             }
-            $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+            $fincludeppn = 0; // PPN Faktur Pembelian selalu Exclude (0)
 
             if ($fapplyppn === 0) {
                 $fincludeppn = 0;

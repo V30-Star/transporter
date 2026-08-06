@@ -619,9 +619,7 @@
 
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-gray-800">PPN</span>
-                                            <span class="text-xs px-2 py-0.5 rounded bg-gray-200 border text-gray-600 font-medium"
-                                                x-text="ppnMode === 1 ? 'Include' : 'Exclude'"
-                                                x-show="includePPN"></span>
+
                                             <span class="text-xs px-2 py-0.5 rounded bg-gray-200 border text-gray-600 font-medium"
                                                 x-text="ppnRate + '%'"
                                                 x-show="includePPN"></span>
@@ -1416,10 +1414,7 @@
                                                     <span class="font-bold">PPN</span>
                                                 </label>
 
-                                                <!-- PPN Mode Label -->
-                                                <span class="text-xs px-2 py-0.5 rounded bg-gray-200 border text-gray-600 font-medium"
-                                                    x-text="ppnMode === 1 ? 'Include' : 'Exclude'"
-                                                    x-show="includePPN"></span>
+
 
                                                 <!-- Input Rate + Nominal -->
                                                 <input type="number" min="0" max="100" name="ppn_rate"
@@ -1450,7 +1445,7 @@
                                         <input type="hidden" name="famount" :value="totalHarga">
                                         <input type="hidden" name="famountpajak" :value="ppnAmount">
                                         <input type="hidden" name="famountmt" :value="grandTotal">
-                                        <input type="hidden" name="fincludeppn" :value="includePPN ? ppnMode : 0">
+                                        <input type="hidden" name="fincludeppn" value="0">
                                         <input type="hidden" name="famountpopajak" :value="includePPN ? ppnRate : 0">
                                     </div>
                                 </div>
@@ -1847,24 +1842,18 @@
                 initialPpnAmount: @json($famountpajak ?? 0),
 
                 includePPN: @json($includePPN == 1),
-                ppnMode: @json((int) $ppnMode),
+                ppnMode: 0,
                 ppnRate: @json((float) $ppnRate),
                 get ppnAmount() {
                     if (!this.includePPN) return 0;
                     const total = +this.totalHarga || 0;
                     const rate = +this.ppnRate || 0;
-                    if (this.ppnMode === 1) {
-                        // Include: Back-calc from GROSS
-                        return Math.round(total * (rate / 100));
-                    } else {
-                        // Exclude: Add on top of base
-                        return Math.round(total * (rate / 100));
-                    }
+                    return Math.round(total * (rate / 100));
                 },
 
                 get grandTotal() {
                     const total = +this.totalHarga || 0;
-                    if (!this.includePPN || this.ppnMode === 1) return total;
+                    if (!this.includePPN) return total;
                     return total + this.ppnAmount;
                 },
 

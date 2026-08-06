@@ -603,39 +603,31 @@
             initialPpnAmount: @json($famountpajak ?? 0),
 
             includePPN: @json(($returpembelian->fincludeppn ?? 0) == 1),
-            fapplyppn: @json(($returpembelian->fapplyppn ?? 0) == 1),
+            fapplyppn: false,
 
             get ppnIncluded() {
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
-                return Math.round(total * (rate / 100));
+                return 0;
             },
 
             get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
+                return +this.totalHarga || 0;
             },
 
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
                 if (!this.includePPN) return 0;
                 const total = +this.totalHarga || 0;
-                const base = this.fapplyppn ? total : total;
-                return Math.round(base * (rate / 100));
+                return Math.round(total * (rate / 100));
             },
 
             get ppnAmount() {
-                if (this.includePPN && this.fapplyppn) {
-                    return this.ppnAdded;
-                }
-                return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
+                if (!this.includePPN) return 0;
+                return this.ppnAdded;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
                 if (this.includePPN) return total + this.ppnAdded;
-                if (this.fapplyppn) return total;
                 return total;
             },
 

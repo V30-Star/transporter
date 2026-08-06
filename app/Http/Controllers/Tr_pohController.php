@@ -942,8 +942,8 @@ class Tr_pohController extends Controller
         $this->ensureCreateDateWithinEditPeriod($fpodate);
         $fkirimdate = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
         $fpohid = $request->filled('fpohid') ? strtoupper(trim((string) $request->input('fpohid'))) : null; // can be null; we will generate if empty
-        $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-        $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+        $fincludeppn = 0; // PPN Purchase Order selalu Exclude (0)
+        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? 1 : 0;
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();
 
@@ -1660,21 +1660,8 @@ class Tr_pohController extends Controller
         $fkirimdate = $request->filled('fkirimdate')
             ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
             : null;
-        $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-        $now = now();
-
-        $codes = $request->input('fitemcode', []);
-        $satuans = $request->input('fsatuan', []);
-        $refdtns = $request->input('frefdtno', []);
-        $frefdtids = $request->input('frefdtid', []);
-        $fnoacaks = $request->input('fnoacak', []);
-        $frefnoacaks = $request->input('frefnoacak', []);
-        $qtys = $request->input('fqty', []);
-        $prices = $request->input('fprice', []);
-        $discs = $request->input('fdisc', []);
-        $refprs = $request->input('frefpr', []);
-        $descs = $request->input('fdesc', []);
-        $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+        $fincludeppn = 0; // PPN Purchase Order selalu Exclude (0)
+        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? 1 : 0;
 
         $ppnRate = (float) $request->input('ppn_rate', 0);
         $ppnRate = max(0, min(100, $ppnRate));

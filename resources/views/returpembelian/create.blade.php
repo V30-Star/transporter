@@ -775,17 +775,12 @@
                                                 <span class="font-bold">PPN</span>
                                             </label>
 
-                                            <!-- Dropdown Include / Exclude -->
-                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
-                                                       disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                                <option value="0">Exclude</option>
-                                            </select>
+                                            <!-- Hidden includePPN mode (always Exclude = 0) -->
+                                            <input type="hidden" name="includePPN" value="0">
 
                                             <!-- Input Rate + Nominal -->
                                             <input type="number" min="0" max="100" name="ppn_rate"
-                                                step="0.01" x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
                                                 class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
                                                         [appearance:textfield]
                                                         [&::-webkit-outer-spin-button]:appearance-none
@@ -1099,50 +1094,32 @@
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),
 
-            includePPN: false, // tambah PPN normal di luar total
-            fapplyppn: false, // harga sudah termasuk PPN (back-calc)
-            // PPN yang SUDAH termasuk (back-calc dari GROSS)
+            includePPN: false,
+            fapplyppn: false,
+
             get ppnIncluded() {
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
-                // back-calc from GROSS
-                return Math.round(total * (rate / 100));
+                return 0;
             },
 
-            // NET dari GROSS jika fapplyppn aktif
             get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
+                return +this.totalHarga || 0;
             },
 
-            // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
                 if (!this.includePPN) return 0;
-
                 const total = +this.totalHarga || 0;
-
-                // When both are ON, compute extra PPN on GROSS (not NET)
-                const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
-
-                return Math.round(base * (rate / 100));
+                return Math.round(total * (rate / 100));
             },
 
             get ppnAmount() {
-                // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
-                if (this.includePPN && this.fapplyppn) {
-                    return this.ppnAdded;
-                }
-                // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
-                return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
+                if (!this.includePPN) return 0;
+                return this.ppnAdded;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
-                if (this.includePPN) return total + this.ppnAdded; // NET + PPN
-                if (this.fapplyppn) return total; // GROSS stays GROSS
+                if (this.includePPN) return total + this.ppnAdded;
                 return total;
             },
 
@@ -1566,7 +1543,6 @@
 
 
                 this.$watch('includePPN', () => this.recalcTotals());
-                this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 // Listen for PR picked from modal PR

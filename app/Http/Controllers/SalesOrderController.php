@@ -1074,11 +1074,8 @@ class SalesOrderController extends Controller
             $request->input('fsalesman'),
             $request->input('filter_salesman_id')
         );
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-        $userid = auth('sysuser')->user()->fname ?? 'admin';
-        $now = now();
-        $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-        $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+        $fincludeppn = 0; // PPN Sales Order selalu Exclude (0)
+        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? 1 : 0;
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
 
         // DETAIL ARRAYS
@@ -1752,8 +1749,8 @@ class SalesOrderController extends Controller
             $request->input('fsalesman'),
             $request->input('filter_salesman_id')
         );
-        $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
-        $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
+        $fincludeppn = 0; // PPN Sales Order selalu Exclude (0)
+        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? '1' : '0';
         $fppnpersen = (float) $request->input('fppnpersen', $this->getDefaultPpnTarif());
         $fclose = $request->input('fclose') ? '1' : '0';
         $userid = $userName;
