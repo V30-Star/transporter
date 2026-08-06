@@ -33,7 +33,9 @@
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 text-gray-400 transition-colors"
                                     title="Browse Account Header">
-                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
                                 </button>
                             </div>
 
