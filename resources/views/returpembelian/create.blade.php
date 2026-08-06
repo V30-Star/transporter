@@ -677,9 +677,8 @@
                                 </p>
                             @enderror
 
-                                </div>
-
-                                {{-- Totals Panel --}}
+                            {{-- Totals Panel --}}
+                            <div class="mt-3 flex justify-end">
                                 <div class="w-[560px] shrink-0 max-w-full">
                                     <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
                                         <div class="flex items-center justify-between">

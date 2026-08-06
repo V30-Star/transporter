@@ -970,64 +970,8 @@
                                     </p>
                                 @enderror
 
-                                {{-- MODAL SELECTORS & TOTALS --}}
-                                <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
-                                    <div class="flex justify-start gap-2" x-data="prhFormModal()">
-                                        <!-- PR Modal backdrop -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm"
-                                            @keydown.escape.window="closeModal()"></div>
-
-                                        <!-- PR Modal -->
-                                        <div x-show="show" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                            aria-modal="true" role="dialog">
-                                            <div class="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
-                                                style="height: 600px;">
-                                                <div
-                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
-                                                    <h3 class="text-lg font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
-                                                    <button type="button" @click="closeModal()"
-                                                        class="h-9 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm transition-colors">Tutup</button>
-                                                </div>
-                                                <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                                    <table id="prTable"
-                                                        class="min-w-full text-sm display nowrap stripe hover"
-                                                        style="width:100%">
-                                                        <thead class="sticky top-0 z-10">
-                                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                                <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody></tbody>
-                                                    </table>
-                                                </div>
-                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Duplicate modal -->
-                                        <div x-show="showDupModal" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
-                                            <div class="absolute inset-0" @click="closeDupModal()"></div>
-                                            <div class="relative bg-white rounded-2xl shadow-xl max-w-xl w-full p-6">
-                                                <h3 class="text-lg font-semibold mb-4 text-gray-800">Peringatan Duplikasi</h3>
-                                                <p class="mb-4 text-gray-600">
-                                                    Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.
-                                                </p>
-                                                <div class="flex justify-end gap-2">
-                                                    <button type="button" @click="closeDupModal()"
-                                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Batal</button>
-                                                    <button type="button" @click="confirmAddUniques()"
-                                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">Tambahkan Item Unik</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Totals Panel --}}
+                                {{-- Totals Panel --}}
+                                <div class="mt-3 flex justify-end">
                                     <div class="w-[560px] shrink-0 max-w-full">
                                         <div class="rounded-lg border bg-gray-55 p-4 space-y-3 text-sm">
                                             <div class="flex items-center justify-between">

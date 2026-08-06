@@ -728,7 +728,12 @@
                             });
                             return;
                         }
-                        onSubmit($event);
+                        const n = Number(document.getElementById('itemsCount')?.value || 0);
+                        if (n < 1) {
+                            window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items'));
+                            return;
+                        }
+                        window.submitFormWithStockMinusConfirmation?.($el);
                     ">
                 @csrf
                 @method('PATCH')
