@@ -373,7 +373,9 @@
         </div>
 
         @forelse ($rows->groupBy('fsource') as $source => $sourceRows)
-            @php($isReturn = $source === 'REJ')
+            @php
+                $isReturn = $source === 'REJ';
+            @endphp
             <div class="journal-block group-row {{ $isReturn ? 'force-new-page-before text-rej' : '' }}">
                 {{ $isReturn ? 'RETUR PENJUALAN' : 'PENJUALAN' }}
             </div>
