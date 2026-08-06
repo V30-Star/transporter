@@ -549,7 +549,9 @@
             <div>Total Harga</div>
         </div>
 
-        @php($showDescription = request()->boolean('show_description'))
+        @php
+            $showDescription = request()->boolean('show_description');
+        @endphp
 
         @foreach ($soData as $mt)
             @php

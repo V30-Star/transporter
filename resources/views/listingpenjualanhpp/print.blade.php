@@ -556,7 +556,9 @@
             <div class="right">Laba/Rugi</div>
         </div>
 
-        @php($returnSectionStarted = false)
+        @php
+            $returnSectionStarted = false;
+        @endphp
         @foreach ($groupedData as $fsono => $items)
             @php
                 $h = $items->first();
