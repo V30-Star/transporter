@@ -1338,10 +1338,10 @@ class ReturPenjualanController extends Controller
                 DB::table('trandt')->insert($detailRows);
 
                 // ==== STOCK RECORDS ====
-                $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
+                $fstockmtno = $fsono;
                 $masterStockData = [
                     'fstockmtno' => $fstockmtno,
-                    'fstockmtcode' => 'REB',
+                    'fstockmtcode' => 'REJ',
                     'fstockmtdate' => $fsodate,
                     'fprdout' => '0',
                     'fsupplier' => mb_substr($request->fcustno, 0, 10),
@@ -1364,7 +1364,7 @@ class ReturPenjualanController extends Controller
 
                 foreach ($stockDetailRows as &$srow) {
                     $srow['fstockmtno'] = $fstockmtno;
-                    $srow['fstockmtcode'] = 'REB';
+                    $srow['fstockmtcode'] = 'REJ';
                 }
                 unset($srow);
 
@@ -2609,12 +2609,17 @@ class ReturPenjualanController extends Controller
                 }
 
                 // ==== SYNC STOCK RECORDS ====
-                $fstockmtno = str_replace('REJ.', 'REB.', $header->fsono);
+                $fstockmtno = (string) $header->fsono;
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
+                if (! $stockHeader) {
+                    $fstockmtno = str_replace('REJ.', 'REB.', (string) $header->fsono);
+                    $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
+                }
 
                 if ($stockHeader) {
                     // Update Stock Header
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->update([
+                        'fstockmtcode'     => 'REJ',
                         'fstockmtdate'     => $fsodate,
                         'fsupplier'        => mb_substr($request->fcustno, 0, 10),
                         'ffrom'            => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
@@ -2688,7 +2693,7 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->delete();
                     foreach ($stockDetailRows as &$srow) {
                         $srow['fstockmtno'] = $fstockmtno;
-                        $srow['fstockmtcode'] = 'REB';
+                        $srow['fstockmtcode'] = 'REJ';
 
                         $insertedStockDtId = DB::table('trstockdt')->insertGetId($srow, 'fstockdtid');
                         $sdtObj = DB::table('trstockdt')->where('fstockdtid', $insertedStockDtId)->first();
@@ -2918,8 +2923,12 @@ class ReturPenjualanController extends Controller
             if ($message = $this->getUsageLockMessage($returHeader)) {
                 return redirect()->route('returpenjualan.index')->with('error', $message);
             }
-            $stockMtNo = str_replace('REJ.', 'REB.', (string) $returHeader->fsono);
+            $stockMtNo = (string) $returHeader->fsono;
             $stockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
+            if (! $stockHeader) {
+                $stockMtNo = str_replace('REJ.', 'REB.', (string) $returHeader->fsono);
+                $stockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
+            }
             if ($stockHeader && ($stockResponse = $this->validateStockMinusLines(
                 $this->buildStockMinusLinesFromNetChange([], (string) $stockHeader->ffrom, $this->fetchStockDetailRows($stockMtNo), (string) $stockHeader->ffrom),
                 request()->boolean('force_save')
@@ -3048,8 +3057,12 @@ class ReturPenjualanController extends Controller
                     ->delete();
 
                 // 3. Delete & Log stock records (trstockmt & trstockdt)
-                $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
+                $fstockmtno = (string) $fsono;
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
+                if (! $stockHeader) {
+                    $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
+                    $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
+                }
 
                 if ($stockHeader) {
                     // Log trstockmt (Delete)
