@@ -278,27 +278,25 @@
                                 <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
                                     data-skip-auto-detail-style="true">
                                     <colgroup>
-                                        <col style="width:2%;">
-                                        <col style="width:12%;">
-                                        <col style="width:25%;">
-                                        <col style="width:12%;">
-                                        <col style="width:8%;">
-                                        <col style="width:8%;">
-                                        <col style="width:15%;">
-                                        <col style="width:18%;">
-                                    </colgroup>
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-36">Kode Produk</th>
-                                            <th class="p-2 text-left w-96">Nama Produk</th>
-                                            <th class="p-2 text-left w-28">No Referensi</th>
-                                            <th class="p-2 text-left w-20">Satuan</th>
-                                            <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
-                                            <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
-                                        </tr>
-                                    </thead>
+                                         <col style="width:3%;">
+                                         <col style="width:14%;">
+                                         <col style="width:31%;">
+                                         <col style="width:10%;">
+                                         <col style="width:10%;">
+                                         <col style="width:14%;">
+                                         <col style="width:18%;">
+                                     </colgroup>
+                                     <thead class="bg-gray-100">
+                                         <tr>
+                                             <th class="p-2 text-left w-10">#</th>
+                                             <th class="p-2 text-left w-36">Kode Produk</th>
+                                             <th class="p-2 text-left w-96">Nama Produk</th>
+                                             <th class="p-2 text-left w-20">Satuan</th>
+                                             <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
+                                             <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
+                                             <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
+                                         </tr>
+                                     </thead>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
                                         <tbody>
                                             <tr class="border-t align-top hover:bg-gray-55">
@@ -317,9 +315,6 @@
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                </td>
-                                                <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.frefdtno || '-'"></div>
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>

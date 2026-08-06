@@ -709,12 +709,10 @@
                                         <colgroup>
                                             <col style="width:2%;">
                                             <col style="width:12%;">
-                                            <col style="width:25%;">
+                                            <col style="width:30%;">
+                                            <col style="width:10%;">
                                             <col style="width:12%;">
-                                            <col style="width:8%;">
-                                            <col style="width:8%;">
-                                            <col style="width:12%;">
-                                            <col style="width:15%;">
+                                            <col style="width:18%;">
                                             <col style="width:6%;">
                                         </colgroup>
                                         <thead class="bg-gray-100">
@@ -722,7 +720,6 @@
                                                 <th class="p-2 text-left w-10">#</th>
                                                 <th class="p-2 text-left w-36">Kode Produk</th>
                                                 <th class="p-2 text-left w-96">Nama Produk</th>
-                                                <th class="p-2 text-left w-28">No Referensi</th>
                                                 <th class="p-2 text-left w-20">Satuan</th>
                                                 <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
                                                 <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
@@ -749,9 +746,6 @@
                                                                 <x-heroicon-o-document-text class="w-4 h-4" />
                                                             </button>
                                                         </div>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.frefdtno || '-'"></div>
                                                     </td>
                                                     <td class="p-2">
                                                         <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
@@ -786,21 +780,10 @@
                                                         <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
                                                         <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                         <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                     </td>
                                                 </tr>
                                             </template>
-                                            </tbody>
-                                    </table>
-                                </div>
-
-                                @error('fitemcode')
-                                    <p class="text-red-500 text-xs mt-2 font-semibold flex items-center gap-1">
-                                        <x-heroicon-o-exclamation-circle class="w-4 h-4 flex-shrink-0" />
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-
+                                            
                                             {{-- ROW EDIT UTAMA --}}
                                             <tr x-show="editingIndex !== null" class="border-t align-top hover:bg-gray-50 bg-amber-50" x-cloak>
                                                 <td class="p-2 text-gray-400" x-text="(editingIndex ?? 0) + 1"></td>
@@ -834,17 +817,11 @@
                                                     </div>
                                                 </td>
 
-                                                {{-- No Referensi --}}
-                                                <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="editRow.frefdtno || '-'"></div>
-                                                </td>
-
                                                 {{-- Satuan --}}
                                                 <td class="p-2">
                                                     <template x-if="editRow.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="editUnit"
-                                                            x-model="editRow.fsatuan"
-                                                            @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                            x-model="editRow.fsatuan">
                                                             <template x-for="u in editRow.units" :key="u">
                                                                 <option :value="u" x-text="u"></option>
                                                             </template>
@@ -919,17 +896,11 @@
                                                         </div>
                                                     </td>
 
-                                                    {{-- No Referensi --}}
-                                                    <td class="p-2">
-                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="dr.frefdtno || '-'"></div>
-                                                    </td>
-
                                                     {{-- Satuan --}}
                                                     <td class="p-2">
                                                         <template x-if="dr.units.length > 1">
                                                             <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                                x-model="dr.fsatuan"
-                                                                @change="fetchProductPriceHistory(dr)">
+                                                                x-model="dr.fsatuan">
                                                                 <template x-for="u in dr.units" :key="u">
                                                                     <option :value="u" x-text="u"></option>
                                                                 </template>
@@ -978,7 +949,6 @@
                                                             <input type="hidden" name="ftotprice[]" :value="dr.ftotprice">
                                                             <input type="hidden" name="fdesc[]" :value="dr.fdesc || ''">
                                                             <input type="hidden" name="fketdt[]" :value="dr.fketdt || ''">
-                                                            <input type="hidden" name="frefdtno[]" :value="dr.frefdtno || ''">
                                                         </td>
                                                     </template>
                                                 </tr>
@@ -1003,13 +973,6 @@
                                 {{-- MODAL SELECTORS & TOTALS --}}
                                 <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
                                     <div class="flex justify-start gap-2" x-data="prhFormModal()">
-                                        {{-- Add PR button --}}
-                                        <button type="button" @click="openModal()"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium text-sm transition-colors hover:bg-emerald-700 focus:outline-none">
-                                            <x-heroicon-o-plus class="h-4 w-4" />
-                                            Add PR
-                                        </button>
-
                                         <!-- PR Modal backdrop -->
                                         <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm"
                                             @keydown.escape.window="closeModal()"></div>
