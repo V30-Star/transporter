@@ -1026,48 +1026,61 @@ class SalesOrderController extends Controller
 
         $shouldSendApprovalNotification = false;
         $canContinueToSuratJalan = $this->canContinueToSuratJalan();
-        // VALIDATION
-        $request->validate([
-            'fsono' => ['nullable', 'string', 'max:25'],
-            'fsodate' => ['required', 'date'],
-            'fkirimdate' => ['nullable', 'date'],
-            'fcustno' => ['required', 'string', 'max:20'],
-            'fsalesman' => ['nullable', 'string', 'max:20'],
-            'fincludeppn' => ['nullable'],
-            'fket' => ['nullable', 'string', 'max:300'],
-            'frefpo' => ['nullable', 'string', 'max:100'],
-            'falamatkirim' => ['nullable', 'string', 'max:300'],
-            'fbranchcode' => ['nullable', 'string', 'max:2'],
-            'ftempohr' => ['nullable', 'string', 'max:3'],
-            'fprdcode' => ['required', 'array', 'min:1'],
-            'fprdcode.*' => ['required', 'string', 'max:20'],
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:10'],
-            'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
-            'fprice' => ['nullable', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
-            'fdisc' => ['nullable', 'array'],
-            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib dipilih.',
-            'fprdcode.required' => 'Minimal harus ada 1 item.',
-            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
-            'fprice.*.min' => 'Harga item tidak boleh minus.',
-            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
-            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
-        ]);
+
+        try {
+            $request->validate([
+                'fsono' => ['nullable', 'string', 'max:25'],
+                'fsodate' => ['required', 'date'],
+                'fkirimdate' => ['nullable', 'date'],
+                'fcustno' => ['required', 'string', 'max:20'],
+                'fsalesman' => ['nullable', 'string', 'max:20'],
+                'fincludeppn' => ['nullable'],
+                'fket' => ['nullable', 'string', 'max:300'],
+                'frefpo' => ['nullable', 'string', 'max:100'],
+                'falamatkirim' => ['nullable', 'string', 'max:300'],
+                'fbranchcode' => ['nullable', 'string', 'max:2'],
+                'ftempohr' => ['nullable', 'string', 'max:3'],
+                'fprdcode' => ['required', 'array', 'min:1'],
+                'fprdcode.*' => ['required', 'string', 'max:20'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:10'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => ['numeric', 'min:0'],
+                'fprice' => ['nullable', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
+                'fdisc' => ['nullable', 'array'],
+                'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'fsodate.required' => 'Tanggal SO wajib diisi.',
+                'fcustno.required' => 'Customer wajib dipilih.',
+                'fprdcode.required' => 'Minimal harus ada 1 item.',
+                'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+                'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
+            ]);
+
+            $fsodateVal = Carbon::parse($request->fsodate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fsodateVal);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Sales Order belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
 
         $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
 
         // HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fsonoRaw = $request->filled('fsono') ? strtoupper(trim((string) $request->input('fsono'))) : null;
         $fsono = $fsonoRaw !== null ? $this->formatDisplayTransactionNumber($fsonoRaw, (int) ($request->input('fapplyppn') ?? 1) === 0) : null;
         $resolvedSalesmanCode = $this->resolveSalesmanCode(
@@ -1332,13 +1345,22 @@ class SalesOrderController extends Controller
                 'type' => 'salesorder_create',
                 'redirect_url' => route('salesorder.print', $fsono),
             ]);
-        } catch (\Exception $e) {
-            Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Sales Order belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            Log::error('SalesOrderController@store error: ' . $e->getMessage(), ['exception' => $e]);
             report($e);
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Sales Order belum bisa disimpan: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
+            return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan: ' . $e->getMessage()]);
         }
     }
 

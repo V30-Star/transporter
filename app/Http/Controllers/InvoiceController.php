@@ -1378,35 +1378,49 @@ class InvoiceController extends Controller
         $shouldSendApprovalNotification = false;
         $needsApprovalNotification = $this->shouldRequestInvoiceApproval($request);
         // 1. VALIDASI (Tetap sama)
-        $request->validate([
-            'fsodate' => ['required', 'date'],
-            'fjatuhtempo' => ['nullable', 'date'],
-            'fcustno' => ['required', 'string', 'max:10'],
-            'frefno' => ['nullable', 'string', 'max:100'],
-            'ftypesales' => ['required', 'in:0,1'],
-            'ftaxno' => ['nullable', 'string', 'max:50'],
-            'fketinternal' => ['nullable', 'string', 'max:300'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:30'],
-            'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0.01'],
-            'fprice' => ['required', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
-            'fdisc' => ['nullable', 'array'],
-            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'frefcode' => ['nullable', 'array'],
-            'frefcode.*' => ['nullable', 'string', 'max:30'],
-            'frefso' => ['nullable'],
-            'frefsrj' => ['nullable'],
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fitemcode.required' => 'Minimal harus ada 1 item barang.',
-        ]);
+        try {
+            $request->validate([
+                'fsodate' => ['required', 'date'],
+                'fjatuhtempo' => ['nullable', 'date'],
+                'fcustno' => ['required', 'string', 'max:10'],
+                'frefno' => ['nullable', 'string', 'max:100'],
+                'ftypesales' => ['required', 'in:0,1'],
+                'ftaxno' => ['nullable', 'string', 'max:50'],
+                'fketinternal' => ['nullable', 'string', 'max:300'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:30'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => ['numeric', 'min:0.01'],
+                'fprice' => ['required', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
+                'fdisc' => ['nullable', 'array'],
+                'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'frefcode' => ['nullable', 'array'],
+                'frefcode.*' => ['nullable', 'string', 'max:30'],
+                'frefso' => ['nullable'],
+                'frefsrj' => ['nullable'],
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
+                'fcustno.required' => 'Customer wajib diisi.',
+                'fitemcode.required' => 'Minimal harus ada 1 item barang.',
+            ]);
+
+            $fsodateVal = Carbon::parse($request->fsodate);
+            $this->ensureCreateDateWithinEditPeriod($fsodateVal);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Faktur penjualan belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
 
         $normalizedDetailPayload = $this->normalizeInvoiceDetailPayload([
             'fitemcode' => $request->input('fitemcode', []),
@@ -1482,12 +1496,20 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
+                $msg = "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
                 return back()
                     ->withInput()
-                    ->with('error', "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!");
+                    ->with('error', $msg);
             }
             if (! $hasUM) {
-                return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
+                $msg = 'Transaksi Uang Muka harus memakai produk UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
         }
 
@@ -1549,11 +1571,19 @@ class InvoiceController extends Controller
 
             $product = $products->get($code);
             if (! $product) {
-                return back()->withInput()->with('error', "Produk {$code} tidak ada.");
+                $msg = "Produk {$code} tidak ada.";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             if ($product->fnonactive == '1') {
-                return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
+                $msg = "Produk {$product->fprdname} sudah tidak tersedia.";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             $sat = trim((string) ($satuans[$i] ?? ''));
@@ -1652,6 +1682,9 @@ class InvoiceController extends Controller
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
         if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->with('error', $validationMessage);
         }
 
@@ -1693,6 +1726,9 @@ class InvoiceController extends Controller
 
         if ($hasUM && $typeSales === 0) {
             if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $validationMessage], 422);
+                }
                 return back()->withInput()->with('error', $validationMessage);
             }
         }

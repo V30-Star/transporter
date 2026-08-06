@@ -770,7 +770,16 @@ class SuratJalanController extends Controller
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fitemcode.required' => 'Minimal 1 item.',
             ]);
+            $fsodateVal = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fsodateVal);
         } catch (\Illuminate\Validation\ValidationException $ve) {
+            if ($request->expectsJson()) {
+                $firstError = collect($ve->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Surat jalan belum bisa disimpan. Cek data.',
+                    'errors' => $ve->errors(),
+                ], 422);
+            }
             throw $ve;
         }
 
@@ -785,7 +794,6 @@ class SuratJalanController extends Controller
         // =========================
         $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -931,8 +939,12 @@ class SuratJalanController extends Controller
         }
 
         if (empty($rowsDt)) {
+            $msg = 'Minimal satu item valid (Kode, Satuan, Qty > 0).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $msg,
             ]);
         }
 
@@ -943,6 +955,9 @@ class SuratJalanController extends Controller
         // 6.5) VALIDASI QTY REMAIN SO
         // =========================
         if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 

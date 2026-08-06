@@ -205,6 +205,15 @@
             background-color: #f9fafb !important;
         }
     </style>
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-3" role="alert">
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">{{ session('error') }}</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
             {{-- Header Strip --}}
