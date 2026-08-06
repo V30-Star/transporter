@@ -2957,12 +2957,8 @@ class InvoiceController extends Controller
                 $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
-                $targetFsono = $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '0');
-                $header->fsono = $targetFsono;
-
                 $headerUpdate = [
-                    'fsono'            => $targetFsono,
-                    'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) $targetFsono, 0, 50),
+                    'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) $header->fsono, 0, 50),
                     'fsodate'          => $fsodate,
                     'fcustno'          => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp'          => $fkodefp,
