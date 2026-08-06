@@ -104,16 +104,25 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded border">
-                        <label class="flex items-center text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" name="group_by" value="group" checked class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> By Group Produk
-                        </label>
-                        <label class="flex items-center text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" name="group_by" value="merek" class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> By Merek
-                        </label>
-                        <label class="flex items-center text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Retur Penjualan
-                        </label>
+                    <!-- Options Row (Inline) -->
+                    <div class="flex items-center gap-3">
+                        <!-- Grouping Selection Box -->
+                        <div class="flex-1 grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="flex items-center text-sm font-semibold text-gray-700 cursor-pointer select-none">
+                                <input type="checkbox" name="group_by" value="group" checked class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500 rounded"> By Group Produk
+                            </label>
+                            <label class="flex items-center text-sm font-semibold text-gray-700 cursor-pointer select-none">
+                                <input type="checkbox" name="group_by" value="merek" class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500 rounded"> By Merek
+                            </label>
+                        </div>
+
+                        <!-- Retur Penjualan Option Box (Separated, Red text) -->
+                        <div class="bg-red-50 p-3 rounded-lg border border-red-200 whitespace-nowrap">
+                            <label class="flex items-center text-sm font-bold text-red-600 cursor-pointer select-none">
+                                <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2 w-4 h-4 text-red-600 focus:ring-red-500 rounded border-red-300">
+                                <span class="text-red-600 font-bold">Termasuk Retur Penjualan</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
