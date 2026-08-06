@@ -31,9 +31,9 @@
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages */
+        /* Screen Simulation Styles for A4 Pages (LANDSCAPE) */
         .page-a4 {
-            width: 210mm;
+            width: 297mm;
             margin: 20px auto;
             background: white;
             padding: 15mm;
@@ -44,10 +44,10 @@
             min-height: 0;
         }
 
-        /* Strict height applied after pagination */
+        /* Strict height applied after pagination (LANDSCAPE height is 210mm) */
         .page-a4-strict {
-            height: 297mm !important;
-            min-height: 297mm !important;
+            height: 210mm !important;
+            min-height: 210mm !important;
             overflow: hidden !important;
         }
 
@@ -112,7 +112,7 @@
         .sales-header-labels,
         .sales-header {
             display: grid;
-            grid-template-columns: 8mm 22mm 15mm 18mm 19mm 18mm 14mm 18mm 14mm 14mm 15mm;
+            grid-template-columns: 12mm 32mm 20mm 35mm 30mm 25mm 18mm 25mm 18mm 18mm 24mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -145,7 +145,7 @@
         .sales-detail-labels,
         .sales-detail {
             display: grid;
-            grid-template-columns: 20mm 40mm 20mm 15mm 15mm 12mm 18mm 12mm 23mm;
+            grid-template-columns: 28mm 65mm 28mm 22mm 22mm 18mm 25mm 18mm 30mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -406,8 +406,8 @@
         /* Totals Panel style */
         .po-totals-panel-wrapper {
             margin-top: 15px;
-            width: 180mm;
-            /* Full printable width */
+            width: 267mm;
+            /* Full printable width for landscape */
             border-top: 1px solid #000000;
             /* Long line above totals */
             padding-top: 8px;
@@ -466,8 +466,8 @@
             }
 
             .page-a4 {
-                width: 210mm;
-                height: 297mm !important;
+                width: 297mm;
+                height: 210mm !important;
                 margin: 0 auto !important;
                 padding: 15mm !important;
                 box-shadow: none !important;
@@ -482,7 +482,7 @@
             }
 
             @page {
-                size: A4 portrait;
+                size: A4 landscape;
                 margin: 0;
             }
         }
@@ -742,9 +742,9 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
-        // Measure actual 297mm page height on the screen dynamically in pixels
+        // Measure actual 210mm landscape page height on the screen dynamically in pixels
         const tempDiv = document.createElement("div");
-        tempDiv.style.height = "297mm";
+        tempDiv.style.height = "210mm";
         tempDiv.style.position = "absolute";
         tempDiv.style.visibility = "hidden";
         document.body.appendChild(tempDiv);
