@@ -159,7 +159,7 @@
                     </div>
                     <div class="mt-6">
 
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-end mb-4">
                         {{-- Indikator balance --}}
                         <div class="text-xs font-medium flex gap-6">
                             <span>Total Debit: <strong x-text="fmt(totalDebit)" class="text-blue-700"></strong></span>
