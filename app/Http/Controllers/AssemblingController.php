@@ -492,48 +492,62 @@ class AssemblingController extends Controller
         // =========================
         // 1) VALIDASI INPUT
         // =========================
-        $request->validate([
-            'fstockmtno' => ['nullable', 'string', 'max:100'],
-            'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['required', 'string', 'max:20'],
-            'fket' => ['nullable', 'string', 'max:50'],
-            'fbranchcode' => ['nullable', 'string', 'max:20'],
+        try {
+            $request->validate([
+                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtdate' => ['required', 'date'],
+                'ffrom' => ['required', 'string', 'max:20'],
+                'fket' => ['nullable', 'string', 'max:50'],
+                'fbranchcode' => ['nullable', 'string', 'max:20'],
 
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:50'],
 
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:20'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:20'],
 
-            'fqty' => ['required', 'array'],
-            'fqty.*' => [
-                'required',
-                'numeric',
-                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
-                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
-                    }
-                },
-            ],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
 
-            'fdesc' => ['nullable', 'array'],
-            'fdesc.*' => ['nullable', 'string', 'max:500'],
+                'fdesc' => ['nullable', 'array'],
+                'fdesc.*' => ['nullable', 'string', 'max:500'],
 
-            // TAMBAHAN: Validasi fitemtype
-            'fitemtype' => ['nullable', 'array'],
-            'fitemtype.*' => ['nullable', 'string', 'in:bahan_baku,barang_jadi'],
+                // TAMBAHAN: Validasi fitemtype
+                'fitemtype' => ['nullable', 'array'],
+                'fitemtype.*' => ['nullable', 'string', 'in:bahan_baku,barang_jadi'],
 
-            'fcurrency' => ['nullable', 'string', 'max:5'],
-            'frate' => ['nullable', 'numeric', 'min:0'],
-            'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-        ], [
-            'ffrom.required' => 'Gudang wajib di isi.',
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fsupplier.required' => 'Supplier wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
-            'fitemtype.*.in' => 'Tipe item tidak valid.',
-        ]);
+                'fcurrency' => ['nullable', 'string', 'max:5'],
+                'frate' => ['nullable', 'numeric', 'min:0'],
+                'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
+                'fitemtype.*.in' => 'Tipe item tidak valid.',
+            ]);
+
+            $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Assembling belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
@@ -542,7 +556,6 @@ class AssemblingController extends Controller
         // =========================
         $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -655,14 +668,21 @@ class AssemblingController extends Controller
         }
 
         if (empty($rowsDt)) {
+            $msg = $allowNegativeStockQty
+                ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                : 'Minimal 1 item valid (kode, satuan, qty > 0).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
             return back()->withInput()->withErrors([
-                'detail' => $allowNegativeStockQty
-                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
-                    : 'Minimal 1 item valid (kode, satuan, qty > 0).',
+                'detail' => $msg,
             ]);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
