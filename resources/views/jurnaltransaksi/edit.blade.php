@@ -44,8 +44,8 @@
             items: @js($savedItems),
             accounts: @js($accounts),
             subaccounts: @js($subaccounts),
-            customers: @js($customers),
-            suppliers: @js($suppliers),
+            customers: @js($customers ?? []),
+            suppliers: @js($suppliers ?? []),
             referenceAllowedAccountCodes: @js($referenceAllowedAccountCodes ?? []),
             referenceSourceAccountCodes: @js($referenceSourceAccountCodes ?? []),
             referenceBrowseUrl: @js(route('jurnaltransaksi.reference-browse')),
@@ -80,8 +80,13 @@
 
                     <div class="lg:col-span-2">
                         <label class="block text-xs font-bold mb-1">Tipe Jurnal</label>
-                        <input type="text" value="{{ $jurnaltransaksi->fjurnaltype }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                        @php
+                            $currentType = $jurnaltransaksi->fjurnaltype ?? 'SJU';
+                            $currentTypeObj = collect($journalTypes)->firstWhere('fmastercode', $currentType);
+                            $currentTypeName = $currentTypeObj->fmastername ?? 'Jurnal Umum';
+                        @endphp
+                        <input type="text" value="{{ $currentType }} - {{ $currentTypeName }}"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed text-sm font-medium text-gray-700" disabled>
                     </div>
 
                     <div class="lg:col-span-2">
@@ -106,7 +111,8 @@
                     </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
                 </div>
-                <div class="mt-6">                    <div class="flex items-center justify-end mb-4">
+                <div class="mt-6">
+                    <div class="flex items-center justify-end mb-4">
                         <div class="text-xs font-medium flex gap-6">
                             <span>Total Debit:
                                 <strong class="text-blue-700" x-text="formatAmount(totalDebit())"></strong>
@@ -123,23 +129,23 @@
                             <colgroup>
                                 <col style="width:2%;">
                                 <col style="width:12%;">
-                                <col style="width:23%;">
-                                <col style="width:18%;">
-                                <col style="width:12%;">
-                                <col style="width:8%;">
+                                <col style="width:20%;">
                                 <col style="width:15%;">
                                 <col style="width:10%;">
+                                <col style="width:6%;">
+                                <col style="width:23%;">
+                                <col style="width:12%;">
                             </colgroup>
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="p-2 text-left w-12">#</th>
-                                    <th class="p-2 text-left w-44">Kode Account</th>
+                                    <th class="p-2 text-left w-8">#</th>
+                                    <th class="p-2 text-left w-40">Kode Account</th>
                                     <th class="p-2 text-left w-56">Nama Account</th>
                                     <th class="p-2 text-left w-56" x-text="subAccountHeaderTitle">Sub Account</th>
-                                    <th class="p-2 text-left w-48">Ref No</th>
+                                    <th class="p-2 text-left w-28">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K</th>
-                                    <th class="p-2 text-left w-[28rem]">Keterangan</th>
-                                    <th class="p-2 text-right w-44 whitespace-nowrap">Jumlah</th>
+                                    <th class="p-2 text-left w-72">Keterangan</th>
+                                    <th class="p-2 text-right w-40 whitespace-nowrap">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -161,7 +167,7 @@
                                         <td class="p-2 text-center">
                                             <div class="px-2 py-1 text-sm text-center border rounded font-medium"
                                                 :class="item.fdk === 'D' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'"
-                                                x-text="item.fdk === 'D' ? 'Debit' : 'Kredit'"></div>
+                                                x-text="item.fdk === 'D' ? 'D' : 'K'"></div>
                                         </td>
                                         <td class="p-2">
                                             <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="item.faccountnote || '-'"></div>
@@ -177,7 +183,7 @@
                 </div> {{-- end detail table card --}}
 
                 <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
-                    <div class="flex justify-center gap-4">
+                    <div class="flex justify-end gap-3">
                         <button type="button" @click="showDeleteModal = true"
                             class="inline-flex items-center bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition-colors">
                             <x-heroicon-o-trash class="w-6 h-6 mr-2" />
