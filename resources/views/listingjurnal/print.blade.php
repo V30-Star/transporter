@@ -531,15 +531,21 @@
                     $viewUrl = route('bayarsupplier.view', $jurnalNo);
                     $editUrl = route('bayarsupplier.edit', $jurnalNo);
                 } else {
-                    $viewUrl = route('jurnaltransaksi.view', $jurnalNo);
-                    $editUrl = route('jurnaltransaksi.edit', $jurnalNo);
+                    $jurnalId = $firstLine->fjurnalmtid ?? $jurnalNo;
+                    $viewUrl = route('jurnaltransaksi.view', $jurnalId);
+                    $editUrl = route('jurnaltransaksi.edit', $jurnalId);
                 }
+                $canEdit = $type === 'SJU';
             @endphp
             <div class="journal-block">
                 <div class="po-header">
                     <div>{{ $firstLine->fbranchcode }}</div>
                     <div class="truncate" title="{{ $jurnalNo }}">
-                        <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $jurnalNo }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $jurnalNo }}</span>
+                        @if ($canEdit)
+                            <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $jurnalNo }}', '{{ $viewUrl }}', '{{ $editUrl }}', true)">{{ $jurnalNo }}</span>
+                        @else
+                            <a class="trx-action-trigger" href="{{ $viewUrl }}" target="_blank">{{ $jurnalNo }}</a>
+                        @endif
                     </div>
                     <div>{{ $jurnalDateFormatted }}</div>
                     <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
@@ -795,14 +801,16 @@
         document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
     }
 
-    function openTrxActionModal(event, sono, viewUrl, editUrl) {
+    function openTrxActionModal(event, sono, viewUrl, editUrl, canEdit) {
         if (event) {
             event.preventDefault();
             event.stopPropagation();
         }
         document.getElementById('modalTrxNo').textContent = sono;
         document.getElementById('btnViewTrx').href = viewUrl;
-        document.getElementById('btnEditTrx').href = editUrl;
+        const editButton = document.getElementById('btnEditTrx');
+        editButton.href = editUrl;
+        editButton.style.display = canEdit ? '' : 'none';
         const modal = document.getElementById('trxActionModal');
         modal.style.display = 'flex';
     }

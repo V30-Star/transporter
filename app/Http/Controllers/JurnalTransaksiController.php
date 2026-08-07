@@ -1467,7 +1467,11 @@ class JurnalTransaksiController extends Controller
     private function getJournalTransactionFormData($journalId): array
     {
         $header = DB::table('jurnalmt')
-            ->where('fjurnalmtid', $journalId)
+            ->when(is_numeric($journalId), function ($query) use ($journalId) {
+                $query->where('fjurnalmtid', (int) $journalId);
+            }, function ($query) use ($journalId) {
+                $query->where('fjurnalno', $journalId);
+            })
             ->first();
 
         if (! $header) {
@@ -1477,7 +1481,7 @@ class JurnalTransaksiController extends Controller
         $details = DB::table('jurnaldt as d')
             ->leftJoin('account as a', 'a.faccount', '=', 'd.faccount')
             ->leftJoin('mssubaccount as s', 's.fsubaccountcode', '=', 'd.fsubaccount')
-            ->where('d.fjurnalmtid', $journalId)
+            ->where('d.fjurnalmtid', $header->fjurnalmtid)
             ->orderBy('d.flineno')
             ->get([
                 'd.flineno',
