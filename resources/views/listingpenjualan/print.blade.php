@@ -141,11 +141,11 @@
             color: #cc0000 !important;
         }
 
-        /* --- JOURNAL DETAIL STYLES (10 Kolom) --- */
+        /* --- JOURNAL DETAIL STYLES (9 Kolom) --- */
         .sales-detail-labels,
         .sales-detail {
             display: grid;
-            grid-template-columns: 25mm 55mm 25mm 25mm 20mm 20mm 16mm 23mm 15mm 28mm;
+            grid-template-columns: 25mm 70mm 25mm 25mm 25mm 16mm 23mm 15mm 28mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -179,13 +179,11 @@
         .sales-header>div:nth-child(10),
         .sales-header>div:nth-child(11),
         .sales-detail-labels>div:nth-child(5),
-        .sales-detail-labels>div:nth-child(6),
-        .sales-detail-labels>div:nth-child(8),
-        .sales-detail-labels>div:nth-child(10),
+        .sales-detail-labels>div:nth-child(7),
+        .sales-detail-labels>div:nth-child(9),
         .sales-detail>div:nth-child(5),
-        .sales-detail>div:nth-child(6),
-        .sales-detail>div:nth-child(8),
-        .sales-detail>div:nth-child(10) {
+        .sales-detail>div:nth-child(7),
+        .sales-detail>div:nth-child(9) {
             text-align: right;
         }
 
@@ -193,10 +191,10 @@
         .sales-header-labels>div:nth-child(4),
         .sales-header>div:nth-child(1),
         .sales-header>div:nth-child(4),
-        .sales-detail-labels>div:nth-child(7),
-        .sales-detail-labels>div:nth-child(9),
-        .sales-detail>div:nth-child(7),
-        .sales-detail>div:nth-child(9) {
+        .sales-detail-labels>div:nth-child(6),
+        .sales-detail-labels>div:nth-child(8),
+        .sales-detail>div:nth-child(6),
+        .sales-detail>div:nth-child(8) {
             text-align: center;
         }
 
@@ -216,8 +214,7 @@
         .sales-detail>div:nth-child(6),
         .sales-detail>div:nth-child(7),
         .sales-detail>div:nth-child(8),
-        .sales-detail>div:nth-child(9),
-        .sales-detail>div:nth-child(10) {
+        .sales-detail>div:nth-child(9) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -573,8 +570,7 @@
                 <div>Nama Barang</div>
                 <div>No. SO</div>
                 <div>No.Ref</div>
-                <div class="text-right">Qty.Kirim</div>
-                <div class="text-right">Qty.Jual</div>
+                <div class="text-right">Qty</div>
                 <div class="text-center">Satuan</div>
                 <div class="text-right">@Harga</div>
                 <div class="text-center">Disc%</div>
@@ -582,22 +578,15 @@
             </div>
         @endif
 
-        @php
-            $returnSectionStarted = false;
-        @endphp
         @foreach ($groupedData as $fsono => $details)
             @php
                 $h = $details->first();
                 $isReturn = ($h->ftrcode ?? '') === 'REJ';
                 $sign = $isReturn ? -1 : 1;
-                $forceNewPage = $isReturn && !$returnSectionStarted;
-                if ($isReturn) {
-                    $returnSectionStarted = true;
-                }
                 $viewUrl = $isReturn ? route('returpenjualan.view', $h->ftranmtid) : route('invoice.view', $h->ftranmtid);
                 $editUrl = $isReturn ? route('returpenjualan.edit', $h->ftranmtid) : route('invoice.edit', $h->ftranmtid);
             @endphp
-            <div class="journal-block {{ $forceNewPage ? 'force-new-page-before' : '' }}">
+            <div class="journal-block">
                 <div class="sales-header">
                     <div class="truncate">{{ $h->fbranchcode }}</div>
                     <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $h->fsono }}">
@@ -621,7 +610,6 @@
                             <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
                             <div class="truncate">{{ $d->frefso ?? '-' }}</div>
                             <div class="truncate">{{ $d->frefsrj ?? '-' }}</div>
-                            <div>{{ number_format((float) $d->fqtyremain, 2, ',', '.') }}</div>
                             <div>{{ number_format((float) $d->fqty, 2, ',', '.') }}</div>
                             <div>{{ $d->fsatuan }}</div>
                             <div>{{ number_format((float) $d->fprice, 2, ',', '.') }}</div>
