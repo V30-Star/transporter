@@ -137,8 +137,10 @@
             color: #000000;
         }
 
-        .text-rej {
-            color: #cc0000 !important;
+        .text-rej,
+        .text-rej div,
+        .text-rej span {
+            color: #ff0000 !important;
         }
 
         /* --- JOURNAL DETAIL STYLES (9 Kolom) --- */
@@ -587,7 +589,7 @@
                 $editUrl = $isReturn ? route('returpenjualan.edit', $h->ftranmtid) : route('invoice.edit', $h->ftranmtid);
             @endphp
             <div class="journal-block">
-                <div class="sales-header">
+                <div class="sales-header {{ $isReturn ? 'text-rej' : '' }}">
                     <div class="truncate">{{ $h->fbranchcode }}</div>
                     <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $h->fsono }}">
                         <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $h->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $h->fsono }}</span>
@@ -605,7 +607,7 @@
 
                 @if ($type == 'detail')
                     @foreach ($details as $d)
-                        <div class="sales-detail">
+                        <div class="sales-detail {{ $isReturn ? 'text-rej' : '' }}">
                             <div class="truncate">{{ $d->fprdcode }}</div>
                             <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
                             <div class="truncate">{{ $d->frefso ?? '-' }}</div>
