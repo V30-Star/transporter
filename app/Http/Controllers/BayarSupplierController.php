@@ -200,14 +200,15 @@ class BayarSupplierController extends Controller
 
     public function store(Request $request)
     {
-        $isGiroMundur = $request->boolean('fgiromundur');
-        $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
+        try {
+            $isGiroMundur = $request->boolean('fgiromundur');
+            $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
 
-        $request->merge([
-            'details' => $this->filterEmptyDetailRows($request->input('details', [])),
-            'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
-            'fgiromundur' => $isGiroMundur ? '1' : '0',
-        ]);
+            $request->merge([
+                'details' => $this->filterEmptyDetailRows($request->input('details', [])),
+                'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
+                'fgiromundur' => $isGiroMundur ? '1' : '0',
+            ]);
 
         $validated = $request->validate([
             'fkasmtno' => ['nullable', 'string', 'max:30', Rule::unique('trkasmt', 'fkasmtno')],
@@ -421,6 +422,21 @@ class BayarSupplierController extends Controller
                 'type' => 'bayarsupplier_create',
                 'redirect_url' => route('bayarsupplier.print', $voucherNo),
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Bayar supplier belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Bayar supplier belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->with('error', 'Bayar supplier belum bisa disimpan: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $fkasmtno)

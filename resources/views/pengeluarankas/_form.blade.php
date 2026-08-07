@@ -103,6 +103,32 @@
             @method($formMethod)
         @endif
 
+        @if (session('error'))
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <h3 class="text-sm font-bold text-red-800">{{ session('error') }}</h3>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if ($errors->any())
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <h3 class="text-sm font-bold text-red-800">Terjadi Kesalahan Validasi</h3>
+                        <ul class="mt-1.5 list-disc list-inside text-xs space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="border border-gray-200 rounded-xl bg-white overflow-hidden">
             <div class="px-6 py-4">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">

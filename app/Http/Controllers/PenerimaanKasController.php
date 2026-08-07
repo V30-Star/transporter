@@ -77,9 +77,10 @@ class PenerimaanKasController extends Controller
 
     public function store(Request $request)
     {
-        $payload = $this->validatePayload($request);
-        $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate']);
-        $savedHeaderId = null;
+        try {
+            $payload = $this->validatePayload($request);
+            $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate']);
+            $savedHeaderId = null;
 
         $header = DB::transaction(function () use ($payload, &$savedHeaderId) {
             $now = now();
@@ -166,6 +167,21 @@ class PenerimaanKasController extends Controller
                 'type' => 'penerimaankas_create',
                 'redirect_url' => route('penerimaankas.print', $header->fkasmtno),
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Penerimaan kas belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Penerimaan kas belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->with('error', 'Penerimaan kas belum bisa disimpan: ' . $e->getMessage());
+        }
     }
 
     public function view($fkasmtno)
