@@ -309,14 +309,27 @@
                             $currentKet = old('fket', session('last_header.fket', ''));
                         @endphp
 
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
-                            <input type="date" id="fsodate" name="fsodate"
-                                value="{{ $currentSodate }}"
-                                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 text-red-600 @else border-gray-300 @enderror">
-                            @error('fsodate')
-                                <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
-                            @enderror
+                        <div class="flex gap-2">
+                            <div class="w-1/2">
+                                <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                <input type="date" id="fsodate" name="fsodate"
+                                    value="{{ $currentSodate }}"
+                                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 text-red-600 @else border-gray-300 @enderror">
+                                @error('fsodate')
+                                    <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="w-1/2">
+                                <label class="block text-xs font-bold mb-1">Type <span class="text-red-500">*</span></label>
+                                <select name="ftypesales" x-model.number="ftypesales" @change="onTypeChanged()"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypesales') border-red-500 text-red-600 @enderror">
+                                    <option value="0" {{ old('ftypesales', session('last_header.ftypesales', 0)) == 0 ? 'selected' : '' }}>Penjualan</option>
+                                    <option value="1" {{ old('ftypesales', session('last_header.ftypesales', 0)) == 1 ? 'selected' : '' }}>Uang Muka</option>
+                                </select>
+                                @error('ftypesales')
+                                    <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
                         {{-- Customer --}}
@@ -2037,7 +2050,25 @@
 
             totalHarga: 0,
             ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
-            ftypesales: 0,
+            ftypesales: @json((int) old('ftypesales', session('last_header.ftypesales', 0))),
+
+            onTypeChanged() {
+                const isUM = this.ftypesales !== 0;
+                if (isUM) {
+                    const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    if (invalidItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    }
+                } else {
+                    const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    if (umItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    }
+                }
+                this.recalcTotals();
+            },
 
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),

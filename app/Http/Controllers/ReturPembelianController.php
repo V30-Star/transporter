@@ -767,11 +767,30 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
+            $typeBuy = (int) $request->input('ftypebuy', 0);
+
             // BUILD DETAIL ROWS
+            $hasUM = collect($codes)->map(fn($c) => strtoupper(trim((string) $c)))->contains('UM');
             $hasNonUM = collect($codes)
                 ->map(fn($c) => strtoupper(trim((string) $c)))
                 ->filter(fn($c) => $c !== '' && $c !== 'UM')
                 ->isNotEmpty();
+
+            if ($typeBuy === 0 && $hasUM) {
+                $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
+            }
+
+            if ($typeBuy !== 0 && $hasNonUM) {
+                $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
+            }
 
             $rowsDt = [];
             $usedNoAcaks = [];
@@ -955,6 +974,7 @@ class ReturPembelianController extends Controller
                     'fbranchcode' => $kodeCabang,
                     'fdiscount' => 0,
                     'fincludeppn' => $fincludeppn,
+                    'ftypebuy' => $typeBuy,
                     'fppnpersen' => $fppnpersen,
                     'famountpajak' => round($ppnAmount, 2),
                     'famountpajak_rp' => round($ppnAmount, 2),
@@ -1555,6 +1575,7 @@ class ReturPembelianController extends Controller
                     'fbranchcode' => $kodeCabang,
                     'fdiscount' => 0,
                     'fincludeppn' => $fincludeppn,
+                    'ftypebuy' => $typeBuy,
                     'fppnpersen' => $fppnpersen,
                     'famountpajak' => round($ppnAmount, 2),
                     'famountpajak_rp' => round($ppnAmount, 2),
@@ -2060,12 +2081,17 @@ class ReturPembelianController extends Controller
 
         // --- Lookup accounts from set_account table ---
         $setAccounts = DB::table('set_account')
-            ->whereIn('faccount_name', ['RETBELIBLMPOTHUTANG', 'PPNBELI', 'RETURPEMBELIAN'])
+            ->whereIn('faccount_name', ['RETBELIBLMPOTHUTANG', 'PPNBELI', 'RETURPEMBELIAN', 'RETURUANGMUKA', 'UANGMUKAPEMBELIAN'])
             ->pluck('faccount', 'faccount_name');
 
         $accountHutang      = $setAccounts->get('RETBELIBLMPOTHUTANG');
         $accountPPNBeli     = $setAccounts->get('PPNBELI');
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN');
+        $accountReturnUM    = $setAccounts->get('RETURUANGMUKA') ?: $setAccounts->get('UANGMUKAPEMBELIAN');
+
+        $isUangMuka = (int) ($returPembelian->ftypebuy ?? 0) !== 0;
+        $targetKreditAccount = $isUangMuka ? ($accountReturnUM ?: $accountPersediaan) : $accountPersediaan;
+        $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Kurangi Persediaan Barang';
 
         $fjurnaltype  = 'REB';
         $hasPpn = (string) ($returPembelian->fapplyppn ?? '0') === '1' || (string) ($returPembelian->fincludeppn ?? '0') === '1';
@@ -2124,21 +2150,21 @@ class ReturPembelianController extends Controller
                 'fusercreate'  => $userid,
                 'fdatetime'    => $now,
             ],
-            // Line 2 or 3: Kredit – Kurangi Persediaan Barang (from set_account: Purchase Returns)
+            // Line 2 or 3: Kredit – Kurangi Persediaan Barang / Retur Uang Muka (from set_account)
             [
                 'fjurnalmtid'  => $jurnalId,
                 'fbranchcode'  => $kodeCabang,
                 'fjurnaltype'  => $fjurnaltype,
                 'fjurnalno'    => $fjurnalno,
                 'flineno'      => ($ppnAmount > 0 ? 3 : 2),
-                'faccount'     => (string) $accountPersediaan,
+                'faccount'     => (string) $targetKreditAccount,
                 'fdk'          => 'K',
                 'fsubaccount'  => $fsupplier,
                 'frefno'       => $fstockmtno,
                 'frate'        => 1.0,
                 'famount'      => round($subtotal, 2),
                 'famount_rp'   => round($subtotal, 2),
-                'faccountnote' => 'Kurangi Persediaan Barang',
+                'faccountnote' => $accountNote,
                 'fusercreate'  => $userid,
                 'fdatetime'    => $now,
             ],

@@ -298,18 +298,34 @@
                                     @enderror
                                 </div>
 
-                                {{-- Tanggal --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
-                                    <input type="date" id="fstockmtdate" name="fstockmtdate"
-                                        value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                        class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-500 text-red-600 @else border-gray-300 @enderror">
-                                    @error('fstockmtdate')
-                                        <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
-                                            <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
-                                            {{ $message }}
-                                        </p>
-                                    @enderror
+                                {{-- Tanggal & Type --}}
+                                <div class="flex gap-2">
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                        <input type="date" id="fstockmtdate" name="fstockmtdate"
+                                            value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-500 text-red-600 @else border-gray-300 @enderror">
+                                        @error('fstockmtdate')
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-bold mb-1">Type <span class="text-red-500">*</span></label>
+                                        <select name="ftypebuy" x-model.number="ftypebuy" @change="onTypeChanged()"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypebuy') border-red-500 text-red-600 @enderror">
+                                            <option value="0" {{ old('ftypebuy', 0) == 0 ? 'selected' : '' }}>Pembelian</option>
+                                            <option value="1" {{ old('ftypebuy', 0) == 1 ? 'selected' : '' }}>Uang Muka</option>
+                                        </select>
+                                        @error('ftypebuy')
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                                                <x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" />
+                                                {{ $message }}
+                                            </p>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
 
@@ -1055,6 +1071,25 @@
             minimumDraftRows: 5,
             editingIndex: null,
             editRow: newRow(),
+            ftypebuy: @json((int) old('ftypebuy', 0)),
+
+            onTypeChanged() {
+                const isUM = this.ftypebuy !== 0;
+                if (isUM) {
+                    const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    if (invalidItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    }
+                } else {
+                    const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    if (umItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Pembelian tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    }
+                }
+                this.recalcTotals();
+            },
 
             totalHarga: 0,
             ppnRate: @json((float) ($defaultPpnTarif ?? 11)),

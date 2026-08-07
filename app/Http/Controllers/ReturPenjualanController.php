@@ -1107,6 +1107,22 @@ class ReturPenjualanController extends Controller
             ->filter(fn($c) => $c !== '' && $c !== 'UM')
             ->isNotEmpty();
 
+        if ($typeSales === 0 && $hasUM) {
+            $msg = 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        if ($typeSales !== 0 && $hasNonUM) {
+            $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
         // QUERY PRODUK
         $filteredCodes = array_values(array_filter($itemCodes));
 
@@ -2353,6 +2369,28 @@ class ReturPenjualanController extends Controller
                 ?: ($header->frefcode ?? '');
         }
 
+        $hasUM = in_array('UM', $itemCodes);
+        $hasNonUM = collect($itemCodes)
+            ->map(fn($c) => strtoupper(trim((string) $c)))
+            ->filter(fn($c) => $c !== '' && $c !== 'UM')
+            ->isNotEmpty();
+
+        if ($typeSales === 0 && $hasUM) {
+            $msg = 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        if ($typeSales !== 0 && $hasNonUM) {
+            $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
             ->get([
@@ -3346,12 +3384,17 @@ class ReturPenjualanController extends Controller
 
         // --- Lookup accounts from set_account table ---
         $setAccounts = DB::table('set_account')
-            ->whereIn('faccount_name', ['RETURPENJUALAN', 'PPNJUAL', 'RETJUALBLMPOTPIUTANG'])
+            ->whereIn('faccount_name', ['RETURPENJUALAN', 'PPNJUAL', 'RETJUALBLMPOTPIUTANG', 'RETURUANGMUKA', 'UANGMUKAPENJUALAN'])
             ->pluck('faccount', 'faccount_name');
 
         $accountReturnSales           = $setAccounts->get('RETURPENJUALAN');
+        $accountReturnUM              = $setAccounts->get('RETURUANGMUKA') ?: $setAccounts->get('UANGMUKAPENJUALAN');
         $accountPPNSales              = $setAccounts->get('PPNJUAL');
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG');
+
+        $isUangMuka = (int) ($returPenjualan->ftypesales ?? 0) !== 0;
+        $targetDebitAccount = $isUangMuka ? ($accountReturnUM ?: $accountReturnSales) : $accountReturnSales;
+        $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Retur Penjualan';
 
         $fjurnaltype = 'REJ';
         $hasPpn = (string) ($returPenjualan->fapplyppn ?? '0') === '1' || (string) ($returPenjualan->fincludeppn ?? '0') === '1';
@@ -3391,7 +3434,7 @@ class ReturPenjualanController extends Controller
             'fuserid'     => $userid,
         ], 'fjurnalmtid');
 
-        // Line 1: Debit – Retur Penjualan (net price before tax, from set_account: ReturnSales)
+        // Line 1: Debit – Retur Penjualan / Retur Uang Muka (net price before tax, from set_account)
         $jurnalDt = [
             [
                 'fjurnalmtid'  => $jurnalId,
@@ -3399,14 +3442,14 @@ class ReturPenjualanController extends Controller
                 'fjurnaltype'  => $fjurnaltype,
                 'fjurnalno'    => $fjurnalno,
                 'flineno'      => 1,
-                'faccount'     => (string) $accountReturnSales,
+                'faccount'     => (string) $targetDebitAccount,
                 'fdk'          => 'D',
                 'fsubaccount'  => $fcustno,
                 'frefno'       => $fsono,
                 'frate'        => 1.0,
                 'famount'      => round($subtotal, 2),
                 'famount_rp'   => round($subtotal, 2),
-                'faccountnote' => 'Retur Penjualan',
+                'faccountnote' => $accountNote,
                 'fusercreate'  => $userid,
                 'fdatetime'    => $now,
             ],

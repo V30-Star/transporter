@@ -25,8 +25,9 @@
         .section-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
         .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #6b7280; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
         .field-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
-        .field-input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 13px; background: #fff; color: #111827; }
-        .field-input:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+        .field-input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 13px; background: #fff; color: #000; }
+        .field-input:disabled,
+        .field-input[readonly] { background: #f3f4f6; color: #000; cursor: not-allowed; opacity: 1; }
         .field-input.blue   { background: #eff6ff; border-color: #93c5fd; }
         .field-input.yellow { background: #fefce8; border-color: #fde047; }
         .field-input.purple { background: #faf5ff; border-color: #d8b4fe; }
@@ -43,7 +44,11 @@
         .hj-table th:first-child { text-align: left; }
         .hj-table td { border: 1px solid #e5e7eb; padding: 6px 8px; }
         .hj-table td.row-label { font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap; background: #f9fafb; }
-        .hj-table input { width: 100%; border: 1px solid #d1d5db; border-radius: 4px; padding: 5px 8px; font-size: 13px; text-align: right; }
+        .hj-table input { width: 100%; border: 1px solid #d1d5db; border-radius: 4px; padding: 5px 8px; font-size: 13px; text-align: right; color: #000; }
+        .hj-table input:disabled { color: #000; opacity: 1; }
+        input:disabled,
+        select:disabled,
+        textarea:disabled { color: #000; opacity: 1; }
         .hj-table input.blue   { background: #eff6ff; border-color: #93c5fd; }
         .hj-table input.yellow { background: #fefce8; }
         .hj-table input.purple { background: #faf5ff; border-color: #d8b4fe; }
