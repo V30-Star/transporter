@@ -39,6 +39,12 @@ class JurnalTransaksiController extends Controller
         'RETJUALBLMPOTPIUTANG',
         'RETBELIBLMPOTHUTANG',
     ];
+    private const REFERENCE_SOURCE_ACCOUNT_NAMES = [
+        'purchase' => ['HUTANGDAGANG'],
+        'sales' => ['PIUTANGDAGANG'],
+        'sales_return' => ['RETJUALBLMPOTPIUTANG'],
+        'purchase_return' => ['RETBELIBLMPOTHUTANG'],
+    ];
 
     private function normalizeDecimal($value, int $scale = 2): float
     {
@@ -89,6 +95,81 @@ class JurnalTransaksiController extends Controller
             ->filter(fn ($value) => $value !== '')
             ->values()
             ->all();
+    }
+
+    private function resolveReferenceSourceAccountCodes(): array
+    {
+        $rows = DB::table('set_account')
+            ->whereIn('faccount_name', collect(self::REFERENCE_SOURCE_ACCOUNT_NAMES)->flatten()->all())
+            ->get(['faccount_name', 'faccount']);
+
+        return collect(self::REFERENCE_SOURCE_ACCOUNT_NAMES)->mapWithKeys(function ($names, $source) use ($rows) {
+            $codes = $rows
+                ->whereIn('faccount_name', $names)
+                ->pluck('faccount')
+                ->filter()
+                ->map(fn ($value) => strtoupper(trim((string) $value)))
+                ->filter(fn ($value) => $value !== '')
+                ->values()
+                ->all();
+
+            return [$source => $codes];
+        })->all();
+    }
+
+    public function referenceBrowse(Request $request)
+    {
+        $source = trim((string) $request->input('source', ''));
+        $search = trim((string) $request->input('search', ''));
+        $limit = min(max((int) $request->input('limit', 20), 1), 50);
+
+        if (! in_array($source, ['purchase', 'sales', 'sales_return', 'purchase_return'], true)) {
+            return response()->json(['data' => []]);
+        }
+
+        if (in_array($source, ['purchase', 'purchase_return'], true)) {
+            $query = DB::table('trstockmt as m')
+                ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'm.fsupplier')
+                ->where('m.fstockmtcode', $source === 'purchase' ? 'BUY' : 'REB')
+                ->whereRaw('ABS(COALESCE(m.famountremain, 0)) > 0')
+                ->selectRaw("m.fstockmtno AS ref_no, m.fstockmtdate AS ref_date, m.fsupplier AS party_code, COALESCE(s.fsuppliername, m.fsupplier) AS party_name, m.famountremain AS amount_remain");
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('m.fstockmtno', 'ilike', "%{$search}%")
+                        ->orWhere('m.fsupplier', 'ilike', "%{$search}%")
+                        ->orWhere('s.fsuppliername', 'ilike', "%{$search}%");
+                });
+            }
+
+            $rows = $query->orderByDesc('m.fstockmtdate')->orderBy('m.fstockmtno')->limit($limit)->get();
+        } else {
+            $query = DB::table('tranmt as m')
+                ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'm.fcustno')
+                ->where('m.ftrcode', $source === 'sales' ? 'INV' : 'REJ')
+                ->whereRaw('ABS(COALESCE(m.famountremain, 0)) > 0')
+                ->selectRaw("m.fsono AS ref_no, m.fsodate AS ref_date, m.fcustno AS party_code, COALESCE(c.fcustomername, m.fcustno) AS party_name, m.famountremain AS amount_remain");
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('m.fsono', 'ilike', "%{$search}%")
+                        ->orWhere('m.fcustno', 'ilike', "%{$search}%")
+                        ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
+                });
+            }
+
+            $rows = $query->orderByDesc('m.fsodate')->orderBy('m.fsono')->limit($limit)->get();
+        }
+
+        return response()->json([
+            'data' => $rows->map(fn ($row) => [
+                'ref_no' => trim((string) ($row->ref_no ?? '')),
+                'ref_date' => ! empty($row->ref_date) ? Carbon::parse($row->ref_date)->format('Y-m-d') : '',
+                'party_code' => trim((string) ($row->party_code ?? '')),
+                'party_name' => trim((string) ($row->party_name ?? '')),
+                'amount_remain' => (float) ($row->amount_remain ?? 0),
+            ])->values(),
+        ]);
     }
 
     private function resolveJournalPageMeta(?string $journalType = null): array
@@ -551,6 +632,7 @@ class JurnalTransaksiController extends Controller
             ->get();
 
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+        $referenceSourceAccountCodes = $this->resolveReferenceSourceAccountCodes();
 
         $journalTypes = $this->getJournalTypes();
 
@@ -563,6 +645,7 @@ class JurnalTransaksiController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
+            'referenceSourceAccountCodes' => $referenceSourceAccountCodes,
             'pageTitle' => $pageMeta['pageTitle'],
             'fixedJournalType' => $fixedJournalType,
             'journalType' => $pageMeta['journalType'],
@@ -753,6 +836,17 @@ class JurnalTransaksiController extends Controller
 
         // ── Validasi balance debit = kredit ──
         if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
+        if ($validationMessage = $this->validateJournalReferenceSources($rowsDt)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $validationMessage
@@ -958,6 +1052,7 @@ class JurnalTransaksiController extends Controller
         })->toArray();
 
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+        $referenceSourceAccountCodes = $this->resolveReferenceSourceAccountCodes();
         $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
 
         $journalTypes = $this->getJournalTypes();
@@ -976,6 +1071,7 @@ class JurnalTransaksiController extends Controller
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
             'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
+            'referenceSourceAccountCodes' => $referenceSourceAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
@@ -1216,6 +1312,17 @@ class JurnalTransaksiController extends Controller
         }
 
         if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt, $header->fjurnalno)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
+        if ($validationMessage = $this->validateJournalReferenceSources($rowsDt)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $validationMessage
@@ -1596,6 +1703,47 @@ class JurnalTransaksiController extends Controller
 
             if ($existing) {
                 return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
+            }
+        }
+
+        return null;
+    }
+
+    private function validateJournalReferenceSources(array $rowsDt): ?string
+    {
+        $sourceCodes = $this->resolveReferenceSourceAccountCodes();
+        $accountSources = [];
+        foreach ($sourceCodes as $source => $codes) {
+            foreach ($codes as $code) {
+                $accountSources[strtoupper(trim((string) $code))] = $source;
+            }
+        }
+
+        foreach ($rowsDt as $index => $row) {
+            $account = strtoupper(trim((string) ($row['faccount'] ?? '')));
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            if ($account === '' || $refNo === '' || ! isset($accountSources[$account])) {
+                continue;
+            }
+
+            $source = $accountSources[$account];
+            $exists = match ($source) {
+                'purchase' => DB::table('trstockmt')->where('fstockmtcode', 'BUY')->whereRaw('TRIM(fstockmtno) = ?', [$refNo])->exists(),
+                'purchase_return' => DB::table('trstockmt')->where('fstockmtcode', 'REB')->whereRaw('TRIM(fstockmtno) = ?', [$refNo])->exists(),
+                'sales' => DB::table('tranmt')->where('ftrcode', 'INV')->whereRaw('TRIM(fsono) = ?', [$refNo])->exists(),
+                'sales_return' => DB::table('tranmt')->where('ftrcode', 'REJ')->whereRaw('TRIM(fsono) = ?', [$refNo])->exists(),
+                default => false,
+            };
+
+            if (! $exists) {
+                $label = [
+                    'purchase' => 'pembelian',
+                    'sales' => 'penjualan',
+                    'sales_return' => 'retur penjualan',
+                    'purchase_return' => 'retur pembelian',
+                ][$source] ?? 'referensi';
+
+                return 'Ref No baris ' . ($index + 1) . ' harus berasal dari browse ' . $label . '.';
             }
         }
 

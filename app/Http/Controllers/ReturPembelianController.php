@@ -266,6 +266,55 @@ class ReturPembelianController extends Controller
         ));
     }
 
+    private function getSupplierAdvanceWarningMap(): array
+    {
+        $documentsBySupplier = DB::table('trsisadp_pembelian')
+            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
+            ->addSelect(['fstockmtno', 'fstockmtdate', 'fsisadp', 'fsisadp_rp'])
+            ->where(function ($query) {
+                $query->where('fsisadp', '>', 0)
+                    ->orWhere('fsisadp_rp', '>', 0);
+            })
+            ->orderBy('fstockmtdate')
+            ->orderBy('fstockmtno')
+            ->get()
+            ->map(fn ($doc) => [
+                'fsupplier'    => trim((string) ($doc->fsupplier ?? '')),
+                'fstockmtno'   => trim((string) ($doc->fstockmtno ?? '')),
+                'fstockmtdate' => $doc->fstockmtdate,
+                'fsisadp'      => (float) ($doc->fsisadp ?? 0),
+                'fsisadp_rp'   => (float) ($doc->fsisadp_rp ?? 0),
+            ])
+            ->filter(fn ($doc) => $doc['fsupplier'] !== '' && $doc['fstockmtno'] !== '')
+            ->groupBy('fsupplier');
+
+        return DB::table('trsisadp_pembelian')
+            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
+            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
+            ->selectRaw('SUM(COALESCE(fsisadp_rp, 0)) as total_remain_rp')
+            ->where(function ($query) {
+                $query->where('fsisadp', '>', 0)
+                    ->orWhere('fsisadp_rp', '>', 0);
+            })
+            ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
+            ->get()
+            ->filter(fn($row) => trim((string) ($row->fsupplier ?? '')) !== '')
+            ->mapWithKeys(function ($row) use ($documentsBySupplier) {
+                $supplierCode = trim((string) ($row->fsupplier ?? ''));
+                $remainRp = (float) ($row->total_remain_rp ?? 0);
+
+                return [
+                    $supplierCode => [
+                        'message' => $remainRp > 0
+                            ? 'Supplier ini memiliki Uang Muka (UM) sebesar ' . number_format($remainRp, 2, ',', '.') . '.'
+                            : 'Supplier ini memiliki Uang Muka (UM).',
+                        'documents' => $documentsBySupplier->get($supplierCode, collect())->values()->all(),
+                    ],
+                ];
+            })
+            ->all();
+    }
+
     public function pickable(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
@@ -587,6 +636,7 @@ class ReturPembelianController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'supplierAdvanceWarnings' => $this->getSupplierAdvanceWarningMap(),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
@@ -1083,6 +1133,7 @@ class ReturPembelianController extends Controller
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
             'products' => $products,
+            'supplierAdvanceWarnings' => $this->getSupplierAdvanceWarningMap(),
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
@@ -1996,7 +2047,7 @@ class ReturPembelianController extends Controller
         $accountPPNBeli     = $setAccounts->get('PPNBELI');
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN');
 
-        $fjurnaltype  = 'JRB';
+        $fjurnaltype  = 'REB';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {

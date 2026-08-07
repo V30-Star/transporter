@@ -28,6 +28,8 @@
             accounts: @js($accounts),
             subaccounts: @js($subaccounts),
             referenceAllowedAccountCodes: @js($referenceAllowedAccountCodes ?? []),
+            referenceSourceAccountCodes: @js($referenceSourceAccountCodes ?? []),
+            referenceBrowseUrl: @js(route('jurnaltransaksi.reference-browse')),
             deleteUrl: @js(route('jurnaltransaksi.destroy', $jurnaltransaksi->fjurnalmtid)),
             indexUrl: @js($indexUrl ?? route('jurnaltransaksi.index')),
             csrfToken: @js(csrf_token()),
@@ -310,11 +312,18 @@
                                             </select>
                                         </td>
                                         <td class="p-2">
-                                            <input type="text" x-model="item.frefno"
-                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                :disabled="!isRefAllowed(item.faccount)"
-                                                :class="!isRefAllowed(item.faccount) ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'"
-                                                placeholder="No Ref">
+                                            <div class="flex">
+                                                <input type="text" x-model="item.frefno"
+                                                    class="w-full border rounded-l px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                    :disabled="!isRefAllowed(item.faccount)"
+                                                    :class="!isRefAllowed(item.faccount) ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'"
+                                                    placeholder="No Ref">
+                                                <button type="button" @click="openReferenceBrowse(index)"
+                                                    class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    :disabled="!referenceSource(item.faccount)"
+                                                    :class="!referenceSource(item.faccount) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                    title="Cari referensi">...</button>
+                                            </div>
                                         </td>
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
@@ -332,7 +341,7 @@
                                             <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 inputmode="decimal"
                                                 x-model="item.famountInput" @blur="normalizeAmount(item)"
-                                                @input="recalcTotals()">
+                                                @input="syncAmount(item)">
                                         </td>
                                         <td class="p-2 text-center text-xs">
                                             <button type="button" @click="removeRow(index)"
@@ -413,6 +422,44 @@
                 @method('DELETE')
             </form>
         @endif
+        <div x-show="referenceModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-4xl rounded-xl bg-white shadow-xl" @click.outside="referenceModalOpen=false">
+                <div class="flex items-center justify-between border-b px-4 py-3">
+                    <h3 class="font-semibold" x-text="referenceModalTitle"></h3>
+                    <button type="button" class="text-gray-500 hover:text-gray-700" @click="referenceModalOpen=false">&times;</button>
+                </div>
+                <div class="p-4">
+                    <input type="text" x-model="referenceSearch" @input.debounce.300ms="loadReferences()" class="mb-3 w-full rounded border px-3 py-2 text-sm" placeholder="Cari nomor / kode / nama">
+                    <div class="max-h-96 overflow-auto border rounded">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-2 text-left">No Ref</th>
+                                    <th class="p-2 text-left">Tanggal</th>
+                                    <th class="p-2 text-left">Kode</th>
+                                    <th class="p-2 text-left">Nama</th>
+                                    <th class="p-2 text-right">Sisa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="ref in referenceRows" :key="ref.ref_no">
+                                    <tr class="cursor-pointer border-t hover:bg-blue-50" @click="pickReference(ref)">
+                                        <td class="p-2 font-mono" x-text="ref.ref_no"></td>
+                                        <td class="p-2" x-text="ref.ref_date"></td>
+                                        <td class="p-2" x-text="ref.party_code"></td>
+                                        <td class="p-2" x-text="ref.party_name"></td>
+                                        <td class="p-2 text-right" x-text="fmt(Math.abs(Number(ref.amount_remain || 0)))"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="referenceRows.length === 0">
+                                    <td colspan="5" class="p-4 text-center text-gray-500">Data tidak ditemukan.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -443,10 +490,18 @@
                 accounts: config.accounts || [],
                 subaccounts: config.subaccounts || [],
                 referenceAllowedAccountCodes: (config.referenceAllowedAccountCodes || []).map((code) => String(code).trim().toUpperCase()),
+                referenceSourceAccountCodes: config.referenceSourceAccountCodes || {},
+                referenceBrowseUrl: config.referenceBrowseUrl || '',
                 deleteUrl: config.deleteUrl || '',
                 indexUrl: config.indexUrl || '',
                 csrfToken: config.csrfToken || '',
                 browseIndex: null,
+                referenceModalOpen: false,
+                referenceModalTitle: 'Pilih Referensi',
+                referenceRows: [],
+                referenceSearch: '',
+                referenceRowIndex: null,
+                referenceSourceKey: '',
 
                 totalDebit: 0,
                 totalKredit: 0,
@@ -491,6 +546,11 @@
                     this.recalcTotals();
                 },
 
+                syncAmount(item) {
+                    item.famount = Number(this.parseDecimal(item.famountInput).toFixed(2));
+                    this.recalcTotals();
+                },
+
                 updateAccount(item, faccid, accName, accCode) {
                     const accObj = this.accounts.find(a => String(a.faccid) === String(faccid));
                     Object.assign(item, {
@@ -507,6 +567,53 @@
 
                 isRefAllowed(accountCode) {
                     return this.referenceAllowedAccountCodes.includes(String(accountCode ?? '').trim().toUpperCase());
+                },
+
+                referenceSource(accountCode) {
+                    const code = String(accountCode ?? '').trim().toUpperCase();
+                    if (!code) return '';
+                    return Object.entries(this.referenceSourceAccountCodes).find(([, codes]) => {
+                        return (codes || []).map(value => String(value).trim().toUpperCase()).includes(code);
+                    })?.[0] || '';
+                },
+
+                referenceSourceTitle(source) {
+                    return {
+                        purchase: 'Browse Pembelian',
+                        sales: 'Browse Penjualan',
+                        sales_return: 'Browse Retur Penjualan',
+                        purchase_return: 'Browse Retur Pembelian',
+                    }[source] || 'Pilih Referensi';
+                },
+
+                openReferenceBrowse(index) {
+                    const item = this.items[index];
+                    const source = this.referenceSource(item?.faccount);
+                    if (!source) return;
+                    this.referenceRowIndex = index;
+                    this.referenceSourceKey = source;
+                    this.referenceModalTitle = this.referenceSourceTitle(source);
+                    this.referenceSearch = '';
+                    this.referenceRows = [];
+                    this.referenceModalOpen = true;
+                    this.loadReferences();
+                },
+
+                loadReferences() {
+                    if (!this.referenceBrowseUrl || !this.referenceSourceKey) return;
+                    const url = new URL(this.referenceBrowseUrl, window.location.origin);
+                    url.searchParams.set('source', this.referenceSourceKey);
+                    url.searchParams.set('search', this.referenceSearch || '');
+                    fetch(url, { headers: { 'Accept': 'application/json' } })
+                        .then(response => response.json())
+                        .then(payload => { this.referenceRows = payload.data || []; })
+                        .catch(() => { this.referenceRows = []; });
+                },
+
+                pickReference(ref) {
+                    if (this.referenceRowIndex === null || !this.items[this.referenceRowIndex]) return;
+                    this.items[this.referenceRowIndex].frefno = ref.ref_no || '';
+                    this.referenceModalOpen = false;
                 },
 
                 syncAccountFromCode(item) {
@@ -528,8 +635,8 @@
 
                 recalcTotals() {
                     const validItems = this.items.filter(it => it.faccount && Number(it.famount) > 0);
-                    this.totalDebit = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
-                    this.totalKredit = validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    this.totalDebit = Number(validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0).toFixed(2));
+                    this.totalKredit = Number(validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0).toFixed(2));
                 },
 
                 getBalanceSuggestion(targetType, rowIndex) {
@@ -550,6 +657,7 @@
                     if (!(suggested > 0)) return;
                     item.famount = suggested;
                     item.famountInput = this.formatDecimalInput(suggested);
+                    this.recalcTotals();
                 },
 
                 removeRow(index) {

@@ -439,6 +439,7 @@
                                             <th class="p-2 text-left w-36">Kode Produk</th>
                                             <th class="p-2 text-left w-96">Nama Produk</th>
                                             <th class="p-2 text-left w-20">Satuan</th>
+                                            <th class="p-2 text-left w-28">No.Ref</th>
                                             <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
                                             <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
@@ -467,6 +468,9 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="it.frefdtno || '-'"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
@@ -498,6 +502,7 @@
                                                     <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 </td>
                                             </tr>
                                         </template>
@@ -548,6 +553,20 @@
                                                 </template>
                                                 <template x-if="editRow.units.length <= 1">
                                                     <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="editRow.fsatuan || '-'"></div>
+                                                </template>
+                                            </td>
+
+                                            {{-- No.Ref --}}
+                                            <td class="p-2">
+                                                <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() === 'UM'">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                        :value="editRow.frefdtno || ''"
+                                                        @input="editRow.frefdtno = $event.target.value;"
+                                                        placeholder="No Ref UM">
+                                                </template>
+                                                <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() !== 'UM'">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="editRow.frefdtno || '-'"></div>
                                                 </template>
                                             </td>
 
@@ -627,7 +646,21 @@
                                                         </select>
                                                     </template>
                                                     <template x-if="dr.units.length <= 1">
-                                                        <div class="px-2 py-1 text-sm text-gray-605 bg-gray-55 border rounded" x-text="dr.fsatuan || '-'"></div>
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="dr.fsatuan || '-'"></div>
+                                                    </template>
+                                                </td>
+
+                                                {{-- No.Ref --}}
+                                                <td class="p-2">
+                                                    <template x-if="String(dr.fitemcode || '').toUpperCase().trim() === 'UM'">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                            :value="dr.frefdtno || ''"
+                                                            @input="dr.frefdtno = $event.target.value;"
+                                                            placeholder="No Ref UM">
+                                                    </template>
+                                                    <template x-if="String(dr.fitemcode || '').toUpperCase().trim() !== 'UM'">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="dr.frefdtno || '-'"></div>
                                                     </template>
                                                 </td>
 
@@ -965,6 +998,7 @@
             },
         @endforeach
     };
+    window.RB_SUPPLIER_ADVANCE_WARNINGS = @json($supplierAdvanceWarnings ?? []);
 
     // id unik
     window.cryptoRandom = function() {
@@ -1148,6 +1182,22 @@
                 }
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
+                this.applyOutstandingDpRef(row);
+            },
+
+            applyOutstandingDpRef(row) {
+                const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
+                if (productCode !== 'UM') return;
+
+                const sel = document.getElementById('modal_filter_supplier_id') || document.querySelector('select[name="fsupplier"]');
+                const supplierCode = (sel ? sel.value : '').toString().trim();
+                if (!supplierCode) return;
+
+                const documents = window.RB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
+                const doc = documents.find(item => (Number(item.fsisadp || 0) > 0 || Number(item.fsisadp_rp || 0) > 0) && String(item.fstockmtno || '').trim() !== '');
+                if (!doc) return;
+
+                row.frefdtno = doc.fstockmtno;
             },
 
             onCodeTypedRow(row) {

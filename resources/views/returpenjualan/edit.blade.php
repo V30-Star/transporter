@@ -1136,20 +1136,30 @@
                                                     </td>
                                                     <td class="p-2">
                                                         <template x-if="action === 'view'">
-                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefsrj || it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                         </template>
                                                         <template x-if="action !== 'view'">
-                                                            <div class="flex w-full max-w-full">
-                                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                    x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
-                                                                <button type="button" @click="openProductHistory(it)"
-                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                                    :disabled="!canOpenHistory(it)"
-                                                                    :class="!canOpenHistory(it) ?
-                                                                        'opacity-50 cursor-not-allowed' : ''"
-                                                                    title="Riwayat produk">
-                                                                    <x-heroicon-o-clock class="w-4 h-4" />
-                                                                </button>
+                                                            <div>
+                                                                <template x-if="String(it.fitemcode || '').toUpperCase().trim() === 'UM'">
+                                                                    <input type="text"
+                                                                        class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                                        :value="it.frefsrj || ''"
+                                                                        @input="it.frefsrj = $event.target.value;"
+                                                                        placeholder="No Ref UM">
+                                                                </template>
+                                                                <template x-if="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'">
+                                                                    <div class="flex w-full max-w-full">
+                                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                                        <button type="button" @click="openProductHistory(it)"
+                                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                            :disabled="!canOpenHistory(it)"
+                                                                            :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                                            title="Riwayat produk">
+                                                                            <x-heroicon-o-clock class="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </template>
                                                             </div>
                                                         </template>
                                                     </td>
@@ -2424,6 +2434,7 @@
     // Map produk untuk auto-fill tabel
     // Standardized Product Map initialization
     window.PRODUCT_MAP = @json($productMap ?? []);
+    window.RP_CUSTOMER_ADVANCE_WARNINGS = @json($customerAdvanceWarnings ?? []);
 
     // id unik
     window.cryptoRandom = function() {
@@ -3254,7 +3265,22 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
+                this.applyOutstandingDpRef(row);
+            },
 
+            applyOutstandingDpRef(row) {
+                const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
+                if (productCode !== 'UM') return;
+
+                const sel = document.getElementById('modal_filter_customer_id') || document.getElementById('customerCodeHidden');
+                const customerCode = (sel ? sel.value : '').toString().trim();
+                if (!customerCode) return;
+
+                const documents = window.RP_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
+                const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
+                if (!doc) return;
+
+                row.frefsrj = doc.fsono;
             },
 
             rowHasContent(row) {

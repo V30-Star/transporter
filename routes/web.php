@@ -237,6 +237,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnaltransaksi', [JurnalTransaksiController::class, 'index'])->name('jurnaltransaksi.index');
         Route::post('/jurnaltransaksi', [JurnalTransaksiController::class, 'store'])->name('jurnaltransaksi.store');
         Route::get('/jurnaltransaksi/create', [JurnalTransaksiController::class, 'create'])->name('jurnaltransaksi.create');
+        Route::get('/jurnaltransaksi/reference-browse', [JurnalTransaksiController::class, 'referenceBrowse'])->name('jurnaltransaksi.reference-browse');
         Route::get('/jurnaltransaksi/{fcurrid}/view', [JurnalTransaksiController::class, 'view'])->name('jurnaltransaksi.view');
         Route::get('/jurnaltransaksi/{fcurrid}/edit', [JurnalTransaksiController::class, 'edit'])->name('jurnaltransaksi.edit');
         Route::get('/jurnaltransaksi/{fcurrid}/delete', [JurnalTransaksiController::class, 'delete'])->name('jurnaltransaksi.delete');

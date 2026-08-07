@@ -765,6 +765,47 @@ class ReturPenjualanController extends Controller
         ];
     }
 
+    private function getCustomerAdvanceWarningMap(): array
+    {
+        $documentsByCustomer = DB::table('trsisadp_penjualan')
+            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
+            ->addSelect(['fsono', 'fsodate', 'fsisadp'])
+            ->where('fsisadp', '>', 0)
+            ->orderBy('fsodate')
+            ->orderBy('fsono')
+            ->get()
+            ->map(fn ($doc) => [
+                'fcustno' => trim((string) ($doc->fcustno ?? '')),
+                'fsono'   => trim((string) ($doc->fsono ?? '')),
+                'fsodate' => $doc->fsodate,
+                'fsisadp' => (float) ($doc->fsisadp ?? 0),
+            ])
+            ->filter(fn ($doc) => $doc['fcustno'] !== '' && $doc['fsono'] !== '')
+            ->groupBy('fcustno');
+
+        return DB::table('trsisadp_penjualan')
+            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
+            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
+            ->where('fsisadp', '>', 0)
+            ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
+            ->get()
+            ->filter(fn($row) => trim((string) ($row->fcustno ?? '')) !== '')
+            ->mapWithKeys(function ($row) use ($documentsByCustomer) {
+                $customerCode = trim((string) ($row->fcustno ?? ''));
+                $remainRp = (float) ($row->total_remain ?? 0);
+
+                return [
+                    $customerCode => [
+                        'message' => $remainRp > 0
+                            ? 'Customer ini memiliki Uang Muka (UM) sisa ' . number_format($remainRp, 2, ',', '.') . '.'
+                            : 'Customer ini memiliki Uang Muka (UM).',
+                        'documents' => $documentsByCustomer->get($customerCode, collect())->values()->all(),
+                    ],
+                ];
+            })
+            ->all();
+    }
+
     private function sanitizeReturReferences(array &$frefso, array $frefsrj): void
     {
         foreach ($frefsrj as $index => $srjDocNo) {
@@ -949,6 +990,7 @@ class ReturPenjualanController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
@@ -2174,6 +2216,7 @@ class ReturPenjualanController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'returpenjualan' => $returpenjualan,
             'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
             'savedItems' => $savedItems,
@@ -3299,7 +3342,7 @@ class ReturPenjualanController extends Controller
         $accountPPNSales              = $setAccounts->get('PPNJUAL');
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG');
 
-        $fjurnaltype = 'JRJ';
+        $fjurnaltype = 'REJ';
         $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
