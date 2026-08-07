@@ -52,4 +52,28 @@ class Product extends Model
         // 'id' adalah primary key di tabel merek (msmerek)
         return $this->belongsTo(Merek::class, 'fmerek', 'fmerekcode');
     }
+
+    public function group()
+    {
+        return $this->belongsTo(Groupproduct::class, 'fgroupcode', 'fgroupid');
+    }
+
+    public function groupByCode()
+    {
+        return $this->belongsTo(Groupproduct::class, 'fgroupcode', 'fgroupcode');
+    }
+
+    public function getGroupModelAttribute()
+    {
+        return $this->group ?: $this->groupByCode;
+    }
+
+    public function getGroupDisplayAttribute()
+    {
+        $g = $this->group_model;
+        if ($g) {
+            return trim(($g->fgroupcode ?? '') . ' - ' . ($g->fgroupname ?? ''));
+        }
+        return (string) ($this->fgroupcode ?? '-');
+    }
 }

@@ -539,8 +539,8 @@ class ProductController extends Controller
             return $guard;
         }
 
-        $product = Product::findOrFail($id);
-        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $product = Product::with(['merek', 'group', 'groupByCode'])->findOrFail($id);
+        $groups = Groupproduct::all();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
@@ -923,7 +923,7 @@ class ProductController extends Controller
             return $guard;
         }
 
-        $product = Product::with('merek')->findOrFail($fprdid);
+        $product = Product::with(['merek', 'group', 'groupByCode'])->findOrFail($fprdid);
         $usageInfo = $this->getProductUsageInfo($product);
 
         return view('product.delete', [

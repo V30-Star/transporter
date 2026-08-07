@@ -36,11 +36,11 @@
                 </div>
             @endif
 
-            @if ($product->fgroupprd)
+            @if (!empty($product->fgroupcode) || $product->group_model)
                 <div class="grid grid-cols-3 gap-4">
                     <div class="text-sm font-bold text-gray-700">Group Produk</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
-                        {{ $product->fgroupprd }}
+                        {{ $product->group_display }}
                     </div>
                 </div>
             @endif

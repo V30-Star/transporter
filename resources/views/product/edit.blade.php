@@ -326,7 +326,7 @@
                                         <option value=""></option>
                                         @foreach ($groups as $group)
                                             <option value="{{ $group->fgroupid }}"
-                                                {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                                {{ (string) old('fgroupcode', $product->fgroupcode) === (string) $group->fgroupid || (string) old('fgroupcode', $product->fgroupcode) === (string) $group->fgroupcode ? 'selected' : '' }}>
                                                 {{ $group->fgroupname }} ({{ $group->fgroupcode }})
                                             </option>
                                         @endforeach
@@ -1044,7 +1044,7 @@
                                                     <option value="">-- Pilih Group Produk --</option>
                                                     @foreach ($groups as $group)
                                                         <option value="{{ $group->fgroupid }}"
-                                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                                            {{ (string) old('fgroupcode', $product->fgroupcode) === (string) $group->fgroupid || (string) old('fgroupcode', $product->fgroupcode) === (string) $group->fgroupcode ? 'selected' : '' }}>
                                                             {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                                         </option>
                                                     @endforeach

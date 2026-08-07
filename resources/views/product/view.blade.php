@@ -139,7 +139,7 @@
                                     <option value="">-- Pilih Group Produk --</option>
                                     @foreach ($groups as $group)
                                         <option value="{{ $group->fgroupid }}"
-                                            {{ $product->fgroupcode == $group->fgroupid ? 'selected' : '' }}>
+                                            {{ (string) $product->fgroupcode === (string) $group->fgroupid || (string) $product->fgroupcode === (string) $group->fgroupcode ? 'selected' : '' }}>
                                             {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                         </option>
                                     @endforeach
