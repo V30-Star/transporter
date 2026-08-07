@@ -1451,17 +1451,10 @@ class JurnalTransaksiController extends Controller
     {
         $supplier = Supplier::all();
 
-        $accounts = DB::table('account')
-            ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-            ->where('fnonactive', '0')
-            ->orderBy('account')
-            ->get();
-
-        $subaccounts = DB::table('mssubaccount')
-            ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
-            ->where('fnonactive', '0')
-            ->orderBy('fsubaccountcode')
-            ->get();
+        $accounts = $this->getAccountsData();
+        $subaccounts = $this->getSubaccountsData();
+        $customers = $this->getCustomersData();
+        $suppliers = $this->getSuppliersData();
 
         $warehouses = collect();
 
@@ -1495,12 +1488,20 @@ class JurnalTransaksiController extends Controller
             ];
         })->toArray();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+        $referenceSourceAccountCodes = $this->resolveReferenceSourceAccountCodes();
+        $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
+
+        $journalTypes = $this->getJournalTypes();
+
         return view('jurnaltransaksi.edit', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
             'fcabang' => $fcabang,
             'accounts' => $accounts,
             'subaccounts' => $subaccounts,
+            'customers' => $customers,
+            'suppliers' => $suppliers,
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
             'products' => $products,
@@ -1508,13 +1509,16 @@ class JurnalTransaksiController extends Controller
             'jurnaltransaksi' => $jurnaltransaksi,
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
+            'referenceSourceAccountCodes' => $referenceSourceAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
             'action' => 'delete',
             'pageTitle' => $this->resolveJournalTitle($jurnaltransaksi->fjurnaltype, 'Hapus'),
             'lockJournalType' => true,
-            'indexUrl' => route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype)),
+            'journalTypes' => $journalTypes,
+            'indexUrl' => $indexUrl,
         ]);
     }
 
