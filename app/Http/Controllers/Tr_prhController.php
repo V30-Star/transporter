@@ -995,6 +995,16 @@ class Tr_prhController extends Controller
     {
         $allowNegativeStockQty = stock_boleh_minus();
         $request->validate([
+            'fprno' => [
+                'nullable',
+                'string',
+                'max:50',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (!$request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                        $fail('No. PR wajib diisi jika Auto tidak dicentang.');
+                    }
+                },
+            ],
             'fprdate' => ['nullable', 'date'],
             'fneeddate' => ['nullable', 'date'],
             'fduedate' => ['nullable', 'date'],

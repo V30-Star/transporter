@@ -604,7 +604,18 @@ class ReturPembelianController extends Controller
             $allowNegativeStockQty = stock_boleh_minus();
             // VALIDATION
             $request->validate([
-                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtno' => [
+                    'nullable',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($request) {
+                        $inputNo = $value ?: $request->input('fpono');
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $inputNo))) {
+                            $fail('No. Transaksi wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
+                'fpono' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
                 'ffrom' => ['required', 'string', 'max:10'],

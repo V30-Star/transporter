@@ -878,7 +878,16 @@ class Tr_pohController extends Controller
 
         // VALIDATION
         $validator = Validator::make($request->all(), [
-            'fpohid' => ['nullable', 'string', 'max:25'],
+            'fpohid' => [
+                'nullable',
+                'string',
+                'max:25',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                        $fail('No. PO wajib diisi jika Auto tidak dicentang.');
+                    }
+                },
+            ],
             'fpodate' => ['required', 'date'],
             'fkirimdate' => ['nullable', 'date'],
             'fsupplier' => ['required', 'string', 'max:30'],
