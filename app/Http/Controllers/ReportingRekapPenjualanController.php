@@ -40,7 +40,7 @@ class ReportingRekapPenjualanController extends Controller
 
     private function buildRows(Request $request, string $groupBy)
     {
-        $groupCodeExpr = $groupBy === 'group' ? 'p.fgroupcode' : 'p.fmerek';
+        $groupCodeExpr = $groupBy === 'group' ? 'TRIM(p.fgroupcode)' : 'TRIM(p.fmerek)';
         $groupNameExpr = $groupBy === 'group' ? 'CAST(MIN(g.fgroupname) AS VARCHAR(50))' : 'CAST(MIN(merek.fmerekname) AS VARCHAR(50))';
         $qtyExpr = "SUM(
             CASE 
@@ -62,8 +62,8 @@ class ReportingRekapPenjualanController extends Controller
         $query = DB::table('tranmt as m')
             ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->leftJoin('ms_groupprd as g', 'g.fgroupcode', '=', 'p.fgroupcode')
-            ->leftJoin('msmerek as merek', 'p.fmerek', '=', 'merek.fmerekcode')
+            ->leftJoin('ms_groupprd as g', DB::raw('TRIM(g.fgroupcode)'), '=', DB::raw('TRIM(p.fgroupcode)'))
+            ->leftJoin('msmerek as merek', DB::raw('TRIM(merek.fmerekcode)'), '=', DB::raw('TRIM(p.fmerek)'))
             ->selectRaw("m.ftrcode AS fsource, {$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, 
             SUM(CASE WHEN m.ftrcode = 'INV' THEN ABS((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100))) WHEN m.ftrcode = 'REJ' THEN ABS(d.fprice * d.fqty) * -1 ELSE 0 END) AS famount,
              d.fprdcode, p.fprdname")
@@ -77,9 +77,9 @@ class ReportingRekapPenjualanController extends Controller
 
         return $query
             ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname, p.fsatuandefaultlaporan, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fqtykecil2")
-            ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
             ->orderBy('fmerek')
             ->orderBy('d.fprdcode')
+            ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
             ->get();
     }
 
