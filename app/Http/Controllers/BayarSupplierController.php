@@ -209,8 +209,8 @@ class BayarSupplierController extends Controller
                 'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
                 'fgiromundur' => $isGiroMundur ? '1' : '0',
             ]);
-            $request->validate([
-            'fkasmtno' => [
+            $validated = $request->validate([
+                'fkasmtno' => [
                 'nullable',
                 'string',
                 'max:30',
