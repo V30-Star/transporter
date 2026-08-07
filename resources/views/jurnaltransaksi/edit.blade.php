@@ -57,14 +57,15 @@
 
         @if ($isDelete)
             <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
-<div class="flex items-center gap-2 px-4 pt-3 pb-0 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Jurnal</p>
-                    </div>                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Jurnal</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
                         <label class="block text-xs font-bold mb-1">Cabang</label>
                         <input type="text" value="{{ $fbranchcode }}"
@@ -91,20 +92,21 @@
 
                     <div class="lg:col-span-12">
                         <label class="block text-xs font-bold mb-1">Keterangan Jurnal</label>
-                        <textarea rows="3" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>{{ $jurnaltransaksi->fjurnalnote }}</textarea>
+                        <textarea rows="2" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed text-sm text-gray-700" disabled>{{ $jurnaltransaksi->fjurnalnote }}</textarea>
                     </div>
                 </div>
             </div>
 
             <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
- <div class="flex items-center gap-2 px-4 pt-3 pb-0 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
-                    </div>                    <div class="flex items-center justify-end mb-4">
+                <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
+                </div>
+                <div class="mt-6">                    <div class="flex items-center justify-end mb-4">
                         <div class="text-xs font-medium flex gap-6">
                             <span>Total Debit:
                                 <strong class="text-blue-700" x-text="formatAmount(totalDebit())"></strong>
@@ -198,29 +200,30 @@
                 @method('PATCH')
 
                 <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
-<div class="flex items-center gap-2 px-4 pt-3 pb-0 mb-4">
+                    <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Jurnal</p>
-                    </div>                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                        <label class="block text-xs font-bold mb-1">Cabang</label>
                         <input type="text" value="{{ $fbranchcode }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                         <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">No. Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">No. Jurnal</label>
                         <input type="text" name="fjurnalno" value="{{ old('fjurnalno', $jurnaltransaksi->fjurnalno) }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">Tipe Jurnal</label>
                         @php
                             $currentType = old('fjurnaltype', $jurnaltransaksi->fjurnaltype ?? 'SJU');
                             $currentTypeObj = collect($journalTypes)->firstWhere('fmastercode', $currentType);
@@ -232,7 +235,7 @@
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                        <label class="block text-xs font-bold mb-1">Tanggal</label>
                         <input type="date" name="fjurnaldate"
                             value="{{ old('fjurnaldate', \Carbon\Carbon::parse($jurnaltransaksi->fjurnaldate)->format('Y-m-d')) }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnaldate') border-red-500 @enderror">
@@ -242,8 +245,8 @@
                     </div>
 
                     <div class="lg:col-span-12">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Jurnal</label>
-                        <textarea name="fjurnalnote" rows="3"
+                        <label class="block text-xs font-bold mb-1">Keterangan Jurnal</label>
+                        <textarea name="fjurnalnote" rows="2"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnalnote') border-red-500 @enderror">{{ old('fjurnalnote', $jurnaltransaksi->fjurnalnote) }}</textarea>
                         @error('fjurnalnote')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -253,14 +256,15 @@
                 </div> {{-- end header card --}}
 
                 <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
- <div class="flex items-center gap-2 px-4 pt-3 pb-0 mb-4">
+                    <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
-                    </div>                    <div class="flex items-center justify-end mb-4">
+                    </div>
+                    <div class="mt-6">                    <div class="flex items-center justify-end mb-4">
                         <div class="flex flex-col gap-1 text-sm sm:flex-row sm:gap-6">
                             <span>Total Debit:
                                 <strong class="text-blue-700" x-text="formatAmount(totalDebit())"></strong>
