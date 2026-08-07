@@ -174,7 +174,7 @@ class ListingPenjualanController extends Controller
         $styleColHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
         $styleDetHeader = new Style(fontBold: true, fontColor: 'C00000', backgroundColor: 'FFE6E6');
         $styleInvHeader = new Style(fontBold: true);
-        $styleReturInvoice = new Style(fontBold: true, fontColor: 'C00000');
+        $styleReturInvoice = new Style(fontBold: true, fontColor: 'FF0000');
         $styleDetail = new Style(fontColor: 'C00000');
         $styleFooter = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 

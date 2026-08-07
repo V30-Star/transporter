@@ -23,7 +23,12 @@ class PenerimaanKasController extends Controller
     private const GIRO_MUNDUR_ACCOUNT_NAME = 'PIUTANGGIRO';
     private const SYSTEM_JOURNAL_ACCOUNT_NAMES = ['LABATAHUNBERJALAN', 'LABADITAHAN', 'IKHTISARLABARUGI'];
     private const STOCK_JOURNAL_ACCOUNT_NAMES = ['PERSEDIAANAWAL', 'PERSEDIAAN', 'PERSEDIAANAHIR', 'HPP'];
-    private const REFERENCE_REQUIRED_ACCOUNT_NAMES = ['PIUTANGDAGANG', 'HUTANGDAGANG'];
+    private const REFERENCE_REQUIRED_ACCOUNT_NAMES = [
+        'PIUTANGDAGANG',
+        'HUTANGDAGANG',
+        'RETJUALBLMPOTPIUTANG',
+        'RETBELIBLMPOTHUTANG',
+    ];
 
     public function index()
     {
@@ -701,9 +706,9 @@ class PenerimaanKasController extends Controller
                 ]);
             }
 
-            if (isset($validationConfig['reference'][$accountCode]) && $referenceNo === '') {
+            if (isset($validationConfig['reference'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.frefno" => 'No. Referensi wajib diisi untuk account Piutang atau Hutang Dagang.',
+                    "details.$index.faccount" => 'Penerimaan Kas/Bank dilarang jurnal ke account ' . $validationConfig['reference'][$accountCode]['display_name'] . '. Penyimpanan dibatalkan.',
                 ]);
             }
 
