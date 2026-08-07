@@ -308,14 +308,18 @@
         </div>
 
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-            <label class="block text-xs font-bold mb-1">Transaksi#</label>
+            <label class="block text-xs font-bold mb-1">
+                Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
+            </label>
             <div class="flex items-center gap-3">
-                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2 uppercase" value="{{ strtoupper(old('fstockmtno', $assembling->fstockmtno ?? '')) }}"
+                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2 uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" value="{{ strtoupper(old('fstockmtno', $assembling->fstockmtno ?? '')) }}"
                     :disabled="autoCode"
+                    :required="!autoCode"
                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
+                    :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
                     oninput="this.value = this.value.toUpperCase()">
-                <label class="inline-flex items-center select-none">
-                    <input type="checkbox" x-model="autoCode" checked>
+                <label class="inline-flex items-center select-none cursor-pointer">
+                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                 </label>
             </div>

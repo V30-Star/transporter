@@ -209,10 +209,25 @@
                         </div>
 
                         {{-- Transaksi# --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Transaksi#</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ strtoupper($displayFstockmtno ?? $penerimaanbarang->fstockmtno ?? '') }}" disabled>
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-bold mb-1">
+                                Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="fstockmtno"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    value="{{ strtoupper(old('fstockmtno', $displayFstockmtno ?? $penerimaanbarang->fstockmtno ?? '')) }}"
+                                    :disabled="autoCode"
+                                    :required="!autoCode"
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                    :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                    oninput="this.value = this.value.toUpperCase()">
+                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked
+                                        class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="ml-1.5">Auto</span>
+                                </label>
+                            </div>
                         </div>
 
                         {{-- Supplier --}}

@@ -322,18 +322,23 @@
                                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                         </div>
                                         <div x-data="{ autoCode: true }">
-                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Transaksi#</label>
-                                            <div class="flex items-center gap-2">
-                                                <input type="text" name="fstockmtno" 
-                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                                    value="{{ strtoupper(old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno ?? '')) }}"
-                                                    :disabled="autoCode" disabled
-                                                    :class="autoCode ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'">
-                                                <label class="inline-flex items-center select-none cursor-pointer">
-                                                    <input disabled type="checkbox" x-model="autoCode" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                    <span class="ml-1.5 text-sm text-gray-700">Auto</span>
-                                                </label>
-                                            </div>
+                                             <label class="block text-xs font-semibold uppercase tracking-wider mb-1">
+                                                 Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
+                                             </label>
+                                             <div class="flex items-center gap-2">
+                                                 <input type="text" name="fstockmtno" 
+                                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                                     value="{{ strtoupper(old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno ?? '')) }}"
+                                                     :disabled="autoCode"
+                                                     :required="!autoCode"
+                                                     :class="autoCode ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'"
+                                                     :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                                     oninput="this.value = this.value.toUpperCase()">
+                                                 <label class="inline-flex items-center select-none cursor-pointer">
+                                                     <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                     <span class="ml-1.5 text-sm text-gray-700">Auto</span>
+                                                 </label>
+                                             </div>
                                             <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
                                                 Gudang harus diisi dahulu sebelum Simpan.
                                             </p>

@@ -167,8 +167,8 @@
                                     :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
                                     :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
                                     oninput="this.value = this.value.toUpperCase()">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode">
+                                <label class="inline-flex items-center select-none cursor-pointer">
+                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
                                     <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
                                 </label>
                             </div>
@@ -574,7 +574,7 @@
                 return {
                     isReadOnly,
                     voucherNo: initialVoucherNo || '',
-                    autoCode: !initialVoucherNo,
+                    autoCode: true,
                     isGiroMundur: !!initialGiroMundur,
                     isPenerimaanKasForm: !!isPenerimaanKasForm,
                     journalAccountValidation: journalAccountValidation || {

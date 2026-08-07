@@ -359,16 +359,22 @@
                             </div>
 
                             {{-- Transaksi# --}}
-                            <div x-data="{ autoCode: false }">
-                                <label class="block text-xs font-bold mb-1">Transaksi#</label>
+                            <div x-data="{ autoCode: true }">
+                                <label class="block text-xs font-bold mb-1">
+                                    Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
+                                </label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fsono"
                                         value="{{ strtoupper(old('fsono', $displayFsono ?? $returpenjualan->fsono ?? '')) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase" :disabled="autoCode" readonly
-                                        :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase"
+                                        :disabled="autoCode"
+                                        :required="!autoCode"
+                                        :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'"
+                                        :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                        oninput="this.value = this.value.toUpperCase()">
 
-                                    <label class="inline-flex items-center select-none">
-                                        <input type="checkbox" x-model="autoCode" disabled>
+                                    <label class="inline-flex items-center select-none cursor-pointer">
+                                        <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
                                         <span class="ml-2 text-sm text-gray-700">Auto</span>
                                     </label>
                                 </div>
@@ -855,14 +861,19 @@
                                 </div>
 
                                 <div x-data="{ autoCode: true }">
-                                    <label class="block text-xs font-bold mb-1">Transaksi#</label>
+                                    <label class="block text-xs font-bold mb-1">
+                                        Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
+                                    </label>
                                     <div class="flex items-center gap-3">
                                         <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                            :disabled="autoCode" value="{{ strtoupper($returpenjualan->fsono ?? '') }}"
+                                            :disabled="autoCode"
+                                            :required="!autoCode"
+                                            value="{{ strtoupper($returpenjualan->fsono ?? '') }}"
                                             :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'"
+                                            :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
                                             oninput="this.value = this.value.toUpperCase()">
-                                        <label class="inline-flex items-center select-none">
-                                            <input type="checkbox" x-model="autoCode" checked>
+                                        <label class="inline-flex items-center select-none cursor-pointer">
+                                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
                                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                                         </label>
                                     </div>
