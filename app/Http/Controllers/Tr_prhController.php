@@ -479,6 +479,16 @@ class Tr_prhController extends Controller
         });
 
         $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect_url' => route('tr_prh.create'),
+                'success_prompt' => [
+                    'type' => 'tr_prh_create',
+                    'redirect_url' => route('tr_prh.print', $fprno),
+                ],
+            ]);
+        }
         return redirect()->route('tr_prh.create')
             ->with('success', $message)
             ->with('success_prompt', [

@@ -1723,6 +1723,57 @@
 
                 sessionStorage.removeItem('app.pendingSuccessMessage');
                 sessionStorage.removeItem('app.pendingSuccessPrompt');
+
+                const printPrompts = {
+                    'tr_prh_create': 'Print PR ini?',
+                    'tr_poh_create': 'Print PO ini?',
+                    'penerimaanbarang_create': 'Print Penerimaan Barang ini?',
+                    'fakturpembelian_create': 'Print Faktur Pembelian ini?',
+                    'returpembelian_create': 'Print Retur Pembelian ini?',
+                    'salesorder_create': 'Print Sales Order ini?',
+                    'suratjalan_create': 'Print Surat Jalan ini?',
+                    'invoice_create': 'Print Faktur Penjualan ini?',
+                    'returpenjualan_create': 'Print Retur Penjualan ini?',
+                    'lembarpenagihan_create': 'Print Lembar Penagihan ini?',
+                    'jurnaltransaksi_create': 'Print Voucher Jurnal ini?',
+                    'adjstock_create': 'Print Adjustment Stock ini?',
+                    'mutasi_create': 'Print Mutasi ini?',
+                    'pemakaianbarang_create': 'Print Pemakaian Barang ini?',
+                    'assembling_create': 'Print Assembling ini?',
+                    'pengeluarankas_create': 'Print Pengeluaran Kas/Bank ini?',
+                    'penerimaankas_create': 'Print Penerimaan Kas/Bank ini?',
+                    'pelunasancustomer_create': 'Print Pelunasan Customer ini?',
+                    'bayarsupplier_create': 'Print Bayar Supplier ini?',
+                };
+
+                if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: successMessage,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#2563eb',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then(() => {
+                        Swal.fire({
+                            icon: 'question',
+                            title: printPrompts[successPrompt.type],
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes',
+                            cancelButtonText: 'No',
+                            confirmButtonColor: '#2563eb',
+                            cancelButtonColor: '#6b7280',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.open(successPrompt.redirect_url, '_blank');
+                            }
+                        });
+                    });
+                    return;
+                }
+
                 if (successPrompt?.type === 'salesorder_create_suratjalan' && successPrompt.redirect_url) {
                     window.showAppSuccessToast(successMessage, {
                         showConfirmButton: true,

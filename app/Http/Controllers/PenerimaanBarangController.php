@@ -1114,6 +1114,10 @@ class PenerimaanBarangController extends Controller
             return response()->json([
                 'message' => 'Penerimaan barang berhasil disimpan.',
                 'redirect_url' => route('penerimaanbarang.create'),
+                'success_prompt' => [
+                    'type' => 'penerimaanbarang_create',
+                    'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
+                ],
             ]);
         }
 

@@ -1782,6 +1782,10 @@ class FakturpembelianController extends Controller
                 return response()->json([
                     'message' => $successMessage,
                     'redirect_url' => route('fakturpembelian.create'),
+                    'success_prompt' => [
+                        'type' => 'fakturpembelian_create',
+                        'redirect_url' => route('fakturpembelian.print', $fstockmtno),
+                    ],
                 ]);
             }
 
