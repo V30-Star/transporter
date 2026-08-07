@@ -1722,8 +1722,12 @@ class JurnalTransaksiController extends Controller
         foreach ($rowsDt as $index => $row) {
             $account = strtoupper(trim((string) ($row['faccount'] ?? '')));
             $refNo = trim((string) ($row['frefno'] ?? ''));
-            if ($account === '' || $refNo === '' || ! isset($accountSources[$account])) {
+            if ($account === '' || ! isset($accountSources[$account])) {
                 continue;
+            }
+
+            if ($refNo === '') {
+                return "Tidak boleh input disini.\nAccount ini memiliki No.Ref\nPenyimpanan dibatalkan";
             }
 
             $source = $accountSources[$account];
@@ -1743,7 +1747,7 @@ class JurnalTransaksiController extends Controller
                     'purchase_return' => 'retur pembelian',
                 ][$source] ?? 'referensi';
 
-                return 'Ref No baris ' . ($index + 1) . ' harus berasal dari browse ' . $label . '.';
+                return "Tidak boleh input disini.\nAccount ini memiliki No.Ref\nPenyimpanan dibatalkan\nRef No baris " . ($index + 1) . ' harus berasal dari browse ' . $label . '.';
             }
         }
 

@@ -315,8 +315,10 @@
                                             <div class="flex">
                                                 <input type="text" x-model="item.frefno"
                                                     class="w-full border rounded-l px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                    :readonly="!!referenceSource(item.faccount)"
                                                     :disabled="!isRefAllowed(item.faccount)"
-                                                    :class="!isRefAllowed(item.faccount) ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'"
+                                                    :class="!isRefAllowed(item.faccount) || referenceSource(item.faccount) ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'"
+                                                    @keydown.prevent="notifyReferenceBrowseRequired(item)"
                                                     placeholder="No Ref">
                                                 <button type="button" @click="openReferenceBrowse(index)"
                                                     class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
@@ -586,6 +588,15 @@
                     }[source] || 'Pilih Referensi';
                 },
 
+                referenceValidationMessage() {
+                    return ['Tidak boleh input disini.', 'Account ini memiliki No.Ref', 'Penyimpanan dibatalkan'];
+                },
+
+                notifyReferenceBrowseRequired(item) {
+                    if (!this.referenceSource(item?.faccount)) return;
+                    window.showTransactionErrorModal(this.referenceValidationMessage(), { reason: 'Gunakan tombol browse untuk memilih No.Ref.' });
+                },
+
                 openReferenceBrowse(index) {
                     const item = this.items[index];
                     const source = this.referenceSource(item?.faccount);
@@ -670,6 +681,11 @@
                     if (validItems.length === 0) {
                         $event.preventDefault();
                         window.showTransactionErrorModal('Tambahkan minimal satu baris jurnal sebelum menyimpan.');
+                        return;
+                    }
+                    if (validItems.some(it => this.referenceSource(it.faccount) && !String(it.frefno || '').trim())) {
+                        $event.preventDefault();
+                        window.showTransactionErrorModal(this.referenceValidationMessage(), { reason: 'Gunakan tombol browse untuk memilih No.Ref.' });
                         return;
                     }
                     let tD = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
