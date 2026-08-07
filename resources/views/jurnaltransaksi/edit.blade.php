@@ -16,6 +16,23 @@
             -webkit-text-fill-color: #9ca3af !important;
             font-weight: normal !important;
         }
+
+        .pr-detail-table .select2-container--default .select2-selection--single {
+            height: 30px !important;
+            padding: 1px 4px !important;
+            border-color: #d1d5db !important;
+            border-radius: 0.25rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.25rem !important;
+        }
+        .pr-detail-table .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 26px !important;
+            padding-left: 4px !important;
+            padding-right: 20px !important;
+        }
+        .pr-detail-table .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 28px !important;
+        }
     </style>
     @php
         $isDelete = $action === 'delete';
@@ -27,6 +44,8 @@
             items: @js($savedItems),
             accounts: @js($accounts),
             subaccounts: @js($subaccounts),
+            customers: @js($customers),
+            suppliers: @js($suppliers),
             referenceAllowedAccountCodes: @js($referenceAllowedAccountCodes ?? []),
             referenceSourceAccountCodes: @js($referenceSourceAccountCodes ?? []),
             referenceBrowseUrl: @js(route('jurnaltransaksi.reference-browse')),
@@ -114,7 +133,7 @@
                                     <th class="p-2 text-left w-12">#</th>
                                     <th class="p-2 text-left w-44">Kode Account</th>
                                     <th class="p-2 text-left w-56">Nama Account</th>
-                                    <th class="p-2 text-left w-56">Sub Account</th>
+                                    <th class="p-2 text-left w-56" x-text="subAccountHeaderTitle">Sub Account</th>
                                     <th class="p-2 text-left w-48">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K</th>
                                     <th class="p-2 text-left w-[28rem]">Keterangan</th>
@@ -271,7 +290,7 @@
                                     <th class="p-2 text-left w-8">#</th>
                                     <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
                                     <th class="p-2 text-left w-56">Nama Account</th>
-                                    <th class="p-2 text-left w-52">Sub Account</th>
+                                    <th class="p-2 text-left w-56" x-text="subAccountHeaderTitle">Sub Account</th>
                                     <th class="p-2 text-left w-28">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
                                     <th class="p-2 text-left w-72">Keterangan</th>
@@ -303,9 +322,10 @@
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 transition-colors"
                                                 x-model="item.fsubaccountcode" :disabled="!item.fhavesubaccount"
+                                                x-init="initSelect2Subaccount($el, item)"
                                                 :class="!item.fhavesubaccount ? 'bg-gray-50 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white'">
-                                                <option value="">— Pilih Sub —</option>
-                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
+                                                <option value="" x-text="`— Pilih ${getSubaccountTitle(item)} —`"></option>
+                                                <template x-for="sacc in getSubaccountOptions(item)" :key="sacc.fsubaccountcode">
                                                     <option :value="sacc.fsubaccountcode"
                                                         x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"></option>
                                                 </template>
@@ -491,6 +511,8 @@
                 items: config.items || [],
                 accounts: config.accounts || [],
                 subaccounts: config.subaccounts || [],
+                customers: config.customers || [],
+                suppliers: config.suppliers || [],
                 referenceAllowedAccountCodes: (config.referenceAllowedAccountCodes || []).map((code) => String(code).trim().toUpperCase()),
                 referenceSourceAccountCodes: config.referenceSourceAccountCodes || {},
                 referenceBrowseUrl: config.referenceBrowseUrl || '',
@@ -553,13 +575,92 @@
                     this.recalcTotals();
                 },
 
+                normalizeSubaccountType(val) {
+                    const raw = (val || '').toString().trim().toUpperCase();
+                    if (raw === 'C' || raw === 'CUSTOMER') return 'C';
+                    if (raw === 'P' || raw === 'SUPPLIER') return 'P';
+                    return 'S';
+                },
+
+                getSubaccountTitle(item) {
+                    if (!item) return 'Sub Account';
+                    const type = this.normalizeSubaccountType(typeof item === 'object' ? item.ftypesubaccount : item);
+                    if (type === 'C') return 'Customer';
+                    if (type === 'P') return 'Supplier';
+                    return 'Sub Account';
+                },
+
+                get subAccountHeaderTitle() {
+                    const activeRows = (this.items || []).filter(r => r.faccount && r.fhavesubaccount);
+                    if (activeRows.length === 0) return 'Sub Account';
+
+                    const types = new Set(activeRows.map(r => this.normalizeSubaccountType(r.ftypesubaccount)));
+                    if (types.size === 1) {
+                        const type = Array.from(types)[0];
+                        if (type === 'C') return 'Customer';
+                        if (type === 'P') return 'Supplier';
+                        return 'Sub Account';
+                    }
+                    return 'Sub Account';
+                },
+
+                getSubaccountOptions(item) {
+                    if (!item || !item.fhavesubaccount) return [];
+                    const type = this.normalizeSubaccountType(item.ftypesubaccount);
+                    if (type === 'C') {
+                        return this.customers || [];
+                    }
+                    if (type === 'P') {
+                        return this.suppliers || [];
+                    }
+                    return this.subaccounts || [];
+                },
+
+                initSelect2Subaccount(el, row) {
+                    if (!window.jQuery || !window.jQuery.fn.select2) return;
+                    const $el = window.jQuery(el);
+
+                    this.$nextTick(() => {
+                        if (!$el.hasClass('select2-hidden-accessible')) {
+                            $el.select2({
+                                width: '100%',
+                                dropdownAutoWidth: true,
+                            });
+
+                            $el.on('change', (e) => {
+                                const val = e.target.value || '';
+                                if (row.fsubaccountcode !== val) {
+                                    row.fsubaccountcode = val;
+                                }
+                            });
+                        }
+
+                        this.$watch(() => row.fsubaccountcode, (val) => {
+                            if ($el.val() !== (val || '')) {
+                                $el.val(val || '').trigger('change.select2');
+                            }
+                        });
+
+                        this.$watch(() => row.ftypesubaccount, () => {
+                            this.$nextTick(() => {
+                                $el.trigger('change.select2');
+                            });
+                        });
+
+                        this.$watch(() => row.fhavesubaccount, (enabled) => {
+                            $el.prop('disabled', !enabled).trigger('change.select2');
+                        });
+                    });
+                },
+
                 updateAccount(item, faccid, accName, accCode) {
-                    const accObj = this.accounts.find(a => String(a.faccid) === String(faccid));
+                    const accObj = this.accounts.find(a => String(a.faccid) === String(faccid) || String(a.faccount) === String(accCode));
                     Object.assign(item, {
-                        faccid: faccid,
+                        faccid: faccid || (accObj?.faccid ?? ''),
                         faccname: accName || (accObj?.faccname ?? ''),
                         faccount: accCode || (accObj?.faccount ?? ''),
                         fhavesubaccount: accObj ? Number(accObj.fhavesubaccount ?? 0) : 0,
+                        ftypesubaccount: accObj ? (accObj.ftypesubaccount ?? 'S') : 'S',
                         fsubaccountid: 0,
                         fsubaccountcode: '',
                         fsubaccountname: '',
@@ -697,7 +798,7 @@
                 },
 
                 emptyRow() {
-                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
+                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, ftypesubaccount: 'S', fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
                 },
 
                 normalizeRow(item = {}, index = 0) {
@@ -709,6 +810,7 @@
                         faccid: matchedAccount ? matchedAccount.faccid : (item.faccid || ''),
                         faccname: matchedAccount ? matchedAccount.faccname : (item.faccname || ''),
                         fhavesubaccount: matchedAccount ? Number(matchedAccount.fhavesubaccount ?? 0) : Number(item.fhavesubaccount || 0),
+                        ftypesubaccount: matchedAccount ? (matchedAccount.ftypesubaccount ?? 'S') : (item.ftypesubaccount ?? 'S'),
                         fsubaccountcode: String(item.fsubaccountcode || '').trim(),
                         fsubaccountid: item.fsubaccountid || '',
                         fsubaccountname: String(item.fsubaccountname || '').trim(),
@@ -751,9 +853,22 @@
                     const match = this.accounts.find((account) => String(account.faccount) === String(code));
                     return match ? match.faccname : '';
                 },
-                subaccountName(code) {
-                    const match = this.subaccounts.find((subaccount) => String(subaccount.fsubaccountcode) === String(code));
-                    return match ? match.fsubaccountname : '';
+                subaccountName(code, typeOrRow) {
+                    if (!code) return '';
+                    const type = typeof typeOrRow === 'object'
+                        ? this.normalizeSubaccountType(typeOrRow?.ftypesubaccount)
+                        : this.normalizeSubaccountType(typeOrRow);
+
+                    let list = this.subaccounts || [];
+                    if (type === 'C') list = this.customers || [];
+                    else if (type === 'P') list = this.suppliers || [];
+
+                    const match = list.find(s => String(s.fsubaccountcode) === String(code));
+                    if (match) return match.fsubaccountname;
+
+                    const fallback = [...(this.subaccounts || []), ...(this.customers || []), ...(this.suppliers || [])]
+                        .find(s => String(s.fsubaccountcode) === String(code));
+                    return fallback ? fallback.fsubaccountname : '';
                 },
                 totalDebit() {
                     return this.totalDebit;

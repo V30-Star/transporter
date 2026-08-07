@@ -6,6 +6,18 @@
     @php
         $totalDebit = collect($savedItems)->where('fdk', 'D')->sum(fn($item) => (float) ($item['famount'] ?? 0));
         $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn($item) => (float) ($item['famount'] ?? 0));
+
+        $subTypes = collect($savedItems)
+            ->filter(fn($item) => !empty($item['faccount']) && !empty($item['fhavesubaccount']))
+            ->map(function ($item) {
+                $raw = strtoupper(trim((string) ($item['ftypesubaccount'] ?? 'S')));
+                if ($raw === 'C' || $raw === 'CUSTOMER') return 'Customer';
+                if ($raw === 'P' || $raw === 'SUPPLIER') return 'Supplier';
+                return 'Sub Account';
+            })
+            ->unique();
+
+        $subAccountHeaderTitle = $subTypes->count() === 1 ? $subTypes->first() : 'Sub Account';
     @endphp
 
     <div>
@@ -92,7 +104,7 @@
                             <th class="p-2 text-left w-12">#</th>
                             <th class="p-2 text-left w-44">Kode Account</th>
                             <th class="p-2 text-left w-56">Nama Account</th>
-                            <th class="p-2 text-left w-56">Sub Account</th>
+                            <th class="p-2 text-left w-56">{{ $subAccountHeaderTitle }}</th>
                             <th class="p-2 text-left w-48">Ref No</th>
                             <th class="p-2 text-left w-20">D/K</th>
                             <th class="p-2 text-left w-[28rem]">Keterangan</th>

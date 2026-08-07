@@ -555,12 +555,21 @@ class JurnalTransaksiController extends Controller
         $dt = DB::table('jurnaldt')
             ->leftJoin('account as a', 'a.faccount', '=', 'jurnaldt.faccount')
             ->leftJoin('mssubaccount as sa', 'sa.fsubaccountcode', '=', 'jurnaldt.fsubaccount')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'jurnaldt.fsubaccount')
+            ->leftJoin('mssupplier as p', 'p.fsuppliercode', '=', 'jurnaldt.fsubaccount')
             ->where('jurnaldt.fjurnalno', $fjurnalno)
             ->orderBy('jurnaldt.flineno')
             ->get([
                 'jurnaldt.*',
                 'a.faccname as account_name',
-                'sa.fsubaccountname as subaccount_name',
+                DB::raw("COALESCE(
+                    CASE 
+                        WHEN UPPER(TRIM(COALESCE(a.ftypesubaccount, ''))) IN ('C', 'CUSTOMER') THEN c.fcustomername 
+                        WHEN UPPER(TRIM(COALESCE(a.ftypesubaccount, ''))) IN ('P', 'SUPPLIER') THEN p.fsuppliername 
+                        ELSE sa.fsubaccountname 
+                    END,
+                    sa.fsubaccountname, c.fcustomername, p.fsuppliername
+                ) as subaccount_name"),
             ]);
 
         $fmt = fn ($d) => $d
@@ -587,18 +596,10 @@ class JurnalTransaksiController extends Controller
 
         $supplier = Supplier::all();
 
-        $accounts = DB::table('account')
-            ->select('faccid', 'faccount', 'faccname', 'fnonactive', 'fhavesubaccount')
-            ->where('fnonactive', '0')
-            ->where('fend', '1')
-            ->orderBy('account')
-            ->get();
-
-        $subaccounts = DB::table('mssubaccount')
-            ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
-            ->where('fnonactive', '0')
-            ->orderBy('fsubaccountcode')
-            ->get();
+        $accounts = $this->getAccountsData();
+        $subaccounts = $this->getSubaccountsData();
+        $customers = $this->getCustomersData();
+        $suppliers = $this->getSuppliersData();
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -640,6 +641,8 @@ class JurnalTransaksiController extends Controller
             'newtr_prh_code' => $newtr_prh_code,
             'accounts' => $accounts,
             'subaccounts' => $subaccounts,
+            'customers' => $customers,
+            'suppliers' => $suppliers,
             'supplier' => $supplier,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -1007,17 +1010,10 @@ class JurnalTransaksiController extends Controller
     {
         $supplier = Supplier::all();
 
-        $accounts = DB::table('account')
-            ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-            ->where('fnonactive', '0')
-            ->orderBy('account')
-            ->get();
-
-        $subaccounts = DB::table('mssubaccount')
-            ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
-            ->where('fnonactive', '0')
-            ->orderBy('fsubaccountcode')
-            ->get();
+        $accounts = $this->getAccountsData();
+        $subaccounts = $this->getSubaccountsData();
+        $customers = $this->getCustomersData();
+        $suppliers = $this->getSuppliersData();
 
         $warehouses = collect();
 
@@ -1063,6 +1059,8 @@ class JurnalTransaksiController extends Controller
             'fcabang' => $fcabang,
             'accounts' => $accounts,
             'subaccounts' => $subaccounts,
+            'customers' => $customers,
+            'suppliers' => $suppliers,
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
             'products' => $products,
@@ -1087,17 +1085,10 @@ class JurnalTransaksiController extends Controller
     {
         $supplier = Supplier::all();
 
-        $accounts = DB::table('account')
-            ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-            ->where('fnonactive', '0')
-            ->orderBy('account')
-            ->get();
-
-        $subaccounts = DB::table('mssubaccount')
-            ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
-            ->where('fnonactive', '0')
-            ->orderBy('fsubaccountcode')
-            ->get();
+        $accounts = $this->getAccountsData();
+        $subaccounts = $this->getSubaccountsData();
+        $customers = $this->getCustomersData();
+        $suppliers = $this->getSuppliersData();
 
         $warehouses = collect();
 
@@ -1588,6 +1579,9 @@ class JurnalTransaksiController extends Controller
         $details = DB::table('jurnaldt as d')
             ->leftJoin('account as a', 'a.faccount', '=', 'd.faccount')
             ->leftJoin('mssubaccount as s', 's.fsubaccountcode', '=', 'd.fsubaccount')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'd.fsubaccount')
+            ->leftJoin('mssubaccount as p', 'p.fsubaccountcode', '=', 'd.fsubaccount')
+            ->leftJoin('mssupplier as supp', 'supp.fsuppliercode', '=', 'd.fsubaccount')
             ->where('d.fjurnalmtid', $header->fjurnalmtid)
             ->orderBy('d.flineno')
             ->get([
@@ -1602,8 +1596,17 @@ class JurnalTransaksiController extends Controller
                 'd.frate',
                 'a.faccid',
                 'a.faccname',
+                'a.fhavesubaccount',
+                'a.ftypesubaccount',
                 's.fsubaccountid',
-                's.fsubaccountname',
+                DB::raw("COALESCE(
+                    CASE 
+                        WHEN UPPER(TRIM(COALESCE(a.ftypesubaccount, ''))) IN ('C', 'CUSTOMER') THEN c.fcustomername 
+                        WHEN UPPER(TRIM(COALESCE(a.ftypesubaccount, ''))) IN ('P', 'SUPPLIER') THEN supp.fsuppliername 
+                        ELSE s.fsubaccountname 
+                    END,
+                    s.fsubaccountname, c.fcustomername, supp.fsuppliername
+                ) as fsubaccountname"),
             ]);
 
         $journalViewModel = (object) [
@@ -1659,6 +1662,8 @@ class JurnalTransaksiController extends Controller
                 'faccid' => $row->faccid,
                 'faccount' => $label,
                 'faccname' => $name !== '' ? $name : $label,
+                'fhavesubaccount' => (int) ($row->fhavesubaccount ?? 0),
+                'ftypesubaccount' => (string) ($row->ftypesubaccount ?? 'S'),
                 'fsubaccountid' => $row->fsubaccountid,
                 'fsubaccountcode' => trim((string) ($row->fsubaccount ?? '')),
                 'fsubaccountname' => $subName,
@@ -1772,5 +1777,42 @@ class JurnalTransaksiController extends Controller
         $usedNumbers[] = $candidate;
 
         return $candidate;
+    }
+
+    private function getAccountsData()
+    {
+        return DB::table('account')
+            ->select('faccid', 'faccount', 'faccname', 'fnonactive', 'fhavesubaccount', 'ftypesubaccount')
+            ->where('fnonactive', '0')
+            ->where('fend', '1')
+            ->orderBy('account')
+            ->get();
+    }
+
+    private function getSubaccountsData()
+    {
+        return DB::table('mssubaccount')
+            ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
+            ->where('fnonactive', '0')
+            ->orderBy('fsubaccountcode')
+            ->get();
+    }
+
+    private function getCustomersData()
+    {
+        return DB::table('mscustomer')
+            ->select('fcustomerid as fsubaccountid', 'fcustomercode as fsubaccountcode', 'fcustomername as fsubaccountname')
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fcustomercode')
+            ->get();
+    }
+
+    private function getSuppliersData()
+    {
+        return DB::table('mssupplier')
+            ->select('fsupplierid as fsubaccountid', 'fsuppliercode as fsubaccountcode', 'fsuppliername as fsubaccountname')
+            ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
+            ->orderBy('fsuppliercode')
+            ->get();
     }
 }

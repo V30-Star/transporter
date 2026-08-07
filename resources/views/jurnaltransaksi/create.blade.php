@@ -45,11 +45,31 @@
     <script>
         window.ACCOUNTS_DATA = @json($accounts);
         window.SUBACCOUNTS_DATA = @json($subaccounts);
+        window.CUSTOMERS_DATA = @json($customers);
+        window.SUPPLIERS_DATA = @json($suppliers);
         window.REFERENCE_ALLOWED_ACCOUNT_CODES = @json($referenceAllowedAccountCodes ?? []);
         window.REFERENCE_SOURCE_ACCOUNT_CODES = @json($referenceSourceAccountCodes ?? []);
         window.REFERENCE_BROWSE_URL = @json(route('jurnaltransaksi.reference-browse'));
         window.INITIAL_ITEMS = @json($initialItems);
     </script>
+    <style>
+        .pr-detail-table .select2-container--default .select2-selection--single {
+            height: 30px !important;
+            padding: 1px 4px !important;
+            border-color: #d1d5db !important;
+            border-radius: 0.25rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.25rem !important;
+        }
+        .pr-detail-table .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 26px !important;
+            padding-left: 4px !important;
+            padding-right: 20px !important;
+        }
+        .pr-detail-table .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 28px !important;
+        }
+    </style>
 
     <div>
             <form action="{{ route('jurnaltransaksi.store') }}" method="POST" data-form-draft="true"
@@ -166,7 +186,7 @@
                                     <th class="p-2 text-left w-8">#</th>
                                     <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
                                     <th class="p-2 text-left w-56">Nama Account</th>
-                                    <th class="p-2 text-left w-52">Sub Account</th>
+                                    <th class="p-2 text-left w-56" x-text="subAccountHeaderTitle">Sub Account</th>
                                     <th class="p-2 text-left w-28">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
                                     <th class="p-2 text-left w-72">Keterangan</th>
@@ -198,9 +218,10 @@
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 transition-colors"
                                                 x-model="row.fsubaccountcode" :disabled="!row.fhavesubaccount"
+                                                x-init="initSelect2Subaccount($el, row)"
                                                 :class="!row.fhavesubaccount ? 'bg-gray-50 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white'">
-                                                <option value="">— Pilih Sub —</option>
-                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
+                                                <option value="" x-text="`— Pilih ${getSubaccountTitle(row)} —`"></option>
+                                                <template x-for="sacc in getSubaccountOptions(row)" :key="sacc.fsubaccountcode">
                                                     <option :value="sacc.fsubaccountcode"
                                                         x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"></option>
                                                 </template>
@@ -376,6 +397,8 @@
 
                 accounts: window.ACCOUNTS_DATA ?? [],
                 subaccounts: window.SUBACCOUNTS_DATA ?? [],
+                customers: window.CUSTOMERS_DATA ?? [],
+                suppliers: window.SUPPLIERS_DATA ?? [],
                 referenceAllowedAccountCodes: (window.REFERENCE_ALLOWED_ACCOUNT_CODES ?? []).map(code => String(code).trim().toUpperCase()),
                 referenceSourceAccountCodes: window.REFERENCE_SOURCE_ACCOUNT_CODES ?? {},
                 referenceBrowseUrl: window.REFERENCE_BROWSE_URL ?? '',
@@ -434,13 +457,92 @@
                     this.recalcTotals();
                 },
 
+                normalizeSubaccountType(val) {
+                    const raw = (val || '').toString().trim().toUpperCase();
+                    if (raw === 'C' || raw === 'CUSTOMER') return 'C';
+                    if (raw === 'P' || raw === 'SUPPLIER') return 'P';
+                    return 'S';
+                },
+
+                getSubaccountTitle(row) {
+                    if (!row) return 'Sub Account';
+                    const type = this.normalizeSubaccountType(typeof row === 'object' ? row.ftypesubaccount : row);
+                    if (type === 'C') return 'Customer';
+                    if (type === 'P') return 'Supplier';
+                    return 'Sub Account';
+                },
+
+                get subAccountHeaderTitle() {
+                    const activeRows = (this.savedItems || []).filter(r => r.faccount && r.fhavesubaccount);
+                    if (activeRows.length === 0) return 'Sub Account';
+
+                    const types = new Set(activeRows.map(r => this.normalizeSubaccountType(r.ftypesubaccount)));
+                    if (types.size === 1) {
+                        const type = Array.from(types)[0];
+                        if (type === 'C') return 'Customer';
+                        if (type === 'P') return 'Supplier';
+                        return 'Sub Account';
+                    }
+                    return 'Sub Account';
+                },
+
+                getSubaccountOptions(row) {
+                    if (!row || !row.fhavesubaccount) return [];
+                    const type = this.normalizeSubaccountType(row.ftypesubaccount);
+                    if (type === 'C') {
+                        return this.customers || [];
+                    }
+                    if (type === 'P') {
+                        return this.suppliers || [];
+                    }
+                    return this.subaccounts || [];
+                },
+
+                initSelect2Subaccount(el, row) {
+                    if (!window.jQuery || !window.jQuery.fn.select2) return;
+                    const $el = window.jQuery(el);
+
+                    this.$nextTick(() => {
+                        if (!$el.hasClass('select2-hidden-accessible')) {
+                            $el.select2({
+                                width: '100%',
+                                dropdownAutoWidth: true,
+                            });
+
+                            $el.on('change', (e) => {
+                                const val = e.target.value || '';
+                                if (row.fsubaccountcode !== val) {
+                                    row.fsubaccountcode = val;
+                                }
+                            });
+                        }
+
+                        this.$watch(() => row.fsubaccountcode, (val) => {
+                            if ($el.val() !== (val || '')) {
+                                $el.val(val || '').trigger('change.select2');
+                            }
+                        });
+
+                        this.$watch(() => row.ftypesubaccount, () => {
+                            this.$nextTick(() => {
+                                $el.trigger('change.select2');
+                            });
+                        });
+
+                        this.$watch(() => row.fhavesubaccount, (enabled) => {
+                            $el.prop('disabled', !enabled).trigger('change.select2');
+                        });
+                    });
+                },
+
                 updateAccount(row, faccid, accName, accCode) {
-                    const accObj = this.accounts.find(a => String(a.faccid) === String(faccid));
+                    const accObj = this.accounts.find(a => String(a.faccid) === String(faccid) || String(a.faccount) === String(accCode));
                     Object.assign(row, {
-                        faccid: faccid,
+                        faccid: faccid || (accObj?.faccid ?? ''),
                         faccname: accName || (accObj?.faccname ?? ''),
                         faccount: accCode || (accObj?.faccount ?? ''),
                         fhavesubaccount: accObj ? Number(accObj.fhavesubaccount ?? 0) : 0,
+                        ftypesubaccount: accObj ? (accObj.ftypesubaccount ?? 'S') : 'S',
                         fsubaccountid: 0,
                         fsubaccountcode: '',
                         fsubaccountname: '',
@@ -578,7 +680,7 @@
                 },
 
                 emptyRow() {
-                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
+                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, ftypesubaccount: 'S', fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
                 },
 
                 normalizeRow(row = {}, index = 0) {
@@ -590,6 +692,7 @@
                         faccid: matchedAccount ? matchedAccount.faccid : (row.faccid || ''),
                         faccname: matchedAccount ? matchedAccount.faccname : (row.faccname || ''),
                         fhavesubaccount: matchedAccount ? Number(matchedAccount.fhavesubaccount ?? 0) : Number(row.fhavesubaccount || 0),
+                        ftypesubaccount: matchedAccount ? (matchedAccount.ftypesubaccount ?? 'S') : (row.ftypesubaccount ?? 'S'),
                         fsubaccountcode: String(row.fsubaccountcode || '').trim(),
                         fsubaccountid: row.fsubaccountid || '',
                         fsubaccountname: String(row.fsubaccountname || '').trim(),
