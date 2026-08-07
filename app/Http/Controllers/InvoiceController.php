@@ -1380,6 +1380,16 @@ class InvoiceController extends Controller
         // 1. VALIDASI (Tetap sama)
         try {
             $request->validate([
+                'fsono' => [
+                    'nullable',
+                    'string',
+                    'max:50',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. Faktur Penjualan wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fsodate' => ['required', 'date'],
                 'fjatuhtempo' => ['nullable', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],

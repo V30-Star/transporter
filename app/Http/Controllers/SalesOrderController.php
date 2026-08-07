@@ -1029,7 +1029,16 @@ class SalesOrderController extends Controller
 
         try {
             $request->validate([
-                'fsono' => ['nullable', 'string', 'max:25'],
+                'fsono' => [
+                    'nullable',
+                    'string',
+                    'max:25',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. SO wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fsodate' => ['required', 'date'],
                 'fkirimdate' => ['nullable', 'date'],
                 'fcustno' => ['required', 'string', 'max:20'],

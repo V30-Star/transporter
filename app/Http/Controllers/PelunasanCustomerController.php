@@ -280,6 +280,11 @@ class PelunasanCustomerController extends Controller
                 'string',
                 'max:30',
                 Rule::unique('trkasmt', 'fkasmtno'),
+                function ($attribute, $value, $fail) use ($request) {
+                    if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                        $fail('No. Voucher Pelunasan Customer wajib diisi jika Auto tidak dicentang.');
+                    }
+                },
             ],
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],

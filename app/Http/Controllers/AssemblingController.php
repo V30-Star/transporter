@@ -494,7 +494,16 @@ class AssemblingController extends Controller
         // =========================
         try {
             $request->validate([
-                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtno' => [
+                    'nullable',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. Transaksi Assembling wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fstockmtdate' => ['required', 'date'],
                 'ffrom' => ['required', 'string', 'max:20'],
                 'fket' => ['nullable', 'string', 'max:50'],

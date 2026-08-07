@@ -603,6 +603,11 @@ class PengeluaranKasController extends Controller
                 'string',
                 'max:30',
                 Rule::unique('trkasmt', 'fkasmtno')->ignore($header?->fkasmtno, 'fkasmtno'),
+                function ($attribute, $value, $fail) use ($request) {
+                    if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                        $fail('No. Voucher Pengeluaran Kas/Bank wajib diisi jika Auto tidak dicentang.');
+                    }
+                },
             ],
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10', Rule::exists('mscabang', 'fcabangkode')],

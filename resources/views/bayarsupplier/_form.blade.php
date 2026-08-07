@@ -118,12 +118,20 @@
                     <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                 </div>
 
-                <div>
-                    <label class="text-xs font-bold mb-1">{{ 'No. Voucher' }}</label>
-                    <input type="text" name="fkasmtno" value="{{ strtoupper(old('fkasmtno', $voucherNo ?? '')) }}"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtno') border-red-500 @enderror"
-                        placeholder="Kosongkan untuk auto number"
-                        oninput="this.value = this.value.toUpperCase()">
+                <div x-data="{ autoCode: true }">
+                    <label class="text-xs font-bold mb-1">No. Voucher <span class="text-red-500" x-show="!autoCode">*</span></label>
+                    <div class="flex items-center gap-3">
+                        <input type="text" name="fkasmtno" value="{{ strtoupper(old('fkasmtno', $voucherNo ?? '')) }}" :disabled="autoCode"
+                            :required="!autoCode"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtno') border-red-500 @enderror"
+                            :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                            :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                            oninput="this.value = this.value.toUpperCase()">
+                        <label class="inline-flex items-center select-none">
+                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
+                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                        </label>
+                    </div>
                     @error('fkasmtno')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror

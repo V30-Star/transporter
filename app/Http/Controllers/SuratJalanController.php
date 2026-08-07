@@ -725,7 +725,16 @@ class SuratJalanController extends Controller
         // =========================
         try {
             $request->validate([
-                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtno' => [
+                    'nullable',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. Transaksi Surat Jalan wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
                 'ffrom' => ['required', 'string', 'max:10'],

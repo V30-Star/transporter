@@ -965,6 +965,16 @@ class ReturPenjualanController extends Controller
 
         try {
             $request->validate([
+                'fsono' => [
+                    'nullable',
+                    'string',
+                    'max:50',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. Transaksi Retur Penjualan wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
                 'ffrom' => ['required', 'string', 'max:30'],

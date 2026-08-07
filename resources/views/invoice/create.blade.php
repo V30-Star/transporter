@@ -287,18 +287,21 @@
                         </div>
 
                         <div x-data="{ autoCode: @json(old('_token') === null || trim((string) old('fsono', '')) === '') }">
-                            <label class="block text-xs font-bold mb-1">Faktur#</label>
+                            <label class="block text-xs font-bold mb-1">
+                                Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
+                            </label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fsono" value="{{ old('fsono') }}"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
+                                    :required="!autoCode"
                                     :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
                                         'bg-white'"
-                                    :placeholder="autoCode ? 'Auto Generated' : ''"
+                                    :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
                                     oninput="this.value = this.value.toUpperCase()">
                                 <label
                                     class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                    <input type="checkbox" x-model="autoCode">
+                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode">
                                     <span class="ml-1.5">Auto</span>
                                 </label>
                             </div>

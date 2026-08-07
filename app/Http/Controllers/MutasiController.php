@@ -601,7 +601,16 @@ class MutasiController extends Controller
             // TAHAP 1: VALIDASI INPUT
             // =========================
             $request->validate([
-                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtno' => [
+                    'nullable',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                            $fail('No. Transaksi Mutasi Barang wajib diisi jika Auto tidak dicentang.');
+                        }
+                    },
+                ],
                 'fstockmtdate' => ['required', 'date'],
                 'ffrom' => ['required', 'string', 'max:10'],
                 'fto' => ['required', 'string', 'max:10'],

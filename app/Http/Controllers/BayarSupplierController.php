@@ -209,9 +209,18 @@ class BayarSupplierController extends Controller
                 'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
                 'fgiromundur' => $isGiroMundur ? '1' : '0',
             ]);
-
-        $validated = $request->validate([
-            'fkasmtno' => ['nullable', 'string', 'max:30', Rule::unique('trkasmt', 'fkasmtno')],
+            $request->validate([
+            'fkasmtno' => [
+                'nullable',
+                'string',
+                'max:30',
+                Rule::unique('trkasmt', 'fkasmtno'),
+                function ($attribute, $value, $fail) use ($request) {
+                    if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
+                        $fail('No. Voucher Pembayaran Supplier wajib diisi jika Auto tidak dicentang.');
+                    }
+                },
+            ],
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
