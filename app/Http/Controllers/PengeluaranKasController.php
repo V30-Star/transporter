@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Customer;
 use App\Models\Subaccount;
+use App\Models\Supplier;
 use App\Models\Trkasdt;
 use App\Models\Trkasmt;
 use Carbon\Carbon;
@@ -536,12 +538,22 @@ class PengeluaranKasController extends Controller
         $details = DB::table('trkasdt as dt')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
             ->leftJoin('mssubaccount as sub', 'sub.fsubaccountcode', '=', 'dt.fsubaccount')
+            ->leftJoin('mscustomer as cust', 'cust.fcustomercode', '=', 'dt.fsubaccount')
+            ->leftJoin('mssupplier as supp', 'supp.fsuppliercode', '=', 'dt.fsubaccount')
             ->where('dt.fkasmtid', $header->fkasmtid)
             ->orderBy('dt.fnou')
             ->get([
                 'dt.*',
                 'acc.faccname as account_name',
-                'sub.fsubaccountname as subaccount_name',
+                'acc.ftypesubaccount',
+                DB::raw("COALESCE(
+                    CASE 
+                        WHEN UPPER(TRIM(COALESCE(acc.ftypesubaccount, ''))) IN ('C', 'CUSTOMER') THEN cust.fcustomername 
+                        WHEN UPPER(TRIM(COALESCE(acc.ftypesubaccount, ''))) IN ('P', 'SUPPLIER') THEN supp.fsuppliername 
+                        ELSE sub.fsubaccountname 
+                    END,
+                    sub.fsubaccountname, cust.fcustomername, supp.fsuppliername
+                ) as subaccount_name"),
             ]);
 
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
@@ -581,6 +593,12 @@ class PengeluaranKasController extends Controller
                 ->where('fnonactive', '0')
                 ->orderBy('fsubaccountcode')
                 ->get(['fsubaccountid', 'fsubaccountcode', 'fsubaccountname']),
+            'customers' => Customer::query()
+                ->orderBy('fcustomercode')
+                ->get(['fcustomerid', 'fcustomercode', 'fcustomername']),
+            'suppliers' => Supplier::query()
+                ->orderBy('fsuppliercode')
+                ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']),
             'journalAccountValidation' => $this->resolveJournalAccountValidationConfig(),
         ], $overrides);
     }
@@ -722,12 +740,25 @@ class PengeluaranKasController extends Controller
     {
         $accounts = Account::query()
             ->whereIn('faccount', collect($details)->pluck('faccount')->filter()->all())
-            ->get(['faccount', 'fhavesubaccount'])
+            ->get(['faccount', 'fhavesubaccount', 'ftypesubaccount'])
             ->keyBy('faccount');
+
+        $subaccountCodes = collect($details)->pluck('fsubaccount')->filter()->unique()->values()->all();
+
         $subaccounts = Subaccount::query()
-            ->whereIn('fsubaccountcode', collect($details)->pluck('fsubaccount')->filter()->all())
+            ->whereIn('fsubaccountcode', $subaccountCodes)
             ->get(['fsubaccountcode'])
             ->keyBy('fsubaccountcode');
+
+        $customers = Customer::query()
+            ->whereIn('fcustomercode', $subaccountCodes)
+            ->get(['fcustomercode'])
+            ->keyBy('fcustomercode');
+
+        $suppliers = Supplier::query()
+            ->whereIn('fsuppliercode', $subaccountCodes)
+            ->get(['fsuppliercode'])
+            ->keyBy('fsuppliercode');
 
         $errors = [];
 
@@ -741,11 +772,7 @@ class PengeluaranKasController extends Controller
 
             $account = $accounts->get($accountCode);
             $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
-
-            if ($subaccountCode !== '' && ! $subaccounts->has($subaccountCode)) {
-                $errors["details.$index.fsubaccount"] = 'Sub Account yang dipilih tidak ditemukan.';
-                continue;
-            }
+            $subaccountType = $this->normalizeSubaccountType($account?->ftypesubaccount ?? 'S');
 
             if ($subaccountCode === '') {
                 continue;
@@ -753,12 +780,32 @@ class PengeluaranKasController extends Controller
 
             if (! $hasSubaccount) {
                 $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memang memakai Sub Account.';
+                continue;
+            }
+
+            if ($subaccountType === 'C' && ! $customers->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Customer yang dipilih tidak ditemukan.';
+            } elseif ($subaccountType === 'P' && ! $suppliers->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Supplier yang dipilih tidak ditemukan.';
+            } elseif (! in_array($subaccountType, ['C', 'P'], true) && ! $subaccounts->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Sub Account yang dipilih tidak ditemukan.';
             }
         }
 
         if (! empty($errors)) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    private function normalizeSubaccountType($value): string
+    {
+        $normalized = strtoupper(trim((string) $value));
+
+        return match ($normalized) {
+            'C', 'CUSTOMER' => 'C',
+            'P', 'SUPPLIER' => 'P',
+            default => 'S',
+        };
     }
 
     private function filterEmptyDetailRows(array $details): array

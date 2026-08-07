@@ -230,7 +230,7 @@ class ReturPembelianController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fapplyppn ?? '0') === '0' && (string) ($row->fincludeppn ?? '0') === '0'),
                     'fstockmtdate' => $row->fstockmtdate
                         ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
                         : '',
@@ -503,7 +503,7 @@ class ReturPembelianController extends Controller
         return view('returpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -705,7 +705,7 @@ class ReturPembelianController extends Controller
 
             // HEADER FIELDS
             $fstockmtnoRaw = strtoupper(trim((string) $request->input('fstockmtno')));
-            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) $request->input('fincludeppn', 0) === 0) : '';
+            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) $request->input('fapplyppn', 0) === 0 && (int) $request->input('fincludeppn', 0) === 0) : '';
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
@@ -1147,7 +1147,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fapplyppn ?? '0') === '0' && (string) ($returpembelian->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1264,7 +1264,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fapplyppn ?? '0') === '0' && (string) ($returpembelian->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1824,7 +1824,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '1') === '0'),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fapplyppn ?? '0') === '0' && (string) ($returpembelian->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -2068,7 +2068,9 @@ class ReturPembelianController extends Controller
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN');
 
         $fjurnaltype  = 'REB';
-        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $hasPpn = (string) ($returPembelian->fapplyppn ?? '0') === '1' || (string) ($returPembelian->fincludeppn ?? '0') === '1';
+        $sep = $hasPpn ? '.' : '/';
+        $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

@@ -220,7 +220,7 @@ class Tr_pohController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'fpono' => $row->fpono,
-                    'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 1) === 0),
+                    'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 0) === 0 && (int) ($row->fincludeppn ?? 0) === 0),
                     'fpohid' => $row->fpohid,
                     'fsupplier' => $row->fsupplier,
                     'fpodate' => $row->fpodate
@@ -780,7 +780,7 @@ class Tr_pohController extends Controller
         return view('tr_poh.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFpono' => $this->formatDisplayTransactionNumber($hdr->fpono ?? null, (int) ($hdr->fapplyppn ?? 1) === 0),
+            'displayFpono' => $this->formatDisplayTransactionNumber($hdr->fpono ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
             'subtotal' => $subtotal,
             'ppnPersen' => $ppnPersen,
@@ -1425,7 +1425,7 @@ class Tr_pohController extends Controller
             'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 0 && (int) ($tr_poh->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,   // <-- currency aktif dari join
@@ -1532,7 +1532,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 0 && (int) ($tr_poh->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,
@@ -2142,7 +2142,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
-            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 1) === 0),
+            'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 0 && (int) ($tr_poh->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,   // <-- currency aktif dari join

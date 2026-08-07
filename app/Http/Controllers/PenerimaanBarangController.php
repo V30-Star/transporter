@@ -1945,7 +1945,9 @@ class PenerimaanBarangController extends Controller
         $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount');
 
         $fjurnaltype  = 'TER';
-        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
+        $hasPpn = (string) ($hdr->fapplyppn ?? '0') === '1' || (string) ($hdr->fincludeppn ?? '0') === '1';
+        $sep = $hasPpn ? '.' : '/';
+        $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));

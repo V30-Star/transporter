@@ -284,7 +284,7 @@ class ReturPenjualanController extends Controller
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fapplyppn ?? '0') === '0' && (string) ($row->fincludeppn ?? '0') === '0'),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
@@ -921,7 +921,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1335,7 +1335,7 @@ class ReturPenjualanController extends Controller
             ) {
 
                 $fsonoRaw = strtoupper(trim((string) $request->input('fsono')));
-                $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fincludeppn === '0') : '';
+                $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fapplyppn === '0' && $fincludeppn === '0') : '';
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
@@ -2084,7 +2084,7 @@ class ReturPenjualanController extends Controller
             'productMap' => $productMap,
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fapplyppn ?? '0') === '0' && (string) ($returpenjualan->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2212,7 +2212,7 @@ class ReturPenjualanController extends Controller
             'productMap' => $productMap,
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fapplyppn ?? '0') === '0' && (string) ($returpenjualan->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -3007,7 +3007,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
-            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fapplyppn ?? '0') === '0' && (string) ($returpenjualan->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -3354,7 +3354,9 @@ class ReturPenjualanController extends Controller
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG');
 
         $fjurnaltype = 'REJ';
-        $jurnalPrefix = sprintf('JV.%s.%s.%s%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $hasPpn = (string) ($returPenjualan->fapplyppn ?? '0') === '1' || (string) ($returPenjualan->fincludeppn ?? '0') === '1';
+        $sep = $hasPpn ? '.' : '/';
+        $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fsodate->format('y') . $fsodate->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));

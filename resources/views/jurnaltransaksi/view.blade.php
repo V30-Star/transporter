@@ -80,12 +80,12 @@
             </div>
             <div class="mt-6">
                 <div class="flex items-center justify-end mb-4">
-                    <div class="text-xs font-medium flex gap-6">
+                    <div class="text-base font-semibold flex gap-6">
                         <span>Total Debit:
-                            <strong class="text-blue-700">{{ number_format($totalDebit, 2, ',', '.') }}</strong>
+                            <strong class="text-lg text-blue-700">{{ number_format($totalDebit, 2, ',', '.') }}</strong>
                         </span>
                         <span>Total Kredit:
-                            <strong class="text-green-700">{{ number_format($totalKredit, 2, ',', '.') }}</strong>
+                            <strong class="text-lg text-green-700">{{ number_format($totalKredit, 2, ',', '.') }}</strong>
                         </span>
                     </div>
                 </div>
@@ -162,11 +162,6 @@
                     class="inline-flex items-center {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-5 py-2 rounded-lg transition-colors">
                     <x-heroicon-o-printer class="w-6 h-6 mr-2" />
                     Print
-                </a>
-                <a href="{{ route('jurnaltransaksi.edit', $jurnaltransaksi->fjurnalmtid) }}"
-                    class="inline-flex items-center bg-yellow-500 text-white px-5 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
-                    <x-heroicon-o-pencil-square class="w-6 h-6 mr-2" />
-                    Edit
                 </a>
                 <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                     class="inline-flex items-center bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 transition-colors">

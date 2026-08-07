@@ -566,7 +566,7 @@ class SalesOrderController extends Controller
                     'ftrsomtid' => $row->ftrsomtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 1) === 0),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 0) === 0 && (int) ($row->fincludeppn ?? 0) === 0),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
@@ -914,7 +914,7 @@ class SalesOrderController extends Controller
         return view('salesorder.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 1) === 0),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1091,7 +1091,7 @@ class SalesOrderController extends Controller
         // HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $fsonoRaw = $request->filled('fsono') ? strtoupper(trim((string) $request->input('fsono'))) : null;
-        $fsono = $fsonoRaw !== null ? $this->formatDisplayTransactionNumber($fsonoRaw, (int) ($request->input('fapplyppn') ?? 1) === 0) : null;
+        $fsono = $fsonoRaw !== null ? $this->formatDisplayTransactionNumber($fsonoRaw, (int) ($request->input('fapplyppn') ?? 0) === 0 && (int) ($request->input('fincludeppn') ?? 0) === 0) : null;
         $resolvedSalesmanCode = $this->resolveSalesmanCode(
             $request->input('fsalesman'),
             $request->input('filter_salesman_id')
@@ -1591,7 +1591,7 @@ class SalesOrderController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->salesOrderPriceFlags(),
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 0 && (int) ($salesorder->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -1689,7 +1689,7 @@ class SalesOrderController extends Controller
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? $this->getDefaultPpnTarif()),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 0 && (int) ($salesorder->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0),
             'famountgross' => (float) ($salesorder->famountgross ?? 0),
@@ -2201,7 +2201,7 @@ class SalesOrderController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'salesorder' => $salesorder,
-            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 1) === 0),
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 0 && (int) ($salesorder->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB

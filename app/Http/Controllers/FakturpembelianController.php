@@ -348,7 +348,7 @@ class FakturpembelianController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, (int) ($row->fapplyppn ?? 1) === 0),
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, (int) ($row->fapplyppn ?? 0) === 0 && (int) ($row->fincludeppn ?? 0) === 0),
                     'fstockmtdate' => $row->fstockmtdate
                         ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
                         : '',
@@ -1195,7 +1195,7 @@ class FakturpembelianController extends Controller
         return view('fakturpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (int) ($hdr->fapplyppn ?? 1) === 0),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1351,7 +1351,7 @@ class FakturpembelianController extends Controller
 
             // 2) HEADER FIELDS
             $fstockmtnoRaw = strtoupper(trim((string) $request->input('fstockmtno')));
-            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) ($request->input('fapplyppn') ?? 1) === 0) : '';
+            $fstockmtno = $fstockmtnoRaw !== '' ? $this->formatDisplayTransactionNumber($fstockmtnoRaw, (int) ($request->input('fapplyppn') ?? 0) === 0 && (int) ($request->input('fincludeppn') ?? 0) === 0) : '';
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
             $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
@@ -1672,7 +1672,7 @@ class FakturpembelianController extends Controller
 
                 // B. Penomoran
                 if (empty($fstockmtno)) {
-                    $sep = $fincludeppn === 1 ? '.' : '/';
+                    $sep = ($fapplyppn === 1 || $fincludeppn === 1) ? '.' : '/';
                     $prefix = sprintf('%s%s%s%s%s%s', $prefixCode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
                     $lockKey = crc32("STOCKMT|$prefixCode|$kodeCabang|" . $fstockmtdate->format('y-m'));
 
@@ -2002,7 +2002,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 1) === 0),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 0 && (int) ($fakturpembelian->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -2141,7 +2141,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 1) === 0),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 0 && (int) ($fakturpembelian->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -2919,7 +2919,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 1) === 0),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 0 && (int) ($fakturpembelian->fincludeppn ?? 0) === 0),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),

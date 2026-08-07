@@ -54,6 +54,33 @@
             ];
         })
         ->all();
+    $subaccountCatalog = $subaccountOptions
+        ->map(
+            fn($item) => [
+                'code' => (string) ($item->fsubaccountcode ?? ''),
+                'name' => (string) ($item->fsubaccountname ?? ''),
+            ],
+        )
+        ->values()
+        ->all();
+    $customerCatalog = $customerOptions
+        ->map(
+            fn($item) => [
+                'code' => (string) ($item->fcustomercode ?? ''),
+                'name' => (string) ($item->fcustomername ?? ''),
+            ],
+        )
+        ->values()
+        ->all();
+    $supplierCatalog = $supplierOptions
+        ->map(
+            fn($item) => [
+                'code' => (string) ($item->fsuppliercode ?? ''),
+                'name' => (string) ($item->fsuppliername ?? ''),
+            ],
+        )
+        ->values()
+        ->all();
     $selectedHeaderLookup = $isGiroMundur
         ? $giroMundurHeaderAccount ?? null
         : $headerAccountOptions->firstWhere('faccount', (string) $selectedHeader);
@@ -81,7 +108,7 @@
 
 
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" >
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog), @js($subaccountCatalog), @js($customerCatalog), @js($supplierCatalog))" x-init="init()" >
     <style>
         input::placeholder,
         textarea::placeholder {
@@ -94,6 +121,32 @@
             color: #9ca3af !important;
             -webkit-text-fill-color: #9ca3af !important;
             font-weight: normal !important;
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 32px !important;
+            border-color: #d1d5db !important;
+            border-radius: 0.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            line-height: normal !important;
+            padding-left: 0.5rem !important;
+            padding-right: 1.5rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 30px !important;
+        }
+
+        .select2-container--default.select2-container--disabled .select2-selection--single {
+            background-color: #f9fafb !important;
+            cursor: not-allowed !important;
+            opacity: 0.6 !important;
         }
     </style>
 
@@ -419,25 +472,46 @@
                                         };
                                     @endphp
                                     @if ($isReadOnly)
-                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountLabel }}</div>
-                                        <input type="hidden" name="details[{{ $index }}][fsubaccount]"
-                                            value="{{ $detailSubaccountCode }}">
-                                    @else
-                                        <div class="flex">
-                                            <input type="text"
-                                                class="detail-subaccount-display flex-1 border rounded-l px-2 py-1 text-sm bg-gray-50 text-gray-500 cursor-not-allowed min-w-0"
-                                                value="{{ $detailSubaccountLabel }}" readonly
-                                                data-role="subaccount-display">
-                                            <input type="hidden"
-                                                name="details[{{ $index }}][fsubaccount]"
-                                                value="{{ $detailSubaccountCode }}">
-                                            <button type="button" @click="openSubaccountBrowse($event)"
-                                                class="detail-subaccount-btn shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
-                                                title="{{ $detailSubaccountType === 'C' ? 'Cari Customer' : ($detailSubaccountType === 'P' ? 'Cari Supplier' : 'Cari Sub Account') }}">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
-                                            </button>
-                                        </div>
-                                    @endif
+                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountCode }}</div>
+                                         <input type="hidden" name="details[{{ $index }}][fsubaccount]"
+                                             value="{{ $detailSubaccountCode }}">
+                                     @else
+                                          <select name="details[{{ $index }}][fsubaccount]"
+                                              class="detail-subaccount-select select2-subaccount w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                              data-role="subaccount-select">
+                                              <option value="">
+                                                  @if ($detailSubaccountType === 'C')
+                                                      — Pilih Customer —
+                                                  @elseif ($detailSubaccountType === 'P')
+                                                      — Pilih Supplier —
+                                                  @else
+                                                      — Pilih Sub Account —
+                                                  @endif
+                                              </option>
+                                              @if ($detailSubaccountType === 'C')
+                                                  @foreach ($customerOptions as $cust)
+                                                      <option value="{{ $cust->fcustomercode }}"
+                                                          {{ $detailSubaccountCode === (string) $cust->fcustomercode ? 'selected' : '' }}>
+                                                          {{ $cust->fcustomercode }} - {{ $cust->fcustomername }}
+                                                      </option>
+                                                  @endforeach
+                                              @elseif ($detailSubaccountType === 'P')
+                                                  @foreach ($supplierOptions as $supp)
+                                                      <option value="{{ $supp->fsuppliercode }}"
+                                                          {{ $detailSubaccountCode === (string) $supp->fsuppliercode ? 'selected' : '' }}>
+                                                          {{ $supp->fsuppliercode }} - {{ $supp->fsuppliername }}
+                                                      </option>
+                                                  @endforeach
+                                              @else
+                                                  @foreach ($subaccountOptions as $sacc)
+                                                      <option value="{{ $sacc->fsubaccountcode }}"
+                                                          {{ $detailSubaccountCode === (string) $sacc->fsubaccountcode ? 'selected' : '' }}>
+                                                          {{ $sacc->fsubaccountcode }} - {{ $sacc->fsubaccountname }}
+                                                      </option>
+                                                  @endforeach
+                                              @endif
+                                          </select>
+                                     @endif
                                     @error("details.$index.fsubaccount")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -570,7 +644,7 @@
     @push('scripts')
         <script>
             function pengeluaranKasForm(isReadOnly, initialVoucherNo, initialGiroMundur, isPenerimaanKasForm,
-                journalAccountValidation, accountCatalog) {
+                journalAccountValidation, accountCatalog, subaccountCatalog, customerCatalog, supplierCatalog) {
                 return {
                     isReadOnly,
                     voucherNo: initialVoucherNo || '',
@@ -583,6 +657,9 @@
                         reference: {}
                     },
                     accountCatalog: accountCatalog || {},
+                    subaccountCatalog: subaccountCatalog || [],
+                    customerCatalog: customerCatalog || [],
+                    supplierCatalog: supplierCatalog || [],
                     activeLookupRow: null,
                     activeLookupType: null,
 
@@ -773,12 +850,14 @@
                         const accountNameDisplay = row.querySelector('[data-role="account-name-display"]');
                         const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
                         const subaccountTypeField = row.querySelector('[data-role="account-subaccount-type"]');
+                        const selectField = row.querySelector('[data-role="subaccount-select"]');
 
                         if (accountHidden) accountHidden.value = '';
                         if (accountCodeDisplay) accountCodeDisplay.value = '';
                         if (accountNameDisplay) accountNameDisplay.value = '';
                         if (hasSubaccountField) hasSubaccountField.value = '0';
                         if (subaccountTypeField) subaccountTypeField.value = 'S';
+                        if (selectField) window.jQuery(selectField).val('').trigger('change');
 
                         this.syncSubaccountState(row, false, 'S');
                     },
@@ -791,8 +870,7 @@
                         const focusTarget = {
                             faccount: row.querySelector('[data-role="account-code-display"]') || row.querySelector(
                                 'button[title="Cari Account"]'),
-                            fsubaccount: row.querySelector('.detail-subaccount-btn') || row.querySelector(
-                                '[data-role="subaccount-display"]'),
+                            fsubaccount: row.querySelector('[data-role="subaccount-select"]'),
                             frefno: row.querySelector('[data-role="detail-reference-input"]'),
                         } [focusField];
 
@@ -1006,6 +1084,57 @@
                         return this.normalizeSubaccountType(row?.querySelector('[data-role="account-subaccount-type"]')?.value);
                     },
 
+                    initSelect2ForSubaccount(row, forceEnabled = null, forceType = null) {
+                        if (!row || !window.jQuery || !window.jQuery.fn.select2) return;
+                        const select = row.querySelector('[data-role="subaccount-select"]');
+                        if (!select) return;
+
+                        const $select = window.jQuery(select);
+                        const enabled = forceEnabled ?? this.rowHasSubaccountEnabled(row);
+                        const subType = this.normalizeSubaccountType(forceType || this.getRowSubaccountType(row));
+                        const currentValue = (select.value || '').toString().trim();
+
+                        let placeholderText = '— Pilih Sub Account —';
+                        let dataset = this.subaccountCatalog || [];
+
+                        if (subType === 'C') {
+                            placeholderText = '— Pilih Customer —';
+                            dataset = this.customerCatalog || [];
+                        } else if (subType === 'P') {
+                            placeholderText = '— Pilih Supplier —';
+                            dataset = this.supplierCatalog || [];
+                        }
+
+                        if ($select.data('select2')) {
+                            $select.select2('destroy');
+                        }
+
+                        $select.empty();
+                        $select.append(new Option(placeholderText, '', true, currentValue === ''));
+
+                        dataset.forEach((item) => {
+                            const code = (item.code || '').toString().trim();
+                            const name = (item.name || '').toString().trim();
+                            if (!code) return;
+                            const isSelected = code === currentValue;
+                            const text = name ? `${code} - ${name}` : code;
+                            $select.append(new Option(text, code, isSelected, isSelected));
+                        });
+
+                        $select.prop('disabled', !enabled);
+
+                        $select.select2({
+                            width: '100%',
+                            placeholder: placeholderText,
+                            allowClear: true,
+                            dropdownAutoWidth: true,
+                        });
+
+                        $select.off('change.subaccountSelect').on('change.subaccountSelect', () => {
+                            this.checkAndAutoAppendRow();
+                        });
+                    },
+
                     syncSubaccountState(row, forceEnabled = null, forceType = null) {
                         if (!row) {
                             return;
@@ -1013,37 +1142,13 @@
 
                         const enabled = forceEnabled ?? this.rowHasSubaccountEnabled(row);
                         const type = this.normalizeSubaccountType(forceType || this.getRowSubaccountType(row));
-                        const displayField = row.querySelector('[data-role="subaccount-display"]');
-                        const hiddenField = row.querySelector('input[name$="[fsubaccount]"]');
-                        const browseButton = row.querySelector('.detail-subaccount-btn');
-                        const hint = row.querySelector('.detail-subaccount-hint');
+                        const selectField = row.querySelector('[data-role="subaccount-select"]');
 
-                        if (!enabled) {
-                            if (displayField) {
-                                displayField.value = '';
-                            }
-
-                            if (hiddenField) {
-                                hiddenField.value = '';
-                            }
+                        if (!enabled && selectField) {
+                            window.jQuery(selectField).val('').trigger('change');
                         }
 
-                        if (browseButton) {
-                            browseButton.disabled = !enabled;
-                            browseButton.title = type === 'C' ? 'Cari Customer' : (type === 'P' ? 'Cari Supplier' :
-                                'Cari Sub Account');
-                            browseButton.classList.toggle('opacity-50', !enabled);
-                            browseButton.classList.toggle('cursor-not-allowed', !enabled);
-                        }
-
-                        if (displayField && !displayField.value) {
-                            displayField.placeholder = type === 'C' ? 'Pilih Customer' : (type === 'P' ? 'Pilih Supplier' :
-                                'Pilih Sub Account');
-                        }
-
-                        if (hint) {
-                            hint.classList.toggle('hidden', !!enabled);
-                        }
+                        this.initSelect2ForSubaccount(row, enabled, type);
                     },
 
                     addRow() {
@@ -1055,12 +1160,15 @@
                         if (!template) return;
 
                         const clone = template.cloneNode(true);
+                        clone.querySelectorAll('.select2-container').forEach((el) => el.remove());
+                        clone.querySelectorAll('select.select2-subaccount').forEach((el) => {
+                            window.jQuery(el).removeClass('select2-hidden-accessible').removeAttr('data-select2-id').val('');
+                        });
                         clone.querySelectorAll('input, textarea').forEach((field) => field.value = '');
                         clone.querySelectorAll('[data-role="account-subaccount-type"]').forEach((field) => field.value = 'S');
-                        clone.querySelectorAll('select').forEach((field) => field.selectedIndex = 0);
                         tbody.appendChild(clone);
                         this.renumberRows();
-                        this.syncSubaccountState(clone, false);
+                        this.syncSubaccountState(clone, false, 'S');
                         this.syncRowAmountState(clone);
                         this.updateTotal();
                     },

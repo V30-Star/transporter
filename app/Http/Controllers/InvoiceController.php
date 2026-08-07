@@ -878,7 +878,7 @@ class InvoiceController extends Controller
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => trim((string) ($row->fsono ?? '')),
-                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '1') === '0'),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fapplyppn ?? '0') === '0' && (string) ($row->fincludeppn ?? '0') === '0'),
                     'ftaxno' => trim((string) ($row->ftaxno ?? '')),
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
@@ -1262,7 +1262,7 @@ class InvoiceController extends Controller
         return view('invoice.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1745,7 +1745,7 @@ class InvoiceController extends Controller
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
         $fsonoRaw = strtoupper(trim((string) $request->input('fsono', '')));
-        $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fincludeppn === '0') : '';
+        $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fapplyppn === '0' && $fincludeppn === '0') : '';
         $hasSrjReference = ! empty($srjReferenceDocs);
 
         // 5. DATABASE TRANSACTION
@@ -2477,7 +2477,7 @@ class InvoiceController extends Controller
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fapplyppn ?? '0') === '0' && (string) ($invoice->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2582,7 +2582,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fapplyppn ?? '0') === '0' && (string) ($invoice->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -3308,7 +3308,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'priceFlags' => $this->invoicePriceFlags(),
             'invoice' => $invoice,
-            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '1') === '0'),
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fapplyppn ?? '0') === '0' && (string) ($invoice->fincludeppn ?? '0') === '0'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB

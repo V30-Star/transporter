@@ -540,12 +540,22 @@ class PenerimaanKasController extends Controller
         $details = DB::table('trkasdt as dt')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
             ->leftJoin('mssubaccount as sub', 'sub.fsubaccountcode', '=', 'dt.fsubaccount')
+            ->leftJoin('mscustomer as cust', 'cust.fcustomercode', '=', 'dt.fsubaccount')
+            ->leftJoin('mssupplier as supp', 'supp.fsuppliercode', '=', 'dt.fsubaccount')
             ->where('dt.fkasmtid', $header->fkasmtid)
             ->orderBy('dt.fnou')
             ->get([
                 'dt.*',
                 'acc.faccname as account_name',
-                'sub.fsubaccountname as subaccount_name',
+                'acc.ftypesubaccount',
+                DB::raw("COALESCE(
+                    CASE 
+                        WHEN UPPER(TRIM(COALESCE(acc.ftypesubaccount, ''))) IN ('C', 'CUSTOMER') THEN cust.fcustomername 
+                        WHEN UPPER(TRIM(COALESCE(acc.ftypesubaccount, ''))) IN ('P', 'SUPPLIER') THEN supp.fsuppliername 
+                        ELSE sub.fsubaccountname 
+                    END,
+                    sub.fsubaccountname, cust.fcustomername, supp.fsuppliername
+                ) as subaccount_name"),
             ]);
 
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));

@@ -113,12 +113,12 @@
                 </div>
                 <div class="mt-6">
                     <div class="flex items-center justify-end mb-4">
-                        <div class="text-xs font-medium flex gap-6">
+                        <div class="text-base font-semibold flex gap-6">
                             <span>Total Debit:
-                                <strong class="text-blue-700" x-text="formatAmount(totalDebit())"></strong>
+                                <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
                             </span>
                             <span>Total Kredit:
-                                <strong class="text-green-700" x-text="formatAmount(totalKredit())"></strong>
+                                <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
                             </span>
                         </div>
                     </div>
@@ -271,12 +271,12 @@
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
                     </div>
                     <div class="mt-6">                    <div class="flex items-center justify-end mb-4">
-                        <div class="flex flex-col gap-1 text-sm sm:flex-row sm:gap-6">
+                        <div class="flex flex-col gap-1 text-base font-semibold sm:flex-row sm:gap-6">
                             <span>Total Debit:
-                                <strong class="text-blue-700" x-text="formatAmount(totalDebit())"></strong>
+                                <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
                             </span>
                             <span>Total Kredit:
-                                <strong class="text-green-700" x-text="formatAmount(totalKredit())"></strong>
+                                <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
                             </span>
                         </div>
                     </div>

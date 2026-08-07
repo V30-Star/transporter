@@ -161,9 +161,9 @@
 
                     <div class="flex items-center justify-end mb-4">
                         {{-- Indikator balance --}}
-                        <div class="text-xs font-medium flex gap-6">
-                            <span>Total Debit: <strong x-text="fmt(totalDebit)" class="text-blue-700"></strong></span>
-                            <span>Total Kredit: <strong x-text="fmt(totalKredit)" class="text-green-700"></strong></span>
+                        <div class="text-base font-semibold flex gap-6">
+                            <span>Total Debit: <strong x-text="fmt(totalDebit)" class="text-lg text-blue-700"></strong></span>
+                            <span>Total Kredit: <strong x-text="fmt(totalKredit)" class="text-lg text-green-700"></strong></span>
                         </div>
                     </div>
 

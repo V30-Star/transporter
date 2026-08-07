@@ -117,7 +117,10 @@ class JurnalFakturPenjualan
         $customerCode = trim($customerCode);
         $userName = trim($userName) !== '' ? trim($userName) : 'System';
         $subaccount = $customerCode !== '' ? $customerCode : null;
-        $fjurnalno = str_starts_with($fsono, 'JV.') ? $fsono : 'JV.' . ltrim($fsono, '.');
+        $isSlash = str_contains($fsono, '/');
+        $fjurnalno = $isSlash
+            ? (str_starts_with($fsono, 'JV/') ? $fsono : 'JV/' . ltrim($fsono, '/'))
+            : (str_starts_with($fsono, 'JV.') ? $fsono : 'JV.' . ltrim($fsono, '.'));
         $now = now();
         $fcustomername = '';
         if ($customerCode !== '') {

@@ -185,7 +185,10 @@ public static function create(
                 $nKurangiUangMuka,
                 $lSaldoAwal
             ) {
-                $fjurnalno = str_starts_with($fstockmtno, 'JV.') ? $fstockmtno : 'JV.' . ltrim($fstockmtno, '.');
+                $isSlash = str_contains($fstockmtno, '/');
+                $fjurnalno = $isSlash
+                    ? (str_starts_with($fstockmtno, 'JV/') ? $fstockmtno : 'JV/' . ltrim($fstockmtno, '/'))
+                    : (str_starts_with($fstockmtno, 'JV.') ? $fstockmtno : 'JV.' . ltrim($fstockmtno, '.'));
                 $now = now();
                 $fsuppliername = '';
                 if (! empty($supplierCode)) {
