@@ -620,20 +620,31 @@
                     if (!window.jQuery || !window.jQuery.fn.select2) return;
                     const $el = window.jQuery(el);
 
+                    const getPlaceholderText = () => `— Pilih ${this.getSubaccountTitle(row)} —`;
+
                     this.$nextTick(() => {
-                        if (!$el.hasClass('select2-hidden-accessible')) {
+                        const setupSelect2 = () => {
+                            const title = getPlaceholderText();
+                            $el.find('option[value=""]').text(title);
+                            if ($el.data('select2')) {
+                                $el.select2('destroy');
+                            }
                             $el.select2({
                                 width: '100%',
+                                placeholder: title,
+                                allowClear: true,
                                 dropdownAutoWidth: true,
                             });
+                        };
 
-                            $el.on('change', (e) => {
-                                const val = e.target.value || '';
-                                if (row.fsubaccountcode !== val) {
-                                    row.fsubaccountcode = val;
-                                }
-                            });
-                        }
+                        setupSelect2();
+
+                        $el.on('change', (e) => {
+                            const val = e.target.value || '';
+                            if (row.fsubaccountcode !== val) {
+                                row.fsubaccountcode = val;
+                            }
+                        });
 
                         this.$watch(() => row.fsubaccountcode, (val) => {
                             if ($el.val() !== (val || '')) {
@@ -643,12 +654,18 @@
 
                         this.$watch(() => row.ftypesubaccount, () => {
                             this.$nextTick(() => {
-                                $el.trigger('change.select2');
+                                setupSelect2();
+                                $el.val(row.fsubaccountcode || '').trigger('change.select2');
                             });
                         });
 
                         this.$watch(() => row.fhavesubaccount, (enabled) => {
-                            $el.prop('disabled', !enabled).trigger('change.select2');
+                            $el.prop('disabled', !enabled);
+                            if (!enabled) {
+                                row.fsubaccountcode = '';
+                            }
+                            setupSelect2();
+                            $el.val(row.fsubaccountcode || '').trigger('change.select2');
                         });
                     });
                 },
