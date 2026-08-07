@@ -768,6 +768,11 @@ class ReturPembelianController extends Controller
             }
 
             // BUILD DETAIL ROWS
+            $hasNonUM = collect($codes)
+                ->map(fn($c) => strtoupper(trim((string) $c)))
+                ->filter(fn($c) => $c !== '' && $c !== 'UM')
+                ->isNotEmpty();
+
             $rowsDt = [];
             $usedNoAcaks = [];
             $subtotal = 0.0;
@@ -783,6 +788,11 @@ class ReturPembelianController extends Controller
 
                 if ($code === '' || $qty <= 0) {
                     continue;
+                }
+
+                if (strtoupper(trim((string) $code)) === 'UM') {
+                    $absPrice = abs($price);
+                    $price = $hasNonUM ? -$absPrice : $absPrice;
                 }
 
                 $meta = $prodMeta[$code] ?? null;
@@ -1387,6 +1397,11 @@ class ReturPembelianController extends Controller
             }
 
             // BUILD DETAIL ROWS
+            $hasNonUM = collect($codes)
+                ->map(fn($c) => strtoupper(trim((string) $c)))
+                ->filter(fn($c) => $c !== '' && $c !== 'UM')
+                ->isNotEmpty();
+
             $rowsDt = [];
             $usedNoAcaks = [];
             $subtotal = 0.0;
@@ -1402,6 +1417,11 @@ class ReturPembelianController extends Controller
 
                 if ($code === '' || $qty <= 0) {
                     continue;
+                }
+
+                if (strtoupper(trim((string) $code)) === 'UM') {
+                    $absPrice = abs($price);
+                    $price = $hasNonUM ? -$absPrice : $absPrice;
                 }
 
                 $meta = $prodMeta[$code] ?? null;

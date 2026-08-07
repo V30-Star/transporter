@@ -1529,13 +1529,28 @@
                 return this.fmt(value);
             },
 
+            hasNonUMProducts() {
+                const activeRows = [...(this.savedItems || []), ...(this.draftRows || [])];
+                return activeRows.some(row => {
+                    const code = (row?.fitemcode || '').toString().trim().toUpperCase();
+                    return code !== '' && code !== 'UM';
+                });
+            },
+
             recalc(row) {
                 row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
-                if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = this.fmt(row.fprice);
+
+                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                let absPrice = Math.abs(+row.fprice || 0);
+                if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
+                    const sanitized = this.sanitizePriceValue(row.fpriceInput);
+                    if (sanitized !== '') absPrice = Math.abs(+sanitized || 0);
                 }
+                const hasOther = this.hasNonUMProducts();
+                const shouldBeNegative = isUM && hasOther;
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+
                 row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
                 row.ftotprice = +(row.fqty * row.fprice * (1 - row.fdiscpersen / 100)).toFixed(2);
                 this.recalcTotals();
@@ -1555,21 +1570,45 @@
 
             onPriceInput(row) {
                 row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                const absPrice = Math.abs(+(row.fpriceInput || 0));
+                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const hasOther = this.hasNonUMProducts();
+                row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 this.recalc(row);
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
-                row.fpriceInput = this.fmt(row.fprice);
+                const absPrice = Math.abs(+(this.sanitizePriceValue(row.fpriceInput) || 0));
+                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const hasOther = this.hasNonUMProducts();
+                row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
+                row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
                 this.recalc(row);
             },
 
             recalcTotals() {
-                const savedSum = (this.savedItems || []).reduce((sum, item) => sum + (item.ftotprice || 0), 0);
+                const hasOther = this.hasNonUMProducts();
+                const allRows = [...(this.savedItems || []), ...(this.draftRows || [])];
+
+                allRows.forEach(row => {
+                    if (!row || !row.fitemcode) return;
+                    const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                    if (isUM) {
+                        let absPrice = Math.abs(+row.fprice || 0);
+                        const shouldBeNegative = hasOther;
+                        row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                        const discPersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
+                        row.ftotprice = +((row.fqty || 0) * row.fprice * (1 - discPersen / 100)).toFixed(2);
+                        if (typeof row.fpriceInput !== 'undefined') {
+                            row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                        }
+                    }
+                });
+
+                const savedSum = (this.savedItems || []).reduce((sum, item) => sum + (+item.ftotprice || 0), 0);
                 const draftSum = (this.draftRows || [])
-                    .filter(item => this.isComplete(item))
-                    .reduce((sum, item) => sum + (item.ftotprice || 0), 0);
+                    .filter(item => this.isComplete && this.isComplete(item))
+                    .reduce((sum, item) => sum + (+item.ftotprice || 0), 0);
                 this.totalHarga = savedSum + draftSum;
             },
 

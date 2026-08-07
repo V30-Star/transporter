@@ -1100,23 +1100,12 @@ class ReturPenjualanController extends Controller
             $frefcode = $request->input('frefcode_global');
         }
 
-        // CEK UM
+        // CEK UM & non-UM items
         $hasUM = in_array('UM', $itemCodes);
-
-        if ($hasUM && $typeSales === 0) {
-            $msg = 'Produk UM hanya untuk tipe Uang Muka.';
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $msg], 422);
-            }
-            return back()->withInput()->with('error', $msg);
-        }
-        if (! $hasUM && $typeSales === 1) {
-            $msg = 'Transaksi Uang Muka wajib menggunakan produk UM.';
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $msg], 422);
-            }
-            return back()->withInput()->with('error', $msg);
-        }
+        $hasNonUM = collect($itemCodes)
+            ->map(fn($c) => strtoupper(trim((string) $c)))
+            ->filter(fn($c) => $c !== '' && $c !== 'UM')
+            ->isNotEmpty();
 
         // QUERY PRODUK
         $filteredCodes = array_values(array_filter($itemCodes));
@@ -1150,6 +1139,11 @@ class ReturPenjualanController extends Controller
 
             if (empty($code) || $qty <= 0) {
                 continue;
+            }
+
+            if (strtoupper(trim((string) $code)) === 'UM') {
+                $absPrice = abs($price);
+                $price = $hasNonUM ? -$absPrice : $absPrice;
             }
 
             $product = $products->get($code);
@@ -2380,22 +2374,10 @@ class ReturPenjualanController extends Controller
         $usedNoAcaks = [];
 
         $hasUM = in_array('UM', $itemCodes);
-
-        if ($hasUM && $typeSales === 0) {
-            $msg = 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.';
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $msg], 422);
-            }
-            return back()->withInput()->with('error', $msg);
-        }
-
-        if (! $hasUM && $typeSales === 1) {
-            $msg = 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.';
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $msg], 422);
-            }
-            return back()->withInput()->with('error', $msg);
-        }
+        $hasNonUM = collect($itemCodes)
+            ->map(fn($c) => strtoupper(trim((string) $c)))
+            ->filter(fn($c) => $c !== '' && $c !== 'UM')
+            ->isNotEmpty();
 
         $stockDetailRows = [];
         foreach ($itemCodes as $i => $code) {
@@ -2404,6 +2386,11 @@ class ReturPenjualanController extends Controller
 
             if (empty($code) || $qty <= 0) {
                 continue;
+            }
+
+            if (strtoupper(trim((string) $code)) === 'UM') {
+                $absPrice = abs($price);
+                $price = $hasNonUM ? -$absPrice : $absPrice;
             }
 
             $product = $products->get($code);

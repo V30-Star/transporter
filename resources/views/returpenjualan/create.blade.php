@@ -2122,19 +2122,33 @@
                 return `${parts.shift()}.${parts.join('')}`;
             },
 
+            hasNonUMProducts() {
+                const activeRows = [...(this.savedItems || [])];
+                return activeRows.some(row => {
+                    const code = (row?.fitemcode || '').toString().trim().toUpperCase();
+                    return code !== '' && code !== 'UM';
+                });
+            },
+
             focusPriceInput(row) {
-                const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? this.fmt(price) : '';
+                const absPrice = Math.abs(+row.fprice || 0);
+                row.fpriceInput = absPrice > 0 ? this.fmt(absPrice) : '';
             },
 
             onPriceInput(row) {
                 row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                const absPrice = Math.abs(+(row.fpriceInput || 0));
+                const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const hasOther = this.hasNonUMProducts();
+                row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
-                row.fpriceInput = this.fmt(row.fprice);
+                const absPrice = Math.abs(+(this.sanitizePriceValue(row.fpriceInput) || 0));
+                const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const hasOther = this.hasNonUMProducts();
+                row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
+                row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
             },
 
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
@@ -2208,16 +2222,18 @@
                     row.fdisc = '0';
                     row.ftotal = 0;
                 } else {
-                    row.fprice = Math.max(0, +row.fprice || 0);
-                    if (row.fprice < 0) row.fprice = 0;
-                    if (typeof row.fpriceInput === 'undefined') {
-                        row.fpriceInput = this.fmt(row.fprice);
+                    const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                    let absPrice = Math.abs(+row.fprice || 0);
+                    if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
+                        const sanitized = this.sanitizePriceValue(row.fpriceInput);
+                        if (sanitized !== '') absPrice = Math.abs(+sanitized || 0);
                     }
+                    const hasOther = this.hasNonUMProducts();
+                    const shouldBeNegative = isUM && hasOther;
+                    row.fprice = shouldBeNegative ? -absPrice : absPrice;
 
-                    // Parse discount menggunakan fungsi baru
                     const discPercent = this.parseDiscount(row.fdisc);
 
-                    // Hitung total
                     const subtotal = row.fqty * row.fprice;
                     const discAmount = subtotal * (discPercent / 100);
                     row.ftotal = +(subtotal - discAmount).toFixed(2);
@@ -2227,7 +2243,25 @@
             },
 
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                const hasOther = this.hasNonUMProducts();
+                (this.savedItems || []).forEach(row => {
+                    if (!row || !row.fitemcode) return;
+                    const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                    if (isUM && !this.isSRJRow(row)) {
+                        let absPrice = Math.abs(+row.fprice || 0);
+                        const shouldBeNegative = hasOther;
+                        row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                        const discPercent = this.parseDiscount ? this.parseDiscount(row.fdisc) : 0;
+                        const subtotal = (row.fqty || 0) * row.fprice;
+                        const discAmount = subtotal * (discPercent / 100);
+                        row.ftotal = +(subtotal - discAmount).toFixed(2);
+                        if (typeof row.fpriceInput !== 'undefined') {
+                            row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                        }
+                    }
+                });
+
+                this.totalHarga = this.savedItems.reduce((sum, item) => sum + (+item.ftotal || 0), 0);
             },
 
             productMeta(code) {
