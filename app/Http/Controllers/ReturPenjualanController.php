@@ -3320,6 +3320,30 @@ class ReturPenjualanController extends Controller
     ): void {
         $this->deleteReturPenjualanJournalEntries($fsono);
 
+        if (round($grandTotal, 2) <= 0) {
+            return;
+        }
+
+        // Jika transaksi berasal dari SRJ (Surat Retur Penjualan), tidak usah dibuatkan jurnal
+        $hasSrjReference = DB::table('trandt')
+            ->where('fsono', $fsono)
+            ->whereNotNull('frefsrj')
+            ->whereRaw("TRIM(COALESCE(frefsrj, '')) != ''")
+            ->exists();
+
+        if (! $hasSrjReference && request()->filled('frefcode_global')) {
+            $hasSrjReference = strtoupper(trim((string) request()->input('frefcode_global'))) === 'SRJ';
+        }
+
+        if (! $hasSrjReference && request()->has('frefsrj')) {
+            $srjInput = (array) request()->input('frefsrj', []);
+            $hasSrjReference = collect($srjInput)->contains(fn ($val) => trim((string) $val) !== '');
+        }
+
+        if ($hasSrjReference) {
+            return;
+        }
+
         // --- Lookup accounts from set_account table ---
         $setAccounts = DB::table('set_account')
             ->whereIn('faccount_name', ['RETURPENJUALAN', 'PPNJUAL', 'RETJUALBLMPOTPIUTANG'])
