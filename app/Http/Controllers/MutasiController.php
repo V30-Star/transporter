@@ -740,10 +740,17 @@ class MutasiController extends Controller
             }
 
             if (empty($rowsDt)) {
-                return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
+                $msg = 'Tidak ada baris item valid.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->withErrors(['fitemcode' => $msg]);
             }
 
             if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $validationMessage], 422);
+                }
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
@@ -858,11 +865,20 @@ class MutasiController extends Controller
                     'type' => 'mutasi_create',
                     'redirect_url' => route('mutasi.print', $fstockmtno),
                 ]);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Mutasi belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Mutasi belum bisa disimpan: ' . $e->getMessage()], 500);
             }
-            return back()->withInput()->withErrors(['fatal' => 'Mutasi belum bisa disimpan. Cek data transaksi.']);
+            return back()->withInput()->withErrors(['fatal' => 'Mutasi belum bisa disimpan: ' . $e->getMessage()]);
         }
     }
 

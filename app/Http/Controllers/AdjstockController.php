@@ -721,14 +721,21 @@ class AdjstockController extends Controller
             }
 
             if (empty($rowsDt)) {
+                $msg = $allowNegativeStockQty
+                    ? 'Minimal 1 item valid harus diisi. Qty tidak boleh 0.'
+                    : 'Minimal 1 item valid harus diisi.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
                 return back()->withInput()->withErrors([
-                    'detail' => $allowNegativeStockQty
-                        ? 'Minimal 1 item valid harus diisi. Qty tidak boleh 0.'
-                        : 'Minimal 1 item valid harus diisi.',
+                    'detail' => $msg,
                 ]);
             }
 
             if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $validationMessage], 422);
+                }
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
@@ -848,6 +855,13 @@ class AdjstockController extends Controller
                     'redirect_url' => route('adjstock.print', $finalNo),
                 ]);
         } catch (ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Adjustment stock belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
             throw $e;
         } catch (\Exception $e) {
             \Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);

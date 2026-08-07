@@ -459,49 +459,61 @@ class PemakaianbarangController extends Controller
         // =========================
         // 1) VALIDASI INPUT
         // =========================
-        $request->validate([
-            'fstockmtno' => ['nullable', 'string', 'max:100'],
-            'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['required', 'string', 'max:10'],
-            'fket' => ['nullable', 'string', 'max:50'],
-            'fbranchcode' => ['nullable', 'string', 'max:20'],
+        try {
+            $request->validate([
+                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtdate' => ['required', 'date'],
+                'ffrom' => ['required', 'string', 'max:10'],
+                'fket' => ['nullable', 'string', 'max:500'],
+                'fbranchcode' => ['nullable', 'string', 'max:20'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:50'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:20'],
 
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
+                'frefdtno' => ['nullable', 'array'],
+                'frefdtno.*' => ['nullable', 'string', 'max:20'],
 
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:20'],
+                'frefso' => ['nullable', 'array'],
+                'frefso.*' => ['nullable', 'string', 'max:20'],
 
-            'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'string', 'max:20'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
 
-            'frefso' => ['nullable', 'array'],
-            'frefso.*' => ['nullable', 'string', 'max:20'],
+                'fdesc' => ['nullable', 'array'],
+                'fdesc.*' => ['nullable', 'string', 'max:500'],
 
-            'fqty' => ['required', 'array'],
-            'fqty.*' => [
-                'required',
-                'numeric',
-                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
-                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
-                    }
-                },
-            ],
+                'fcurrency' => ['nullable', 'string', 'max:5'],
+                'frate' => ['nullable', 'numeric', 'min:0'],
+                'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+            ], [
+                'ffrom.required' => 'Gudang wajib di isi.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
+            ]);
 
-            'fdesc' => ['nullable', 'array'],
-            'fdesc.*' => ['nullable', 'string', 'max:500'],
-
-            'fcurrency' => ['nullable', 'string', 'max:5'],
-            'frate' => ['nullable', 'numeric', 'min:0'],
-            'famountpopajak' => ['nullable', 'numeric', 'min:0'], // PPN nominal
-        ], [
-            'ffrom.required' => 'Gudang wajib di isi.',
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fsupplier.required' => 'Supplier wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
-        ]);
+            $fsodateVal = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fsodateVal);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                $firstError = collect($e->errors())->flatten()->first();
+                return response()->json([
+                    'message' => $firstError ?: 'Pemakaian barang belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+        }
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
@@ -510,7 +522,6 @@ class PemakaianbarangController extends Controller
         // =========================
         $fstockmtno = strtoupper(trim((string) $request->input('fstockmtno')));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -611,10 +622,14 @@ class PemakaianbarangController extends Controller
         }
 
         if (empty($rowsDt)) {
+            $msg = $allowNegativeStockQty
+                ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
             return back()->withInput()->withErrors([
-                'detail' => $allowNegativeStockQty
-                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
-                    : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).',
+                'detail' => $msg,
             ]);
         }
 

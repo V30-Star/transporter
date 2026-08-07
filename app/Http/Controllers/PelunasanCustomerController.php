@@ -264,14 +264,15 @@ class PelunasanCustomerController extends Controller
 
     public function store(Request $request)
     {
-        $isGiroMundur = $request->boolean('fgiromundur');
-        $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
+        try {
+            $isGiroMundur = $request->boolean('fgiromundur');
+            $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
 
-        $request->merge([
-            'details' => $this->filterEmptyDetailRows($request->input('details', [])),
-            'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
-            'fgiromundur' => $isGiroMundur ? '1' : '0',
-        ]);
+            $request->merge([
+                'details' => $this->filterEmptyDetailRows($request->input('details', [])),
+                'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
+                'fgiromundur' => $isGiroMundur ? '1' : '0',
+            ]);
 
         $validated = $request->validate([
             'fkasmtno' => [
@@ -473,6 +474,21 @@ class PelunasanCustomerController extends Controller
                 'type' => 'pelunasancustomer_create',
                 'redirect_url' => route('pelunasancustomer.print', $voucherNo),
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $firstError ?: 'Pelunasan customer belum bisa disimpan. Cek data.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Pelunasan customer belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->with('error', 'Pelunasan customer belum bisa disimpan: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $fkasmtno)
