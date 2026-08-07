@@ -239,10 +239,31 @@ class ListingJurnalController extends Controller
             $query->whereIn('a.fbranchcode', $branchCodes);
         }
 
-        foreach ($this->sortColumns($sortBy) as $sort) {
-            [$column, $direction] = $sort;
-            $query->orderBy($column, $direction);
+        $typeOrderMap = DB::table('tbmaster')
+            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
+            ->orderBy('fmasternum', 'asc')
+            ->get();
+
+        $cases = [];
+        foreach ($typeOrderMap as $item) {
+            $code = trim((string) $item->fmastercode);
+            $num = (int) $item->fmasternum;
+            $cases[] = "WHEN TRIM(a.fjurnaltype) = '{$code}' THEN {$num}";
         }
+
+        if (!empty($cases)) {
+            $typeCaseSql = "CASE " . implode(' ', $cases) . " ELSE 999 END";
+            $query->orderByRaw($typeCaseSql . ' ASC');
+        } else {
+            $query->orderBy('a.fjurnaltype', 'asc');
+        }
+
+        if ($sortBy === 'tanggal_jurnal') {
+            $query->orderBy('a.fjurnaldate', 'asc');
+        }
+
+        $query->orderBy('a.fjurnalno', 'asc')
+            ->orderBy('a.fkasdtid', 'asc');
 
         return $query;
     }
@@ -253,22 +274,5 @@ class ListingJurnalController extends Controller
             'no_jurnal' => 'No. Jurnal',
             'tanggal_jurnal' => 'Tanggal Jurnal',
         ];
-    }
-
-    private function sortColumns(string $sortBy): array
-    {
-        return match ($sortBy) {
-            'tanggal_jurnal' => [
-                ['a.fjurnaltype', 'asc'],
-                ['a.fjurnaldate', 'asc'],
-                ['a.fjurnalno', 'asc'],
-                ['a.fkasdtid', 'asc'],
-            ],
-            default => [
-                ['a.fjurnaltype', 'asc'],
-                ['a.fjurnalno', 'asc'],
-                ['a.fkasdtid', 'asc'],
-            ],
-        };
     }
 }
