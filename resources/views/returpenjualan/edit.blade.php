@@ -372,9 +372,6 @@
                                         <span class="ml-2 text-sm text-gray-700">Auto</span>
                                     </label>
                                 </div>
-                                <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan digenerate
-                                    otomatis
-                                    saat simpan</p>
                             </div>
 
                             {{-- Tanggal --}}

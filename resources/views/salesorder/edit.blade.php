@@ -829,7 +829,6 @@
                                                     <span class="ml-1.5">Auto</span>
                                                 </label>
                                             </div>
-                                            <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan digenerate otomatis saat simpan</p>
                                         </div>
 
                                         {{-- Tanggal & Close (Digabung dalam satu kolom grid) --}}
