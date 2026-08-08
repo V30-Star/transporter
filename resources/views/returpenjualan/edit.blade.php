@@ -2956,6 +2956,13 @@
                 });
             },
 
+            syncTransactionType() {
+                const selected = document.querySelector('select[name="ftypesales"]')?.value;
+                if (selected !== undefined && selected !== null && selected !== '') {
+                    this.ftypesales = Number(selected);
+                }
+            },
+
             focusPriceInput(row) {
                 const absPrice = Math.abs(+row.fprice || 0);
                 row.fpriceInput = absPrice > 0 ? this.fmt(absPrice) : '';
@@ -3505,6 +3512,7 @@
             },
 
             onRowUpdated(index = null) {
+                this.syncTransactionType();
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
                     this.enforceQtyRow(row);

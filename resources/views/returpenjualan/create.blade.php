@@ -2053,6 +2053,7 @@
             ftypesales: @json((int) old('ftypesales', session('last_header.ftypesales', 0))),
 
             onTypeChanged() {
+                this.syncTransactionType();
                 const isUM = this.ftypesales !== 0;
                 if (isUM) {
                     const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
@@ -2068,6 +2069,13 @@
                     }
                 }
                 this.recalcTotals();
+            },
+
+            syncTransactionType() {
+                const selected = document.querySelector('select[name="ftypesales"]')?.value;
+                if (selected !== undefined && selected !== null && selected !== '') {
+                    this.ftypesales = Number(selected);
+                }
             },
 
             initialGrandTotal: @json($famountso ?? 0),
@@ -2679,6 +2687,7 @@
             },
 
             onRowUpdated(index = null) {
+                this.syncTransactionType();
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
                     this.enforceQtyRow(row);
