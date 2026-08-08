@@ -1224,7 +1224,16 @@ class InvoiceController extends Controller
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
             ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
-            ->where('tranmt.fsono', $fsono)
+            ->where(function ($q) use ($fsono) {
+                if (is_numeric($fsono)) {
+                    $q->where('tranmt.ftranmtid', (int) $fsono);
+                }
+                $slash = str_replace('.', '/', $fsono);
+                $dot = str_replace('/', '.', $fsono);
+                $q->orWhere('tranmt.fsono', $fsono)
+                  ->orWhere('tranmt.fsono', $slash)
+                  ->orWhere('tranmt.fsono', $dot);
+            })
             ->first([
                 'tranmt.*',
                 'c.fcustomername as customer_name',

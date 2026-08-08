@@ -1589,6 +1589,40 @@
                             if (result.isConfirmed) {
                                 window.open(successPrompt.redirect_url, '_blank');
                             }
+                            if (successPrompt.suratjalan_url) {
+                                Swal.fire({
+                                    icon: 'question',
+                                    title: 'Input Surat Jalan?',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    confirmButtonColor: '#2563eb',
+                                    cancelButtonColor: '#6b7280',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                }).then((sjResult) => {
+                                    if (sjResult.isConfirmed) {
+                                        window.location.href = successPrompt.suratjalan_url;
+                                    }
+                                });
+                            }
+                            if (successPrompt.invoice_url) {
+                                Swal.fire({
+                                    icon: 'question',
+                                    title: 'Input Faktur Penjualan?',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    confirmButtonColor: '#2563eb',
+                                    cancelButtonColor: '#6b7280',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                }).then((invResult) => {
+                                    if (invResult.isConfirmed) {
+                                        window.location.href = successPrompt.invoice_url;
+                                    }
+                                });
+                            }
                         });
                     });
                     return;
@@ -1768,6 +1802,40 @@
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 window.open(successPrompt.redirect_url, '_blank');
+                            }
+                            if (successPrompt.suratjalan_url) {
+                                Swal.fire({
+                                    icon: 'question',
+                                    title: 'Input Surat Jalan?',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    confirmButtonColor: '#2563eb',
+                                    cancelButtonColor: '#6b7280',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                }).then((sjResult) => {
+                                    if (sjResult.isConfirmed) {
+                                        window.location.href = successPrompt.suratjalan_url;
+                                    }
+                                });
+                            }
+                            if (successPrompt.invoice_url) {
+                                Swal.fire({
+                                    icon: 'question',
+                                    title: 'Input Faktur Penjualan?',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    confirmButtonColor: '#2563eb',
+                                    cancelButtonColor: '#6b7280',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                }).then((invResult) => {
+                                    if (invResult.isConfirmed) {
+                                        window.location.href = successPrompt.invoice_url;
+                                    }
+                                });
                             }
                         });
                     });

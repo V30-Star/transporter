@@ -464,12 +464,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/salesorder/duplicate-refpo-check', [SalesOrderController::class, 'duplicateRefPoCheck'])->name('salesorder.duplicate-refpo-check');
         Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->where('ftrsomtid', '.*')->name('salesorder.view');
         Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->where('ftrsomtid', '.*')->name('salesorder.edit');
-        Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
-        Route::patch('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'update'])->name('salesorder.update');
-        Route::delete('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'destroy'])->name('salesorder.destroy');
-        Route::get('/salesorder/{fstockmtno}/print', [SalesOrderController::class, 'print'])
+        Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->where('ftrsomtid', '.*')->name('salesorder.delete');
+        Route::patch('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'update'])->where('ftrsomtid', '.*')->name('salesorder.update');
+        Route::delete('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'destroy'])->where('ftrsomtid', '.*')->name('salesorder.destroy');
+        Route::get('/salesorder/{fsono}/print', [SalesOrderController::class, 'print'])
+            ->where('fsono', '.*')
             ->name('salesorder.print');
         Route::get('/salesorder/{id}/items', [SalesOrderController::class, 'items'])
+            ->where('id', '.*')
             ->name('salesorder.items');
         Route::get('/salesorder/pickable', [SalesOrderController::class, 'pickable'])
             ->name('salesorder.pickable');
@@ -483,6 +485,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/suratjalan/{ftrsomtid}', [SuratJalanController::class, 'update'])->name('suratjalan.update');
         Route::delete('/suratjalan/{ftrsomtid}', [SuratJalanController::class, 'destroy'])->name('suratjalan.destroy');
         Route::get('/suratjalan/{fstockmtno}/print', [SuratJalanController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('suratjalan.print');
         Route::get('/suratjalan/{id}/items', [SuratJalanController::class, 'items'])
             ->name('suratjalan.items');
@@ -500,6 +503,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/invoice/{ftranmtid}', [InvoiceController::class, 'update'])->name('invoice.update');
         Route::delete('/invoice/{ftranmtid}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');
         Route::get('/invoice/{fstockmtno}/print', [InvoiceController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('invoice.print');
         Route::get('/invoice/{id}/items', [InvoiceController::class, 'items'])
             ->name('invoice.items');

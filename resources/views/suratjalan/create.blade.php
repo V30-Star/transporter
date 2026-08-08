@@ -1642,7 +1642,7 @@
 
                 try {
                     const url = @json(route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']))
-                        .replace('SO_ID_PLACEHOLDER', salesOrderId);
+                        .replace('SO_ID_PLACEHOLDER', encodeURIComponent(salesOrderId)) + '?allow_pending=1';
                     const res = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'

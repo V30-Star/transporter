@@ -24,6 +24,11 @@ class SuratJalanController extends Controller
             ->count();
     }
 
+    private function canContinueToInvoice(): bool
+    {
+        return in_array('BolehLanjutKeFakturPenjualan', explode(',', session('user_restricted_permissions', '')), true);
+    }
+
     private function hasReachedDailyCreateLimit(): bool
     {
         return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
@@ -605,7 +610,16 @@ class SuratJalanController extends Controller
             // Gunakan alias 'cb' untuk cabang
             ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
+            ->where(function ($q) use ($fstockmtno) {
+                if (is_numeric($fstockmtno)) {
+                    $q->where('trstockmt.fstockmtid', (int) $fstockmtno);
+                }
+                $slash = str_replace('.', '/', $fstockmtno);
+                $dot = str_replace('/', '.', $fstockmtno);
+                $q->orWhere('trstockmt.fstockmtno', $fstockmtno)
+                  ->orWhere('trstockmt.fstockmtno', $slash)
+                  ->orWhere('trstockmt.fstockmtno', $dot);
+            })
             ->first([
                 'trstockmt.*',
                 'cust.fcustomername as customer_name', // Ambil dari alias cust
@@ -815,6 +829,8 @@ class SuratJalanController extends Controller
             $frate = 1;
         }
         $ppnAmount = (float) $request->input('famountpopajak', 0);
+        $fincludeppn = 0;
+        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? 1 : 0;
         $now = now();
 
         // =========================
@@ -999,7 +1015,9 @@ class SuratJalanController extends Controller
                 &$rowsDt,
                 $subtotal,
                 $ppnAmount,
-                &$newStockMasterId
+                &$newStockMasterId,
+                $fincludeppn,
+                $fapplyppn
             ) {
                 // ---- 7.1. kodeCabang ----
                 $kodeCabang = null;
@@ -1117,25 +1135,30 @@ class SuratJalanController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
             });
-        $redirect = redirect()
-            ->route('suratjalan.create')
-            ->with('success', 'Surat jalan berhasil disimpan.');
+        $canContinueToInvoice = $this->canContinueToInvoice();
+        $canCreateInvoice = $this->canCreateInvoice();
+        $invoiceUrl = ($canContinueToInvoice && $canCreateInvoice)
+            ? route('invoice.create', ['surat_jalan_id' => $newStockMasterId ?: $fstockmtno])
+            : null;
+
+        $successPrompt = [
+            'type' => 'suratjalan_create',
+            'redirect_url' => route('suratjalan.print', $fstockmtno),
+            'invoice_url' => $invoiceUrl,
+        ];
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Surat jalan berhasil disimpan.',
                 'redirect_url' => route('suratjalan.create'),
-                'success_prompt' => [
-                    'type' => 'suratjalan_create',
-                    'redirect_url' => route('suratjalan.print', $fstockmtno),
-                ]
+                'success_prompt' => $successPrompt,
             ]);
         }
 
-        return $redirect->with('success_prompt', [
-            'type' => 'suratjalan_create',
-            'redirect_url' => route('suratjalan.print', $fstockmtno),
-        ]);
+        return redirect()
+            ->route('suratjalan.create')
+            ->with('success', 'Surat jalan berhasil disimpan.')
+            ->with('success_prompt', $successPrompt);
         } catch (\Throwable $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Data belum berhasil disimpan: ' . $e->getMessage()], 500);

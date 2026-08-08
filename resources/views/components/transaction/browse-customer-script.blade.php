@@ -238,8 +238,11 @@
                     }
                 });
 
+                // Clear stale listeners then attach handlers
+                $('#{{ $tableId }}').off('click.custpick');
+
                 // Pilih button click (delegated on table)
-                $('#{{ $tableId }}').off('click.custpick').on('click.custpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').on('click.custpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -252,7 +255,7 @@
                 });
 
                 // Single-row click (delegated on table, targeting tbody tr)
-                $('#{{ $tableId }}').off('click.custpick').on('click.custpick', 'tbody tr', (e) => {
+                $('#{{ $tableId }}').on('click.custpick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }

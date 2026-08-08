@@ -723,8 +723,17 @@ class SalesOrderController extends Controller
 
     public function items($id)
     {
-        $allowPending = request()->boolean('allow_pending');
-        $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
+        $allowPending = request()->boolean('allow_pending', true);
+        $header = SalesOrderHeader::where(function ($q) use ($id) {
+            if (is_numeric($id)) {
+                $q->where('ftrsomtid', (int) $id);
+            }
+            $slash = str_replace('.', '/', $id);
+            $dot = str_replace('/', '.', $id);
+            $q->orWhere('fsono', $id)
+              ->orWhere('fsono', $slash)
+              ->orWhere('fsono', $dot);
+        })->firstOrFail();
         abort_if(! $allowPending && trim((string) ($header->fneedacc ?? '0')) === '1', 404);
         abort_if(! $allowPending && ! ApprovalState::isApprovedRecord($header), 404);
         $remainMap = $this->getSoRemainByIds(
@@ -880,7 +889,16 @@ class SalesOrderController extends Controller
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'trsomt.fcustno')
             ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'trsomt.fbranchcode')
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'trsomt.fsalesman')
-            ->where('trsomt.fsono', $fsono)
+            ->where(function ($q) use ($fsono) {
+                if (is_numeric($fsono)) {
+                    $q->where('trsomt.ftrsomtid', (int) $fsono);
+                }
+                $slash = str_replace('.', '/', $fsono);
+                $dot = str_replace('/', '.', $fsono);
+                $q->orWhere('trsomt.fsono', $fsono)
+                  ->orWhere('trsomt.fsono', $slash)
+                  ->orWhere('trsomt.fsono', $dot);
+            })
             ->first([
                 'trsomt.*',
                 'c.fcustomername as customer_name',
@@ -1089,6 +1107,12 @@ class SalesOrderController extends Controller
         $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
 
         // HEADER VALUES
+        $userLogin = auth('sysuser')->user() ?? auth()->user();
+        $userName = $userLogin->fname ?? 'admin';
+        $userIdLog = $userLogin->fuserid ?? 'ADMIN';
+        $userid = $userName;
+        $now = now();
+
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $fsonoRaw = $request->filled('fsono') ? strtoupper(trim((string) $request->input('fsono'))) : null;
         $fsono = $fsonoRaw !== null ? $this->formatDisplayTransactionNumber($fsonoRaw, (int) ($request->input('fapplyppn') ?? 0) === 0 && (int) ($request->input('fincludeppn') ?? 0) === 0) : null;
@@ -1206,6 +1230,9 @@ class SalesOrderController extends Controller
             $grandTotal = $amountNet;
         }
 
+        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+        $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
+
         // TRANSACTION
         try {
             $ftrsomtid = null;
@@ -1227,8 +1254,8 @@ class SalesOrderController extends Controller
                 $headerDiscPercent,
                 $resolvedSalesmanCode,
                 $canContinueToSuratJalan,
-                &$ftrsomtid
-
+                &$ftrsomtid,
+                $creditApproval
             ) {
                 // A. Generate fsono (Auto Numbering)
                 if (empty($fsono)) {
@@ -1282,9 +1309,6 @@ class SalesOrderController extends Controller
 
                 $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
-                $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
-                $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
-
                 // C. Insert Header
                 $ftrsomtid = DB::table('trsomt')->insertGetId([
                     'fsono' => $fsono,
@@ -1335,25 +1359,31 @@ class SalesOrderController extends Controller
                 ? ($creditApproval['is_approved'] ? 'SO berhasil disimpan' : 'SO butuh approval')
                 : 'SO berhasil disimpan';
 
-            $redirect = redirect()
-                ->route('salesorder.index')
-                ->with('success', $message);
+            $canContinueToSuratJalan = $this->canContinueToSuratJalan();
+            $canCreateSuratJalan = $this->canCreateSuratJalan();
+            $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
+            $suratJalanUrl = ($canContinueToSuratJalan && $canCreateSuratJalan && ! $requiresApprovalBeforeContinue)
+                ? route('suratjalan.create', ['sales_order_id' => $ftrsomtid])
+                : null;
+
+            $successPrompt = [
+                'type' => 'salesorder_create',
+                'redirect_url' => route('salesorder.print', $fsono),
+                'suratjalan_url' => $suratJalanUrl,
+            ];
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $message,
-                    'redirect_url' => route('salesorder.index'),
-                    'success_prompt' => [
-                        'type' => 'salesorder_create',
-                        'redirect_url' => route('salesorder.print', $fsono),
-                    ]
+                    'redirect_url' => route('salesorder.create'),
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
-            return $redirect->with('success_prompt', [
-                'type' => 'salesorder_create',
-                'redirect_url' => route('salesorder.print', $fsono),
-            ]);
+            return redirect()
+                ->route('salesorder.create')
+                ->with('success', $message)
+                ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
             if ($request->expectsJson()) {
