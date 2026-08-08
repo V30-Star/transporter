@@ -728,9 +728,16 @@ class PengeluaranKasController extends Controller
                 ]);
             }
 
+            $subType = $this->normalizeSubaccountType($account->ftypesubaccount ?? 'S');
+            $label = match ($subType) {
+                'C' => 'Customer',
+                'P' => 'Supplier',
+                default => 'Sub Account',
+            };
+
             if ((string) ($account->fhavesubaccount ?? '0') === '1' && $subaccountCode === '') {
                 throw ValidationException::withMessages([
-                    "details.$index.fsubaccount" => 'Sub Account wajib dipilih untuk account ini.',
+                    "details.$index.fsubaccount" => "{$label} wajib dipilih untuk account ini.",
                 ]);
             }
         }

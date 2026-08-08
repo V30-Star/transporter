@@ -104,6 +104,23 @@
             : 'border-amber-200 bg-amber-50 text-amber-700';
     };
     $totalAmount = $detailRows->sum(fn($row) => $parseAmount($row->fkasdtvalue ?? 0));
+    $subTypes = collect($detailRows)
+        ->map(function ($detail) use ($accountOptions, $normalizeSubaccountType) {
+            $accountCode = (string) (is_object($detail) ? ($detail->faccount ?? '') : ($detail['faccount'] ?? ''));
+            $account = $accountOptions->firstWhere('faccount', $accountCode);
+            $hasSub = (string) ($account->fhavesubaccount ?? '0') === '1';
+            if (! $accountCode || ! $hasSub) return null;
+            $subType = $normalizeSubaccountType($account->ftypesubaccount ?? 'S');
+            return match ($subType) {
+                'C' => 'Customer',
+                'P' => 'Supplier',
+                default => 'Sub Account',
+            };
+        })
+        ->filter()
+        ->unique();
+
+    $subAccountHeaderTitle = $subTypes->count() === 1 ? $subTypes->first() : 'Sub Account';
 @endphp
 
 
@@ -367,7 +384,7 @@
                             <th class="p-2 text-left w-10">No</th>
                             <th class="p-2 text-left w-40">Kode Account</th>
                             <th class="p-2 text-left w-56">Nama Account</th>
-                            <th class="p-2 text-left w-56">Sub Account</th>
+                            <th class="p-2 text-left w-56" data-role="subaccount-header-title">{{ $subAccountHeaderTitle }}</th>
                             <th class="p-2 text-left w-[28rem]">Uraian</th>
                             <th class="p-2 text-right w-44 whitespace-nowrap">Nilai Bayar</th>
                             @unless ($isReadOnly)
@@ -471,8 +488,8 @@
                                                 : $detailSubaccountCode,
                                         };
                                     @endphp
-                                    @if ($isReadOnly)
-                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountCode }}</div>
+                                     @if ($isReadOnly)
+                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountLabel ?: '-' }}</div>
                                          <input type="hidden" name="details[{{ $index }}][fsubaccount]"
                                              value="{{ $detailSubaccountCode }}">
                                      @else
@@ -1149,6 +1166,32 @@
                         }
 
                         this.initSelect2ForSubaccount(row, enabled, type);
+                        this.updateSubaccountHeaderTitle();
+                    },
+
+                    updateSubaccountHeaderTitle() {
+                        const activeRows = Array.from(document.querySelectorAll('#detailRows tr.detail-row')).filter(row => {
+                            const acc = (row.querySelector('input[name$="[faccount]"]')?.value || '').trim();
+                            const hasSub = this.rowHasSubaccountEnabled(row);
+                            return acc !== '' && hasSub;
+                        });
+
+                        if (activeRows.length === 0) {
+                            const headerEl = document.querySelector('[data-role="subaccount-header-title"]');
+                            if (headerEl) headerEl.textContent = 'Sub Account';
+                            return;
+                        }
+
+                        const types = new Set(activeRows.map(r => this.getRowSubaccountType(r)));
+                        let title = 'Sub Account';
+                        if (types.size === 1) {
+                            const type = Array.from(types)[0];
+                            if (type === 'C') title = 'Customer';
+                            else if (type === 'P') title = 'Supplier';
+                        }
+
+                        const headerEl = document.querySelector('[data-role="subaccount-header-title"]');
+                        if (headerEl) headerEl.textContent = title;
                     },
 
                     addRow() {

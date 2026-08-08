@@ -159,7 +159,7 @@
                                             <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="accountName(item.faccount) || '-'"></div>
                                         </td>
                                         <td class="p-2">
-                                            <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="subaccountName(item.fsubaccountcode) || '-'"></div>
+                                            <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="item.fsubaccountcode ? (subaccountName(item.fsubaccountcode, item) ? (item.fsubaccountcode + ' - ' + subaccountName(item.fsubaccountcode, item)) : (item.fsubaccountname ? (item.fsubaccountname !== item.fsubaccountcode ? item.fsubaccountcode + ' - ' + item.fsubaccountname : item.fsubaccountname) : item.fsubaccountcode)) : '-'"></div>
                                         </td>
                                         <td class="p-2">
                                             <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="item.frefno || '-'"></div>
@@ -814,6 +814,15 @@
                     if (validItems.some(it => this.referenceSource(it.faccount) && !String(it.frefno || '').trim())) {
                         $event.preventDefault();
                         window.showTransactionErrorModal(this.referenceValidationMessage(), { reason: 'Gunakan tombol browse untuk memilih No.Ref.' });
+                        return;
+                    }
+                    const invalidSubaccount = validItems.find(it => it.fhavesubaccount && !String(it.fsubaccountcode || '').trim());
+                    if (invalidSubaccount) {
+                        $event.preventDefault();
+                        const title = this.getSubaccountTitle(invalidSubaccount);
+                        window.showTransactionErrorModal(`${title} wajib dipilih untuk account ${invalidSubaccount.faccount}.`, {
+                            reason: `Account ${invalidSubaccount.faccount} ${invalidSubaccount.faccname ? '(' + invalidSubaccount.faccname + ')' : ''} memerlukan ${title}.`
+                        });
                         return;
                     }
                     let tD = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);

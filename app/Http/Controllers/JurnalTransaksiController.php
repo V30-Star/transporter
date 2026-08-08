@@ -860,6 +860,17 @@ class JurnalTransaksiController extends Controller
             ]);
         }
 
+        if ($validationMessage = $this->validateJournalSubaccounts($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             $msg = sprintf(
                 'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
@@ -1146,6 +1157,8 @@ class JurnalTransaksiController extends Controller
             'fcabang' => $fcabang,
             'accounts' => $accounts,
             'subaccounts' => $subaccounts,
+            'customers' => $customers,
+            'suppliers' => $suppliers,
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
             'products' => $products,
@@ -1314,6 +1327,17 @@ class JurnalTransaksiController extends Controller
         }
 
         if ($validationMessage = $this->validateJournalReferenceSources($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
+        if ($validationMessage = $this->validateJournalSubaccounts($rowsDt)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $validationMessage
@@ -1584,7 +1608,6 @@ class JurnalTransaksiController extends Controller
             ->leftJoin('account as a', 'a.faccount', '=', 'd.faccount')
             ->leftJoin('mssubaccount as s', 's.fsubaccountcode', '=', 'd.fsubaccount')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'd.fsubaccount')
-            ->leftJoin('mssubaccount as p', 'p.fsubaccountcode', '=', 'd.fsubaccount')
             ->leftJoin('mssupplier as supp', 'supp.fsuppliercode', '=', 'd.fsubaccount')
             ->where('d.fjurnalmtid', $header->fjurnalmtid)
             ->orderBy('d.flineno')
@@ -1642,6 +1665,9 @@ class JurnalTransaksiController extends Controller
             $label = trim((string) ($row->faccount ?? ''));
             $name = trim((string) ($row->faccname ?? ''));
             $subName = trim((string) ($row->fsubaccountname ?? ''));
+            if ($subName === '' && ! empty($row->fsubaccount)) {
+                $subName = trim((string) $row->fsubaccount);
+            }
 
             return [
                 'uid' => (int) ($row->flineno ?? 0),
@@ -1757,6 +1783,80 @@ class JurnalTransaksiController extends Controller
                 ][$source] ?? 'referensi';
 
                 return "Tidak boleh input disini.\nAccount ini memiliki No.Ref\nPenyimpanan dibatalkan\nRef No baris " . ($index + 1) . ' harus berasal dari browse ' . $label . '.';
+            }
+        }
+
+        return null;
+    }
+
+    private function validateJournalSubaccounts(array $rowsDt): ?string
+    {
+        $accountCodes = collect($rowsDt)->pluck('faccount')->filter()->unique()->values()->all();
+
+        $accounts = DB::table('account')
+            ->whereIn('faccount', $accountCodes)
+            ->get(['faccount', 'fhavesubaccount', 'ftypesubaccount'])
+            ->keyBy('faccount');
+
+        $subaccountCodes = collect($rowsDt)->pluck('fsubaccount')->filter()->unique()->values()->all();
+
+        $subaccounts = DB::table('mssubaccount')
+            ->whereIn('fsubaccountcode', $subaccountCodes)
+            ->pluck('fsubaccountcode')
+            ->flip()
+            ->all();
+
+        $customers = DB::table('mscustomer')
+            ->whereIn('fcustomercode', $subaccountCodes)
+            ->pluck('fcustomercode')
+            ->flip()
+            ->all();
+
+        $suppliers = DB::table('mssupplier')
+            ->whereIn('fsuppliercode', $subaccountCodes)
+            ->pluck('fsuppliercode')
+            ->flip()
+            ->all();
+
+        foreach ($rowsDt as $index => $row) {
+            $accountCode = trim((string) ($row['faccount'] ?? ''));
+            $subaccountCode = trim((string) ($row['fsubaccount'] ?? ''));
+            $lineNo = $index + 1;
+
+            if ($accountCode === '') {
+                continue;
+            }
+
+            $account = $accounts->get($accountCode);
+            $hasSub = (int) ($account->fhavesubaccount ?? 0) === 1;
+            $rawType = strtoupper(trim((string) ($account->ftypesubaccount ?? 'S')));
+            $subType = match ($rawType) {
+                'C', 'CUSTOMER' => 'C',
+                'P', 'SUPPLIER' => 'P',
+                default => 'S',
+            };
+            $label = match ($subType) {
+                'C' => 'Customer',
+                'P' => 'Supplier',
+                default => 'Sub Account',
+            };
+
+            if ($hasSub && $subaccountCode === '') {
+                return "{$label} wajib dipilih untuk account {$accountCode} (baris {$lineNo}).";
+            }
+
+            if (! $hasSub && $subaccountCode !== '') {
+                return "Sub Account tidak boleh diisi untuk account {$accountCode} (baris {$lineNo}).";
+            }
+
+            if ($hasSub && $subaccountCode !== '') {
+                if ($subType === 'C' && ! isset($customers[$subaccountCode])) {
+                    return "Customer {$subaccountCode} yang dipilih pada baris {$lineNo} tidak ditemukan.";
+                } elseif ($subType === 'P' && ! isset($suppliers[$subaccountCode])) {
+                    return "Supplier {$subaccountCode} yang dipilih pada baris {$lineNo} tidak ditemukan.";
+                } elseif ($subType === 'S' && ! isset($subaccounts[$subaccountCode])) {
+                    return "Sub Account {$subaccountCode} yang dipilih pada baris {$lineNo} tidak ditemukan.";
+                }
             }
         }
 

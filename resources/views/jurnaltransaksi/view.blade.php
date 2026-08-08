@@ -126,7 +126,7 @@
                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['faccname'] ?: '-' }}</div>
                                     </td>
                                     <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['fsubaccountname'] ?: '-' }}</div>
+                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ !empty($item['fsubaccountcode']) ? (!empty($item['fsubaccountname']) && $item['fsubaccountname'] !== $item['fsubaccountcode'] ? $item['fsubaccountcode'] . ' - ' . $item['fsubaccountname'] : $item['fsubaccountcode']) : ($item['fsubaccountname'] ?: '-') }}</div>
                                     </td>
                                     <td class="p-2">
                                         <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded">{{ $item['frefno'] ?: '-' }}</div>

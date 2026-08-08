@@ -688,6 +688,15 @@
                         window.showTransactionErrorModal(this.referenceValidationMessage(), { reason: 'Gunakan tombol browse untuk memilih No.Ref.' });
                         return;
                     }
+                    const invalidSubaccount = validItems.find(it => it.fhavesubaccount && !String(it.fsubaccountcode || '').trim());
+                    if (invalidSubaccount) {
+                        $event.preventDefault();
+                        const title = this.getSubaccountTitle(invalidSubaccount);
+                        window.showTransactionErrorModal(`${title} wajib dipilih untuk account ${invalidSubaccount.faccount}.`, {
+                            reason: `Account ${invalidSubaccount.faccount} ${invalidSubaccount.faccname ? '(' + invalidSubaccount.faccname + ')' : ''} memerlukan ${title}.`
+                        });
+                        return;
+                    }
                     let tD = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
                     let tK = validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0);
                     if (Math.abs(tD - tK) >= 0.005 || tD === 0) {
