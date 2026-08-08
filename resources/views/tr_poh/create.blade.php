@@ -1245,7 +1245,12 @@
 
             productMeta(code) {
                 const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key];
+                const map = window.PRODUCT_MAP || {};
+                let meta = map[key];
+                if (!meta && key) {
+                    const lk = key.toUpperCase();
+                    meta = Object.entries(map).find(([k]) => k.trim().toUpperCase() === lk)?.[1];
+                }
                 if (!meta) {
                     return {
                         name: '',
@@ -1290,7 +1295,7 @@
                     if (!keepMaxqty) row.maxqty = 0;
                     return;
                 }
-                row.fitemname = meta.name || '';
+                row.fitemname = meta.name || row.fitemname || '';
                 const units = [...new Set((meta.units || []).map((u) => (u ?? '').toString().trim()).filter(Boolean))];
                 const currentSatuan = (row.fsatuan || '').trim();
                 const defaultUnit = (meta.default_unit || '').toString().trim();
@@ -1808,6 +1813,7 @@
                     };
 
                     row.fitemcode = candidate.fitemcode;
+                    row.fitemname = candidate.fitemname || row.fitemname || '';
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true, true);
 
                     this.rows.splice(this.browseTarget, 1, {
