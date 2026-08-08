@@ -473,46 +473,6 @@
 
                             <input type="hidden" name="ftaxno" value="{{ $returpenjualan->ftaxno }}">
 
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                                @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    function calculateDueDate() {
-                                        const poDate = document.getElementById('fsodate').value;
-                                        const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                        if (poDate) {
-                                            const date = new Date(poDate);
-                                            date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                            date.setDate(date.getDate() + tempoDays);
-
-                                            const year = date.getFullYear();
-                                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                                            const day = String(date.getDate()).padStart(2, '0');
-
-                                            document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                        } else {
-                                            document.getElementById('fjatuhtempo').value = '';
-                                        }
-                                    }
-
-                                    // Event listeners
-                                    document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                    document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                    // Initial calculation
-                                    calculateDueDate();
-                                });
-                            </script>
-
                             <div class="lg:col-span-3">
                                 <label class="block text-xs font-bold mb-1">Keterangan</label>
                                 <textarea name="fket" rows="2" disabled
