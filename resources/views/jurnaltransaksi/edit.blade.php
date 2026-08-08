@@ -103,25 +103,25 @@
             </div>
 
             <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
-                <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
+                <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
+                    </div>
+                    <div class="text-base font-semibold flex gap-6">
+                        <span>Total Debit:
+                            <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
+                        </span>
+                        <span>Total Kredit:
+                            <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
+                        </span>
+                    </div>
                 </div>
                 <div class="mt-6">
-                    <div class="flex items-center justify-end mb-4">
-                        <div class="text-base font-semibold flex gap-6">
-                            <span>Total Debit:
-                                <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
-                            </span>
-                            <span>Total Kredit:
-                                <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
-                            </span>
-                        </div>
-                    </div>
 
                     <div class="overflow-auto border rounded">
                         <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
@@ -262,15 +262,15 @@
                 </div> {{-- end header card --}}
 
                 <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
-                    <div class="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
-                    </div>
-                    <div class="mt-6">                    <div class="flex items-center justify-end mb-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-3 mb-4">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Jurnal</p>
+                        </div>
                         <div class="flex flex-col gap-1 text-base font-semibold sm:flex-row sm:gap-6">
                             <span>Total Debit:
                                 <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
@@ -280,6 +280,7 @@
                             </span>
                         </div>
                     </div>
+                    <div class="mt-6">
 
                     <div class="overflow-auto border rounded">
                         <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
