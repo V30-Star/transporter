@@ -114,10 +114,10 @@
                     </div>
                     <div class="text-base font-semibold flex gap-6">
                         <span>Total Debit:
-                            <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
+                            <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit)"></strong>
                         </span>
                         <span>Total Kredit:
-                            <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
+                            <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit)"></strong>
                         </span>
                     </div>
                 </div>
@@ -273,10 +273,10 @@
                         </div>
                         <div class="flex flex-col gap-1 text-base font-semibold sm:flex-row sm:gap-6">
                             <span>Total Debit:
-                                <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit())"></strong>
+                                <strong class="text-lg text-blue-700" x-text="formatAmount(totalDebit)"></strong>
                             </span>
                             <span>Total Kredit:
-                                <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit())"></strong>
+                                <strong class="text-lg text-green-700" x-text="formatAmount(totalKredit)"></strong>
                             </span>
                         </div>
                     </div>
@@ -906,12 +906,6 @@
                     const fallback = [...(this.subaccounts || []), ...(this.customers || []), ...(this.suppliers || [])]
                         .find(s => String(s.fsubaccountcode) === String(code));
                     return fallback ? fallback.fsubaccountname : '';
-                },
-                totalDebit() {
-                    return this.totalDebit;
-                },
-                totalKredit() {
-                    return this.totalKredit;
                 },
 
                 init() {
