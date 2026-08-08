@@ -1162,7 +1162,16 @@ class FakturpembelianController extends Controller
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
+            ->where(function ($q) use ($fstockmtno) {
+                if (is_numeric($fstockmtno)) {
+                    $q->where('trstockmt.fstockmtid', (int) $fstockmtno);
+                }
+                $slash = str_replace('.', '/', $fstockmtno);
+                $dot = str_replace('/', '.', $fstockmtno);
+                $q->orWhere('trstockmt.fstockmtno', $fstockmtno)
+                  ->orWhere('trstockmt.fstockmtno', $slash)
+                  ->orWhere('trstockmt.fstockmtno', $dot);
+            })
             ->first([
                 'trstockmt.*',
                 's.fsuppliername as supplier_name',
@@ -1178,7 +1187,7 @@ class FakturpembelianController extends Controller
 
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
-            ->where('trstockdt.fstockmtno', $fstockmtno)
+            ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
                 'trstockdt.*',
@@ -2263,6 +2272,7 @@ class FakturpembelianController extends Controller
             $fprdjadi = $request->input('fprdjadi');
             $ftempohr = $request->input('ftempohr');
             $ftypebuy = $request->input('ftypebuy');
+            $isAdvancePaymentDetail = (string) $ftypebuy === '2';
             $fcurrency = $request->input('fcurrency', 'IDR');
             $frate = (float) $request->input('frate', 1);
             if ($frate <= 0) {

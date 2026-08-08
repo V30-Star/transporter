@@ -361,10 +361,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/fakturpembelian/price-info', [FakturpembelianController::class, 'priceInfo'])->name('fakturpembelian.price-info');
         Route::get('/fakturpembelian/{fstockmtid}/view', [FakturpembelianController::class, 'view'])->where('fstockmtid', '.*')->name('fakturpembelian.view');
         Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->where('fstockmtid', '.*')->name('fakturpembelian.edit');
-        Route::get('/fakturpembelian/{fstockmtid}/delete', [FakturpembelianController::class, 'delete'])->name('fakturpembelian.delete');
-        Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
-        Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
+        Route::get('/fakturpembelian/{fstockmtid}/delete', [FakturpembelianController::class, 'delete'])->where('fstockmtid', '.*')->name('fakturpembelian.delete');
+        Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->where('fstockmtid', '.*')->name('fakturpembelian.update');
+        Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->where('fstockmtid', '.*')->name('fakturpembelian.destroy');
         Route::get('/fakturpembelian/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('fakturpembelian.print');
         Route::get('/fakturpembelian/{id}/items-po', [FakturpembelianController::class, 'itemsPO'])
             ->name('fakturpembelian.itemsPO');
@@ -425,12 +426,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/returpembelian', [ReturPembelianController::class, 'index'])->name('returpembelian.index');
         Route::post('/returpembelian', [ReturPembelianController::class, 'store'])->name('returpembelian.store');
         Route::get('/returpembelian/create', [ReturPembelianController::class, 'create'])->name('returpembelian.create');
-        Route::get('/returpembelian/{fstockmtid}/view', [ReturPembelianController::class, 'view'])->name('returpembelian.view');
-        Route::get('/returpembelian/{fstockmtid}/edit', [ReturPembelianController::class, 'edit'])->name('returpembelian.edit');
-        Route::get('/returpembelian/{fstockmtid}/delete', [ReturPembelianController::class, 'delete'])->name('returpembelian.delete');
-        Route::patch('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'update'])->name('returpembelian.update');
-        Route::delete('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'destroy'])->name('returpembelian.destroy');
+        Route::get('/returpembelian/{fstockmtid}/view', [ReturPembelianController::class, 'view'])->where('fstockmtid', '.*')->name('returpembelian.view');
+        Route::get('/returpembelian/{fstockmtid}/edit', [ReturPembelianController::class, 'edit'])->where('fstockmtid', '.*')->name('returpembelian.edit');
+        Route::get('/returpembelian/{fstockmtid}/delete', [ReturPembelianController::class, 'delete'])->where('fstockmtid', '.*')->name('returpembelian.delete');
+        Route::patch('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'update'])->where('fstockmtid', '.*')->name('returpembelian.update');
+        Route::delete('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'destroy'])->where('fstockmtid', '.*')->name('returpembelian.destroy');
         Route::get('/returpembelian/{fstockmtno}/print', [ReturPembelianController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('returpembelian.print');
         Route::get('/returpembelian/{id}/items', [ReturPembelianController::class, 'items'])
             ->name('returpembelian.items');

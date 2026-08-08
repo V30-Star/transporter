@@ -584,9 +584,10 @@
             {{-- ───────────────────────────────────────────────────────────────────
                  EDIT MODE
                  ─────────────────────────────────────────────────────────────────── --}}
+            <div x-data="mainForm()" x-init="init()">
             <form action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" data-form-draft="true"
                 data-draft-key="tr_poh:edit:{{ $tr_poh->fpohid }}" data-disable-form-persist="true"
-                x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
+                @submit.prevent="submitForm($el)">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="approve_now" id="approveNowInput" value="0">
@@ -930,7 +931,7 @@
 
                         {{-- Hidden Submit inputs --}}
                         <div class="hidden">
-                            <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                            <template x-for="row in ($data.rowsToSubmit || [])" :key="'submit-' + row.uid">
                                 <div>
                                     <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
                                     <input type="hidden" name="fitemname[]" :value="row.fitemname">
@@ -953,136 +954,133 @@
                         </div>
 
                         {{-- Add PR + Panel Totals --}}
-                        <div x-data="prhFormModal()">
-                            <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
-                                <div class="flex justify-start">
-                                    <button type="button" @click="openModal()"
-                                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm transition-colors">
-                                        <x-heroicon-o-plus class="h-4 w-4" />
-                                        Add PR
-                                    </button>
+                        <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
+                            <div class="flex justify-start" x-data="prhFormModal()">
+                                <button type="button" @click="openModal()"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm transition-colors">
+                                    <x-heroicon-o-plus class="h-4 w-4" />
+                                    Add PR
+                                </button>
+
+                                {{-- Modal backdrop --}}
+                                <div x-show="show" x-transition.opacity
+                                    class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                                    @keydown.escape.window="closeModal()"></div>
+
+                                {{-- MODAL PR --}}
+                                <div x-show="show" x-cloak x-transition.opacity
+                                    class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
+                                    role="dialog">
+                                    <div class="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                        style="height: 600px;">
+                                        <div
+                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                            <h3 class="text-lg font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
+                                            <button type="button" @click="closeModal()"
+                                                class="h-9 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm transition-colors">
+                                                Tutup
+                                            </button>
+                                        </div>
+                                        <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                            <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
+                                                style="width:100%">
+                                                <thead class="sticky top-0 z-10">
+                                                    <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                        <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Cabang</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Tgl Kirim</th>
+                                                        <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                                    </div>
                                 </div>
 
-                                {{-- Panel Totals --}}
-                                <div class="w-[560px] shrink-0 max-w-full">
-                                    <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-bold text-gray-800">Total Harga</span>
-                                            <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
+                                {{-- Modal Duplikasi --}}
+                                <div x-show="showDupModal" x-cloak x-transition.opacity
+                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                    <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                    <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
+                                        <h3 class="text-lg font-semibold mb-4 text-gray-800">Peringatan Duplikasi</h3>
+                                        <p class="mb-4 text-gray-600">Ditemukan <strong x-text="dupCount"></strong> item yang
+                                            sudah ada dalam
+                                            daftar.</p>
+                                        <div class="mb-4 max-h-48 overflow-auto border rounded-lg p-2 bg-gray-50"
+                                            x-show="dupSample.length > 0">
+                                            <p class="text-sm font-medium mb-2 text-gray-700">Contoh item duplikat:</p>
+                                            <template x-for="(item, idx) in dupSample" :key="idx">
+                                                <div class="text-xs py-1 text-gray-600">• <span
+                                                        x-text="item.fitemcode"></span></div>
+                                            </template>
                                         </div>
-
-                                        <div class="flex items-center gap-2">
-                                            <!-- Checkbox -->
-                                            <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                                <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
-                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                                <span class="font-bold">PPN</span>
-                                            </label>
-
-                                            <!-- Hidden fincludeppn (always Exclude = 0) -->
-                                            <input type="hidden" name="fincludeppn" value="0">
-
-                                            <!-- Input Rate + Nominal -->
-                                            <input type="number" min="0" max="100" name="ppn_rate"
-                                                step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
-                                                        [appearance:textfield]
-                                                        [&::-webkit-outer-spin-button]:appearance-none
-                                                        [&::-webkit-inner-spin-button]:appearance-none
-                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                            <span class="text-gray-500">%</span>
-                                            <span class="flex-1"></span>
-                                            <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
-                                        </div>
-
-                                        <div class="border-t my-1"></div>
-
-                                        <div class="flex items-center justify-between text-base">
-                                            <span class="font-extrabold text-gray-900">
-                                                Grand Total
-                                                <span class="text-xs font-normal text-gray-500"
-                                                    x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
-                                            </span>
-                                            <span class="font-extrabold text-blue-700 text-lg" x-text="fmtCurr(grandTotal)"></span>
-                                        </div>
-
-                                        <div class="flex items-center justify-between text-base">
-                                            <span class="font-extrabold text-gray-900">Grand Total (RP)</span>
-                                            <span class="font-extrabold text-emerald-700 text-lg" x-text="rupiah(grandTotalRp)"></span>
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" @click="closeDupModal()"
+                                                class="h-9 px-4 rounded-lg bg-gray-150 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Batal</button>
                                         </div>
                                     </div>
-                                    <input type="hidden" name="famountponet" :value="totalHarga">
-                                    <input type="hidden" name="famountpopajak" :value="ppnNominal">
-                                    <input type="hidden" name="famountpo" :value="grandTotal">
-                                    <input type="hidden" name="famountpo_rp" :value="grandTotalRp">
-                                    <input type="hidden" name="ppn_rate" :value="ppnRate">
-                                </div>
-                            </div>
-
-                            {{-- Modal backdrop --}}
-                            <div x-show="show" x-transition.opacity
-                                class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-                                @keydown.escape.window="closeModal()"></div>
-
-                            {{-- MODAL PR --}}
-                            <div x-show="show" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
-                                role="dialog">
-                                <div class="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
-                                    style="height: 600px;">
-                                    <div
-                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                        <h3 class="text-lg font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
-                                        <button type="button" @click="closeModal()"
-                                            class="h-9 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm transition-colors">
-                                            Tutup
-                                        </button>
-                                    </div>
-                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                        <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
-                                            style="width:100%">
-                                            <thead class="sticky top-0 z-10">
-                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                    <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
-                                                    <th class="p-3 text-left font-semibold text-gray-700">Cabang</th>
-                                                    <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                                    <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                    <th class="p-3 text-left font-semibold text-gray-700">Tgl Kirim</th>
-                                                    <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
                                 </div>
                             </div>
 
-                            {{-- Modal Duplikasi --}}
-                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
-                                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Peringatan Duplikasi</h3>
-                                    <p class="mb-4 text-gray-600">Ditemukan <strong x-text="dupCount"></strong> item yang
-                                        sudah ada dalam
-                                        daftar.</p>
-                                    <div class="mb-4 max-h-48 overflow-auto border rounded-lg p-2 bg-gray-50"
-                                        x-show="dupSample.length > 0">
-                                        <p class="text-sm font-medium mb-2 text-gray-700">Contoh item duplikat:</p>
-                                        <template x-for="(item, idx) in dupSample" :key="idx">
-                                            <div class="text-xs py-1 text-gray-600">• <span
-                                                    x-text="item.fitemcode"></span></div>
-                                        </template>
+                            {{-- Panel Totals --}}
+                            <div class="w-[560px] shrink-0 max-w-full">
+                                <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-gray-800">Total Harga</span>
+                                        <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
                                     </div>
-                                    <div class="flex justify-end gap-2">
-                                        <button type="button" @click="closeDupModal()"
-                                            class="h-9 px-4 rounded-lg bg-gray-150 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Batal</button>
+
+                                    <div class="flex items-center gap-2">
+                                        <!-- Checkbox -->
+                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                            <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            <span class="font-bold">PPN</span>
+                                        </label>
+
+                                        <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                        <input type="hidden" name="fincludeppn" value="0">
+
+                                        <!-- Input Rate + Nominal -->
+                                        <input type="number" min="0" max="100" name="ppn_rate"
+                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                    [appearance:textfield]
+                                                    [&::-webkit-outer-spin-button]:appearance-none
+                                                    [&::-webkit-inner-spin-button]:appearance-none
+                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
+                                    </div>
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between text-base">
+                                        <span class="font-extrabold text-gray-900">
+                                            Grand Total
+                                            <span class="text-xs font-normal text-gray-500"
+                                                x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
+                                        </span>
+                                        <span class="font-extrabold text-blue-700 text-lg" x-text="fmtCurr(grandTotal)"></span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between text-base">
+                                        <span class="font-extrabold text-gray-900">Grand Total (RP)</span>
+                                        <span class="font-extrabold text-emerald-700 text-lg" x-text="rupiah(grandTotalRp)"></span>
                                     </div>
                                 </div>
+                                <input type="hidden" name="famountponet" :value="totalHarga">
+                                <input type="hidden" name="famountpopajak" :value="ppnNominal">
+                                <input type="hidden" name="famountpo" :value="grandTotal">
+                                <input type="hidden" name="famountpo_rp" :value="grandTotalRp">
+                                <input type="hidden" name="ppn_rate" :value="ppnRate">
                             </div>
                         </div>
-                    </div>
                 </div>
 
                 {{-- MODAL: belum ada item --}}
@@ -1318,8 +1316,9 @@
                     </div>
                 </div>
 
-                <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
+                <input type="hidden" id="itemsCount" :value="($data.rowsToSubmit || []).length">
             </form>
+            </div>
 
             @if ($canClosePo)
                 <form id="closePoForm" action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST"
@@ -1781,8 +1780,19 @@
                 return cleaned;
             },
 
+            parseQty(val) {
+                if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+                let str = String(val ?? '').trim();
+                if (str === '') return 0;
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const num = Number(str);
+                return Number.isFinite(num) ? num : 0;
+            },
+
             recalc(row) {
-                const qty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
+                const qty = @json(stock_boleh_minus()) ? this.parseQty(row.fqty) : Math.max(0, this.parseQty(row.fqty));
                 const price = Math.max(0, +row.fprice || 0);
                 const discPercent = this.parseDiscount(row.fdisc);
                 row.fqty = qty;
@@ -1846,13 +1856,13 @@
             },
 
             enforcePrQtyRow(row) {
-                const n = +row.fqty;
+                const n = this.parseQty(row.fqty);
                 if (!Number.isFinite(n)) {
                     row.fqty = 0;
                     this.recalc(row);
                     return;
                 }
-                if (!@json(stock_boleh_minus()) && n < 0) row.fqty = 0;
+                row.fqty = !@json(stock_boleh_minus()) && n < 0 ? 0 : n;
                 if (!row.frefdtid) {
                     this.recalc(row);
                     return;
@@ -1974,27 +1984,18 @@
             },
 
             isRowFilled(row) {
-                return [
-                        row.fitemcode,
-                        row.fitemname,
-                        row.fsatuan,
-                        row.frefdtno,
-                        row.fqty,
-                        row.fprice,
-                        row.fdisc,
-                        row.fdesc,
-                        row.fketdt
-                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                    (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0);
+                if (!row) return false;
+                const code = String(row.fitemcode ?? '').trim();
+                const qty = this.parseQty(row.fqty);
+                return code !== '' || qty !== 0;
             },
 
             isRowSavable(row) {
-                return !!(
-                    (row.fitemcode || '').trim() &&
-                    (row.fitemname || '').trim() &&
-                    (row.fsatuan || '').trim() &&
-                    (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0)
-                );
+                if (!row) return false;
+                const code = String(row.fitemcode ?? '').trim();
+                const qty = this.parseQty(row.fqty);
+                const allowMinus = @json(stock_boleh_minus());
+                return code !== '' && (allowMinus ? qty !== 0 : qty > 0);
             },
 
             rowWarningLabel(row) {

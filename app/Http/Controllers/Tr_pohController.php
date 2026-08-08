@@ -1225,7 +1225,7 @@ class Tr_pohController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
-                'redirect_url' => route('tr_poh.index'),
+                'redirect_url' => route('tr_poh.create'),
                 'success_prompt' => [
                     'type' => 'tr_poh_create',
                     'redirect_url' => route('tr_poh.print', $fpono),
@@ -1233,7 +1233,7 @@ class Tr_pohController extends Controller
             ]);
         }
         return redirect()
-            ->route('tr_poh.index')
+            ->route('tr_poh.create')
             ->with('success', $message)
             ->with('success_prompt', [
                 'type' => 'tr_poh_create',
@@ -1694,6 +1694,19 @@ class Tr_pohController extends Controller
 
         $ppnRate = (float) $request->input('ppn_rate', 0);
         $ppnRate = max(0, min(100, $ppnRate));
+        $now = now();
+
+        $codes = $request->input('fitemcode', []);
+        $satuans = $request->input('fsatuan', []);
+        $refdtns = $request->input('frefdtno', []);
+        $frefdtids = $request->input('frefdtid', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
+        $qtys = $request->input('fqty', []);
+        $prices = $request->input('fprice', []);
+        $discs = $request->input('fdisc', []);
+        $refprs = $request->input('frefpr', []);
+        $descs = $request->input('fdesc', []);
 
         $uniqueCodes = array_values(array_unique(
             array_filter(array_map(fn($c) => trim((string) $c), $codes))

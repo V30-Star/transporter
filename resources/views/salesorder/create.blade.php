@@ -1230,21 +1230,28 @@
                 this.onRowUpdated(index);
             },
 
+            parseQty(val) {
+                if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+                let str = String(val ?? '').trim();
+                if (str === '') return 0;
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const num = Number(str);
+                return Number.isFinite(num) ? num : 0;
+            },
+
             isRowSavable(row) {
-                return row.fprdcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                if (!row) return false;
+                const code = String(row.fprdcode ?? row.fitemcode ?? '').trim();
+                const qty = this.parseQty(row.fqty);
+                return code !== '' && qty > 0;
             },
             isRowFilled(row) {
-                return [
-                        row.fprdcode,
-                        row.fitemname,
-                        row.fsatuan,
-                        row.fqty,
-                        row.fprice,
-                        row.fdisc,
-                        row.fdesc,
-                        row.fketdt
-                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                    Number(row.fqty || 0) > 0;
+                if (!row) return false;
+                const code = String(row.fprdcode ?? row.fitemcode ?? '').trim();
+                const qty = this.parseQty(row.fqty);
+                return code !== '' || qty !== 0;
             },
 
             onPrPicked(e) {

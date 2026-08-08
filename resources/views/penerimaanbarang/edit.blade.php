@@ -1593,21 +1593,31 @@
                     this.savedItems.splice(i, 1);
                     this.ensureMinimumRows();
                 },
+                parseQty(val) {
+                    if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+                    let str = String(val ?? '').trim();
+                    if (str === '') return 0;
+                    if (str.includes(',')) {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                    const num = Number(str);
+                    return Number.isFinite(num) ? num : 0;
+                },
+
                 isRowSavable(row) {
-                    return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
+                    if (!row) return false;
+                    const code = String(row.fitemcode ?? row.fprdcode ?? '').trim();
+                    const satuan = String(row.fsatuan ?? '').trim();
+                    const qty = this.parseQty(row.fqty);
+                    const allowMinus = @json(stock_boleh_minus());
+                    return !!(code && satuan && (allowMinus ? qty !== 0 : qty > 0));
                 },
                 isRowFilled(row) {
-                    return [
-                            row.fitemcode,
-                            row.fitemname,
-                            row.fsatuan,
-                            row.frefdtno,
-                            row.fqty,
-                            row.fprice,
-                            row.fdesc,
-                            row.fketdt
-                        ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                        (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0);
+                    if (!row) return false;
+                    const code = String(row.fitemcode ?? row.fprdcode ?? '').trim();
+                    const name = String(row.fitemname ?? '').trim();
+                    const qty = this.parseQty(row.fqty);
+                    return code !== '' || name !== '' || qty !== 0;
                 },
                 rowWarningLabel(row) {
                     return `Data Produk ${row.fitemname || row.fitemcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;

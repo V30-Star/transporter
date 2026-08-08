@@ -470,7 +470,16 @@ class ReturPembelianController extends Controller
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
+            ->where(function ($q) use ($fstockmtno) {
+                if (is_numeric($fstockmtno)) {
+                    $q->where('trstockmt.fstockmtid', (int) $fstockmtno);
+                }
+                $slash = str_replace('.', '/', $fstockmtno);
+                $dot = str_replace('/', '.', $fstockmtno);
+                $q->orWhere('trstockmt.fstockmtno', $fstockmtno)
+                  ->orWhere('trstockmt.fstockmtno', $slash)
+                  ->orWhere('trstockmt.fstockmtno', $dot);
+            })
             ->first([
                 'trstockmt.*',
                 's.fsuppliername as supplier_name',
@@ -486,7 +495,7 @@ class ReturPembelianController extends Controller
 
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
-            ->where('trstockdt.fstockmtno', $fstockmtno)
+            ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
                 'trstockdt.*',
@@ -879,6 +888,7 @@ class ReturPembelianController extends Controller
 
             // DATABASE TRANSACTION
             DB::transaction(function () use (
+                $typeBuy,
                 $fstockmtdate,
                 $fsupplier,
                 $ffrom,
@@ -1006,17 +1016,10 @@ class ReturPembelianController extends Controller
                 return response()->json([
                     'message' => 'Retur pembelian berhasil disimpan.',
                     'redirect_url' => route('returpembelian.create'),
-                ]);
-            }
-
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'message' => 'Retur pembelian berhasil disimpan.',
-                    'redirect_url' => route('returpembelian.create'),
                     'success_prompt' => [
                         'type' => 'returpembelian_create',
                         'redirect_url' => route('returpembelian.print', $fstockmtno),
-                    ]
+                    ],
                 ]);
             }
 
@@ -1416,11 +1419,30 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
+            $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
+
             // BUILD DETAIL ROWS
+            $hasUM = collect($codes)->map(fn($c) => strtoupper(trim((string) $c)))->contains('UM');
             $hasNonUM = collect($codes)
                 ->map(fn($c) => strtoupper(trim((string) $c)))
                 ->filter(fn($c) => $c !== '' && $c !== 'UM')
                 ->isNotEmpty();
+
+            if ($typeBuy === 0 && $hasUM) {
+                $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
+            }
+
+            if ($typeBuy !== 0 && $hasNonUM) {
+                $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
+            }
 
             $rowsDt = [];
             $usedNoAcaks = [];
@@ -1506,6 +1528,7 @@ class ReturPembelianController extends Controller
 
             // DATABASE TRANSACTION
             DB::transaction(function () use (
+                $typeBuy,
                 $header,
                 $fstockmtdate,
                 $fsupplier,

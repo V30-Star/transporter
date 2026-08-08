@@ -796,7 +796,7 @@
                                     </table>
                                 </div>
                                 <div class="hidden">
-                                    <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                                    <template x-for="row in ($data.rowsToSubmit || [])" :key="'submit-' + row.uid">
                                         <div>
                                             <input type="hidden" name="fprdid[]" :value="row.fprdid || ''">
                                             <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
@@ -809,7 +809,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
+                                <input type="hidden" id="itemsCount" :value="($data.rowsToSubmit || []).length">
                                 <div x-show="showDescModal" x-cloak
                                     class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
                                     x-transition.opacity>
