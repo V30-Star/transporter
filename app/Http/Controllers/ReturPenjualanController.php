@@ -878,12 +878,23 @@ class ReturPenjualanController extends Controller
 
     public function print(string $fsono)
     {
+        $fsono = trim($fsono);
+
         // Header: find by SO code (string)
         $hdr = DB::table('tranmt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
             ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
-            ->where('tranmt.fsono', $fsono)
+            ->where(function ($q) use ($fsono) {
+                if (is_numeric($fsono)) {
+                    $q->where('tranmt.ftranmtid', (int) $fsono);
+                }
+                $slash = str_replace('.', '/', $fsono);
+                $dot = str_replace('/', '.', $fsono);
+                $q->orWhere('tranmt.fsono', $fsono)
+                  ->orWhere('tranmt.fsono', $slash)
+                  ->orWhere('tranmt.fsono', $dot);
+            })
             ->first([
                 'tranmt.*',
                 'c.fcustomername as customer_name',
@@ -904,7 +915,7 @@ class ReturPenjualanController extends Controller
         // Detail: join dengan product
         $dt = DB::table('trandt')
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trandt.fprdcode')
-            ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
+            ->where('trandt.fsono', $hdr->fsono)
             ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
             ->get([
                 'trandt.*',
@@ -2098,6 +2109,7 @@ class ReturPenjualanController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'returpenjualan' => $returpenjualan,
             'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fapplyppn ?? '0') === '0' && (string) ($returpenjualan->fincludeppn ?? '0') === '0'),

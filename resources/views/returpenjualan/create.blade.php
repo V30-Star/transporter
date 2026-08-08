@@ -237,7 +237,7 @@
             </div>
         </div>
     @endif
-    <div>
+    <div x-data="itemsTable()" x-init="init()">
         
         <form action="{{ route('returpenjualan.store') }}" method="POST" data-form-draft="true"
             data-draft-key="returpenjualan:create"
@@ -470,7 +470,7 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                 <div class="p-4">
-                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+                    <div class="space-y-2">
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>

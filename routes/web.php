@@ -525,13 +525,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/returpenjualan', [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
         Route::post('/returpenjualan', [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');
         Route::get('/returpenjualan/create', [ReturPenjualanController::class, 'create'])->name('returpenjualan.create');
-        Route::get('/returpenjualan/{ftranmtid}/view', [ReturPenjualanController::class, 'view'])->name('returpenjualan.view');
-        Route::get('/returpenjualan/{ftranmtid}/edit', [ReturPenjualanController::class, 'edit'])->name('returpenjualan.edit');
-        Route::get('/returpenjualan/{ftranmtid}/delete', [ReturPenjualanController::class, 'delete'])->name('returpenjualan.delete');
-        Route::patch('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'update'])->name('returpenjualan.update');
-        Route::delete('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'destroy'])->name('returpenjualan.destroy');
+        Route::get('/returpenjualan/{ftranmtid}/view', [ReturPenjualanController::class, 'view'])->where('ftranmtid', '.*')->name('returpenjualan.view');
+        Route::get('/returpenjualan/{ftranmtid}/edit', [ReturPenjualanController::class, 'edit'])->where('ftranmtid', '.*')->name('returpenjualan.edit');
+        Route::get('/returpenjualan/{ftranmtid}/delete', [ReturPenjualanController::class, 'delete'])->where('ftranmtid', '.*')->name('returpenjualan.delete');
+        Route::patch('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'update'])->where('ftranmtid', '.*')->name('returpenjualan.update');
+        Route::delete('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'destroy'])->where('ftranmtid', '.*')->name('returpenjualan.destroy');
         Route::get('/returpenjualan/{fstockmtno}/print', [ReturPenjualanController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('returpenjualan.print');
+
+        // Alias master prefix routes for returpenjualan
+        Route::get('/master/returpenjualan', [ReturPenjualanController::class, 'index']);
+        Route::get('/master/returpenjualan/create', [ReturPenjualanController::class, 'create']);
+        Route::get('/master/returpenjualan/{fstockmtno}/print', [ReturPenjualanController::class, 'print'])->where('fstockmtno', '.*');
+        Route::get('/master/returpenjualan/{ftranmtid}/view', [ReturPenjualanController::class, 'view'])->where('ftranmtid', '.*');
+        Route::get('/master/returpenjualan/{ftranmtid}/edit', [ReturPenjualanController::class, 'edit'])->where('ftranmtid', '.*');
+        Route::get('/master/returpenjualan/{ftranmtid}/delete', [ReturPenjualanController::class, 'delete'])->where('ftranmtid', '.*');
         Route::get('/returpenjualan/{id}/items', [ReturPenjualanController::class, 'items'])
             ->name('returpenjualan.items');
         Route::get('/returpenjualan/product-history', [ReturPenjualanController::class, 'productHistory'])

@@ -1254,7 +1254,7 @@ class InvoiceController extends Controller
         // Detail: join dengan product
         $dt = DB::table('trandt')
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trandt.fprdcode')
-            ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
+            ->where('trandt.fsono', $hdr->fsono)
             ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
             ->get([
                 'trandt.*',
@@ -1877,22 +1877,31 @@ class InvoiceController extends Controller
                 );
             });
 
-            $redirect = redirect()->route('invoice.create')->with('success', 'Faktur penjualan berhasil disimpan.');
+            $suratjalanUrl = ($fprdoutVal === '0' && $this->canCreateSuratJalan())
+                ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
+                : null;
+
+            $successPrompt = [
+                'type' => 'invoice_create',
+                'redirect_url' => route('invoice.print', $fsono),
+            ];
+            if ($suratjalanUrl) {
+                $successPrompt['suratjalan_url'] = $suratjalanUrl;
+            }
+
+            $successMessage = 'Faktur penjualan ' . $fsono . ' berhasil disimpan.';
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan berhasil disimpan.',
+                    'message' => $successMessage,
                     'redirect_url' => route('invoice.create'),
-                    'success_prompt' => [
-                        'type' => 'invoice_create',
-                        'redirect_url' => route('invoice.print', $fsono),
-                    ]
+                    'success_prompt' => $successPrompt,
                 ]);
             }
-            return $redirect->with('success_prompt', [
-                'type' => 'invoice_create',
-                'redirect_url' => route('invoice.print', $fsono),
-            ]);
+            return redirect()
+                ->route('invoice.create')
+                ->with('success', $successMessage)
+                ->with('success_prompt', $successPrompt);
         } catch (\Exception $e) {
             Log::error('Invoice@store ERROR: ' . $e->getMessage());
             report($e);
