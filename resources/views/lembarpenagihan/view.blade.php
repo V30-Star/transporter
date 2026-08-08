@@ -1,1 +1,1 @@
-@include('lembarpenagihan._form', ['title' => 'View Lembar Penagihan'])
+@include('lembarpenagihan._form', ['title' => 'Lembar Penagihan - View'])
