@@ -189,13 +189,18 @@ class JurnalTransaksiController extends Controller
     private function resolveJournalTitle(?string $journalType = null, string $action = ''): string
     {
         $type = strtoupper(trim((string) $journalType));
-        $prefix = trim($action) !== '' ? trim($action).' ' : '';
-
-        return match ($type) {
-            self::PURCHASE_JOURNAL_TYPE => $prefix.'Jurnal Faktur Pembelian',
-            self::SALES_JOURNAL_TYPE => $prefix.'Jurnal Penjualan',
-            default => $prefix.'Jurnal Transaksi',
+        $baseTitle = match ($type) {
+            self::PURCHASE_JOURNAL_TYPE => 'Jurnal Faktur Pembelian',
+            self::SALES_JOURNAL_TYPE => 'Jurnal Penjualan',
+            default => 'Jurnal Transaksi',
         };
+
+        $actionStr = trim($action);
+        if ($actionStr !== '') {
+            return $baseTitle . ' - ' . $actionStr;
+        }
+
+        return $baseTitle;
     }
 
     private function resolveJournalSuccessName(?string $journalType = null): string
