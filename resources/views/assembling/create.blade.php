@@ -349,12 +349,12 @@
             @enderror
         </div>
 
-        <!-- Keterangan - styled like Cabang -->
+        <!-- Keterangan - editable -->
         <div class="lg:col-span-12">
             <label class="block text-xs font-bold mb-1">Keterangan</label>
-            <textarea rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                disabled>{{ old('fket') }}</textarea>
-            <input type="hidden" name="fket" value="{{ old('fket') }}">
+            <textarea name="fket" rows="3"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
+                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
             @error('fket')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
