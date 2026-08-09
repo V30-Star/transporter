@@ -718,7 +718,7 @@ class PenerimaanKasController extends Controller
 
             if (isset($validationConfig['reference'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Penerimaan Kas/Bank dilarang jurnal ke account ' . $validationConfig['reference'][$accountCode]['display_name'] . '. Penyimpanan dibatalkan.',
+                    "details.$index.faccount" => 'Account ' . $validationConfig['reference'][$accountCode]['display_name'] . ' tidak boleh input disini, karena memiliki no Ref.',
                 ]);
             }
 

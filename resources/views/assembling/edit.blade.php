@@ -1082,6 +1082,20 @@
                     </table>
                             </div>
 
+                            {{-- Hidden submit rows --}}
+                            <div class="hidden">
+                                <template x-for="(item, index) in submitItems" :key="item.uid || index">
+                                    <div>
+                                        <input type="hidden" :name="'fitemcode[' + index + ']'" :value="item.fitemcode">
+                                        <input type="hidden" :name="'fsatuan[' + index + ']'" :value="item.fsatuan">
+                                        <input type="hidden" :name="'fqty[' + index + ']'" :value="item.fqty">
+                                        <input type="hidden" :name="'fdesc[' + index + ']'" :value="item.fdesc || ''">
+                                        <input type="hidden" :name="'fitemtype[' + index + ']'" :value="item.fitemtype">
+                                    </div>
+                                </template>
+                                <input type="hidden" id="itemsCount" :value="submitItems.length">
+                            </div>
+
                         <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                             x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
@@ -1227,6 +1241,10 @@
 
                                         this.savedItems = cleaned;
                                         return cleaned;
+                                    },
+
+                                    get submitItems() {
+                                        return (this.savedItems || []).filter(it => !it?.__placeholder && this.isComplete(it));
                                     },
 
                                     // === MODIFIED: removeSaved ===

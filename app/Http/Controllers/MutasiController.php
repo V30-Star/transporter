@@ -809,7 +809,7 @@ class MutasiController extends Controller
             // =========================
             // TAHAP 5: TRANSAKSI DATABASE
             // =========================
-            $finalNo = DB::transaction(function () use ($headerData, &$rowsDt) {
+            $fstockmtno = DB::transaction(function () use ($headerData, &$rowsDt) {
                 $fstockmtno = $headerData['fstockmtno'];
 
                 if ($fstockmtno === '') {

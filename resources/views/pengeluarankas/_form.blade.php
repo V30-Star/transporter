@@ -946,12 +946,12 @@
                             };
                         }
 
-                        if (Object.prototype.hasOwnProperty.call(referenceAccounts, accountCode) && referenceNo === '') {
+                        if (Object.prototype.hasOwnProperty.call(referenceAccounts, accountCode)) {
                             return {
                                 status: 'ERROR',
-                                validasi: 'Nomor Referensi',
-                                message: 'No. Referensi harus diisi untuk account Piutang/Hutang Dagang.',
-                                fokus: 'frefno',
+                                validasi: 'Account Referensi',
+                                message: `Account ${accountLabel} tidak boleh input disini, karena memiliki no Ref.`,
+                                fokus: 'faccount',
                             };
                         }
 
