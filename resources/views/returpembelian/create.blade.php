@@ -576,10 +576,9 @@
                                             <td class="p-2">
                                                 <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() === 'UM'">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                        class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
                                                         :value="editRow.frefdtno || ''"
-                                                        @input="editRow.frefdtno = $event.target.value;"
-                                                        placeholder="No Ref UM">
+                                                        placeholder="Auto No Ref UM" disabled>
                                                 </template>
                                                 <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() !== 'UM'">
                                                     <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="editRow.frefdtno || '-'"></div>
@@ -670,10 +669,9 @@
                                                 <td class="p-2">
                                                     <template x-if="String(dr.fitemcode || '').toUpperCase().trim() === 'UM'">
                                                         <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                            class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
                                                             :value="dr.frefdtno || ''"
-                                                            @input="dr.frefdtno = $event.target.value;"
-                                                            placeholder="No Ref UM">
+                                                            placeholder="Auto No Ref UM" disabled>
                                                     </template>
                                                     <template x-if="String(dr.fitemcode || '').toUpperCase().trim() !== 'UM'">
                                                         <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="dr.frefdtno || '-'"></div>
@@ -1263,15 +1261,28 @@
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (productCode !== 'UM') return;
 
-                const sel = document.getElementById('modal_filter_supplier_id') || document.querySelector('select[name="fsupplier"]');
-                const supplierCode = (sel ? sel.value : '').toString().trim();
+                const supplierCode = this.getSelectedSupplierCode();
                 if (!supplierCode) return;
 
                 const documents = window.RB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
-                const doc = documents.find(item => (Number(item.fsisadp || 0) > 0 || Number(item.fsisadp_rp || 0) > 0) && String(item.fstockmtno || '').trim() !== '');
-                if (!doc) return;
+                const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
+                row.frefdtno = doc ? doc.fstockmtno : '';
+                if (doc) {
+                    row.fprice = Math.abs(Number(doc.fsisadp || 0));
+                    row.fpriceInput = this.fmt(row.fprice);
+                    this.recalc(row);
+                }
+            },
 
-                row.frefdtno = doc.fstockmtno;
+            getSelectedSupplierCode() {
+                const hid = document.getElementById('supplierCodeHidden');
+                const sel = document.getElementById('modal_filter_supplier_id') || document.querySelector('select[name="fsupplier"]');
+                return ((hid?.value || sel?.value || '')).toString().trim();
+            },
+
+            refreshOutstandingDpRefs() {
+                [...(this.savedItems || []), ...(this.draftRows || [])].forEach(row => this.applyOutstandingDpRef(row));
+                if (this.editingIndex !== null) this.applyOutstandingDpRef(this.editRow);
             },
 
             onCodeTypedRow(row) {
@@ -1606,6 +1617,7 @@
 
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
+                window.addEventListener('returpembelian-supplier-changed', () => this.refreshOutstandingDpRefs());
 
                 // Listen for PR picked from modal PR
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
@@ -2331,8 +2343,9 @@
                         opt.selected = true;
                     }
 
-                    sel.dispatchEvent(new Event('change'));
                     if (hid) hid.value = supplier.fsuppliercode;
+                    sel.dispatchEvent(new Event('change'));
+                    window.dispatchEvent(new CustomEvent('returpembelian-supplier-changed'));
                     this.close();
                 },
 

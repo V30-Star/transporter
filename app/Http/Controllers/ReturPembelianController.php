@@ -271,10 +271,7 @@ class ReturPembelianController extends Controller
         $documentsBySupplier = DB::table('trsisadp_pembelian')
             ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
             ->addSelect(['fstockmtno', 'fstockmtdate', 'fsisadp', 'fsisadp_rp'])
-            ->where(function ($query) {
-                $query->where('fsisadp', '>', 0)
-                    ->orWhere('fsisadp_rp', '>', 0);
-            })
+            ->where('fsisadp', '>', 0)
             ->orderBy('fstockmtdate')
             ->orderBy('fstockmtno')
             ->get()
@@ -292,10 +289,7 @@ class ReturPembelianController extends Controller
             ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
             ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
             ->selectRaw('SUM(COALESCE(fsisadp_rp, 0)) as total_remain_rp')
-            ->where(function ($query) {
-                $query->where('fsisadp', '>', 0)
-                    ->orWhere('fsisadp_rp', '>', 0);
-            })
+            ->where('fsisadp', '>', 0)
             ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fsupplier ?? '')) !== '')
@@ -313,6 +307,21 @@ class ReturPembelianController extends Controller
                 ];
             })
             ->all();
+    }
+
+    private function getSupplierOutstandingDpDocument(string $supplierCode): ?object
+    {
+        $supplierCode = trim($supplierCode);
+        if ($supplierCode === '') {
+            return null;
+        }
+
+        return DB::table('trsisadp_pembelian')
+            ->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode])
+            ->where('fsisadp', '>', 0)
+            ->orderBy('fstockmtdate')
+            ->orderBy('fstockmtno')
+            ->first(['fstockmtno', 'fsisadp']);
     }
 
     public function pickable(Request $request)
@@ -784,6 +793,9 @@ class ReturPembelianController extends Controller
                 ->map(fn($c) => strtoupper(trim((string) $c)))
                 ->filter(fn($c) => $c !== '' && $c !== 'UM')
                 ->isNotEmpty();
+            $outstandingDpDoc = $this->getSupplierOutstandingDpDocument($fsupplier);
+            $outstandingDpRef = trim((string) ($outstandingDpDoc->fstockmtno ?? ''));
+            $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
             if ($typeBuy === 0 && $hasUM) {
                 $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
@@ -819,7 +831,8 @@ class ReturPembelianController extends Controller
                 }
 
                 if (strtoupper(trim((string) $code)) === 'UM') {
-                    $absPrice = abs($price);
+                    $rref = $outstandingDpRef !== '' ? $outstandingDpRef : $rref;
+                    $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                     $price = $hasNonUM ? -$absPrice : $absPrice;
                 }
 
@@ -1427,6 +1440,9 @@ class ReturPembelianController extends Controller
                 ->map(fn($c) => strtoupper(trim((string) $c)))
                 ->filter(fn($c) => $c !== '' && $c !== 'UM')
                 ->isNotEmpty();
+            $outstandingDpDoc = $this->getSupplierOutstandingDpDocument($fsupplier);
+            $outstandingDpRef = trim((string) ($outstandingDpDoc->fstockmtno ?? ''));
+            $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
             if ($typeBuy === 0 && $hasUM) {
                 $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
@@ -1462,7 +1478,8 @@ class ReturPembelianController extends Controller
                 }
 
                 if (strtoupper(trim((string) $code)) === 'UM') {
-                    $absPrice = abs($price);
+                    $rref = $outstandingDpRef !== '' ? $outstandingDpRef : $rref;
+                    $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                     $price = $hasNonUM ? -$absPrice : $absPrice;
                 }
 
