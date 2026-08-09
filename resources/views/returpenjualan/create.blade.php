@@ -552,10 +552,9 @@
                                             <td class="p-2">
                                                 <template x-if="String(it.fitemcode || '').toUpperCase().trim() === 'UM'">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 bg-white"
+                                                        class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
                                                         :value="it.frefsrj || ''"
-                                                        @input="it.frefsrj = $event.target.value;"
-                                                        placeholder="No Ref UM">
+                                                        placeholder="Auto No Ref UM" disabled>
                                                 </template>
                                                 <template x-if="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'">
                                                     <div class="flex w-full max-w-full">
@@ -2474,15 +2473,27 @@
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (productCode !== 'UM') return;
 
-                const sel = document.getElementById('modal_filter_customer_id') || document.getElementById('customerCodeHidden');
-                const customerCode = (sel ? sel.value : '').toString().trim();
+                const customerCode = this.getSelectedCustomerCode();
                 if (!customerCode) return;
 
                 const documents = window.RP_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
                 const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
-                if (!doc) return;
+                row.frefsrj = doc ? doc.fsono : '';
+                if (doc) {
+                    row.fprice = Math.abs(Number(doc.fsisadp || 0));
+                    row.fpriceInput = this.fmt(row.fprice);
+                    this.recalc(row);
+                }
+            },
 
-                row.frefsrj = doc.fsono;
+            getSelectedCustomerCode() {
+                const hid = document.getElementById('customerCodeHidden');
+                const sel = document.getElementById('modal_filter_customer_id');
+                return ((hid?.value || sel?.value || '')).toString().trim();
+            },
+
+            refreshOutstandingDpRefs() {
+                (this.savedItems || []).forEach(row => this.applyOutstandingDpRef(row));
             },
 
             rowHasContent(row) {
@@ -2508,6 +2519,7 @@
 
             isSRJRow(row) {
                 if (!row) return false;
+                if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return false;
                 return row.frefcode === 'SRJ' || String(row.frefsrj ?? '').trim() !== '';
             },
 
@@ -2972,6 +2984,9 @@
                     passive: true
                 });
                 window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), {
+                    passive: true
+                });
+                window.addEventListener('customer-selected', () => this.refreshOutstandingDpRefs(), {
                     passive: true
                 });
 

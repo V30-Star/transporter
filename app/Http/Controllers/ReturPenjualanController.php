@@ -806,6 +806,21 @@ class ReturPenjualanController extends Controller
             ->all();
     }
 
+    private function getCustomerOutstandingDpDocument(string $customerCode): ?object
+    {
+        $customerCode = trim($customerCode);
+        if ($customerCode === '') {
+            return null;
+        }
+
+        return DB::table('trsisadp_penjualan')
+            ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
+            ->where('fsisadp', '>', 0)
+            ->orderBy('fsodate')
+            ->orderBy('fsono')
+            ->first(['fsono', 'fsisadp']);
+    }
+
     private function sanitizeReturReferences(array &$frefso, array $frefsrj): void
     {
         foreach ($frefsrj as $index => $srjDocNo) {
@@ -1117,6 +1132,9 @@ class ReturPenjualanController extends Controller
             ->map(fn($c) => strtoupper(trim((string) $c)))
             ->filter(fn($c) => $c !== '' && $c !== 'UM')
             ->isNotEmpty();
+        $outstandingDpDoc = $this->getCustomerOutstandingDpDocument((string) $request->input('fcustno'));
+        $outstandingDpRef = trim((string) ($outstandingDpDoc->fsono ?? ''));
+        $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
         if ($typeSales === 0 && $hasUM) {
             $msg = 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).';
@@ -1168,8 +1186,13 @@ class ReturPenjualanController extends Controller
                 continue;
             }
 
-            if (strtoupper(trim((string) $code)) === 'UM') {
-                $absPrice = abs($price);
+            $isUM = strtoupper(trim((string) $code)) === 'UM';
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
+
+            if ($isUM) {
+                $refSrjDoc = $outstandingDpRef !== '' ? $outstandingDpRef : $refSrjDoc;
+                $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                 $price = $hasNonUM ? -$absPrice : $absPrice;
             }
 
@@ -1184,9 +1207,7 @@ class ReturPenjualanController extends Controller
             }
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
-            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
-            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
-            if ($refSrjDoc !== '') {
+            if ($refSrjDoc !== '' && ! $isUM) {
                 $price = 0.0;
                 $discs[$i] = 0;
             }
@@ -2386,6 +2407,9 @@ class ReturPenjualanController extends Controller
             ->map(fn($c) => strtoupper(trim((string) $c)))
             ->filter(fn($c) => $c !== '' && $c !== 'UM')
             ->isNotEmpty();
+        $outstandingDpDoc = $this->getCustomerOutstandingDpDocument((string) $request->input('fcustno'));
+        $outstandingDpRef = trim((string) ($outstandingDpDoc->fsono ?? ''));
+        $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
         if ($typeSales === 0 && $hasUM) {
             $msg = 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).';
@@ -2438,16 +2462,19 @@ class ReturPenjualanController extends Controller
                 continue;
             }
 
-            if (strtoupper(trim((string) $code)) === 'UM') {
-                $absPrice = abs($price);
+            $isUM = strtoupper(trim((string) $code)) === 'UM';
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
+
+            if ($isUM) {
+                $refSrjDoc = $outstandingDpRef !== '' ? $outstandingDpRef : $refSrjDoc;
+                $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                 $price = $hasNonUM ? -$absPrice : $absPrice;
             }
 
             $product = $products->get($code);
 
-            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
-            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
-            if ($refSrjDoc !== '') {
+            if ($refSrjDoc !== '' && ! $isUM) {
                 $price = 0.0;
                 $discs[$i] = 0;
             }
