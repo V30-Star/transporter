@@ -511,18 +511,19 @@
                     }
                 },
                 initNotaTable() {
+                    const pickableUrls = {
+                        INV: "{{ route('lembarpenagihan.pickable-invoices') }}",
+                        REJ: "{{ route('lembarpenagihan.pickable-returns') }}",
+                    };
+
                     if (this.notaTable) {
+                        this.notaTable.ajax.url(pickableUrls[this.notaMode] || pickableUrls.REJ);
                         this.notaTable.ajax.reload(null, false);
                         this.notaTable.columns.adjust().draw(false);
                         return;
                     }
 
                     $('#notaBrowseTable').off('.notapick');
-
-                    const pickableUrls = {
-                        INV: "{{ route('lembarpenagihan.pickable-invoices') }}",
-                        REJ: "{{ route('lembarpenagihan.pickable-returns') }}",
-                    };
 
                     this.notaTable = $('#notaBrowseTable').DataTable({
                         processing: true,
@@ -613,14 +614,16 @@
                         },
                     });
 
-                    $('#notaBrowseTable').off('click.notapick').on('click.notapick', '.btn-choose', (event) => {
+                    $('#notaBrowseTable').off('click.notapick');
+
+                    $('#notaBrowseTable').on('click.notapick', '.btn-choose', (event) => {
                         event.preventDefault();
                         event.stopPropagation();
                         const data = this.notaTable?.row($(event.currentTarget).closest('tr')).data();
                         this.pickNota(data, this.notaMode);
                     });
 
-                    $('#notaBrowseTable').off('click.notapick').on('click.notapick', 'tbody tr', (event) => {
+                    $('#notaBrowseTable').on('click.notapick', 'tbody tr', (event) => {
                         if ($(event.target).closest('button, a, input, select, textarea').length) return;
                         const data = this.notaTable?.row(event.currentTarget).data();
                         this.pickNota(data, this.notaMode);

@@ -516,7 +516,7 @@
                 <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
                     class="mt-6" data-form-draft="true"
                     data-draft-key="pemakaianbarang:edit:{{ $pemakaianbarang->fstockmtid }}"
-                    @submit="onSubmit($event)" x-data="{ showNoItems: false }">
+                    @submit="window.pemakaianBarangEditItemsState?.onSubmit($event)" x-data="{ showNoItems: false }">
                     @csrf
                     @method('PATCH')
 
@@ -1503,6 +1503,7 @@ close() {
             },
 
             init() {
+                window.pemakaianBarangEditItemsState = this;
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {

@@ -225,7 +225,7 @@
             <div>
                 <form action="{{ route('pemakaianbarang.store') }}" method="POST"
                     data-form-draft="true" data-draft-key="pemakaianbarang:create"
-                    @submit.prevent="window.dispatchEvent(new CustomEvent('pemakaianbarang-submit-request'))"
+                    @submit="window.pemakaianBarangCreateItemsState?.onSubmit($event)"
                     x-data="{ showNoItems: false }">
                     @csrf
 
@@ -1068,6 +1068,7 @@
             },
 
             init() {
+                window.pemakaianBarangCreateItemsState = this;
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
