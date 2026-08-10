@@ -766,12 +766,12 @@ class PelunasanCustomerController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message'      => "Pelunasan Customer {$voucherNo} berhasil diupdate.",
-                'redirect_url' => route('pelunasancustomer.edit', $voucherNo),
+                'redirect_url' => route('pelunasancustomer.index'),
             ]);
         }
 
         return redirect()
-            ->route('pelunasancustomer.edit', $voucherNo)
+            ->route('pelunasancustomer.index')
             ->with('success', "Pelunasan Customer {$voucherNo} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
