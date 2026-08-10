@@ -807,7 +807,7 @@
                         const nameField = row?.querySelector('[data-role="account-name-display"]');
                         const hasSubaccountField = row?.querySelector('[data-role="account-has-subaccount"]');
                         const subaccountTypeField = row?.querySelector('[data-role="account-subaccount-type"]');
-                        const subaccountHiddenField = row?.querySelector('input[name$="[fsubaccount]"]');
+                        const subaccountHiddenField = row?.querySelector('[name$="[fsubaccount]"]');
                         const subaccountDisplayField = row?.querySelector('[data-role="subaccount-display"]');
 
                         if (!account) {
@@ -912,7 +912,7 @@
                     validateJournalRow(row) {
                         const accountCode = this.normalizeAccountCode(row?.querySelector('input[name$="[faccount]"]')?.value);
                         const referenceNo = (row?.querySelector('input[name$="[frefno]"]')?.value || '').toString().trim();
-                        const subaccountCode = (row?.querySelector('input[name$="[fsubaccount]"]')?.value || '').toString()
+                        const subaccountCode = (row?.querySelector('[name$="[fsubaccount]"]')?.value || '').toString()
                             .trim();
 
                         if (accountCode === '') {
@@ -1021,7 +1021,7 @@
                             return;
                         }
 
-                        const hiddenField = row.querySelector(`input[name$="[${fieldName}]"]`);
+                        const hiddenField = row.querySelector(`[name$="[${fieldName}]"]`);
                         const displayField = row.querySelector(`[data-role="${displayRole}"]`);
 
                         if (hiddenField) {
@@ -1047,7 +1047,7 @@
                         const nameField = row.querySelector('[data-role="account-name-display"]');
                         const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
                         const subaccountTypeField = row.querySelector('[data-role="account-subaccount-type"]');
-                        const subaccountHiddenField = row.querySelector('input[name$="[fsubaccount]"]');
+                        const subaccountHiddenField = row.querySelector('[name$="[fsubaccount]"]');
                         const subaccountDisplayField = row.querySelector('[data-role="subaccount-display"]');
 
                         if (hiddenField) {
