@@ -5,6 +5,7 @@
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
     <style>
         .ui-autocomplete { z-index: 9999; max-height: 240px; overflow-y: auto; overflow-x: hidden; }
@@ -525,6 +526,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Format semua field numerik (HPP, Harga Jual, Qty) dengan decimal separator
+        if (typeof AutoNumeric !== 'undefined') {
+            AutoNumeric.multiple('.autonumeric', {
+                digitGroupSeparator: '.',
+                decimalCharacter: ',',
+                decimalPlaces: 2,
+                allowDecimalPadding: true,
+                readOnly: true
+            });
+        }
         initViewSatuanDisplay();
         updateMinStokSatuan();
     });

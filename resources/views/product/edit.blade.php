@@ -2246,6 +2246,42 @@
         let hargajual3level2 = new AutoNumeric('#fhargajual3level2', 'commaDecimalCharDotSeparator');
         let hargajual3level3 = new AutoNumeric('#fhargajual3level3', 'commaDecimalCharDotSeparator');
 
+        // Inisialisasi HPP untuk mode edit (section-card di baris ~1178-1337)
+        // Catatan: mode delete punya inline script sendiri; ini khusus untuk mode edit
+        const hppOptions = {
+            digitGroupSeparator: '.',
+            decimalCharacter: ',',
+            decimalPlaces: 2,
+            unformatOnSubmit: true,
+            allowDecimalPadding: true,
+            outputFormat: "number"
+        };
+
+        // Cek apakah elemen HPP Satuan 2 & 3 sudah di-init (bisa double-init jika mode delete)
+        // AutoNumeric throws jika sudah diinisialisasi, jadi gunakan try/catch
+        let anHppEdit = null, anHpp2Edit = null, anHpp3Edit = null;
+        let anQty2Edit = null, anQty3Edit = null;
+        try { anHppEdit  = new AutoNumeric('#fhpp', hppOptions);  } catch(e) { anHppEdit  = AutoNumeric.getAutoNumericElement('#fhpp');  }
+        try { anHpp2Edit = new AutoNumeric('#fhpp2', hppOptions); } catch(e) { anHpp2Edit = AutoNumeric.getAutoNumericElement('#fhpp2'); }
+        try { anHpp3Edit = new AutoNumeric('#fhpp3', hppOptions); } catch(e) { anHpp3Edit = AutoNumeric.getAutoNumericElement('#fhpp3'); }
+        try { anQty2Edit = new AutoNumeric('#fqtykecil', hppOptions); } catch(e) { anQty2Edit = AutoNumeric.getAutoNumericElement('#fqtykecil'); }
+        try { anQty3Edit = new AutoNumeric('#fqtykecil2', hppOptions); } catch(e) { anQty3Edit = AutoNumeric.getAutoNumericElement('#fqtykecil2'); }
+
+        function calculateHPPEditMode() {
+            if (!anHppEdit || !anHpp2Edit || !anHpp3Edit) return;
+            const valHppKecil = anHppEdit.getNumber() || 0;
+            const valQty2 = anQty2Edit ? anQty2Edit.getNumber() : 0;
+            const valQty3 = anQty3Edit ? anQty3Edit.getNumber() : 0;
+            if (valQty2 > 0) anHpp2Edit.set(valHppKecil * valQty2);
+            if (valQty3 > 0) anHpp3Edit.set(valHppKecil * valQty3);
+        }
+
+        $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
+            calculateHPPEditMode();
+        });
+
+        setTimeout(() => { calculateHPPEditMode(); }, 400);
+
         $(function() {
             const $inp = $("#fprdname");
             let lastXHR = null;
