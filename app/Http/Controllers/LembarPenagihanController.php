@@ -96,37 +96,49 @@ class LembarPenagihanController extends Controller
 
     public function pickableInvoices(Request $request)
     {
+        return $this->pickableTranmt($request, ['INV']);
+    }
+
+    public function pickableReturns(Request $request)
+    {
+        return $this->pickableTranmt($request, ['REJ']);
+    }
+
+    public function pickableNotas(Request $request)
+    {
+        return $this->pickableTranmt($request, ['INV', 'REJ']);
+    }
+
+    private function pickableTranmt(Request $request, array $codes)
+    {
         $customerCode = trim((string) $request->input('fcustno', $request->input('customer_code', '')));
         $search = trim((string) $request->input('search', ''));
 
-        $query = DB::table('tranmt as i')
-            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'i.fcustno')
-            ->where('i.ftrcode', 'INV')
-            ->whereRaw('COALESCE(i.famountremain, i.famountso, 0) <> 0')
-            ->when($customerCode !== '', fn ($q) => $q->where('i.fcustno', $customerCode))
+        $query = DB::table('tranmt as t')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 't.fcustno')
+            ->whereIn('t.ftrcode', $codes)
+            ->whereRaw('COALESCE(t.famountremain, t.famountso, 0) <> 0')
+            ->when($customerCode !== '', fn ($q) => $q->where('t.fcustno', $customerCode))
             ->select([
-                'i.fsono',
-                'i.frefno',
-                'i.fsodate',
-                'i.fcustno',
+                't.ftrcode',
+                't.fsono',
+                't.frefno',
+                't.fsodate',
+                't.fcustno',
                 'c.fcustomername',
-                DB::raw('COALESCE(i.famountso, 0) as famountbil'),
-                DB::raw('COALESCE(i.fongkosangkut, 0) as fongkos'),
-                DB::raw('COALESCE(i.famountremain, i.famountso, 0) as famount'),
+                DB::raw('COALESCE(t.famountso, 0) as famountbil'),
+                DB::raw('COALESCE(t.fongkosangkut, 0) as fongkos'),
+                DB::raw('COALESCE(t.famountremain, t.famountso, 0) as famount'),
             ]);
-        ApprovalState::applyApprovedFilter($query, 'i.');
+        ApprovalState::applyApprovedFilter($query, 't.');
 
-        $recordsTotal = DB::table('tranmt as i')
-            ->where('i.ftrcode', 'INV')
-            ->whereRaw('COALESCE(i.famountremain, i.famountso, 0) <> 0')
-            ->when($customerCode !== '', fn ($q) => $q->where('i.fcustno', $customerCode))
-            ->count();
+        $recordsTotal = (clone $query)->count();
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('i.fsono', 'ilike', "%{$search}%")
-                    ->orWhere('i.frefno', 'ilike', "%{$search}%")
-                    ->orWhere('i.fcustno', 'ilike', "%{$search}%")
+                $q->where('t.fsono', 'ilike', "%{$search}%")
+                    ->orWhere('t.frefno', 'ilike', "%{$search}%")
+                    ->orWhere('t.fcustno', 'ilike', "%{$search}%")
                     ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
             });
         }
@@ -135,7 +147,7 @@ class LembarPenagihanController extends Controller
 
         $orderColumn = (string) $request->input('order_column', 'fsodate');
         $orderDir = strtolower((string) $request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustno', 'fcustomername', 'famountbil', 'fongkos', 'famount'];
+        $allowedColumns = ['ftrcode', 'fsono', 'frefno', 'fsodate', 'fcustno', 'fcustomername', 'famountbil', 'fongkos', 'famount'];
         if (! in_array($orderColumn, $allowedColumns, true)) {
             $orderColumn = 'fsodate';
         }
@@ -145,64 +157,11 @@ class LembarPenagihanController extends Controller
         } elseif (in_array($orderColumn, ['famountbil', 'fongkos', 'famount'], true)) {
             $query->orderBy($orderColumn, $orderDir);
         } else {
-            $query->orderBy('i.' . $orderColumn, $orderDir);
+            $query->orderBy('t.' . $orderColumn, $orderDir);
         }
 
         $data = $query
-            ->orderBy('i.fsono', 'desc')
-            ->skip((int) $request->input('start', 0))
-            ->take((int) $request->input('length', 10))
-            ->get();
-
-        return response()->json([
-            'draw' => (int) $request->input('draw', 1),
-            'recordsTotal' => (int) $recordsTotal,
-            'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data,
-        ]);
-    }
-
-    public function pickableReturns(Request $request)
-    {
-        $customerCode = trim((string) $request->input('fcustno', $request->input('customer_code', '')));
-        $search = trim((string) $request->input('search', ''));
-
-        $query = DB::table('tranmt as r')
-            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'r.fcustno')
-            ->where('r.ftrcode', 'REJ')
-            ->whereRaw('COALESCE(r.famountremain, r.famountso, 0) <> 0')
-            ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
-            ->select([
-                'r.fsono',
-                'r.frefno',
-                'r.fsodate',
-                'r.fcustno',
-                'c.fcustomername',
-                DB::raw('COALESCE(r.famountso, 0) as famountbil'),
-                DB::raw('COALESCE(r.fongkosangkut, 0) as fongkos'),
-                DB::raw('COALESCE(r.famountremain, r.famountso, 0) as famount'),
-            ]);
-        ApprovalState::applyApprovedFilter($query, 'r.');
-
-        $recordsTotal = DB::table('tranmt as r')
-            ->where('r.ftrcode', 'REJ')
-            ->whereRaw('COALESCE(r.famountremain, r.famountso, 0) <> 0')
-            ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
-            ->count();
-
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('r.fsono', 'ilike', "%{$search}%")
-                    ->orWhere('r.frefno', 'ilike', "%{$search}%")
-                    ->orWhere('r.fcustno', 'ilike', "%{$search}%")
-                    ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
-            });
-        }
-
-        $recordsFiltered = (clone $query)->count();
-        $data = $query
-            ->orderBy('r.fsodate', 'desc')
-            ->orderBy('r.fsono', 'desc')
+            ->orderBy('t.fsono', 'desc')
             ->skip((int) $request->input('start', 0))
             ->take((int) $request->input('length', 10))
             ->get();

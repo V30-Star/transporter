@@ -220,15 +220,10 @@
 
                     @if (!$isReadOnly)
                         <div class="mt-3 flex gap-2">
-                            <button type="button" @click="openNotaModal('INV')"
+                            <button type="button" @click="openNotaModal()"
                                 class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
                                 <x-heroicon-o-plus class="w-4 h-4" />
-                                Add Faktur Penjualan
-                            </button>
-                            <button type="button" @click="openNotaModal('REJ')"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
-                                <x-heroicon-o-plus class="w-4 h-4" />
-                                Add Retur
+                                Add Nota
                             </button>
                         </div>
 
@@ -237,8 +232,8 @@
                             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                     <div>
-                                        <h3 class="text-xl font-bold text-gray-800" x-text="notaMode === 'INV' ? 'Browse Faktur Penjualan' : 'Browse Retur Penjualan'"></h3>
-                                        <p class="text-sm text-gray-500 mt-0.5" x-text="notaMode === 'INV' ? 'Pilih faktur yang ingin ditambahkan' : 'Pilih retur yang ingin ditambahkan'"></p>
+                                        <h3 class="text-xl font-bold text-gray-800">Browse Nota</h3>
+                                        <p class="text-sm text-gray-500 mt-0.5">Pilih faktur atau retur yang ingin ditambahkan</p>
                                     </div>
                                     <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                                 </div>
@@ -250,6 +245,7 @@
                                         <table id="notaBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                             <thead class="sticky top-0 z-10">
                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Jenis</th>
                                                     <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
                                                     <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal Nota</th>
                                                     <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
@@ -496,9 +492,7 @@
             return {
                 notaModalOpen: false,
                 notaTable: null,
-                notaMode: 'REJ',
-                openNotaModal(mode = 'REJ') {
-                    this.notaMode = mode;
+                openNotaModal() {
                     this.notaModalOpen = true;
                     this.$nextTick(() => this.initNotaTable());
                 },
@@ -511,13 +505,10 @@
                     }
                 },
                 initNotaTable() {
-                    const pickableUrls = {
-                        INV: "{{ route('lembarpenagihan.pickable-invoices') }}",
-                        REJ: "{{ route('lembarpenagihan.pickable-returns') }}",
-                    };
+                    const pickableUrl = "{{ route('lembarpenagihan.pickable-notas') }}";
 
                     if (this.notaTable) {
-                        this.notaTable.ajax.url(pickableUrls[this.notaMode] || pickableUrls.REJ);
+                        this.notaTable.ajax.url(pickableUrl);
                         this.notaTable.ajax.reload(null, false);
                         this.notaTable.columns.adjust().draw(false);
                         return;
@@ -529,7 +520,7 @@
                         processing: true,
                         serverSide: true,
                         ajax: {
-                            url: pickableUrls[this.notaMode] || pickableUrls.REJ,
+                            url: pickableUrl,
                             type: 'GET',
                             data: (d) => {
                                 const orderColumn = d.columns[d.order[0].column].data;
@@ -545,6 +536,7 @@
                             },
                         },
                         columns: [
+                            { data: 'ftrcode', className: 'font-mono text-sm' },
                             { data: 'fsono', className: 'font-mono text-sm' },
                             { data: 'fsodate', render: data => this.formatDate(data) },
                             { data: null, render: data => `${data.fcustno || ''} - ${data.fcustomername || ''}` },
@@ -573,7 +565,7 @@
                             emptyTable: 'Tidak ada data tersedia',
                             paginate: { first: 'Pertama', last: 'Terakhir', next: 'Selanjutnya', previous: 'Sebelumnya' },
                         },
-                        order: [[1, 'desc']],
+                        order: [[2, 'desc']],
                         autoWidth: false,
                         initComplete: function() {
                             const api = this.api();
@@ -620,21 +612,21 @@
                         event.preventDefault();
                         event.stopPropagation();
                         const data = this.notaTable?.row($(event.currentTarget).closest('tr')).data();
-                        this.pickNota(data, this.notaMode);
+                        this.pickNota(data);
                     });
 
                     $('#notaBrowseTable').on('click.notapick', 'tbody tr', (event) => {
                         if ($(event.target).closest('button, a, input, select, textarea').length) return;
                         const data = this.notaTable?.row(event.currentTarget).data();
-                        this.pickNota(data, this.notaMode);
+                        this.pickNota(data);
                     });
                 },
-                pickNota(invoice, mode = 'REJ') {
+                pickNota(invoice) {
                     if (!invoice || !invoice.fsono) return;
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             items: [{
-                                frefcode: mode === 'INV' ? 'INV' : 'REJ',
+                                frefcode: invoice.ftrcode || 'INV',
                                 fsono: invoice.fsono,
                                 fsodate: invoice.fsodate,
                                 famountbil: Number(invoice.famountbil ?? invoice.famount ?? 0),
