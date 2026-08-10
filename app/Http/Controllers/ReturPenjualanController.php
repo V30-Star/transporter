@@ -3460,13 +3460,14 @@ class ReturPenjualanController extends Controller
 
         $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
         $now = now();
+        $customerName = Customer::where('fcustomercode', $fcustno)->value('fcustomername') ?: $fcustno;
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
             'fjurnalno'   => $fjurnalno,
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fsodate,
-            'fjurnalnote' => "Retur Penjualan $fsono kepada $fcustno",
+            'fjurnalnote' => $customerName,
             'fbalance'    => round($grandTotal, 2),
             'fbalance_rp' => round($grandTotal, 2),
             'fdatetime'   => $now,

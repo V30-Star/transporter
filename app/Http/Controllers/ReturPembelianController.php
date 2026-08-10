@@ -2158,13 +2158,14 @@ class ReturPembelianController extends Controller
 
         $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
         $now       = now();
+        $supplierName = Supplier::where('fsuppliercode', $fsupplier)->value('fsuppliername') ?: $fsupplier;
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
             'fjurnalno'   => $fjurnalno,
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fstockmtdate,
-            'fjurnalnote' => "Retur Pembelian $fstockmtno dari $fsupplier",
+            'fjurnalnote' => $supplierName,
             'fbalance'    => round($grandTotal, 2),
             'fbalance_rp' => round($grandTotal, 2),
             'fdatetime'   => $now,
