@@ -1889,7 +1889,7 @@ class InvoiceController extends Controller
                 $successPrompt['suratjalan_url'] = $suratjalanUrl;
             }
 
-            $successMessage = 'Faktur penjualan ' . $fsono . ' berhasil disimpan.';
+            $successMessage = "Faktur Penjualan {$fsono} berhasil disimpan.";
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -3175,12 +3175,14 @@ class InvoiceController extends Controller
                 );
             });
 
-            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan berhasil diupdate.');
+            $successMessage = "Faktur Penjualan {$header->fsono} berhasil diupdate.";
+
+            $redirect = redirect()->route('invoice.index')->with('success', $successMessage);
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Faktur penjualan berhasil diupdate.',
+                        'message' => $successMessage,
                         'redirect_url' => route('invoice.index'),
                     ]);
                 }
@@ -3190,7 +3192,7 @@ class InvoiceController extends Controller
             if ($fprdoutVal === '0') {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Faktur penjualan berhasil diupdate.',
+                        'message' => $successMessage,
                         'redirect_url' => route('invoice.index'),
                         'success_prompt' => [
                             'type' => 'invoice_create_suratjalan',
@@ -3206,7 +3208,7 @@ class InvoiceController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan berhasil diupdate.',
+                    'message' => $successMessage,
                     'redirect_url' => route('invoice.index'),
                 ]);
             }

@@ -1785,7 +1785,7 @@ class FakturpembelianController extends Controller
                 );
             });
 
-            $successMessage = 'Faktur pembelian berhasil disimpan.';
+            $successMessage = "Faktur pembelian {$fstockmtno} berhasil disimpan.";
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -2782,7 +2782,7 @@ class FakturpembelianController extends Controller
                 );
             });
 
-            $successMessage = 'Faktur pembelian berhasil diupdate.';
+            $successMessage = "Faktur pembelian {$fstockmtno} berhasil diupdate.";
 
             if ($request->expectsJson()) {
                 return response()->json([

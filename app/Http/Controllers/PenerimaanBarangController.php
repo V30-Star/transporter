@@ -1139,7 +1139,7 @@ class PenerimaanBarangController extends Controller
         }
 
         return redirect()->route('penerimaanbarang.create')
-            ->with('success', 'Penerimaan barang berhasil disimpan.')
+            ->with('success', "Penerimaan Barang {$fstockmtno} berhasil disimpan.")
             ->with('success_prompt', [
                 'type' => 'penerimaanbarang_create',
                 'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
@@ -1697,13 +1697,13 @@ class PenerimaanBarangController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Penerimaan barang berhasil diupdate.',
+                'message' => "Penerimaan Barang {$header->fstockmtno} berhasil diupdate.",
                 'redirect_url' => route('penerimaanbarang.index'),
             ]);
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', 'Penerimaan barang berhasil diupdate.');
+            ->with('success', "Penerimaan Barang {$header->fstockmtno} berhasil diupdate.");
     }
 
     public function destroy($fstockmtid)

@@ -858,7 +858,7 @@ class MutasiController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Mutasi berhasil disimpan.",
+                    'message' => "Mutasi {$fstockmtno} berhasil disimpan.",
                     'redirect_url' => route('mutasi.create'),
                     'success_prompt' => [
                         'type' => 'mutasi_create',
@@ -869,7 +869,7 @@ class MutasiController extends Controller
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "Mutasi berhasil disimpan.")
+                ->with('success', "Mutasi {$fstockmtno} berhasil disimpan.")
                 ->with('success_prompt', [
                     'type' => 'mutasi_create',
                     'redirect_url' => route('mutasi.print', $fstockmtno),
@@ -1320,14 +1320,14 @@ class MutasiController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Mutasi berhasil diupdate.",
+                    'message' => "Mutasi {$header->fstockmtno} berhasil diupdate.",
                     'redirect_url' => route('mutasi.index'),
                 ]);
             }
 
             return redirect()
                 ->route('mutasi.index')
-                ->with('success', "Mutasi berhasil diupdate.");
+                ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

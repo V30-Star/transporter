@@ -463,7 +463,7 @@ class PelunasanCustomerController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Pelunasan customer berhasil disimpan.',
+                'message' => "Pelunasan Customer {$voucherNo} berhasil disimpan.",
                 'redirect_url' => route('pelunasancustomer.create'),
                 'success_prompt' => [
                     'type' => 'pelunasancustomer_create',
@@ -474,7 +474,7 @@ class PelunasanCustomerController extends Controller
 
         return redirect()
             ->route('pelunasancustomer.create')
-            ->with('success', 'Pelunasan customer berhasil disimpan.')
+            ->with('success', "Pelunasan Customer {$voucherNo} berhasil disimpan.")
             ->with('success_prompt', [
                 'type' => 'pelunasancustomer_create',
                 'redirect_url' => route('pelunasancustomer.print', $voucherNo),
@@ -765,14 +765,14 @@ class PelunasanCustomerController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Pelunasan customer berhasil diupdate.',
+                'message'      => "Pelunasan Customer {$voucherNo} berhasil diupdate.",
                 'redirect_url' => route('pelunasancustomer.edit', $voucherNo),
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.edit', $voucherNo)
-            ->with('success', 'Pelunasan customer berhasil diupdate.');
+            ->with('success', "Pelunasan Customer {$voucherNo} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

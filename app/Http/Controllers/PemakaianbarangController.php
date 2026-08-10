@@ -743,7 +743,7 @@ class PemakaianbarangController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Pemakaian barang berhasil disimpan.",
+                'message' => "Pemakaian Barang {$fstockmtno} berhasil disimpan.",
                 'redirect_url' => route('pemakaianbarang.create'),
                 'success_prompt' => [
                     'type' => 'pemakaianbarang_create',
@@ -754,7 +754,7 @@ class PemakaianbarangController extends Controller
 
         return redirect()
             ->route('pemakaianbarang.create')
-            ->with('success', "Pemakaian barang berhasil disimpan.")
+            ->with('success', "Pemakaian Barang {$fstockmtno} berhasil disimpan.")
             ->with('success_prompt', [
                 'type' => 'pemakaianbarang_create',
                 'redirect_url' => route('pemakaianbarang.print', $fstockmtno),
@@ -1367,14 +1367,14 @@ class PemakaianbarangController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Pemakaian barang berhasil diupdate.",
+                'message' => "Pemakaian Barang {$fstockmtno} berhasil diupdate.",
                 'redirect_url' => route('pemakaianbarang.index'),
             ]);
         }
 
         return redirect()
             ->route('pemakaianbarang.index')
-            ->with('success', "Pemakaian barang berhasil diupdate.");
+            ->with('success', "Pemakaian Barang {$fstockmtno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

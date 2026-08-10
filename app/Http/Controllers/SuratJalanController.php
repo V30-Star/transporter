@@ -1149,7 +1149,7 @@ class SuratJalanController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Surat jalan berhasil disimpan.',
+                'message' => "Surat Jalan {$fstockmtno} berhasil disimpan.",
                 'redirect_url' => route('suratjalan.create'),
                 'success_prompt' => $successPrompt,
             ]);
@@ -1157,7 +1157,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.create')
-            ->with('success', 'Surat jalan berhasil disimpan.')
+            ->with('success', "Surat Jalan {$fstockmtno} berhasil disimpan.")
             ->with('success_prompt', $successPrompt);
         } catch (\Throwable $e) {
             if ($request->expectsJson()) {
@@ -1867,7 +1867,7 @@ class SuratJalanController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Surat jalan berhasil diupdate.',
+                'message' => "Surat Jalan {$fstockmtno} berhasil diupdate.",
                 'redirect_url' => route('suratjalan.index'),
                 'success_prompt' => ! $this->canCreateInvoice() ? null : [
                     'type' => 'suratjalan_create_invoice',
@@ -1878,7 +1878,7 @@ class SuratJalanController extends Controller
 
         $redirect = redirect()
             ->route('suratjalan.index')
-            ->with('success', 'Surat jalan berhasil diupdate.');
+            ->with('success', "Surat Jalan {$fstockmtno} berhasil diupdate.");
 
         if (! $this->canCreateInvoice()) {
             return $redirect;

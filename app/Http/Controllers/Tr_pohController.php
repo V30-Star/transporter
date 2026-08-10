@@ -1221,7 +1221,7 @@ class Tr_pohController extends Controller
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         }
 
-        $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
+        $message = "PO {$fpono} berhasil disimpan";
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -2007,7 +2007,7 @@ class Tr_pohController extends Controller
             return back()->withInput()->with('error', 'Order pembelian belum bisa disimpan: ' . $e->getMessage());
         }
 
-        $message = $isApproved ? 'PO berhasil disimpan' : 'PO butuh approval';
+        $message = "PO {$header->fpono} berhasil diupdate";
         return redirect()
             ->route('tr_poh.index')
             ->with('success', $message);

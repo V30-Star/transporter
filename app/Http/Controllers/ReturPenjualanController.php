@@ -1515,7 +1515,7 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan berhasil disimpan.',
+                    'message' => "Retur Penjualan {$fsono} berhasil disimpan.",
                     'redirect_url' => route('returpenjualan.create'),
                     'success_prompt' => [
                         'type' => 'returpenjualan_create',
@@ -1526,7 +1526,7 @@ class ReturPenjualanController extends Controller
 
             return redirect()->route('returpenjualan.create')
                 ->with('last_header', $lastHeader)
-                ->with('success', 'Retur penjualan berhasil disimpan.')
+                ->with('success', "Retur Penjualan {$fsono} berhasil disimpan.")
                 ->with('success_prompt', [
                     'type' => 'returpenjualan_create',
                     'redirect_url' => route('returpenjualan.print', $savedFsono),
@@ -2936,12 +2936,12 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Retur penjualan berhasil diupdate.',
+                    'message' => "Retur Penjualan {$fstockmtno} berhasil diupdate.",
                     'redirect_url' => route('returpenjualan.index'),
                 ]);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil diupdate.');
+            return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$fstockmtno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

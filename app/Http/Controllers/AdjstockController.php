@@ -847,7 +847,7 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment stock {$finalNo} berhasil disimpan.",
+                    'message' => "Adjustment Stock {$finalNo} berhasil disimpan.",
                     'redirect_url' => route('adjstock.create'),
                     'success_prompt' => [
                         'type' => 'adjstock_create',
@@ -858,7 +858,7 @@ class AdjstockController extends Controller
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.")
+                ->with('success', "Adjustment Stock {$finalNo} berhasil disimpan.")
                 ->with('success_prompt', [
                     'type' => 'adjstock_create',
                     'redirect_url' => route('adjstock.print', $finalNo),
@@ -1419,14 +1419,14 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment stock {$header->fstockmtno} berhasil diupdate.",
+                    'message' => "Adjustment Stock {$header->fstockmtno} berhasil diupdate.",
                     'redirect_url' => route('adjstock.index'),
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.index')
-                ->with('success', "Adjustment stock {$header->fstockmtno} berhasil diupdate.");
+                ->with('success', "Adjustment Stock {$header->fstockmtno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

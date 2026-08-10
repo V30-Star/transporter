@@ -762,14 +762,14 @@ class BayarSupplierController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.',
+                'message'      => 'Bayar supplier ' . $voucherNo . ' berhasil diupdate.',
                 'redirect_url' => route('bayarsupplier.edit', $voucherNo),
             ]);
         }
 
         return redirect()
             ->route('bayarsupplier.edit', $voucherNo)
-            ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.');
+            ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil diupdate.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

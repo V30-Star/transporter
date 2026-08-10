@@ -998,7 +998,7 @@ class JurnalTransaksiController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => ucfirst($this->resolveJournalSuccessName($fjurnaltype)).' berhasil disimpan.',
+                'message' => "Jurnal Transaksi {$fjurnalno} berhasil disimpan.",
                 'redirect_url' => route('jurnaltransaksi.create', array_merge(
                     ['fcurrid' => $newJurnalMtId],
                     $this->resolveJournalIndexRouteParams($fjurnaltype)
@@ -1015,7 +1015,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', ucfirst($this->resolveJournalSuccessName($fjurnaltype)).' berhasil disimpan.')
+            ->with('success', "Jurnal Transaksi {$fjurnalno} berhasil disimpan.")
             ->with('success_prompt', [
                 'type'         => 'jurnaltransaksi_create',
                 'redirect_url' => $printUrl,
@@ -1438,7 +1438,7 @@ class JurnalTransaksiController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => ucfirst($this->resolveJournalSuccessName($fjurnaltype)) . ' ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.',
+                'message' => "Jurnal Transaksi {$header->fjurnalno} berhasil diupdate.",
                 'redirect_url' => route('jurnaltransaksi.edit', array_merge(
                     ['fcurrid' => $fstockmtid],
                     $this->resolveJournalIndexRouteParams($fjurnaltype)
@@ -1451,7 +1451,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', ucfirst($this->resolveJournalSuccessName($fjurnaltype)) . ' ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.');
+            ->with('success', "Jurnal Transaksi {$header->fjurnalno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

@@ -478,7 +478,7 @@ class Tr_prhController extends Controller
             Tr_prd::insert($detailRows);
         });
 
-        $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
+        $message = "PR {$fprno} berhasil disimpan";
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -847,7 +847,7 @@ class Tr_prhController extends Controller
             }
         });
 
-        $message = $isApproved ? 'PR berhasil disimpan' : 'PR butuh approval';
+        $message = "PR {$header->fprno} berhasil diupdate";
         return redirect()
             ->route('tr_prh.index')
             ->with('success', $message);

@@ -1355,9 +1355,7 @@ class SalesOrderController extends Controller
                 ]);
             });
 
-            $message = $creditApproval['needs_approval']
-                ? ($creditApproval['is_approved'] ? 'SO berhasil disimpan' : 'SO butuh approval')
-                : 'SO berhasil disimpan';
+            $message = "Sales Order {$fsono} berhasil disimpan";
 
             $canContinueToSuratJalan = $this->canContinueToSuratJalan();
             $canCreateSuratJalan = $this->canCreateSuratJalan();
@@ -2065,9 +2063,7 @@ class SalesOrderController extends Controller
             }
         });
 
-        $message = $creditApproval['needs_approval']
-            ? ($creditApproval['is_approved'] ? 'SO berhasil disimpan' : 'SO butuh approval')
-            : 'SO berhasil disimpan';
+        $message = "Sales Order {$header->fsono} berhasil diupdate";
 
         if ($request->expectsJson()) {
             return response()->json([

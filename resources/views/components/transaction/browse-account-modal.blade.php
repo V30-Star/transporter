@@ -165,9 +165,11 @@
             table: null,
 
             initDataTable() {
-                if (this.table) {
-                    this.table.destroy();
-                    this.table = null;
+                if ($.fn.DataTable.isDataTable('#{{ $tableId }}')) {
+                    this.table = $('#{{ $tableId }}').DataTable();
+                    this.table.ajax.reload(null, false);
+                    setTimeout(() => this.table?.columns.adjust().draw(false), 0);
+                    return;
                 }
 
                 $('#{{ $tableId }}').off('click.accpick');
@@ -438,10 +440,6 @@
 
             close() {
                 this.open = false;
-                if (this.table) {
-                    this.table.destroy();
-                    this.table = null;
-                }
             },
 
             choose(row) {

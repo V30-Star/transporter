@@ -230,7 +230,7 @@ class LembarPenagihanController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Lembar penagihan berhasil disimpan.',
+                'message' => "Lembar penagihan {$tagihanNo} berhasil disimpan.",
                 'redirect_url' => route('lembarpenagihan.create'),
                 'success_prompt' => [
                     'type' => 'lembarpenagihan_create',
@@ -240,7 +240,7 @@ class LembarPenagihanController extends Controller
         }
 
         return redirect()->route('lembarpenagihan.create')
-            ->with('success', 'Lembar penagihan berhasil disimpan.')
+            ->with('success', "Lembar penagihan {$tagihanNo} berhasil disimpan.")
             ->with('success_prompt', [
                 'type' => 'lembarpenagihan_create',
                 'redirect_url' => route('lembarpenagihan.print', $tagihanNo),
@@ -338,12 +338,12 @@ class LembarPenagihanController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message'      => 'Lembar penagihan berhasil diupdate.',
+                'message'      => "Lembar penagihan {$tagihanNo} berhasil diupdate.",
                 'redirect_url' => route('lembarpenagihan.index'),
             ]);
         }
 
-        return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil diupdate.');
+        return redirect()->route('lembarpenagihan.index')->with('success', "Lembar penagihan {$tagihanNo} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
