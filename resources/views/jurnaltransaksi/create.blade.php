@@ -634,6 +634,7 @@
                         return;
                     }
                     this.updateAccount(row, accObj.faccid, accObj.faccname, accObj.faccount);
+                    this.autofillBalancedAmount(row);
                     this.recalcTotals();
                 },
 
@@ -661,6 +662,7 @@
                 },
 
                 autofillBalancedAmount(row) {
+                    if (Number(row.famount || 0) > 0 || this.parseDecimal(row.famountInput) > 0) return;
                     const rowIndex = this.savedItems.findIndex(r => r.uid === row.uid);
                     const suggested = this.getBalanceSuggestion(row.fdk, rowIndex);
                     if (!(suggested > 0)) return;
@@ -754,6 +756,7 @@
                             detail.faccname ?? '',
                             detail.faccount ?? ''
                         );
+                        this.autofillBalancedAmount(this.savedItems[this.browseIndex]);
                         this.recalcTotals();
                     }, {
                         passive: true
