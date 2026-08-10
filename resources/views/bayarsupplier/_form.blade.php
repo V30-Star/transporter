@@ -487,7 +487,7 @@
                 </a>
                 @if ($isDeleteMode)
                     <button type="submit"
-                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
+                        class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
                         {{ $submitLabel }}
                     </button>
                 @elseif (!$isReadOnly && !empty($submitLabel))
