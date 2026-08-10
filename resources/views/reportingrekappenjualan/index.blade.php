@@ -13,6 +13,7 @@
             </div>
 
             <form method="GET" action="{{ route('reportingrekappenjualan.print') }}" target="_blank">
+                <input type="hidden" name="selected_products" id="selected_products_input">
                 <div class="space-y-4">
                     <div>
                         <div class="flex justify-between items-center mb-2">
@@ -83,24 +84,28 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Produk Dari</label>
-                            <select name="prd_from" class="select2 w-full">
-                                <option value="">-- Awal --</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->fprdcode }}">{{ $product->fprdcode }} - {{ $product->fprdname }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Sd</label>
-                            <select name="prd_to" class="select2 w-full">
-                                <option value="">-- Akhir --</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->fprdcode }}">{{ $product->fprdcode }} - {{ $product->fprdname }}</option>
-                                @endforeach
-                            </select>
+                    {{-- Produk --}}
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Filter Produk</p>
+                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div class="flex gap-2 mb-2">
+                                <select id="prd_selector"
+                                    class="select2 flex-1 border border-gray-300 rounded-lg text-sm">
+                                    <option value="">-- Pilih Produk --</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->fprdcode }}">{{ $product->fprdcode }} - {{ $product->fprdname }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" onclick="addProduct()"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                                    + Add
+                                </button>
+                            </div>
+                            <div id="prd_list"
+                                class="flex flex-wrap gap-2 min-h-[38px] p-2 bg-white border border-gray-200 rounded-lg">
+                                <span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>
+                            </div>
                         </div>
                     </div>
 
@@ -136,6 +141,8 @@
 </div>
 
 <script>
+    let selectedProducts = [];
+
     $(document).ready(function() {
         $('.select2').select2({ width: '100%' });
         toggleModal(true);
@@ -152,6 +159,36 @@
         document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
             checkbox.checked = status;
         });
+    }
+
+    function addProduct() {
+        const sel = document.getElementById('prd_selector');
+        const code = sel.value;
+        if (code && !selectedProducts.includes(code)) {
+            selectedProducts.push(code);
+            renderPrdList();
+        }
+    }
+
+    function removePrd(code) {
+        selectedProducts = selectedProducts.filter(c => c !== code);
+        renderPrdList();
+    }
+
+    function renderPrdList() {
+        const container = document.getElementById('prd_list');
+        if (selectedProducts.length === 0) {
+            container.innerHTML =
+                '<span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>';
+        } else {
+            container.innerHTML = selectedProducts.map(c =>
+                `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md flex items-center gap-1 border border-blue-200">
+                ${c}
+                <button type="button" onclick="removePrd('${c}')" class="text-red-500 font-bold leading-none">&times;</button>
+            </span>`
+            ).join('');
+        }
+        document.getElementById('selected_products_input').value = selectedProducts.join(',');
     }
 </script>
 @endsection

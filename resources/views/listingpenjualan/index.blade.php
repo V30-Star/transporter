@@ -6,7 +6,7 @@
     <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleModal(false)"></div>
-            <div class="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6">
+            <div class="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6">
                 <div class="flex justify-between items-center border-b pb-4 mb-4">
                     <h3 class="text-xl font-bold text-gray-800">Listing Penjualan</h3>
                     <button onclick="toggleModal(false)"
@@ -155,25 +155,33 @@
                             </div>
                         </div>
 
-                        <div class="bg-gray-50 p-3 rounded border space-y-3">
-                            <div class="flex gap-6">
-                                <label class="flex items-center text-sm font-semibold">
-                                    <input type="checkbox" name="semua_faktur" checked class="mr-2"> Semua Faktur
-                                </label>
-                                <label class="flex items-center text-sm font-semibold">
-                                    <input type="checkbox" name="belum_kirim" class="mr-2"> Belum Di Kirim
-                                </label>
-                                <label class="flex items-center text-sm font-semibold">
-                                    <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2"> Retur Penjualan
-                                </label>
+                        <!-- Options Row (Inline) -->
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
+                                <div class="flex gap-6">
+                                    <label class="flex items-center text-sm font-semibold cursor-pointer select-none">
+                                        <input type="checkbox" name="semua_faktur" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"> Semua Faktur
+                                    </label>
+                                    <label class="flex items-center text-sm font-semibold cursor-pointer select-none">
+                                        <input type="checkbox" name="belum_kirim" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"> Belum Di Kirim
+                                    </label>
+                                </div>
+                                <hr class="border-gray-200">
+                                <div class="flex gap-6">
+                                    <label class="flex items-center text-sm font-semibold text-blue-700 cursor-pointer select-none">
+                                        <input type="radio" name="display_type" value="detail" checked class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> DETAIL
+                                    </label>
+                                    <label class="flex items-center text-sm font-semibold text-blue-700 cursor-pointer select-none">
+                                        <input type="radio" name="display_type" value="rekap" class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> REKAP
+                                    </label>
+                                </div>
                             </div>
-                            <hr>
-                            <div class="flex gap-6">
-                                <label class="flex items-center text-sm font-semibold text-blue-700">
-                                    <input type="radio" name="display_type" value="detail" checked class="mr-2"> DETAIL
-                                </label>
-                                <label class="flex items-center text-sm font-semibold text-blue-700">
-                                    <input type="radio" name="display_type" value="rekap" class="mr-2"> REKAP
+
+                            <!-- Retur Penjualan Option Box (Separated, Red text) -->
+                            <div class="bg-red-50 p-3 rounded-lg border border-red-200 whitespace-nowrap self-stretch flex items-center">
+                                <label class="flex items-center text-sm font-bold text-red-600 cursor-pointer select-none">
+                                    <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2 w-4 h-4 text-red-600 focus:ring-red-500 rounded border-red-300">
+                                    <span class="text-red-600 font-bold">Termasuk Retur Penjualan</span>
                                 </label>
                             </div>
                         </div>

@@ -99,11 +99,18 @@ class ReportingRekapPenjualanController extends Controller
         if ($request->filled('merek_code')) {
             $query->whereRaw("TRIM({$p}.fmerek) = ?", [$request->input('merek_code')]);
         }
-        if ($request->filled('prd_from')) {
-            $query->where("{$d}.fprdcode", '>=', $request->input('prd_from'));
-        }
-        if ($request->filled('prd_to')) {
-            $query->where("{$d}.fprdcode", '<=', $request->input('prd_to'));
+        if ($request->filled('selected_products')) {
+            $selectedProducts = array_filter(array_map('trim', explode(',', (string) $request->input('selected_products'))));
+            if (!empty($selectedProducts)) {
+                $query->whereIn("{$d}.fprdcode", $selectedProducts);
+            }
+        } elseif ($request->filled('prd_from') || $request->filled('prd_to')) {
+            if ($request->filled('prd_from')) {
+                $query->where("{$d}.fprdcode", '>=', $request->input('prd_from'));
+            }
+            if ($request->filled('prd_to')) {
+                $query->where("{$d}.fprdcode", '<=', $request->input('prd_to'));
+            }
         }
     }
 
