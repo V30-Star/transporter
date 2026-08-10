@@ -1375,14 +1375,18 @@ class PelunasanCustomerController extends Controller
         $bankType = $this->resolveBankType($headerAccount);
         $prefix = sprintf('%s.%s.%s%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
 
+        // Advisory lock: pastikan hanya 1 request yang generate nomor ini di satu waktu
+        $lockKey = crc32(self::TRAN_CODE . '|' . $branchCode . '|' . $date->format('Y-m') . '|' . $bankType);
+        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)
             ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("
                 MAX(
                     CASE
-                        WHEN split_part(fkasmtno, '.', 4) ~ '^[0-9]+$'
-                        THEN CAST(split_part(fkasmtno, '.', 4) AS integer)
+                        WHEN split_part(fkasmtno, '.', 5) ~ '^[0-9]+$'
+                        THEN CAST(split_part(fkasmtno, '.', 5) AS integer)
                         ELSE NULL
                     END
                 ) as last_no
