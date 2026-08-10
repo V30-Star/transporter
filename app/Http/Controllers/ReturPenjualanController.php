@@ -656,7 +656,7 @@ class ReturPenjualanController extends Controller
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',
             ])
-            ->orderBy('trandt.fnou')
+            ->orderBy('trandt.ftrandtid')
             ->get();
 
         return response()->json([

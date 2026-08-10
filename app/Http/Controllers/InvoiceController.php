@@ -1040,7 +1040,7 @@ class InvoiceController extends Controller
                 'd.famount as ftotal',
                 'd.fdesc',
             ])
-            ->orderBy('d.fnou')
+            ->orderBy('d.ftrandtid')
             ->get();
 
         return response()->json([
