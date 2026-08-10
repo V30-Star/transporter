@@ -155,7 +155,7 @@ class PenerimaanBarangController extends Controller
                 'fstockmtid' => $row->fstockmtid,
                 'fbranchcode' => $row->fbranchcode,
                 'fstockmtno' => $row->fstockmtno,
-                'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, false),
+                'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, str_contains((string) $row->fstockmtno, '/')),
                 'fstockmtdate' => $row->fstockmtdate
                     ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
                     : '',
@@ -730,7 +730,32 @@ class PenerimaanBarangController extends Controller
         }
     }
 
-    private function generateStockMtCode(?Carbon $onDate = null, $branch = null, string $prefix = 'TER'): string
+    private function poHasPpnForRows(array $rows): bool
+    {
+        $podIds = collect($rows)
+            ->pluck('frefdtid')
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $flags = DB::table('tr_pod as d')
+            ->join('tr_poh as h', 'h.fpono', '=', 'd.fpono')
+            ->whereIn('d.fpodid', $podIds)
+            ->pluck('h.fapplyppn')
+            ->map(fn($flag) => (int) $flag)
+            ->unique()
+            ->values();
+
+        if ($flags->count() > 1) {
+            throw new \RuntimeException('Penerimaan Barang tidak bisa gabung PO PPN dan non-PPN dalam satu transaksi.');
+        }
+
+        return (int) ($flags->first() ?? 1) === 1;
+    }
+
+    private function generateStockMtCode(?Carbon $onDate = null, $branch = null, string $prefix = 'TER', bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
 
@@ -753,14 +778,15 @@ class PenerimaanBarangController extends Controller
             $kodeCabang = 'NA';
         }
 
+        $sep = $hasPpn ? '.' : '/';
         $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $noPrefix = sprintf('%s.%s.%s%s.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
+        $noPrefix = sprintf('%s%s%s%s%s%s', $prefix, $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $noPrefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(SUBSTRING(fstockmtno FROM '([0-9]+)$') AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -807,7 +833,7 @@ class PenerimaanBarangController extends Controller
         return view('penerimaanbarang.print', [
             'hdr' => $hdr,
             'dt' => $dt,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, false),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, str_contains((string) ($hdr->fstockmtno ?? ''), '/')),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1033,22 +1059,13 @@ class PenerimaanBarangController extends Controller
                     ->orWhere('fcabangkode', $rawBranch)
                     ->value('fcabangkode') ?? 'NA';
 
-                $yy = $fstockmtdate->format('y');
-                $mm = $fstockmtdate->format('m');
                 $fstockmtcode = 'TER';
 
                 // B. Penomoran Otomatis
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|" . $fstockmtdate->format('y-m'));
-                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-
-                    $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 4) AS int)) AS lastno")
-                        ->value('lastno');
-
-                    $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $this->generateStockMtCode($fstockmtdate, $kodeCabang, $fstockmtcode, $this->poHasPpnForRows($rowsDt));
+                } else {
+                    $fstockmtno = $this->formatDisplayTransactionNumber($fstockmtno, ! $this->poHasPpnForRows($rowsDt));
                 }
 
                 // C. Insert Header
@@ -1276,7 +1293,7 @@ class PenerimaanBarangController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'penerimaanbarang' => $penerimaanbarang,
-            'displayFstockmtno' => $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno ?? null, false),
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno ?? null, str_contains((string) ($penerimaanbarang->fstockmtno ?? ''), '/')),
             'savedItems' => $savedItems,
             'ppnAmount' => $headerAmountPajak,
             'famountponet' => $calcFamountponet,
