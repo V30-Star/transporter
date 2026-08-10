@@ -274,7 +274,7 @@ class PemakaianbarangController extends Controller
                 'tr_pod.fprice as fharga',
                 DB::raw("COALESCE(NULLIF(regexp_replace(COALESCE(tr_pod.fdisc, ''), '[^0-9\\.]', '', 'g'), '')::numeric, 0) as fdiskon"),
             ])
-            ->orderBy('m.fprdcode') // Urutkan berdasarkan kode produk string
+            ->orderBy('tr_pod.fpodid') // Urutkan berdasarkan urutan detail PO (fprdid ASC)
             ->get();
 
         // Mengembalikan data dalam format JSON

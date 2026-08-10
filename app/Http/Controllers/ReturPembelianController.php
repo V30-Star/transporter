@@ -403,7 +403,7 @@ class ReturPembelianController extends Controller
                 'tr_prd.ftotprice as fharga',
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->orderBy('tr_prd.fprdcode')
+            ->orderBy('tr_prd.fprdid')
             ->get();
 
         return response()->json([
