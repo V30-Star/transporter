@@ -38,7 +38,7 @@ class ApprovalController extends Controller
         $dt = Tr_prd::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
             ->where('tr_prd.fprno', $hdr->fprno)
-            ->orderBy('tr_prd.fprdcode')
+            ->orderBy('tr_prd.fprdid')
             ->get([
                 'tr_prd.*',
                 'p.fprdname as product_name',
@@ -128,7 +128,7 @@ class ApprovalController extends Controller
                             ->where('d.frefdtno', $fpono);
                     });
             })
-            ->orderBy('d.fprdcode')
+            ->orderBy('d.fpodid')
             ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
 
         return view('approvalPagePO', compact('hdr', 'dt'))
@@ -198,7 +198,7 @@ class ApprovalController extends Controller
         $items = DB::table('trsodt as d')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->where('d.fsono', $fsono)
-            ->orderBy('d.fnou')
+            ->orderBy('d.ftrsodtid')
             ->get([
                 'd.fprdcode as code',
                 DB::raw("COALESCE(p.fprdname, '-') as name"),
@@ -295,7 +295,7 @@ class ApprovalController extends Controller
         $items = DB::table('trandt as d')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->where('d.fsono', $fsono)
-            ->orderBy('d.fnou')
+            ->orderBy('d.ftrandtid')
             ->get([
                 'd.fprdcode as code',
                 DB::raw("COALESCE(p.fprdname, '-') as name"),

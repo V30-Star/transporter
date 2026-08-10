@@ -314,7 +314,7 @@ class PenerimaanBarangController extends Controller
                     END, 0) AS fqtyditer"),
                 DB::raw('0::numeric as fterima'),
             ])
-            ->orderBy('d.fnou')
+            ->orderBy('d.fpodid')
             ->get()
             ->map(function ($item) use ($header) {
                 $item->frefdtno = (string) $header->fpono;

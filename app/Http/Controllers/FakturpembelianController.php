@@ -500,7 +500,7 @@ class FakturpembelianController extends Controller
                 DB::raw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->orderBy('tr_pod.fprdcode')
+            ->orderBy('tr_pod.fpodid')
             ->get()
             ->map(function ($item) {
                 $item->fqty = (float) ($item->fqtysisa ?? 0);
@@ -659,7 +659,7 @@ class FakturpembelianController extends Controller
                 DB::raw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->orderBy('trstockdt.fprdcode')
+            ->orderBy('trstockdt.fstockdtid')
             ->get()
             ->map(function ($item) {
                 $item->fqty = (float) ($item->fqtysisa ?? 0);

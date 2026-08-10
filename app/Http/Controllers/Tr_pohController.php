@@ -2298,7 +2298,7 @@ class Tr_pohController extends Controller
                 DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                 DB::raw('COALESCE(ter.fqtyterima, 0) AS fqtyterima'),
             ])
-            ->orderBy('d.fnou')
+            ->orderBy('d.fpodid')
             ->get();
     }
 
