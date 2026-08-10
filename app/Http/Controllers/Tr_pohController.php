@@ -390,7 +390,7 @@ class Tr_pohController extends Controller
                         ELSE COALESCE(o.fqtykecilpo, 0)
                     END, 0) AS fqtydipo'),
             ])
-            ->orderBy('d.fprdcode')
+            ->orderBy('d.fprdid')
             ->get()
             ->map(function ($item) use ($header) {
                 $qty = (float) $item->fqty;
