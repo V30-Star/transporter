@@ -186,6 +186,11 @@
                         <div>
                             <select name="faccountheader" x-model="accountCode" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white text-gray-900 @error('faccountheader') border-red-500 @enderror">
                                 <option value="">{{ 'Pilih account' }}</option>
+                                @if ($selectedAccountCode !== '' && !collect($headerAccounts)->contains('faccount', $selectedAccountCode))
+                                    <option value="{{ $selectedAccountCode }}">
+                                        {{ $selectedAccountCode }} - {{ $selectedAccountName }}
+                                    </option>
+                                @endif
                                 @foreach ($headerAccounts as $account)
                                     <option value="{{ $account->faccount }}">
                                         {{ $account->faccount }} - {{ $account->faccname }}
