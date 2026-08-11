@@ -500,9 +500,6 @@
                 <div class="p-4">
                     <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
                             <div class="overflow-auto border rounded">
                                 <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table"
                                     data-skip-auto-detail-style="true">
@@ -992,9 +989,6 @@
                     </div>
                     <div class="p-4">
                         <div class="space-y-2">
-
-                                {{-- DETAIL ITEM (tabel input) --}}
-                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
                                     <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table"
