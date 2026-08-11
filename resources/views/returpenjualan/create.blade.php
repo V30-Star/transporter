@@ -1150,6 +1150,7 @@
                                                     <th class="p-2 text-right">Qty</th>
                                                     <th class="p-2 text-right">Harga</th>
                                                     <th class="p-2 text-right">Total</th>
+                                                    <th class="p-2 text-center">Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1161,10 +1162,16 @@
                                                         </td>
                                                         <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
                                                         <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
+                                                        <td class="p-2 text-center">
+                                                            <button type="button" @click="selectHistory(row)"
+                                                                class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">
+                                                                Pilih
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 </template>
                                                 <tr x-show="!historyRows.length">
-                                                    <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada
+                                                    <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada
                                                         riwayat.</td>
                                                 </tr>
                                             </tbody>
@@ -2789,6 +2796,7 @@
             showHistoryModal: false,
             historyLoading: false,
             historyRows: [],
+            historyTargetRow: null,
             canOpenHistory(targetRow) {
                 const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
                 const productCode = (targetRow?.fitemcode || '').toString().trim();
@@ -2798,6 +2806,7 @@
                 this.showHistoryModal = false;
                 this.historyLoading = false;
                 this.historyRows = [];
+                this.historyTargetRow = null;
             },
             async openProductHistory(targetRow) {
                 const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
@@ -2816,6 +2825,7 @@
                 this.showHistoryModal = true;
                 this.historyLoading = true;
                 this.historyRows = [];
+                this.historyTargetRow = targetRow;
 
                 try {
                     const params = new URLSearchParams({
@@ -2841,6 +2851,12 @@
                 } finally {
                     this.historyLoading = false;
                 }
+            },
+            selectHistory(row) {
+                if (this.historyTargetRow) {
+                    this.historyTargetRow.frefpr = row?.fsono || '';
+                }
+                this.closeHistory();
             },
 
             itemKey(it) {
