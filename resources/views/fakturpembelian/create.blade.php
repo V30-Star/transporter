@@ -3289,6 +3289,36 @@
     });
 </script>
 
+<script>
+    // Auto-hitung Jatuh Tempo = Tanggal Faktur + TOP (Hari)
+    document.addEventListener('DOMContentLoaded', () => {
+        const tanggalInput  = document.getElementById('fstockmtdate');
+        const topInput      = document.getElementById('ftempohr');
+        const jatuhTempoEl  = document.getElementById('fjatuhtempo');
+
+        function hitungJatuhTempo() {
+            if (!tanggalInput || !topInput || !jatuhTempoEl) return;
+            const tanggal = tanggalInput.value;
+            const top     = parseInt(topInput.value, 10);
+            if (!tanggal || isNaN(top) || top < 0) return;
+
+            const date = new Date(tanggal);
+            date.setDate(date.getDate() + top);
+            const yyyy = date.getFullYear();
+            const mm   = String(date.getMonth() + 1).padStart(2, '0');
+            const dd   = String(date.getDate()).padStart(2, '0');
+            jatuhTempoEl.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        topInput?.addEventListener('input', hitungJatuhTempo);
+        topInput?.addEventListener('change', hitungJatuhTempo);
+        tanggalInput?.addEventListener('change', hitungJatuhTempo);
+
+        // Hitung saat halaman dimuat
+        hitungJatuhTempo();
+    });
+</script>
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
