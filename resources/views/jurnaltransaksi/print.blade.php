@@ -260,15 +260,6 @@
                         </td>
                     </tr>
                 @endforeach
-
-                {{-- Single "Total" row (Debit = Kredit by design) --}}
-                <tr class="total-row">
-                    <td colspan="5" class="text-right">Total</td>
-                    <td class="text-right" style="color:#1d4ed8;">
-                        {{ number_format($totalDebit, 2, ',', '.') }}
-                    </td>
-                    <td></td>
-                </tr>
             </tbody>
         </table>
 
