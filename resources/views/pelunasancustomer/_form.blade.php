@@ -349,11 +349,11 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                     </td>
                                     <td class="p-2">
                                         @if ($isReadOnly)
-                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="formatNumber(row.fdiscount)"></div>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="formatNumber(getRowDiscount(row))"></div>
                                             <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                         @else
-                                            <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
-                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
+                                            <input type="text" x-init="$el.value = formatNumber(getRowDiscount(row))"
+                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(getRowDiscount(row))"
                                                 @focus="showRawNumber($event, row, 'fdiscount')"
                                                 @input="syncDiscountFromRp(row, $event.target.value)"
                                                 @blur="formatNumericField($event, row, 'fdiscount')"
@@ -1507,7 +1507,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 /**
                  * When user inputs Disc%:
                  *   Total Bayar  = originalSisa - (originalSisa × Disc% / 100)
-                 *   Discount(Rp) = 0 and DISABLED (mutually exclusive)
+                 *   Discount(Rp) = calculated for display and disabled (mutually exclusive)
                  *   Sisa Piutang = 0
                  */
                 syncDiscountFromPercent(row, event) {
