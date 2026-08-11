@@ -830,6 +830,22 @@ class ReturPenjualanController extends Controller
         }
     }
 
+    private function validateReturProductReferences(array $itemCodes, array $frefso, array $frefsrj): void
+    {
+        foreach ($itemCodes as $index => $code) {
+            $code = strtoupper(trim((string) $code));
+            if ($code === '' || $code === 'UM') {
+                continue;
+            }
+
+            if (trim((string) ($frefso[$index] ?? '')) === '' && trim((string) ($frefsrj[$index] ?? '')) === '') {
+                throw ValidationException::withMessages([
+                    "fitemcode.{$index}" => "Produk {$code} wajib memiliki no. referensi SRJ atau Faktur Penjualan.",
+                ]);
+            }
+        }
+    }
+
     private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
     {
         $sourceCode = strtoupper(trim($sourceCode));
@@ -1109,6 +1125,7 @@ class ReturPenjualanController extends Controller
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
+        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -2408,6 +2425,7 @@ class ReturPenjualanController extends Controller
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
+        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 

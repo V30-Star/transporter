@@ -3290,6 +3290,12 @@
                 return String(row.fitemcode ?? '').trim() !== '' && (@json(stock_boleh_minus()) ? Number(row.fqty ?? 0) !== 0 : Number(row.fqty ?? 0) > 0);
             },
 
+            hasRequiredReference(row) {
+                if (!row) return true;
+                if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return true;
+                return String(row.frefso || '').trim() !== '' || String(row.frefsrj || '').trim() !== '';
+            },
+
             isSRJRow(row) {
                 if (!row) return false;
                 if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return false;
@@ -3539,6 +3545,12 @@
                 }
 
                 for (const row of this.submitItems) {
+                    if (!this.hasRequiredReference(row)) {
+                        $event.preventDefault();
+                        this.showToast(`Produk ${row.fitemcode} wajib memiliki no. referensi SRJ atau Faktur Penjualan.`, 'error');
+                        return;
+                    }
+
                     if (!this.validateReferenceQty(row, true)) {
                         $event.preventDefault();
                         return;
