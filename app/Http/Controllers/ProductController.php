@@ -1015,6 +1015,9 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($fprdid);
 
+        // Ambil kode cabang user yang sedang login (sysuser.fcabang)
+        $branchCode = $this->getCurrentBranchCode() ?: 'BG';
+
         $stokData = DB::select('
             SELECT
                 v.fwhcode,
@@ -1038,6 +1041,7 @@ class ProductController extends Controller
             WHERE TRIM(v.fprdcode) = :fprdcode
         ', ['fprdcode' => $product->fprdcode]);
 
+        // Tambah filter m.fbranchcode = :fbranchcode sesuai fcabang user login
         $customerData = DB::select('
             SELECT 
                 m.fsono,
@@ -1056,10 +1060,15 @@ class ProductController extends Controller
             JOIN trandt d ON m.fsono = d.fsono
             JOIN mscustomer c ON m.fcustno = c.fcustomercode
             WHERE d.fprdcode = :fprdcode
+              AND m.fbranchcode = :fbranchcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
-        ', ['fprdcode' => $product->fprdcode]);
+        ', [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $branchCode,
+        ]);
 
+        // Tambah filter m.fbranchcode = :fbranchcode sesuai fcabang user login
         $supplierData = DB::select("
             SELECT 
                 d.fstockmtno,
@@ -1077,8 +1086,12 @@ class ProductController extends Controller
                 d.fqty > 0 
                 AND m.fstockmtcode = 'BUY'
                 AND d.fprdcode = :fprdcode
+                AND m.fbranchcode = :fbranchcode
             ORDER BY m.fstockmtdate DESC 
-        ", ['fprdcode' => $product->fprdcode]);
+        ", [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $branchCode,
+        ]);
 
         $outstandingPo = DB::select("
             SELECT 
@@ -1116,7 +1129,7 @@ class ProductController extends Controller
                 h.fpono ASC
         ", [
             'fprdcode' => $product->fprdcode,
-            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+            'fbranchcode' => $branchCode,
         ]);
 
         $outstandingSo = DB::select("
@@ -1143,7 +1156,7 @@ class ProductController extends Controller
             LIMIT 100
         ", [
             'fprdcode' => $product->fprdcode,
-            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+            'fbranchcode' => $branchCode,
         ]);
 
         return response()->json([
