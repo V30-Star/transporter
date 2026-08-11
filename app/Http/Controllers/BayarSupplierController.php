@@ -1463,7 +1463,7 @@ class BayarSupplierController extends Controller
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
-        return view('pengeluarankas.print', [
+        return view('bayarsupplier.print', [
             'hdr' => $header,
             'dt' => $details,
             'fmt' => $fmt,
