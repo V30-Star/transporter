@@ -102,16 +102,15 @@ public static function create(
         ->where('fprdcode', 'AWAL')
         ->exists();
 
-    // Faktur yang belum ditagih (fcode = 'T') — utk jurnal balik
-    $nFakturYgBelumDitagih = 0.0;
-    if (! $lSaldoAwal) {
-        $nFakturYgBelumDitagih = round((float) (
-            DB::table('trstockdt')
-            ->where('fstockmtno', $fstockmtno)
-            ->where('fcode', 'T')
-            ->sum('ftotprice_rp')
-        ), 2);
-    }
+    $totals = DB::table('trstockdt')
+        ->where('fstockmtno', $fstockmtno)
+        ->selectRaw("
+            COALESCE(SUM(CASE WHEN fcode = 'T' THEN ftotprice_rp ELSE 0 END), 0) AS nfaktur_yg_belum_ditagih,
+            COALESCE(SUM(CASE WHEN fprdcode <> 'UM' AND (fcode IN ('P', 'K') OR COALESCE(fcode, '') = '') THEN ftotprice_rp ELSE 0 END), 0) AS npersediaan
+        ")
+        ->first();
+
+    $nFakturYgBelumDitagih = $lSaldoAwal ? 0.0 : round((float) ($totals->nfaktur_yg_belum_ditagih ?? 0), 2);
 
     // Persediaan / Non Stok / Uang Muka
     if ($trancodeIndex === self::TRANCODE_UM) {
@@ -131,13 +130,7 @@ public static function create(
             $nPersediaan = $famountMTRp;
         }
     } else {
-        $nPersediaan = round((float) DB::table('trstockdt')
-            ->where('fstockmtno', $fstockmtno)
-            ->where('fprdcode', '<>', 'UM')
-            ->where(function ($q) {
-                $q->where('fcode', 'P')->orWhereNull('fcode')->orWhere('fcode', '');
-            })
-            ->sum('ftotprice_rp'), 2);
+        $nPersediaan = round((float) ($totals->npersediaan ?? 0), 2);
     }
 
     // Kurangi uang muka (hanya berlaku jika BUKAN transaksi Uang Muka Pembelian)
