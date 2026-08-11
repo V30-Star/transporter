@@ -59,7 +59,7 @@ class ListingReturPenjualanController extends Controller
                 'm.fuserid',
                 'd.fprdcode',
                 'p.fprdname',
-                'd.frefcode as frefdtno',
+                DB::raw("CONCAT_WS(', ', NULLIF(TRIM(d.frefso), ''), NULLIF(TRIM(d.frefsrj), '')) as frefdtno"),
                 DB::raw('COALESCE(d.fqty, 0) as fqty'),
                 'd.fsatuan',
                 DB::raw('COALESCE(d.fprice, 0) as fprice'),
