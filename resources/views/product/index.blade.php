@@ -45,7 +45,7 @@
         <table id="productTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-3 py-2">
+                    <th class="border px-3 py-2" style="width: 12rem;">
                         <div class="flex items-center justify-between">
                             <span>Kode Produk</span>
                             <div class="flex items-center gap-1">
@@ -93,7 +93,7 @@
                                 data-column="1" placeholder="Cari...">
                         </div>
                     </th>
-                    <th class="border px-3 py-2">
+                    <th class="border px-3 py-2" style="width: 8rem;">
                         <div class="flex items-center justify-between">
                             <span>Merek</span>
                             <div class="flex items-center gap-1">
@@ -120,7 +120,7 @@
                                 data-column="2" placeholder="Cari...">
                         </div>
                     </th>
-                    <th class="border px-3 py-2 no-sort">
+                    <th class="border px-3 py-2 no-sort" style="width: 4.5rem;">
                         <div class="flex items-center justify-between">
                             <span>Satuan</span>
                             {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3" title="Filter Kolom">
@@ -135,7 +135,7 @@
                                 data-column="3" placeholder="Cari...">
                         </div>
                     </th>
-                    <th class="border px-3 py-2 no-sort">
+                    <th class="border px-3 py-2 no-sort" style="width: 6rem;">
                         <div class="flex items-center justify-between">
                             <span>Stok</span>
                             {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="4" title="Filter Kolom">
@@ -151,7 +151,7 @@
                         </div>
                     </th>
                     @if ($canViewHpp)
-                        <th class="border px-3 py-2 no-sort">
+                        <th class="border px-3 py-2 no-sort" style="width: 7rem;">
                             <div class="flex items-center justify-between">
                                 <span>HPP</span>
                             </div>
@@ -162,18 +162,18 @@
                             <span>Image</span>
                         </div>
                     </th> --}}
-                    <th class="border px-3 py-2 no-sort">
+                    <th class="border px-3 py-2 no-sort" style="width: 8rem;">
                         <div class="flex items-center justify-between">
                             <span>Otorisasi</span>
                         </div>
                     </th>
-                    <th class="border px-3 py-2 no-sort">
+                    <th class="border px-3 py-2 no-sort" style="width: 7rem;">
                         <div class="flex items-center justify-between">
                             <span>Status</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)
-                        <th class="border px-3 py-2 col-aksi no-sort">Aksi</th>
+                        <th class="border px-3 py-2 col-aksi no-sort" style="width: 16rem;">Aksi</th>
                     @endif
                 </tr>
             </thead>
@@ -503,6 +503,7 @@
 
         #productTable {
             width: 100% !important;
+            table-layout: fixed;
         }
 
         #productTable th,
