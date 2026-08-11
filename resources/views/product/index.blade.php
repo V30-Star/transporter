@@ -267,7 +267,7 @@
                                     .laporanStore.activeTab !== 'outstanding_so'
                             }"
                             class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
-                            OutStanding SO/KNY
+                            OutStanding SO
                             <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.outstandingSoData.length"></span>
                         </button>
                     </nav>
