@@ -79,6 +79,7 @@ use App\Http\Controllers\Tr_pohController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\WhController;
 use App\Http\Controllers\WilayahController;
+use App\Http\Middleware\EnsureRoutePermission;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -86,7 +87,7 @@ Route::get('/', function () {
 });
 
 // Semua route di bawah hanya untuk user yang sudah login
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
