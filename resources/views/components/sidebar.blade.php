@@ -630,7 +630,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('viewAccount'))
+                    @if ($hasSidebarPermission('printChartOfAccount'))
                         <li>
                             <a href="{{ route('reportingaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -640,7 +640,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSubAccount'))
+                    @if ($hasSidebarPermission('printSubAccount'))
                         <li>
                             <a href="{{ route('reportingsubaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -650,7 +650,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewCustomer'))
+                    @if ($hasSidebarPermission('printLaporanCustomer'))
                         <li>
                             <a href="{{ route('reportingcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -660,7 +660,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSupplier'))
+                    @if ($hasSidebarPermission('printLaporanSupplier'))
                         <li>
                             <a href="{{ route('reportingsupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -670,7 +670,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewProduct'))
+                    @if ($hasSidebarPermission('printLaporanProduk'))
                         <li>
                             <a href="{{ route('reportingproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -702,7 +702,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                    @if ($hasSidebarPermission('printListingSalesOrder'))
                         <li>
                             <a href="{{ route('listingso.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -712,7 +712,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                    @if ($hasSidebarPermission('printSoBelumTerkirim'))
                         <li>
                             <a href="{{ route('listingsobelum.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -741,7 +741,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
+                    @if ($hasSidebarPermission('printListingPenjualan'))
                         <li>
                             <a href="{{ route('listingpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -749,7 +749,9 @@
                                 <span class="ml-3">{{ 'Listing Penjualan' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printListingPenjualanHpp'))
                         <li>
                             <a href="{{ route('listingpenjualanhpp.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -757,7 +759,9 @@
                                 <span class="ml-3">{{ 'Listing Penjualan Dengan HPP' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printListingPiutangPenjualan'))
                         <li>
                             <a href="{{ route('listingpiutangpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -765,7 +769,9 @@
                                 <span class="ml-3">{{ 'Listing Piutang Penjualan' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printLaporanRekapPenjualan'))
                         <li>
                             <a href="{{ route('reportingrekappenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -773,7 +779,9 @@
                                 <span class="ml-3">{{ 'Laporan Rekap Penjualan' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printAnalisaUmurPiutang'))
                         <li>
                             <a href="{{ route('analisaumurpiutang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -781,7 +789,9 @@
                                 <span class="ml-3">{{ 'Analisa Umur Piutang' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printBukuPiutang'))
                         <li>
                             <a href="{{ route('bukupiutang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -789,7 +799,9 @@
                                 <span class="ml-3">{{ 'Buku Piutang' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printListingFakturPajakPenjualan'))
                         <li>
                             <a href="{{ route('listingfakturpajakpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -799,7 +811,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewlistingreturpenjualan'))
+                    @if ($hasSidebarPermission('printListingReturPenjualan'))
                         <li>
                             <a href="{{ route('listingreturpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -881,7 +893,7 @@
                 <!-- Reporting -->
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
+                    @if ($hasSidebarPermission('printListingPermintaanPembelian'))
                         <li>
                             <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -891,7 +903,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                    @if ($hasSidebarPermission('printListingOrderPembelian'))
                         <li>
                             <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -901,7 +913,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                    @if ($hasSidebarPermission('printListingPenerimaanBarang'))
                         <li>
                             <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -911,12 +923,7 @@
                         </li>
                     @endif
 
-                    @if (
-                        $hasSidebarPermission(
-                            'createFakturPembelian',
-                            'updateFakturPembelian',
-                            'deleteFakturPembelian',
-                            'printFakturPembelian'))
+                    @if ($hasSidebarPermission('printListingFakturPembelian'))
                         <li>
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -926,7 +933,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewlistingreturpembelian'))
+                    @if ($hasSidebarPermission('printListingReturPembelian'))
                         <li>
                             <a href="{{ route('listingreturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -936,12 +943,7 @@
                         </li>
                     @endif
 
-                    @if (
-                        $hasSidebarPermission(
-                            'createFakturPembelian',
-                            'updateFakturPembelian',
-                            'deleteFakturPembelian',
-                            'printFakturPembelian'))
+                    @if ($hasSidebarPermission('printListingHutangDagang'))
                         <li>
                             <a href="{{ route('listinghutangdagang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -949,7 +951,9 @@
                                 <span class="ml-3">{{ 'Listing Hutang Dagang' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printAnalisaUmurHutang'))
                         <li>
                             <a href="{{ route('analisaumurhutang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -957,7 +961,9 @@
                                 <span class="ml-3">{{ 'Analisa Umur Hutang' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printBukuHutang'))
                         <li>
                             <a href="{{ route('bukuhutang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -987,7 +993,7 @@
                 <!-- Reporting -->
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                    @if ($hasSidebarPermission('printListingAdjustmentStok'))
                         <li>
                             <a href="{{ route('reportingadjstock.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -995,7 +1001,9 @@
                                 <span class="ml-3">{{ 'Listing Adjustment Stok' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printListingMutasiStok'))
                         <li>
                             <a href="{{ route('listingmutasistok.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1003,7 +1011,9 @@
                                 <span class="ml-3">{{ 'Listing Mutasi Stok' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printLaporanKartuStok'))
                         <li>
                             <a href="{{ route('laporankartustok.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1013,7 +1023,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
+                    @if ($hasSidebarPermission('printListingPemakaianBarang'))
                         <li>
                             <a href="{{ route('reportingpemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1023,7 +1033,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('createAssembling', 'updateAssembling', 'deleteAssembling'))
+                    @if ($hasSidebarPermission('printListingAssembling'))
                         <li>
                             <a href="{{ route('reportingassembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1033,13 +1043,15 @@
                         </li>
                     @endif
 
-                    <li>
-                        <a href="{{ route('listingsuratjalan.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <i class="fa-solid fa-truck-fast w-5 text-center flex-shrink-0 text-lg"></i>
-                            <span class="ml-3">{{ 'Listing Surat Jalan' }}</span>
-                        </a>
-                    </li>
+                    @if ($hasSidebarPermission('printListingSuratJalan'))
+                        <li>
+                            <a href="{{ route('listingsuratjalan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-truck-fast w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Listing Surat Jalan' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -1062,7 +1074,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('viewreportingpelunasancustomer'))
+                    @if ($hasSidebarPermission('printLaporanPelunasanCustomer'))
                         <li>
                             <a href="{{ route('reportingpelunasancustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1072,7 +1084,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewlistingpenerimaankasbank'))
+                    @if ($hasSidebarPermission('printListingPenerimaanKasBank'))
                         <li>
                             <a href="{{ route('listingpenerimaankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1082,7 +1094,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewlistingpengeluarankasbank'))
+                    @if ($hasSidebarPermission('printListingPengeluaranKasBank'))
                         <li>
                             <a href="{{ route('listingpengeluarankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1092,7 +1104,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewreportingpelunasansupplier'))
+                    @if ($hasSidebarPermission('printLaporanBayarSupplier'))
                         <li>
                             <a href="{{ route('reportingpelunasansupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1123,7 +1135,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createjurnaltransaksi'))
+                    @if ($hasSidebarPermission('printListingJurnalTransaksi'))
                         <li>
                             <a href="{{ route('listingjurnal.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1131,7 +1143,9 @@
                                 <span class="ml-3">{{ 'Listing Jurnal Transaksi' }}</span>
                             </a>
                         </li>
+                    @endif
 
+                    @if ($hasSidebarPermission('printBukuBesar'))
                         <li>
                             <a href="{{ route('bukubesar.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">

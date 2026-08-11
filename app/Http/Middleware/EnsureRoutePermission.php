@@ -47,6 +47,44 @@ class EnsureRoutePermission
         'wilayah' => 'Wilayah',
     ];
 
+    private const REPORT_PRINTS = [
+        'listingpenjualan' => 'printListingPenjualan',
+        'listingpenjualanhpp' => 'printListingPenjualanHpp',
+        'listingpiutangpenjualan' => 'printListingPiutangPenjualan',
+        'reportingrekappenjualan' => 'printLaporanRekapPenjualan',
+        'analisaumurpiutang' => 'printAnalisaUmurPiutang',
+        'bukupiutang' => 'printBukuPiutang',
+        'listingfakturpajakpenjualan' => 'printListingFakturPajakPenjualan',
+        'listingreturpenjualan' => 'printListingReturPenjualan',
+        'listingpr' => 'printListingPermintaanPembelian',
+        'listingpo' => 'printListingOrderPembelian',
+        'listingpenerimaanbarang' => 'printListingPenerimaanBarang',
+        'listingfakturpembelian' => 'printListingFakturPembelian',
+        'listingreturpembelian' => 'printListingReturPembelian',
+        'listinghutangdagang' => 'printListingHutangDagang',
+        'analisaumurhutang' => 'printAnalisaUmurHutang',
+        'bukuhutang' => 'printBukuHutang',
+        'reportingadjstock' => 'printListingAdjustmentStok',
+        'listingmutasistok' => 'printListingMutasiStok',
+        'laporankartustok' => 'printLaporanKartuStok',
+        'reportingpemakaianbarang' => 'printListingPemakaianBarang',
+        'reportingassembling' => 'printListingAssembling',
+        'listingsuratjalan' => 'printListingSuratJalan',
+        'reportingpelunasancustomer' => 'printLaporanPelunasanCustomer',
+        'listingpenerimaankasbank' => 'printListingPenerimaanKasBank',
+        'listingpengeluarankasbank' => 'printListingPengeluaranKasBank',
+        'reportingpelunasansupplier' => 'printLaporanBayarSupplier',
+        'listingjurnal' => 'printListingJurnalTransaksi',
+        'bukubesar' => 'printBukuBesar',
+        'reportingaccount' => 'printChartOfAccount',
+        'reportingsubaccount' => 'printSubAccount',
+        'reportingcustomer' => 'printLaporanCustomer',
+        'reportingsupplier' => 'printLaporanSupplier',
+        'reportingproduct' => 'printLaporanProduk',
+        'listingso' => 'printListingSalesOrder',
+        'listingsobelum' => 'printSoBelumTerkirim',
+    ];
+
     private const ACTIONS = [
         'index' => 'view',
         'view' => 'view',
@@ -95,6 +133,10 @@ class EnsureRoutePermission
 
         if ($module === 'roleaccess') {
             return ['roleaccess'];
+        }
+
+        if (isset(self::REPORT_PRINTS[$module])) {
+            return [self::REPORT_PRINTS[$module]];
         }
 
         if (str_starts_with($module, 'listing') || str_starts_with($module, 'reporting')) {

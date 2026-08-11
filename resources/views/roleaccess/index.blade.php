@@ -413,28 +413,145 @@
                                 <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Laporan & Listing</td>
                             </tr>
                             <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Reporting Pelunasan Customer</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewreportingpelunasancustomer" {{ in_array('viewreportingpelunasancustomer', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="px-3 py-2 font-semibold">Laporan Pelunasan Customer</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanPelunasanCustomer" {{ in_array('printLaporanPelunasanCustomer', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Reporting Pelunasan Supplier</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewreportingpelunasansupplier" {{ in_array('viewreportingpelunasansupplier', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="px-3 py-2 font-semibold">Listing Penerimaan Kas Bank</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenerimaanKasBank" {{ in_array('printListingPenerimaanKasBank', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Pengeluaran Kas Bank</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPengeluaranKasBank" {{ in_array('printListingPengeluaranKasBank', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Laporan Bayar Supplier</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanBayarSupplier" {{ in_array('printLaporanBayarSupplier', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Permintaan Pembelian</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPermintaanPembelian" {{ in_array('printListingPermintaanPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Order Pembelian</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingOrderPembelian" {{ in_array('printListingOrderPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Penerimaan Barang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenerimaanBarang" {{ in_array('printListingPenerimaanBarang', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Faktur Pembelian</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingFakturPembelian" {{ in_array('printListingFakturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Listing Retur Pembelian</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewlistingreturpembelian" {{ in_array('viewlistingreturpembelian', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingReturPembelian" {{ in_array('printListingReturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Listing Retur Penjualan</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewlistingreturpenjualan" {{ in_array('viewlistingreturpenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="px-3 py-2 font-semibold">Listing Hutang Dagang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingHutangDagang" {{ in_array('printListingHutangDagang', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Listing Penerimaan Kas Bank</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewlistingpenerimaankasbank" {{ in_array('viewlistingpenerimaankasbank', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="px-3 py-2 font-semibold">Analisa Umur Hutang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printAnalisaUmurHutang" {{ in_array('printAnalisaUmurHutang', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Listing Pengeluaran Kas Bank</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewlistingpengeluarankasbank" {{ in_array('viewlistingpengeluarankasbank', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="px-3 py-2 font-semibold">Buku Hutang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printBukuHutang" {{ in_array('printBukuHutang', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenjualan" {{ in_array('printListingPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Penjualan Dengan HPP</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenjualanHpp" {{ in_array('printListingPenjualanHpp', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Piutang Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPiutangPenjualan" {{ in_array('printListingPiutangPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Laporan Rekap Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanRekapPenjualan" {{ in_array('printLaporanRekapPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Analisa Umur Piutang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printAnalisaUmurPiutang" {{ in_array('printAnalisaUmurPiutang', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Buku Piutang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printBukuPiutang" {{ in_array('printBukuPiutang', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Faktur Pajak Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingFakturPajakPenjualan" {{ in_array('printListingFakturPajakPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Retur Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingReturPenjualan" {{ in_array('printListingReturPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Adjustment Stok</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingAdjustmentStok" {{ in_array('printListingAdjustmentStok', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Mutasi Stok</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingMutasiStok" {{ in_array('printListingMutasiStok', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Laporan Kartu Stok</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanKartuStok" {{ in_array('printLaporanKartuStok', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Pemakaian Barang</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPemakaianBarang" {{ in_array('printListingPemakaianBarang', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Assembling</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingAssembling" {{ in_array('printListingAssembling', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Surat Jalan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingSuratJalan" {{ in_array('printListingSuratJalan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Jurnal Transaksi</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingJurnalTransaksi" {{ in_array('printListingJurnalTransaksi', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Buku Besar</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printBukuBesar" {{ in_array('printBukuBesar', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Chart of Account</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printChartOfAccount" {{ in_array('printChartOfAccount', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Sub Account</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printSubAccount" {{ in_array('printSubAccount', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Laporan Customer</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanCustomer" {{ in_array('printLaporanCustomer', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Laporan Supplier</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanSupplier" {{ in_array('printLaporanSupplier', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Laporan Produk</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanProduk" {{ in_array('printLaporanProduk', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Listing Sales Order</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingSalesOrder" {{ in_array('printListingSalesOrder', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">SO Belum Terkirim</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printSoBelumTerkirim" {{ in_array('printSoBelumTerkirim', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
 
                             <!-- 9. WIDGET DASHBOARD -->
