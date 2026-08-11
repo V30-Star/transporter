@@ -195,12 +195,14 @@
             @endif
 
             <div class="mt-4 pt-3 border-t border-gray-100 text-center">
+                @if ($canViewAnalisaUmurPiutang)
                 <a href="{{ route('analisaumurpiutang.index') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
                     Lihat Analisa Umur Piutang lengkap
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </a>
+                @endif
             </div>
         </div>
         @endif

@@ -14,6 +14,7 @@ class ProductBrowseController extends Controller
         $length = (int) $request->input('length', 10);
         $exactCode = trim((string) $request->input('fprdcode_exact', ''));
         $ftypeFilter = trim((string) $request->input('ftype_filter', ''));
+        $ftypeExclude = trim((string) $request->input('exclude_type', ''));
         $searchParam = $request->input('search');
         $searchValue = trim(is_array($searchParam) ? ($searchParam['value'] ?? '') : (string) $searchParam);
         $orderColumn = $request->input('order_column', 'fprdname');
@@ -32,6 +33,9 @@ class ProductBrowseController extends Controller
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", [strtolower($ftypeFilter)]);
             })
+            ->when($ftypeExclude !== '', function ($q) use ($ftypeExclude) {
+                $q->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) != ?", [strtolower($ftypeExclude)]);
+            })
             ->count();
 
         // Base untuk filtered count & data
@@ -44,6 +48,9 @@ class ProductBrowseController extends Controller
             })
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(msprd.ftype, ''))) = ?", [strtolower($ftypeFilter)]);
+            })
+            ->when($ftypeExclude !== '', function ($q) use ($ftypeExclude) {
+                $q->whereRaw("LOWER(TRIM(COALESCE(msprd.ftype, ''))) != ?", [strtolower($ftypeExclude)]);
             })
             ->when($searchValue !== '', function ($q) use ($searchValue) {
                 $q->where(function ($w) use ($searchValue) {

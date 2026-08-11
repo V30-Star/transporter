@@ -9,6 +9,9 @@
     $backRoute = $backRoute ?? route('pengeluarankas.index');
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld) ? collect($detailsOld)->map(fn($row) => (object) $row) : $details;
+    if (! $isReadOnly && ! $isDeleteMode && $detailRows->count() < 5) {
+        $detailRows = $detailRows->concat(collect(array_map(fn() => new stdClass, range(1, 5 - $detailRows->count()))));
+    }
     $selectedHeader = old('faccountheader', $pengeluaranKas->faccountheader);
     $isGiroMundur = old('fgiromundur', $pengeluaranKas->fgiromundur ?? '0') === '1';
     $selectedJatuhTempo = old(
@@ -679,6 +682,7 @@
                     supplierCatalog: supplierCatalog || [],
                     activeLookupRow: null,
                     activeLookupType: null,
+                    lastValidationErrorKey: '',
 
                     checkAndAutoAppendRow() {
                         if (this.isReadOnly) return;
@@ -797,6 +801,7 @@
                         const row = event.target.closest('tr.detail-row');
                         const rawCode = this.normalizeAccountCode(event.target.value);
                         event.target.value = rawCode;
+                        this.lastValidationErrorKey = '';
 
                         if (rawCode === '') {
                             this.clearAccountSelection(row);
@@ -898,6 +903,12 @@
                         if (!result || result.status !== 'ERROR') {
                             return;
                         }
+
+                        const errorKey = `${row?.rowIndex || ''}:${result.message}`;
+                        if (this.lastValidationErrorKey === errorKey) {
+                            return;
+                        }
+                        this.lastValidationErrorKey = errorKey;
 
                         if (window.showTransactionErrorModal) {
                             window.showTransactionErrorModal(result.message, {
@@ -1291,6 +1302,8 @@
                         if (this.isReadOnly) {
                             return;
                         }
+
+                        this.lastValidationErrorKey = '';
 
                         const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
                         rows.forEach((row) => {

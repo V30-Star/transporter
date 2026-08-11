@@ -27,6 +27,7 @@ class DashboardController extends Controller
         $canViewOmsetYtd = $checkPerm('dashboardOmsetYtd');
         $canViewOmsetPenjualanBulan = $checkPerm('dashboardOmsetPenjualanBulan');
         $canViewTopPiutangLewatJatuhTempo = $checkPerm('dashboardTopPiutangLewatJatuhTempo');
+        $canViewAnalisaUmurPiutang = $checkPerm('printAnalisaUmurPiutang');
 
         $selectedYear = (int) $request->input('year', date('Y'));
 
@@ -150,6 +151,7 @@ class DashboardController extends Controller
             'canViewOmsetYtd',
             'canViewOmsetPenjualanBulan',
             'canViewTopPiutangLewatJatuhTempo',
+            'canViewAnalisaUmurPiutang',
             'lastLogin'
         ));
     }

@@ -1015,6 +1015,9 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($fprdid);
 
+        // Ambil kode cabang user yang sedang login (sysuser.fcabang)
+        $branchCode = $this->getCurrentBranchCode() ?: 'BG';
+
         $stokData = DB::select('
             SELECT
                 v.fwhcode,
@@ -1038,9 +1041,11 @@ class ProductController extends Controller
             WHERE TRIM(v.fprdcode) = :fprdcode
         ', ['fprdcode' => $product->fprdcode]);
 
+        // Tambah filter m.fbranchcode = :fbranchcode sesuai fcabang user login
         $customerData = DB::select('
             SELECT 
                 m.fsono,
+                m.ftrcode,
                 m.frefno,
                 c.fcustomername,
                 d.fprdcode,
@@ -1049,15 +1054,21 @@ class ProductController extends Controller
                 d.fpricenet AS fprice,
                 d.fqty,
                 CAST(d.fdesc AS CHAR(100)) AS fdesc,
-                d.fsatuan
+                d.fsatuan,
+                m.fbranchcode AS fcabangkode
             FROM tranmt m
             JOIN trandt d ON m.fsono = d.fsono
             JOIN mscustomer c ON m.fcustno = c.fcustomercode
             WHERE d.fprdcode = :fprdcode
+              AND m.fbranchcode = :fbranchcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
-        ', ['fprdcode' => $product->fprdcode]);
+        ', [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $branchCode,
+        ]);
 
+        // Tambah filter m.fbranchcode = :fbranchcode sesuai fcabang user login
         $supplierData = DB::select("
             SELECT 
                 d.fstockmtno,
@@ -1066,7 +1077,8 @@ class ProductController extends Controller
                 m.fcurrency,
                 COALESCE(d.fprice, 0) AS fprice,
                 d.fqty,
-                d.fsatuan
+                d.fsatuan,
+                m.fbranchcode AS fcabangkode
             FROM trstockmt m 
             LEFT OUTER JOIN trstockdt d ON m.fstockmtno = d.fstockmtno 
             LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsuppliercode
@@ -1074,15 +1086,20 @@ class ProductController extends Controller
                 d.fqty > 0 
                 AND m.fstockmtcode = 'BUY'
                 AND d.fprdcode = :fprdcode
+                AND m.fbranchcode = :fbranchcode
             ORDER BY m.fstockmtdate DESC 
-        ", ['fprdcode' => $product->fprdcode]);
+        ", [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $branchCode,
+        ]);
 
         $outstandingPo = DB::select("
             SELECT 
                 h.fpono, 
                 h.fpodate, 
                 s.fsuppliername, 
-                (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty 
+                (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty,
+                h.fbranchcode AS fcabangkode
             FROM tr_poh h  
             LEFT JOIN tr_pod d ON h.fpono = d.fpono  
             LEFT JOIN mssupplier s ON h.fsupplier = s.fsuppliercode  
@@ -1112,7 +1129,7 @@ class ProductController extends Controller
                 h.fpono ASC
         ", [
             'fprdcode' => $product->fprdcode,
-            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+            'fbranchcode' => $branchCode,
         ]);
 
         $outstandingSo = DB::select("
@@ -1125,7 +1142,8 @@ class ProductController extends Controller
                 m.fcurrency,
                 d.fpricenet AS fpricefaktur,
                 d.fqty,
-                s.fsalesmanname AS fsalesman
+                s.fsalesmanname AS fsalesman,
+                m.fbranchcode AS fcabangkode
             FROM tranmt m
             INNER JOIN trandt d     ON m.fsono = d.fsono
             INNER JOIN mscustomer c ON m.fcustno = c.fcustomercode
@@ -1138,7 +1156,7 @@ class ProductController extends Controller
             LIMIT 100
         ", [
             'fprdcode' => $product->fprdcode,
-            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+            'fbranchcode' => $branchCode,
         ]);
 
         return response()->json([

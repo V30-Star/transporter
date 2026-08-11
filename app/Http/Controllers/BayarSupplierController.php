@@ -300,20 +300,6 @@ class BayarSupplierController extends Controller
 
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
-            $customerCode = null;
-            foreach ($detailRows as $row) {
-                $refNo = trim((string) ($row['frefno'] ?? ''));
-                $reference = $references[$refNo] ?? null;
-                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
-                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
-                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
-                    if ($customer) {
-                        $customerCode = $customer->fcustomercode;
-                        break;
-                    }
-                }
-            }
-
             Trkasmt::create([
                 'fkasmtid' => $headerId,
                 'fkasmtno' => $voucherNo,
@@ -324,7 +310,7 @@ class BayarSupplierController extends Controller
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
-                'fcustomercode' => $customerCode,
+                'fcustomercode' => $supplier->fsuppliercode,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
                 'famountpay_rp' => $totalKasKeluar,
@@ -476,7 +462,7 @@ class BayarSupplierController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($header->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
@@ -553,20 +539,6 @@ class BayarSupplierController extends Controller
 
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
-            $customerCode = null;
-            foreach ($detailRows as $row) {
-                $refNo = trim((string) ($row['frefno'] ?? ''));
-                $reference = $references[$refNo] ?? null;
-                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
-                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
-                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
-                    if ($customer) {
-                        $customerCode = $customer->fcustomercode;
-                        break;
-                    }
-                }
-            }
-
             // 1. Update Header Utama
             $header->update([
                 'fkasmtno'         => $voucherNo,
@@ -575,7 +547,7 @@ class BayarSupplierController extends Controller
                 'faccountheader'   => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader'        => $fdkHeader,
-                'fcustomercode'    => $customerCode,
+                'fcustomercode'    => $supplier->fsuppliercode,
                 'fket'             => $validated['fket'] ?? null,
                 'famountpay'       => $totalKasKeluar,
                 'famountpay_rp'    => $totalKasKeluar,
@@ -1235,9 +1207,9 @@ class BayarSupplierController extends Controller
             $selectedSupplier = Supplier::query()
                 ->where('fsuppliercode', $supplierCode)
                 ->first(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
-        } elseif ($header && !empty($header->fsupplier)) {
+        } elseif ($header && !empty($header->fcustomercode)) {
             $selectedSupplier = Supplier::query()
-                ->where('fsupplierid', $header->fsupplier)
+                ->where('fsuppliercode', $header->fcustomercode)
                 ->first(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
         }
 
@@ -1491,7 +1463,7 @@ class BayarSupplierController extends Controller
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
-        return view('pengeluarankas.print', [
+        return view('bayarsupplier.print', [
             'hdr' => $header,
             'dt' => $details,
             'fmt' => $fmt,

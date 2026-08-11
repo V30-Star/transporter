@@ -3824,6 +3824,22 @@
                         product
                     } = e.detail || {};
                     if (!product) return;
+
+                    // ── UM / Type guard ─────────────────────────────────────
+                    const chosenCode  = (product.fprdcode || '').toString().trim().toUpperCase();
+                    const isUMProduct = chosenCode === 'UM';
+                    const isUMType    = this.ftypesales !== 0;
+
+                    if (isUMProduct && !isUMType) {
+                        this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                        return;
+                    }
+                    if (!isUMProduct && chosenCode !== '' && isUMType) {
+                        this.showToast('Tipe Uang Muka hanya boleh menginput produk UM!', 'error');
+                        return;
+                    }
+                    // ────────────────────────────────────────────────────────
+
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         row.frefcode = '';
@@ -4431,8 +4447,9 @@
                         ajax: {
                             url: "{{ route('products.browse') }}",
                             type: 'GET',
-                            data: function(d) {
-                                return {
+                            data: (d) => {
+                                const ftypesales = this.ftypesales ?? 0;
+                                const result = {
                                     draw: d.draw,
                                     start: d.start,
                                     length: d.length,
@@ -4440,6 +4457,13 @@
                                     order_column: d.columns[d.order[0].column].data,
                                     order_dir: d.order[0].dir
                                 };
+                                // Uang Muka: tampilkan hanya UM; Penjualan: sembunyikan UM
+                                if (ftypesales !== 0) {
+                                    result.ftype_filter = 'UM';
+                                } else {
+                                    result.exclude_type = 'UM';
+                                }
+                                return result;
                             }
                         },
                         columns: [{
