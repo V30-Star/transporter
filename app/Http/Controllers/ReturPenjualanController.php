@@ -690,7 +690,7 @@ class ReturPenjualanController extends Controller
                     'maxqty' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
                     'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
-                    'fprice' => (float) (($item->fsalesnet ?? 0) > 0 ? $item->fsalesnet : ($item->fprice ?? 0)),
+                    'fprice' => (float) ($item->fprice ?? 0),
                     'fdisc' => $this->normalizeDiscountInput($item->fdisc ?? 0),
                     'fdesc' => (string) ($item->fdesc ?? ''),
                     'fnouref' => trim((string) ($header->fsono ?? '')),
