@@ -1060,6 +1060,7 @@ class ProductController extends Controller
             JOIN trandt d ON m.fsono = d.fsono
             JOIN mscustomer c ON m.fcustno = c.fcustomercode
             WHERE d.fprdcode = :fprdcode
+              AND m.ftrcode = \'INV\'
               AND m.fbranchcode = :fbranchcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
