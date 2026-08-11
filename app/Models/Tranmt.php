@@ -11,6 +11,8 @@ class Tranmt extends Model
 
   protected $table = 'tranmt';
   protected $primaryKey = 'ftranmtid'; // Sesuaikan dengan DB (S bukan O)
+  protected $keyType    = 'string';    // ftranmtid adalah string, bukan integer
+  public    $incrementing = false;     // bukan auto-increment
   protected $guarded = ['ftranmtid'];
 
   // Jika tidak ada kolom fupdatedat di DB, matikan timestamps atau ganti kolomnya

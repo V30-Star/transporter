@@ -2006,6 +2006,28 @@ class ReturPenjualanController extends Controller
         return $qtyKecil;
     }
 
+    private function returPenjualanKeyQuery($key)
+    {
+        $key = trim((string) $key);
+
+        return Tranmt::query()
+            ->where('ftrcode', 'REJ')
+            ->where(function ($q) use ($key) {
+                if (is_numeric($key)) {
+                    $q->where('ftranmtid', (int) $key);
+                }
+
+                $q->orWhere('fsono', $key)
+                    ->orWhere('fsono', str_replace('.', '/', $key))
+                    ->orWhere('fsono', str_replace('/', '.', $key));
+            });
+    }
+
+    private function resolveReturPenjualanId($key): int
+    {
+        return (int) $this->returPenjualanKeyQuery($key)->value('ftranmtid') ?: abort(404);
+    }
+
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -2020,7 +2042,7 @@ class ReturPenjualanController extends Controller
             ->orderBy('fwhcode')
             ->get();
 
-        $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
+        $returpenjualan = $this->returPenjualanKeyQuery($ftranmtid)->with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
@@ -2031,7 +2053,7 @@ class ReturPenjualanController extends Controller
                 )
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
-        }])->findOrFail($ftranmtid);
+        }])->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
             return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
@@ -2160,7 +2182,7 @@ class ReturPenjualanController extends Controller
             ->orderBy('fwhcode')
             ->get();
 
-        $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
+        $returpenjualan = $this->returPenjualanKeyQuery($ftranmtid)->with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
@@ -2171,7 +2193,7 @@ class ReturPenjualanController extends Controller
                 )
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
-        }])->findOrFail($ftranmtid);
+        }])->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
             return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
@@ -2319,6 +2341,8 @@ class ReturPenjualanController extends Controller
             }
             throw $e;
         }
+
+        $ftranmtid = $this->resolveReturPenjualanId($ftranmtid);
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
@@ -2978,7 +3002,7 @@ class ReturPenjualanController extends Controller
             ->orderBy('fwhcode')
             ->get();
 
-        $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
+        $returpenjualan = $this->returPenjualanKeyQuery($ftranmtid)->with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
@@ -2989,7 +3013,7 @@ class ReturPenjualanController extends Controller
                 )
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
-        }])->findOrFail($ftranmtid);
+        }])->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
             return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
@@ -3100,6 +3124,7 @@ class ReturPenjualanController extends Controller
     public function destroy($ftranmtid)
     {
         try {
+            $ftranmtid = $this->resolveReturPenjualanId($ftranmtid);
             $deletedHeader = null;
             $returHeader = Tranmt::findOrFail($ftranmtid);
             if ($message = $this->getPostedPeriodLockMessage($returHeader->fsodate, 'Retur ini')) {

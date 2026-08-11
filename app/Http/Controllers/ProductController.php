@@ -1041,6 +1041,7 @@ class ProductController extends Controller
         $customerData = DB::select('
             SELECT 
                 m.fsono,
+                m.ftrcode,
                 m.frefno,
                 c.fcustomername,
                 d.fprdcode,
