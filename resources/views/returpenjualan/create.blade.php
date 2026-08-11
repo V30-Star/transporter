@@ -486,7 +486,6 @@
                                     <col style="width:15%;">
                                     <col style="width:8%;">
                                     <col style="width:12%;">
-                                    <col style="width:8%;">
                                     <col style="width:14%;">
                                     <col style="width:6%;">
                                 </colgroup>
@@ -499,7 +498,6 @@
                                         <th class="p-2 text-left w-36">No.Ref</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-28">Aksi</th>
                                     </tr>
@@ -584,22 +582,11 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
+                                                    class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                                     :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                    :disabled="isSRJRow(it)" @focus="focusPriceInput(it)"
+                                                    :disabled="true" @focus="focusPriceInput(it)"
                                                     @input="onPriceInput(it); onRowUpdated(i)"
                                                     @blur="blurPriceInput(it); onRowUpdated(i)"
-                                                    @keydown.enter.prevent="focusRowDisc(i)">
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
-                                                    :id="'disc_row_' + i" :value="normalizeDiscountValue(it.fdisc)"
-                                                    :disabled="isSRJRow(it)"
-                                                    @blur="normalizeDiscountInput($event, it); onRowUpdated(i)"
-                                                    @input="it.fdisc = $event.target.value; onRowUpdated(i)"
                                                     @keydown.enter.prevent="onRowUpdated(i)">
                                             </td>
                                             <td class="p-2 text-right">
@@ -2762,10 +2749,6 @@
 
             focusRowPrice(index) {
                 document.getElementById(`price_row_${index}`)?.focus();
-            },
-
-            focusRowDisc(index) {
-                document.getElementById(`disc_row_${index}`)?.focus();
             },
 
             showDescModal: false,

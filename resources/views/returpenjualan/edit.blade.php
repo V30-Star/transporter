@@ -514,7 +514,6 @@
                                         <col style="width:15%;">
                                         <col style="width:8%;">
                                         <col style="width:12%;">
-                                        <col style="width:8%;">
                                         <col style="width:14%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
@@ -526,7 +525,6 @@
                                             <th class="p-2 text-left w-36">No.Ref</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                         </tr>
                                     </thead>
@@ -560,9 +558,6 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fprice)"></div>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <div class="px-2 py-1 text-sm text-gray-750 bg-gray-50 border rounded text-right" x-text="normalizeDiscountValue(it.fdisc)"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="fmt(it.ftotal)"></div>
@@ -1012,7 +1007,6 @@
                                             <col style="width:15%;">
                                             <col style="width:8%;">
                                             <col style="width:12%;">
-                                            <col style="width:8%;">
                                             <col style="width:14%;">
                                             @if ($action !== 'view')
                                                 <col style="width:6%;">
@@ -1027,7 +1021,6 @@
                                                 <th class="p-2 text-left w-36">No.Ref</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                                 @if ($action !== 'view')
                                                     <th class="p-2 text-center w-28">Aksi</th>
@@ -1142,27 +1135,13 @@
                                                         </template>
                                                         <template x-if="action !== 'view'">
                                                             <input type="text"
-                                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                                :class="isSRJRow(it) ?
-                                                                    'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
+                                                                class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                                                 :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                                :disabled="isSRJRow(it)" @focus="focusPriceInput(it)"
+                                                                :disabled="true" @focus="focusPriceInput(it)"
                                                                 @input="onPriceInput(it); onRowUpdated(i)"
                                                                 @blur="blurPriceInput(it); onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowDisc(i)">
+                                                                @keydown.enter.prevent="onRowUpdated(i)">
                                                         </template>
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                            :class="isSRJRow(it) ?
-                                                                'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
-                                                            :id="'disc_row_' + i"
-                                                            :value="normalizeDiscountValue(it.fdisc)"
-                                                            :disabled="isSRJRow(it)"
-                                                            @blur="normalizeDiscountInput($event, it); onRowUpdated(i)"
-                                                            @input="it.fdisc = $event.target.value; onRowUpdated(i)"
-                                                            @keydown.enter.prevent="onRowUpdated(i)">
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotal)"></div>
@@ -3588,10 +3567,6 @@
 
             focusRowPrice(index) {
                 document.getElementById(`price_row_${index}`)?.focus();
-            },
-
-            focusRowDisc(index) {
-                document.getElementById(`disc_row_${index}`)?.focus();
             },
 
             showDescModal: false,
