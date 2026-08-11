@@ -1099,6 +1099,7 @@ class ProductController extends Controller
                 h.fpodate, 
                 s.fsuppliername, 
                 (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty,
+                d.fsatuan,
                 h.fbranchcode AS fcabangkode
             FROM tr_poh h  
             LEFT JOIN tr_pod d ON h.fpono = d.fpono  
@@ -1142,6 +1143,7 @@ class ProductController extends Controller
                 m.fcurrency,
                 d.fpricenet AS fpricefaktur,
                 d.fqty,
+                d.fsatuan,
                 s.fsalesmanname AS fsalesman,
                 m.fbranchcode AS fcabangkode
             FROM tranmt m

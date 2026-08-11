@@ -168,7 +168,7 @@
                         </div>
                     </th>
                     @if ($showActionsColumn)
-                        <th class="border px-3 py-2 col-aksi no-sort" style="width: 16rem;">Aksi</th>
+                        <th class="border px-3 py-2 col-aksi no-sort" style="width: 21rem;">Aksi</th>
                     @endif
                 </tr>
             </thead>
@@ -427,6 +427,7 @@
                                         <th class="px-3 py-2 text-left">Tgl. Beli</th>
                                         <th class="px-3 py-2 text-left">Supplier</th>
                                         <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-left">Satuan</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -439,10 +440,11 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fpodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsuppliername"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsatuan || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingPoData.length === 0">
-                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding PO.</td>
+                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding PO.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -457,6 +459,7 @@
                                         <th class="px-3 py-2 text-left">Tanggal</th>
                                         <th class="px-3 py-2 text-left">Nama Customer</th>
                                         <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-left">Satuan</th>
                                         <th class="px-3 py-2 text-left">Salesman</th>
                                     </tr>
                                 </thead>
@@ -470,11 +473,12 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fcustname"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsatuan || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsalesman || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
-                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
+                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -804,7 +808,7 @@
                     orderable: false,
                     searchable: false,
                     render: function(fprdid, type, row) {
-                        let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
+                        let html = '<div class="flex justify-end gap-1.5 flex-wrap">';
                         const editBlocked = !canApproval && isEditBlockedApproval(row);
 
                         const viewUrl = `{{ config('app.url') }}/master/product/${fprdid}/view`;
