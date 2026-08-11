@@ -1050,7 +1050,8 @@ class ProductController extends Controller
                 d.fpricenet AS fprice,
                 d.fqty,
                 CAST(d.fdesc AS CHAR(100)) AS fdesc,
-                d.fsatuan
+                d.fsatuan,
+                m.fbranchcode AS fcabangkode
             FROM tranmt m
             JOIN trandt d ON m.fsono = d.fsono
             JOIN mscustomer c ON m.fcustno = c.fcustomercode
@@ -1067,7 +1068,8 @@ class ProductController extends Controller
                 m.fcurrency,
                 COALESCE(d.fprice, 0) AS fprice,
                 d.fqty,
-                d.fsatuan
+                d.fsatuan,
+                m.fbranchcode AS fcabangkode
             FROM trstockmt m 
             LEFT OUTER JOIN trstockdt d ON m.fstockmtno = d.fstockmtno 
             LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsuppliercode
@@ -1083,7 +1085,8 @@ class ProductController extends Controller
                 h.fpono, 
                 h.fpodate, 
                 s.fsuppliername, 
-                (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty 
+                (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty,
+                h.fbranchcode AS fcabangkode
             FROM tr_poh h  
             LEFT JOIN tr_pod d ON h.fpono = d.fpono  
             LEFT JOIN mssupplier s ON h.fsupplier = s.fsuppliercode  
@@ -1126,7 +1129,8 @@ class ProductController extends Controller
                 m.fcurrency,
                 d.fpricenet AS fpricefaktur,
                 d.fqty,
-                s.fsalesmanname AS fsalesman
+                s.fsalesmanname AS fsalesman,
+                m.fbranchcode AS fcabangkode
             FROM tranmt m
             INNER JOIN trandt d     ON m.fsono = d.fsono
             INNER JOIN mscustomer c ON m.fcustno = c.fcustomercode

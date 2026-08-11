@@ -291,9 +291,11 @@
                                 <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
                                         <th class="px-3 py-2 text-left"
+                                            style="width: 8%;">Cabang</th>
+                                        <th class="px-3 py-2 text-left"
                                             style="width: 15%;">Faktur#</th>
                                         <th class="px-3 py-2 text-left"
-                                            style="width: 20%;">Customer</th>
+                                            style="width: 18%;">Customer</th>
                                         <th class="px-3 py-2 text-left"
                                             style="width: 6%;">Tanggal Jual</th>
                                         <th class="px-3 py-2 text-right"
@@ -305,12 +307,14 @@
                                         <th class="px-3 py-2 text-right"
                                             style="width: 12%;">Ref.PO</th>
                                         <th class="px-3 py-2 text-left"
-                                            style="width: 22%;">Description</th>
+                                            style="width: 16%;">Description</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.customerData" :key="i">
                                         <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs"
+                                                x-text="item.fcabangkode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="(item.ftrcode === 'REJ' ? '{{ route('returpenjualan.index') }}' : '{{ route('invoice.index') }}') + '/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
@@ -333,7 +337,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.customerData.length === 0">
-                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
+                                        <td colspan="9" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
                                             riwayat Laporan SO dari Customer.</td>
                                     </tr>
                                 </tbody>
@@ -380,23 +384,20 @@
                             <table class="min-w-full text-sm">
                                 <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left">Faktur#
-                                        </th>
-                                        <th class="px-3 py-2 text-left">Supplier
-                                        </th>
-                                        <th class="px-3 py-2 text-left">Tanggal
-                                        </th>
-                                        <th class="px-3 py-2 text-right">Harga
-                                        </th>
-                                        <th class="px-3 py-2 text-right">Qty.
-                                        </th>
-                                        <th class="px-3 py-2 text-right">Satuan
-                                        </th>
+                                        <th class="px-3 py-2 text-left">Cabang</th>
+                                        <th class="px-3 py-2 text-left">Faktur#</th>
+                                        <th class="px-3 py-2 text-left">Supplier</th>
+                                        <th class="px-3 py-2 text-left">Tanggal</th>
+                                        <th class="px-3 py-2 text-right">Harga</th>
+                                        <th class="px-3 py-2 text-right">Qty.</th>
+                                        <th class="px-3 py-2 text-right">Satuan</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.supplierData" :key="i">
                                         <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs"
+                                                x-text="item.fcabangkode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('fakturpembelian.index') }}/' + encodeURIComponent(item.fstockmtno) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fstockmtno"></a>
                                             </td>
@@ -415,7 +416,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.supplierData.length === 0">
-                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
+                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
                                             riwayat Laporan Pembelian dari Supplier.</td>
                                     </tr>
                                 </tbody>
@@ -426,15 +427,17 @@
                             <table class="min-w-full text-sm">
                                 <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
+                                        <th class="px-3 py-2 text-left">Cabang</th>
                                         <th class="px-3 py-2 text-left">No. PO</th>
                                         <th class="px-3 py-2 text-left">Tgl. Beli</th>
-                                        <th class="px-3 py-2 text-left">Nama Customer</th>
+                                        <th class="px-3 py-2 text-left">Supplier</th>
                                         <th class="px-3 py-2 text-right">Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingPoData" :key="i">
                                         <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs" x-text="item.fcabangkode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('tr_poh.index') }}/' + encodeURIComponent(item.fpono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fpono"></a>
                                             </td>
@@ -444,7 +447,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingPoData.length === 0">
-                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding PO.</td>
+                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding PO.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -454,6 +457,7 @@
                             <table class="min-w-full text-sm">
                                 <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
+                                        <th class="px-3 py-2 text-left">Cabang</th>
                                         <th class="px-3 py-2 text-left">No. SO</th>
                                         <th class="px-3 py-2 text-left">Tanggal</th>
                                         <th class="px-3 py-2 text-left">Nama Customer</th>
@@ -464,6 +468,7 @@
                                 <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingSoData" :key="i">
                                         <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs" x-text="item.fcabangkode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('salesorder.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
@@ -474,7 +479,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
-                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
+                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
                                     </tr>
                                 </tbody>
                             </table>
