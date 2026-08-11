@@ -182,26 +182,26 @@
 
         {{-- Modal Laporan --}}
         <div x-show="$store.laporanStore.showModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
             <div @click.away="$store.laporanStore.closeModal()"
-                class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col">
-                <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                class="bg-white rounded-xl shadow-lg border border-slate-200 w-full max-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center flex-shrink-0 bg-white">
                     <div class="flex items-center gap-3">
-                        <h3 class="text-lg font-semibold text-gray-900">Detail Info Produk</h3>
+                        <h3 class="text-lg font-semibold text-slate-900">Detail Info Produk</h3>
                         <template x-if="!$store.laporanStore.isLoading && $store.laporanStore.productCode">
-                            <div class="flex items-center gap-2 text-sm text-gray-600">
-                                <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono font-medium"
+                            <div class="flex items-center gap-2 text-sm text-slate-600">
+                                <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono font-medium"
                                     x-text="$store.laporanStore.productCode">
                                 </span>
-                                <span class="text-gray-400">|</span>
-                                <span class="font-medium text-gray-800" x-text="$store.laporanStore.productName"></span>
+                                <span class="text-slate-400">|</span>
+                                <span class="font-medium text-slate-800" x-text="$store.laporanStore.productName"></span>
                             </div>
                         </template>
                         <template x-if="$store.laporanStore.isLoading">
-                            <span class="text-sm text-gray-400 italic animate-pulse">Memuat...</span>
+                            <span class="text-sm text-slate-400 italic animate-pulse">Memuat...</span>
                         </template>
                     </div>
-                    <button @click="$store.laporanStore.closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <button @click="$store.laporanStore.closeModal()" class="text-slate-500 hover:text-slate-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12"></path>
@@ -209,71 +209,71 @@
                     </button>
                 </div>
                 
-                <div class="px-6 py-2 border-b bg-gray-50">
-                    <nav class="-mb-px flex flex-wrap gap-6">
+                <div class="border-b border-slate-200 bg-white">
+                    <nav class="flex flex-wrap text-sm">
                         <button @click="$store.laporanStore.activeTab = 'customer'"
                             :class="{
-                                'border-blue-500 text-blue-600': $store.laporanStore
+                                'border-blue-600 text-blue-600 font-medium': $store.laporanStore
                                     .activeTab === 'customer',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                'border-transparent text-slate-500 hover:text-slate-700': $store
                                     .laporanStore.activeTab !== 'customer'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
                             Penjualan
-                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.customerData.length"></span>
+                            <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.customerData.length"></span>
                         </button>
 
                         <button @click="$store.laporanStore.activeTab = 'stok'"
                             :class="{
-                                'border-blue-500 text-blue-600': $store.laporanStore
+                                'border-blue-600 text-blue-600 font-medium': $store.laporanStore
                                     .activeTab === 'stok',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                'border-transparent text-slate-500 hover:text-slate-700': $store
                                     .laporanStore.activeTab !== 'stok'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
                             Stok
-                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.stokData.length"></span>
+                            <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.stokData.length"></span>
                         </button>
 
                         <button @click="$store.laporanStore.activeTab = 'supplier'"
                             :class="{
-                                'border-blue-500 text-blue-600': $store.laporanStore
+                                'border-blue-600 text-blue-600 font-medium': $store.laporanStore
                                     .activeTab === 'supplier',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                'border-transparent text-slate-500 hover:text-slate-700': $store
                                     .laporanStore.activeTab !== 'supplier'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
                             Pembelian
-                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.supplierData.length"></span>
+                            <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.supplierData.length"></span>
                         </button>
 
                         <button @click="$store.laporanStore.activeTab = 'outstanding_po'"
                             :class="{
-                                'border-blue-500 text-blue-600': $store.laporanStore
+                                'border-blue-600 text-blue-600 font-medium': $store.laporanStore
                                     .activeTab === 'outstanding_po',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                'border-transparent text-slate-500 hover:text-slate-700': $store
                                     .laporanStore.activeTab !== 'outstanding_po'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
                             OutStanding PO
-                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.outstandingPoData.length"></span>
+                            <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.outstandingPoData.length"></span>
                         </button>
 
                         <button @click="$store.laporanStore.activeTab = 'outstanding_so'"
                             :class="{
-                                'border-blue-500 text-blue-600': $store.laporanStore
+                                'border-blue-600 text-blue-600 font-medium': $store.laporanStore
                                     .activeTab === 'outstanding_so',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                'border-transparent text-slate-500 hover:text-slate-700': $store
                                     .laporanStore.activeTab !== 'outstanding_so'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            class="whitespace-nowrap px-4 py-2.5 border-b-2 -mb-px">
                             OutStanding SO/KNY
-                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.outstandingSoData.length"></span>
+                            <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" x-text="$store.laporanStore.outstandingSoData.length"></span>
                         </button>
                     </nav>
                 </div>
 
-                <div class="p-6 overflow-y-auto flex-1 min-h-0">
+                <div class="p-4 overflow-y-auto flex-1 min-h-0">
                     <div x-show="$store.laporanStore.isLoading" class="flex justify-center py-8">
                         <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24">
@@ -286,195 +286,195 @@
                     </div>
 
                     <div x-show="!$store.laporanStore.isLoading">
-                        <div x-show="$store.laporanStore.activeTab === 'customer'" class="overflow-x-auto rounded-lg border">
-                            <table class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;">
-                                <thead class="bg-gray-100">
+                        <div x-show="$store.laporanStore.activeTab === 'customer'" class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-sm" style="table-layout: fixed;">
+                                <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-left"
                                             style="width: 15%;">Faktur#</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-left"
                                             style="width: 20%;">Customer</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-left"
                                             style="width: 6%;">Tanggal Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-right"
                                             style="width: 12%;">Harga Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-right"
                                             style="width: 6%;">Qty.</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-right"
                                             style="width: 7%;">Satuan</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-right"
                                             style="width: 12%;">Ref.PO</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                        <th class="px-3 py-2 text-left"
                                             style="width: 22%;">Description</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.customerData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('invoice.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fcustomername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fsodate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="item.fsatuan"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="item.fsono"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 truncate max-w-xs"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 truncate max-w-xs"
                                                 :title="item.fdesc" x-text="item.fdesc || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.customerData.length === 0">
-                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
                                             riwayat Laporan SO dari Customer.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'stok'" class="overflow-x-auto rounded-lg border">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                        <div x-show="$store.laporanStore.activeTab === 'stok'" class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Gudang#
+                                        <th class="px-3 py-2 text-left">Gudang#
                                         </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama
+                                        <th class="px-3 py-2 text-left">Nama
                                             Gudang</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Stok
+                                        <th class="px-3 py-2 text-right">Stok
                                         </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Satuan
+                                        <th class="px-3 py-2 text-left">Satuan
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-slate-100">
                                     <template x-for="item in $store.laporanStore.stokData" :key="item.fwhcode">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fwhcode"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fwhname"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fsatuan"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.stokData.length === 0">
-                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
                                             data stok.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'supplier'" class="overflow-x-auto rounded-lg border">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                        <div x-show="$store.laporanStore.activeTab === 'supplier'" class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#
+                                        <th class="px-3 py-2 text-left">Faktur#
                                         </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Supplier
+                                        <th class="px-3 py-2 text-left">Supplier
                                         </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal
+                                        <th class="px-3 py-2 text-left">Tanggal
                                         </th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga
+                                        <th class="px-3 py-2 text-right">Harga
                                         </th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.
+                                        <th class="px-3 py-2 text-right">Qty.
                                         </th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan
+                                        <th class="px-3 py-2 text-right">Satuan
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.supplierData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('fakturpembelian.index') }}/' + encodeURIComponent(item.fstockmtno) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fstockmtno"></a>
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fsuppliername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fstockmtdate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="item.fsatuan"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.supplierData.length === 0">
-                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada
                                             riwayat Laporan Pembelian dari Supplier.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'outstanding_po'" class="overflow-x-auto rounded-lg border">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                        <div x-show="$store.laporanStore.activeTab === 'outstanding_po'" class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">No. PO</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tgl. Beli</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Customer</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty</th>
+                                        <th class="px-3 py-2 text-left">No. PO</th>
+                                        <th class="px-3 py-2 text-left">Tgl. Beli</th>
+                                        <th class="px-3 py-2 text-left">Nama Customer</th>
+                                        <th class="px-3 py-2 text-right">Qty</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingPoData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('tr_poh.index') }}/' + encodeURIComponent(item.fpono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fpono"></a>
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fpodate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsuppliername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fpodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsuppliername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingPoData.length === 0">
-                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding PO.</td>
+                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding PO.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'outstanding_so'" class="overflow-x-auto rounded-lg border">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
+                        <div x-show="$store.laporanStore.activeTab === 'outstanding_so'" class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">No. SO</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Customer</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Salesman</th>
+                                        <th class="px-3 py-2 text-left">No. SO</th>
+                                        <th class="px-3 py-2 text-left">Tanggal</th>
+                                        <th class="px-3 py-2 text-left">Nama Customer</th>
+                                        <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-left">Salesman</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingSoData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('salesorder.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsodate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fcustname"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsalesman || '-'"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fcustname"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsalesman || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
-                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding SO.</td>
+                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
                                     </tr>
                                 </tbody>
                             </table>
