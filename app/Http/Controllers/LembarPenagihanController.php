@@ -101,12 +101,12 @@ class LembarPenagihanController extends Controller
 
     public function pickableReturns(Request $request)
     {
-        return $this->pickableTranmt($request, ['REJ']);
+        return $this->pickableTranmt($request, ['RUJ']);
     }
 
     public function pickableNotas(Request $request)
     {
-        return $this->pickableTranmt($request, ['INV', 'REJ']);
+        return $this->pickableTranmt($request, ['INV', 'RUJ']);
     }
 
     private function pickableTranmt(Request $request, array $codes)

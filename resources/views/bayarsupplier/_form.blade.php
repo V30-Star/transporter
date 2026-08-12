@@ -830,7 +830,7 @@
                 isRebRow(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
                     const refNo = String(row?.frefno || '').trim().toUpperCase();
-                    return code === 'REB' || refNo.startsWith('REB.');
+                    return code === 'RUB' || refNo.startsWith('RUB.');
                 },
 
                 isDiscPercentDisabled(row) {
@@ -847,7 +847,7 @@
 
                 referenceTextClass(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
-                    return ['REJ', 'REB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
+                    return ['RUJ', 'RUB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
                 handleManualPblInput(row) {

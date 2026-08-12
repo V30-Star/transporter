@@ -313,7 +313,7 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs"
                                                 x-text="item.fcabangkode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
-                                                <a :href="(item.ftrcode === 'REJ' ? '{{ route('returpenjualan.index') }}' : '{{ route('invoice.index') }}') + '/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
+                                                <a :href="(item.ftrcode === 'RUJ' ? '{{ route('returpenjualan.index') }}' : '{{ route('invoice.index') }}') + '/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fcustomername"></td>

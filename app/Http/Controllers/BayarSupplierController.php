@@ -128,7 +128,7 @@ class BayarSupplierController extends Controller
         $baseQuery = DB::table('trstockmt as mt')
             ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'mt.fsupplier')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fsupplier')
-            ->whereIn('mt.fstockmtcode', ['BUY', 'REB'])
+            ->whereIn('mt.fstockmtcode', ['BUY', 'RUB'])
             ->whereRaw('COALESCE(mt.famountremain, 0) > 0')
             ->when($supplierCode !== '', function ($query) use ($supplierCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fsupplier, \'\')) = ?', [$supplierCode]);
@@ -337,9 +337,9 @@ class BayarSupplierController extends Controller
                 $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
                 $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
 
-                $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
+                $isReb = ($refCode === 'RUB' || str_starts_with(strtoupper($refNo), 'RUB'));
                 $fdkDetail = $isReb ? 'K' : 'D';
-                $freftypeDetail = $isReb ? 'REB' : 'PBL';
+                $freftypeDetail = $isReb ? 'RUB' : 'PBL';
                 $detailAccount = $isReb ? $returnPayableAccount : $payableAccount;
 
                 $subAccount = $supplier->fsuppliercode;
@@ -614,9 +614,9 @@ class BayarSupplierController extends Controller
                 $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
                 $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
 
-                $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
+                $isReb = ($refCode === 'RUB' || str_starts_with(strtoupper($refNo), 'RUB'));
                 $fdkDetail = $isReb ? 'K' : 'D';
-                $freftypeDetail = $isReb ? 'REB' : 'PBL';
+                $freftypeDetail = $isReb ? 'RUB' : 'PBL';
                 $detailAccount = $isReb ? $returnPayableAccount : $payableAccount;
 
                 $subAccount = $supplier->fsuppliercode;
@@ -877,7 +877,7 @@ class BayarSupplierController extends Controller
         return collect($details)
             ->map(function(array $detail) {
                 $refNo = trim((string) ($detail['frefno'] ?? ''));
-                $isReb = str_starts_with(strtoupper($refNo), 'REB');
+                $isReb = str_starts_with(strtoupper($refNo), 'RUB');
                 $rawKasdtValue = round((float) ($detail['fkasdtvalue'] ?? 0), 2);
 
                 if ($isReb && $rawKasdtValue >= 0) {
@@ -1024,7 +1024,7 @@ class BayarSupplierController extends Controller
 
         $remainingByRef = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->whereIn('fstockmtcode', ['BUY', 'REB'])
+            ->whereIn('fstockmtcode', ['BUY', 'RUB'])
             ->pluck('famountremain', 'fstockmtno')
             ->mapWithKeys(fn($remain, $refNo) => [trim((string) $refNo) => abs((float) $remain)]);
 
@@ -1142,7 +1142,7 @@ class BayarSupplierController extends Controller
 
         $supplierByRef = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->whereIn('fstockmtcode', ['BUY', 'REB'])
+            ->whereIn('fstockmtcode', ['BUY', 'RUB'])
             ->pluck('fsupplier', 'fstockmtno')
             ->mapWithKeys(fn($supplier, $refNo) => [trim((string) $refNo) => trim((string) $supplier)]);
 
@@ -1169,7 +1169,7 @@ class BayarSupplierController extends Controller
 
         $references = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->whereIn('fstockmtcode', ['BUY', 'REB'])
+            ->whereIn('fstockmtcode', ['BUY', 'RUB'])
             ->get(['fstockmtno', 'fstockmtdate', 'fstockmtcode', 'fsupplier'])
             ->keyBy(fn($row) => trim((string) $row->fstockmtno));
 
@@ -1291,7 +1291,7 @@ class BayarSupplierController extends Controller
             if (!empty($refNos)) {
                 $referenceRemainMap = DB::table('trstockmt')
                     ->whereIn('fstockmtno', $refNos)
-                    ->whereIn('trstockmt.fstockmtcode', ['BUY', 'REB'])
+                    ->whereIn('trstockmt.fstockmtcode', ['BUY', 'RUB'])
                     ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier')
                     ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'trstockmt.fsupplier')
                     ->select([
@@ -1327,13 +1327,13 @@ class BayarSupplierController extends Controller
                         $fnilaiOrder = (float) ($reference->famountmt ?? 0);
                         $fsisaHutang = (float) ($reference->famountremain ?? 0);
 
-                        if ($trCode === 'REB') {
+                        if ($trCode === 'RUB') {
                             $actualPayment = -abs(round($fsisaHutang - $fnilaiOrder + $actualDiscount, 2));
                         }
                     }
 
                     $adjustedRemain = $reference
-                        ? ($trCode === 'REB'
+                        ? ($trCode === 'RUB'
                             ? max(abs((float) ($reference->famountremain ?? 0)) - abs($actualPayment), 0)
                             : max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0))
                         : $fnilaiOrder;

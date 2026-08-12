@@ -3113,7 +3113,7 @@ class FakturpembelianController extends Controller
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
     {
         $usedBy = DB::table('trstockmt')
-            ->where('fstockmtcode', 'REB')
+            ->where('fstockmtcode', 'RUB')
             ->where(function ($query) use ($header) {
                 $query->where('frefno', $header->fstockmtno)
                     ->orWhere('frefpo', $header->fstockmtno);

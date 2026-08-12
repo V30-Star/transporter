@@ -528,7 +528,7 @@
 
             @foreach ($items as $index => $row)
                 @php
-                    $isReturn = ($row->fstockmtcode ?? '') === 'REB';
+                    $isReturn = ($row->fstockmtcode ?? '') === 'RUB';
                     $viewUrl = $isReturn ? route('returpembelian.view', $row->fstockmtid) : route('fakturpembelian.view', $row->fstockmtid);
                     $editUrl = $isReturn ? route('returpembelian.edit', $row->fstockmtid) : route('fakturpembelian.edit', $row->fstockmtid);
                 @endphp

@@ -44,7 +44,7 @@ class AnalisaUmurHutangController extends Controller
         $base = DB::table('trstockmt as h')
             ->join('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
             ->selectRaw("h.fstockmtid, h.fbranchcode, h.fstockmtno AS fsono, h.fstockmtcode, h.fstockmtdate AS fsodate, h.fjatuhtempo, s.fsuppliername AS fcustname, s.fsuppliername AS fsuppliername, h.fsupplier AS fcustno, h.fsupplier AS fsuppliercode, h.fcurrency, h.frate, h.fusercreate AS fuserid, h.frefno, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountso, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt_rp ELSE h.famountmt_rp * -1 END AS famountmt_rp, h.famountmt AS fnilainota, h.famountmt_rp AS fnilainota_rp")
-            ->whereIn('h.fstockmtcode', ['BUY', 'REB'])
+            ->whereIn('h.fstockmtcode', ['BUY', 'RUB'])
             ->where('h.fstockmtdate', '>=', $dateFrom)
             ->where('h.fstockmtdate', '<=', $dateTo . ' 23:59:59');
 
@@ -87,7 +87,7 @@ class AnalisaUmurHutangController extends Controller
             ->fromSub($base, 'a')
             ->leftJoinSub($paidKas, 'b', 'a.fsono', '=', 'b.frefno')
             ->leftJoinSub($paidJurnal, 'c', 'a.fsono', '=', 'c.frefno')
-            ->selectRaw("a.*, CASE WHEN a.fstockmtcode = 'REB' THEN (ABS(a.fnilainota) - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0))) * -1 ELSE a.fnilainota - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0)) END AS famountremain, CASE WHEN a.fstockmtcode = 'REB' THEN (a.fnilainota_rp - (COALESCE(ABS(b.ftotalbayar_rp), 0) + COALESCE(ABS(c.ftotalsju_rp), 0))) * -1 ELSE a.fnilainota_rp - (COALESCE(b.ftotalbayar_rp, 0) + COALESCE(c.ftotalsju_rp, 0)) END AS famountremain_rp, (?::date - a.fjatuhtempo::date) AS umur", [$cutoffDate])
+            ->selectRaw("a.*, CASE WHEN a.fstockmtcode = 'RUB' THEN (ABS(a.fnilainota) - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0))) * -1 ELSE a.fnilainota - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0)) END AS famountremain, CASE WHEN a.fstockmtcode = 'RUB' THEN (a.fnilainota_rp - (COALESCE(ABS(b.ftotalbayar_rp), 0) + COALESCE(ABS(c.ftotalsju_rp), 0))) * -1 ELSE a.fnilainota_rp - (COALESCE(b.ftotalbayar_rp, 0) + COALESCE(c.ftotalsju_rp, 0)) END AS famountremain_rp, (?::date - a.fjatuhtempo::date) AS umur", [$cutoffDate])
             ->whereRaw("a.fnilainota - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0)) > 0")
             ->orderBy('a.fcurrency')
             ->orderBy('a.fcustno')

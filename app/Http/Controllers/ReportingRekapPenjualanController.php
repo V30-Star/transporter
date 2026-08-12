@@ -65,9 +65,9 @@ class ReportingRekapPenjualanController extends Controller
             ->leftJoin('ms_groupprd as g', DB::raw('TRIM(g.fgroupcode)'), '=', DB::raw('TRIM(p.fgroupcode)'))
             ->leftJoin('msmerek as merek', DB::raw('TRIM(merek.fmerekcode)'), '=', DB::raw('TRIM(p.fmerek)'))
             ->selectRaw("m.ftrcode AS fsource, {$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, 
-            SUM(CASE WHEN m.ftrcode = 'INV' THEN ABS((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100))) WHEN m.ftrcode = 'REJ' THEN ABS(d.fprice * d.fqty) * -1 ELSE 0 END) AS famount,
+            SUM(CASE WHEN m.ftrcode = 'INV' THEN ABS((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100))) WHEN m.ftrcode = 'RUJ' THEN ABS(d.fprice * d.fqty) * -1 ELSE 0 END) AS famount,
              d.fprdcode, p.fprdname")
-            ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ'] : ['INV'])
+            ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'RUJ'] : ['INV'])
             ->where('m.ftypesales', 0)
             ->whereNotIn('d.fprdcode', ['UM', 'AWAL'])
             ->where('m.fsodate', '>=', $request->input('date_from', now()->startOfMonth()->toDateString()))
@@ -79,7 +79,7 @@ class ReportingRekapPenjualanController extends Controller
             ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname, p.fsatuandefaultlaporan, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fqtykecil2")
             ->orderBy('fmerek')
             ->orderBy('d.fprdcode')
-            ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
+            ->orderByRaw("CASE WHEN m.ftrcode = 'RUJ' THEN 1 ELSE 0 END")
             ->get();
     }
 
@@ -159,7 +159,7 @@ class ReportingRekapPenjualanController extends Controller
 
         foreach ($rows->groupBy('fmerek') as $groupCode => $items) {
             $groupName = $items->first()->fgroupname ?: $groupCode;
-            $groupTotal = $items->sum(fn ($item) => $item->fsource === 'REJ' ? -abs((float) $item->famount) : abs((float) $item->famount));
+            $groupTotal = $items->sum(fn ($item) => $item->fsource === 'RUJ' ? -abs((float) $item->famount) : abs((float) $item->famount));
             $grandTotal += $groupTotal;
 
             // Group Row
@@ -168,7 +168,7 @@ class ReportingRekapPenjualanController extends Controller
             ], $styleGroup));
 
             foreach ($items as $index => $row) {
-                $isReturn = $row->fsource === 'REJ';
+                $isReturn = $row->fsource === 'RUJ';
                 $rowQty = $isReturn ? -abs((float) $row->fqty) : abs((float) $row->fqty);
                 $rowAmount = $isReturn ? -abs((float) $row->famount) : abs((float) $row->famount);
 

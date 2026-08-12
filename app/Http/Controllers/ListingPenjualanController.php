@@ -131,10 +131,9 @@ class ListingPenjualanController extends Controller
         if ($request->has('belum_kirim')) {
             $query->where('d.fqtyremain', '>', 0);
         }
-        $query->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ'] : ['INV']);
-
-        return $query
-            ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
+        $query->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'RUJ'] : ['INV']);
+        $query->orderBy('m.fsodate', 'asc')
+            ->orderByRaw("CASE WHEN m.ftrcode = 'RUJ' THEN 1 ELSE 0 END")
             ->orderBy('m.fsono')
             ->orderBy('d.fnou');
     }
@@ -235,8 +234,8 @@ class ListingPenjualanController extends Controller
         // ── Data ──────────────────────────────────────────────────
         foreach ($grouped as $fsono => $details) {
             $h = $details->first();
-            $sign = $h->ftrcode === 'REJ' ? -1 : 1;
-            $invoiceStyle = $h->ftrcode === 'REJ' ? $styleReturInvoice : $styleInvHeader;
+            $sign = $h->ftrcode === 'RUJ' ? -1 : 1;
+            $invoiceStyle = $h->ftrcode === 'RUJ' ? $styleReturInvoice : $styleInvHeader;
 
             $fakturCols = [
                 $h->fsono,

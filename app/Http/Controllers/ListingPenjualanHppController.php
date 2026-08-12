@@ -82,14 +82,14 @@ class ListingPenjualanHppController extends Controller
             CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END AS fpricenet, 
             CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(m.famountgross, 0) * ROUND(d.fqty, 0) ELSE ROUND(d.fqty, 0) * COALESCE(m.famountgross, 0) END AS famountsales, 
             ROUND(d.famount, 0) AS famount, ROUND(d.fhpp, 0) AS fhpp, 
-            m.fuserid::varchar AS fuserid, 'REJ' AS fsource")
-            ->where('m.ftrcode', 'REJ');
+            m.fuserid::varchar AS fuserid, 'RUJ' AS fsource")
+            ->where('m.ftrcode', 'RUJ');
 
         $this->applyReturFilters($retur, $request, 'm', 'd');
 
         return DB::query()
             ->fromSub($invoice->unionAll($retur), 'x')
-            ->orderByRaw("CASE WHEN x.fsource = 'REJ' THEN 1 ELSE 0 END")
+            ->orderByRaw("CASE WHEN x.fsource = 'RUJ' THEN 1 ELSE 0 END")
             ->orderBy('x.fbranchcode')
             ->orderBy('x.fsono')
             ->orderBy('x.fprdcode')
@@ -190,15 +190,15 @@ class ListingPenjualanHppController extends Controller
             '@ Harga Net', '@ HPP', 'Tot.Harga Jual', 'Total HPP', 'Laba/Rugi'
         ], $styleHeader));
 
-        $grandTotalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountso ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
-        $grandTotalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
-        $grandTotalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
-        $grandTotalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
+        $grandTotalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountso ?? 0)) * (($items->first()->fsource ?? '') === 'RUJ' ? -1 : 1));
+        $grandTotalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (($items->first()->fsource ?? '') === 'RUJ' ? -1 : 1));
+        $grandTotalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (($row->fsource ?? '') === 'RUJ' ? -1 : 1));
+        $grandTotalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'RUJ' ? -1 : 1));
 
         foreach ($groupedData as $fsono => $items) {
             $h = $items->first();
-            $sign = ($h->fsource ?? '') === 'REJ' ? -1 : 1;
-            $invoiceStyle = ($h->fsource ?? '') === 'REJ' ? $styleReturInvoice : $styleInvoice;
+            $sign = ($h->fsource ?? '') === 'RUJ' ? -1 : 1;
+            $invoiceStyle = ($h->fsource ?? '') === 'RUJ' ? $styleReturInvoice : $styleInvoice;
             // Write Invoice Header
             $writer->addRow($makeRow([
                 $h->fbranchcode,

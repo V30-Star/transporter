@@ -44,7 +44,7 @@ class ListingReturPembelianController extends Controller
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->leftJoin('mssupplier as s', 'm.fsupplier', '=', 's.fsuppliercode')
             ->leftJoin('mswh as wh', 'm.ffrom', '=', 'wh.fwhcode')
-            ->where('m.fstockmtcode', 'REB')
+            ->where('m.fstockmtcode', 'RUB')
             ->select(
                 'm.fstockmtid',
                 'm.fstockmtno',

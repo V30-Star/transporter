@@ -22,7 +22,7 @@ class ReturPenjualanController extends Controller
 
     private function todayCreateCount(): int
     {
-        return Tranmt::where('ftrcode', 'REJ')
+        return Tranmt::where('ftrcode', 'RUJ')
             ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
             ->count();
     }
@@ -173,7 +173,7 @@ class ReturPenjualanController extends Controller
         // Ambil tahun-tahun yang tersedia dari data
         $availableYearsQuery = Tranmt::query()
             ->selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
-            ->where('ftrcode', 'REJ')
+            ->where('ftrcode', 'RUJ')
             ->whereNotNull('fsodate');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'tranmt.fbranchcode');
         $availableYears = $availableYearsQuery
@@ -186,7 +186,7 @@ class ReturPenjualanController extends Controller
             $query = Tranmt::query()
                 ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
                 ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
-                ->where('tranmt.ftrcode', 'REJ')
+                ->where('tranmt.ftrcode', 'RUJ')
                 ->select(
                     'tranmt.ftranmtid',
                     'tranmt.fbranchcode',
@@ -420,7 +420,7 @@ class ReturPenjualanController extends Controller
 
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
-            ->where('mt.ftrcode', 'REJ')
+            ->where('mt.ftrcode', 'RUJ')
             ->select(
                 'mt.ftranmtid',
                 'mt.fbranchcode',
@@ -920,7 +920,7 @@ class ReturPenjualanController extends Controller
         $date = $onDate ?: now();
         $branchCode = trim((string) ($branchCode ?: 'NA')) ?: 'NA';
         $sep = $hasPpn ? '.' : '/';
-        $prefix = sprintf('REJ%s%s%s%s%s', $sep, $branchCode, $sep, $date->format('y') . $date->format('m'), $sep);
+        $prefix = sprintf('RUJ%s%s%s%s%s', $sep, $branchCode, $sep, $date->format('y') . $date->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
             $last = DB::table('tranmt')
@@ -1107,7 +1107,7 @@ class ReturPenjualanController extends Controller
                 'fprice.*' => ['numeric', 'min:0'],
                 'frefcode' => ['nullable', 'array'],
                 'frefcode.*' => ['nullable', 'string'],
-                'frefcode_global' => ['nullable', 'string', 'in:SO,SRJ,UM,INV,REJ'],
+                'frefcode_global' => ['nullable', 'string', 'in:SO,SRJ,UM,INV,RUJ'],
                 'frefso' => ['nullable'],
                 'frefsrj' => ['nullable'],
                 'fnoacak' => ['nullable', 'array'],
@@ -1353,7 +1353,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => 'REJ',
+                'frefcode' => 'RUJ',
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1445,7 +1445,7 @@ class ReturPenjualanController extends Controller
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
                     $hasPpn = $fapplyppn === '1' || $fincludeppn === '1';
                     $sep = $hasPpn ? '.' : '/';
-                    $prefix = sprintf('REJ%s%s%s%s%s', $sep, $branchCode, $sep, $fsodate->format('y') . $fsodate->format('m'), $sep);
+                    $prefix = sprintf('RUJ%s%s%s%s%s', $sep, $branchCode, $sep, $fsodate->format('y') . $fsodate->format('m'), $sep);
 
                     if (DB::getDriverName() === 'pgsql') {
                         $last = DB::table('tranmt')
@@ -1498,7 +1498,7 @@ class ReturPenjualanController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => $typeSales,
-                    'ftrcode' => 'REJ',
+                    'ftrcode' => 'RUJ',
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
                     'fprint' => 0,
@@ -1519,7 +1519,7 @@ class ReturPenjualanController extends Controller
                 $fstockmtno = $fsono;
                 $masterStockData = [
                     'fstockmtno' => $fstockmtno,
-                    'fstockmtcode' => 'REJ',
+                    'fstockmtcode' => 'RUJ',
                     'fstockmtdate' => $fsodate,
                     'fprdout' => '0',
                     'fsupplier' => mb_substr($request->fcustno, 0, 10),
@@ -1542,7 +1542,7 @@ class ReturPenjualanController extends Controller
 
                 foreach ($stockDetailRows as &$srow) {
                     $srow['fstockmtno'] = $fstockmtno;
-                    $srow['fstockmtcode'] = 'REJ';
+                    $srow['fstockmtcode'] = 'RUJ';
                 }
                 unset($srow);
 
@@ -2066,7 +2066,7 @@ class ReturPenjualanController extends Controller
         $key = trim((string) $key);
 
         return Tranmt::query()
-            ->where('ftrcode', 'REJ')
+            ->where('ftrcode', 'RUJ')
             ->where(function ($q) use ($key) {
                 if (is_numeric($key)) {
                     $q->where('ftranmtid', (int) $key);
@@ -2646,7 +2646,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => 'REJ',
+                'frefcode' => 'RUJ',
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -2708,7 +2708,7 @@ class ReturPenjualanController extends Controller
 
         $ftypesales = $request->input('ftypesales', 0);
 
-        $stockMtNo = str_replace('REJ.', 'REB.', (string) $header->fsono);
+        $stockMtNo = str_replace('RUJ.', 'RUB.', (string) $header->fsono);
         $oldStockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
         if ($stockResponse = $this->validateStockMinusLines(
             $this->buildStockMinusLinesFromNetChange($stockDetailRows, (string) $request->input('ffrom'), $this->fetchStockDetailRows($stockMtNo), (string) ($oldStockHeader->ffrom ?? $request->input('ffrom'))),
@@ -2880,14 +2880,14 @@ class ReturPenjualanController extends Controller
                 $fstockmtno = (string) $header->fsono;
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
                 if (! $stockHeader) {
-                    $fstockmtno = str_replace('REJ.', 'REB.', (string) $header->fsono);
+                    $fstockmtno = str_replace('RUJ.', 'RUB.', (string) $header->fsono);
                     $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
                 }
 
                 if ($stockHeader) {
                     // Update Stock Header
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->update([
-                        'fstockmtcode'     => 'REJ',
+                        'fstockmtcode'     => 'RUJ',
                         'fstockmtdate'     => $fsodate,
                         'fsupplier'        => mb_substr($request->fcustno, 0, 10),
                         'ffrom'            => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
@@ -2961,7 +2961,7 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->delete();
                     foreach ($stockDetailRows as &$srow) {
                         $srow['fstockmtno'] = $fstockmtno;
-                        $srow['fstockmtcode'] = 'REJ';
+                        $srow['fstockmtcode'] = 'RUJ';
 
                         $insertedStockDtId = DB::table('trstockdt')->insertGetId($srow, 'fstockdtid');
                         $sdtObj = DB::table('trstockdt')->where('fstockdtid', $insertedStockDtId)->first();
@@ -3195,7 +3195,7 @@ class ReturPenjualanController extends Controller
             $stockMtNo = (string) $returHeader->fsono;
             $stockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
             if (! $stockHeader) {
-                $stockMtNo = str_replace('REJ.', 'REB.', (string) $returHeader->fsono);
+                $stockMtNo = str_replace('RUJ.', 'RUB.', (string) $returHeader->fsono);
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
             }
             if ($stockHeader && ($stockResponse = $this->validateStockMinusLines(
@@ -3329,7 +3329,7 @@ class ReturPenjualanController extends Controller
                 $fstockmtno = (string) $fsono;
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
                 if (! $stockHeader) {
-                    $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
+                    $fstockmtno = str_replace('RUJ.', 'RUB.', $fsono);
                     $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
                 }
 
@@ -3519,7 +3519,7 @@ class ReturPenjualanController extends Controller
         $targetDebitAccount = $isUangMuka ? ($accountReturnUM ?: $accountReturnSales) : $accountReturnSales;
         $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Retur Penjualan';
 
-        $fjurnaltype = 'REJ';
+        $fjurnaltype = 'RUJ';
         $hasPpn = (string) ($returPenjualan->fapplyppn ?? '0') === '1' || (string) ($returPenjualan->fincludeppn ?? '0') === '1';
         $sep = $hasPpn ? '.' : '/';
         $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fsodate->format('y') . $fsodate->format('m'), $sep);
@@ -3625,7 +3625,7 @@ class ReturPenjualanController extends Controller
     {
         $jurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fsono)
-            ->where('fjurnaltype', 'REJ')
+            ->where('fjurnaltype', 'RUJ')
             ->pluck('fjurnalmtid')
             ->filter(fn($id) => ! is_null($id))
             ->unique()

@@ -47,8 +47,8 @@ class ListingPiutangPenjualanController extends Controller
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->selectRaw("m.ftranmtid, m.fbranchcode, m.fsono, m.ftrcode AS fstockmtcode, m.fsodate, m.fjatuhtempo, m.frefno, m.fcustno AS fcustomer, 
             c.fcustomername AS fcustname, m.famountso AS fnilainota, 
-            CASE WHEN m.ftrcode = 'REJ' THEN m.famountso * -1 ELSE m.famountso END AS famountso, m.fuserid, m.fsalesman, c.fwilayah")
-            ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ'] : ['INV'])
+            CASE WHEN m.ftrcode = 'RUJ' THEN m.famountso * -1 ELSE m.famountso END AS famountso, m.fuserid, m.fsalesman, c.fwilayah")
+            ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'RUJ'] : ['INV'])
             ->where('m.fsodate', '<=', $perTanggal)
             ->where(function ($q) {
                 $q->whereNull('m.ftunai')->orWhere('m.ftunai', '0')->orWhere('m.ftunai', '');
@@ -95,7 +95,7 @@ class ListingPiutangPenjualanController extends Controller
             ->fromSub($base, 'a')
             ->leftJoinSub($payments, 'b', 'a.fsono', '=', 'b.frefno')
             ->leftJoinSub($journals, 'c', 'a.fsono', '=', 'c.frefno')
-            ->selectRaw("a.ftranmtid, a.fbranchcode, a.fsono, a.fstockmtcode, a.fsodate, a.fjatuhtempo, a.frefno, a.fcustomer, a.fcustname, a.fnilainota, a.famountso, a.fuserid, a.fsalesman, COALESCE(b.ftotalbayar, 0) AS ftotalbayar, COALESCE(c.ftotalsju, 0) AS ftotalsju, CASE WHEN a.fstockmtcode = 'REJ' THEN (a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0))) * -1 ELSE a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0)) END AS fsisapiu")
+            ->selectRaw("a.ftranmtid, a.fbranchcode, a.fsono, a.fstockmtcode, a.fsodate, a.fjatuhtempo, a.frefno, a.fcustomer, a.fcustname, a.fnilainota, a.famountso, a.fuserid, a.fsalesman, COALESCE(b.ftotalbayar, 0) AS ftotalbayar, COALESCE(c.ftotalsju, 0) AS ftotalsju, CASE WHEN a.fstockmtcode = 'RUJ' THEN (a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0))) * -1 ELSE a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0)) END AS fsisapiu")
             ->whereRaw("(a.fnilainota - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0))) > 0")
             ->orderBy('a.fcustomer')
             ->orderBy('a.fsono')

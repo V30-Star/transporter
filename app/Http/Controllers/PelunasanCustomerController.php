@@ -153,7 +153,7 @@ class PelunasanCustomerController extends Controller
             ->from('tranmt as mt')
             ->leftJoin('trandt as dt', 'dt.fsono', '=', 'mt.fsono')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
-            ->whereIn('mt.ftrcode', ['INV', 'REJ'])
+            ->whereIn('mt.ftrcode', ['INV', 'RUJ'])
             ->whereRaw('COALESCE(mt.famountremain, 0) > 0')
             ->when($customerCode !== '', function ($query) use ($customerCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
@@ -229,7 +229,7 @@ class PelunasanCustomerController extends Controller
                 $amountRemain = (float) ($row->famountremain ?? 0);
                 $amountSo = (float) ($row->famountso ?? 0);
 
-                if (strtoupper($trCode) === 'REJ') {
+                if (strtoupper($trCode) === 'RUJ') {
                     $amount *= -1;
                     $amountSo *= -1;
                     if ($amountRemain < 0) {
@@ -916,7 +916,7 @@ class PelunasanCustomerController extends Controller
 
         $invoices = DB::table('tranmt')
             ->whereIn('fsono', $refNos)
-            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->whereIn('ftrcode', ['INV', 'RUJ'])
             ->get(['fsono', 'famountso', 'ftrcode']);
 
         // Sum all payments (fkasdtvalue) per invoice from trkasdt
@@ -970,7 +970,7 @@ class PelunasanCustomerController extends Controller
                 $trCode = strtoupper(trim((string) ($detail['ftrcode'] ?? 'INV')));
                 $rawKasdtValue = round((float) ($detail['fkasdtvalue'] ?? 0), 2);
 
-                if ($trCode === 'REJ' && $rawKasdtValue >= 0) {
+                if ($trCode === 'RUJ' && $rawKasdtValue >= 0) {
                     throw ValidationException::withMessages([
                         'details' => 'Harus Mengurangi Hutang.,Penyimpanan dibatalkan.',
                     ]);
@@ -978,9 +978,9 @@ class PelunasanCustomerController extends Controller
 
                 $sisa = round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2);
                 $originalSisa = round(abs((float) ($detail['original_sisa'] ?? 0)), 2);
-                $discPersen = $trCode === 'REJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2);
+                $discPersen = $trCode === 'RUJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2);
 
-                if ($trCode === 'REJ') {
+                if ($trCode === 'RUJ') {
                     $discount = 0.0;
                 } elseif ($discPersen > 0) {
                     $discount = round(($originalSisa * $discPersen / 100), 2);
@@ -989,7 +989,7 @@ class PelunasanCustomerController extends Controller
                 }
 
                 $fkasdtvalue = round(abs($rawKasdtValue), 2);
-                if ($trCode === 'REJ') {
+                if ($trCode === 'RUJ') {
                     $fkasdtvalue = -$fkasdtvalue;
                 }
 
@@ -1031,19 +1031,19 @@ class PelunasanCustomerController extends Controller
             $reference = $referenceMap[$refNo] ?? null;
             $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? $reference?->ftrcode ?? 'INV')));
             $paymentAmount = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
-            if ($trCode === 'REJ') {
+            if ($trCode === 'RUJ') {
                 $paymentAmount = -$paymentAmount;
             }
             $discountAmount = round(abs((float) ($row['fdiscount'] ?? 0)), 2);
-            $journalAmount = $trCode === 'REJ'
+            $journalAmount = $trCode === 'RUJ'
                 ? $paymentAmount
                 : round($paymentAmount + $discountAmount, 2);
-            $faccountCode = $trCode === 'REJ' ? $returnReceivableCode : $receivableCode;
+            $faccountCode = $trCode === 'RUJ' ? $returnReceivableCode : $receivableCode;
             $note = mb_substr($refNo . ' (' . $customer->fcustomername . ')', 0, 100);
 
             return [
                 'faccount' => $faccountCode,
-                'fdk' => $trCode === 'REJ' ? 'D' : 'K',
+                'fdk' => $trCode === 'RUJ' ? 'D' : 'K',
                 'frefno' => $refNo,
                 'fnote' => $note,
                 'fsubaccount' => $customer->fcustomercode,
@@ -1075,7 +1075,7 @@ class PelunasanCustomerController extends Controller
 
         $remainingByRef = Tranmt::query()
             ->whereIn('fsono', $refNos)
-            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->whereIn('ftrcode', ['INV', 'RUJ'])
             ->pluck('famountremain', 'fsono')
             ->mapWithKeys(fn($remain, $refNo) => [trim((string) $refNo) => abs((float) $remain)]);
 
@@ -1193,7 +1193,7 @@ class PelunasanCustomerController extends Controller
 
         $customerByRef = Tranmt::query()
             ->whereIn('fsono', $refNos)
-            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->whereIn('ftrcode', ['INV', 'RUJ'])
             ->pluck('fcustno', 'fsono')
             ->mapWithKeys(fn($custNo, $refNo) => [trim((string) $refNo) => trim((string) $custNo)]);
 
@@ -1226,15 +1226,15 @@ class PelunasanCustomerController extends Controller
 
         $references = Tranmt::query()
             ->whereIn('fsono', $refNos)
-            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->whereIn('ftrcode', ['INV', 'RUJ'])
             ->get(['fsono', 'ftrcode', 'fsodate'])
             ->keyBy(fn($row) => trim((string) $row->fsono));
 
         $returStockDateMap = $refNos
-            ->filter(fn($refNo) => str_starts_with(strtoupper((string) $refNo), 'REJ.'))
+            ->filter(fn($refNo) => str_starts_with(strtoupper((string) $refNo), 'RUJ.'))
             ->mapWithKeys(function ($refNo) {
                 $trimmed = trim((string) $refNo);
-                $rebNo = preg_replace('/^REJ\./i', 'REB.', $trimmed);
+                $rebNo = preg_replace('/^RUJ\./i', 'RUB.', $trimmed);
 
                 return [$trimmed => $rebNo];
             });
@@ -1263,9 +1263,9 @@ class PelunasanCustomerController extends Controller
             }
 
             $referenceDateValue = null;
-            $referenceLabel = $trCode === 'REJ' ? 'Tanggal retur' : 'Tanggal faktur';
+            $referenceLabel = $trCode === 'RUJ' ? 'Tanggal retur' : 'Tanggal faktur';
 
-            if ($trCode === 'REJ') {
+            if ($trCode === 'RUJ') {
                 $rebNo = $returStockDateMap->get($refNo);
                 $referenceDateValue = $rebNo ? $stockDatesByRebNo->get($rebNo) : null;
 
@@ -1494,25 +1494,25 @@ class PelunasanCustomerController extends Controller
                         $currentNotaAmount = (float) ($reference->famountso ?? 0);
                         $currentRemainAmount = (float) ($reference->famountremain ?? 0);
 
-                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'REJ') {
+                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'RUJ') {
                             $currentNotaAmount = abs($currentNotaAmount);
                             $currentRemainAmount = abs($currentRemainAmount);
                         }
 
                         $baseAmount = $currentNotaAmount;
-                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'REJ') {
+                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'RUJ') {
                             $paymentAmount = -abs(round((float) ($reference->famountremain ?? 0) - (float) ($reference->famountso ?? 0) + $discountAmount, 2));
                         } else {
                             $paymentAmount = max($currentRemainAmount - $discountAmount, 0);
                         }
                     }
 
-                    if (strtoupper($trCode) === 'REJ') {
+                    if (strtoupper($trCode) === 'RUJ') {
                         $baseAmount = $baseAmount < 0 ? $baseAmount * -1 : $baseAmount;
                     }
 
                     $adjustedRemain = $reference
-                        ? (strtoupper($trCode) === 'REJ'
+                        ? (strtoupper($trCode) === 'RUJ'
                             ? max(abs((float) ($reference->famountremain ?? 0)) - abs($actualPayment), 0)
                             : max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0))
                         : $baseAmount;

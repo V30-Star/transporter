@@ -515,7 +515,7 @@
                 @foreach ($items as $row)
                     @php
                         $hasTrx = !empty($row->fstockmtid);
-                        $isReturn = ($row->fstockmtcode ?? '') === 'REB';
+                        $isReturn = ($row->fstockmtcode ?? '') === 'RUB';
                         $viewUrl = $hasTrx ? ($isReturn ? route('returpembelian.view', $row->fstockmtid) : route('fakturpembelian.view', $row->fstockmtid)) : '#';
                         $editUrl = $hasTrx ? ($isReturn ? route('returpembelian.edit', $row->fstockmtid) : route('fakturpembelian.edit', $row->fstockmtid)) : '#';
                     @endphp

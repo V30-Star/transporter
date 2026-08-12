@@ -288,14 +288,14 @@ class LaporanKartuStokController extends Controller
 
         if ($direction === 'in') {
             $query->where(function ($q) use ($whcode) {
-                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['BUY', 'TER', 'REJ'])->where('m.ffrom', $whcode))
+                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['BUY', 'TER', 'RUJ'])->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->whereIn('m.fstockmtcode', ['MUT', 'PRD'])->where('m.fto', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'CAB')->where('m.ftrancode', 'M')->where('m.fto', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'M')->where('m.ffrom', $whcode));
             });
         } else {
             $query->where(function ($q) use ($whcode) {
-                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['SRJ', 'PBR', 'REB', 'MUT'])->where('m.ffrom', $whcode))
+                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['SRJ', 'PBR', 'RUB', 'MUT'])->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'CAB')->where('m.ftrancode', 'K')->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'K')->where('m.ffrom', $whcode));
             });

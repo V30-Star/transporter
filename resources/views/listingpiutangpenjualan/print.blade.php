@@ -462,7 +462,7 @@
             @if ($mode === 'detail')
                 @foreach ($items as $index => $row)
                     @php
-                        $isReturn = ($row->fstockmtcode ?? '') === 'REJ';
+                        $isReturn = ($row->fstockmtcode ?? '') === 'RUJ';
                         $viewUrl = $isReturn ? route('returpenjualan.view', $row->ftranmtid) : route('invoice.view', $row->ftranmtid);
                         $editUrl = $isReturn ? route('returpenjualan.edit', $row->ftranmtid) : route('invoice.edit', $row->ftranmtid);
                     @endphp

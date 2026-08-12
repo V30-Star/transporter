@@ -20,7 +20,7 @@ class ReturPembelianController extends Controller
 
     private function todayCreateCount(): int
     {
-        return PenerimaanPembelianHeader::where('fstockmtcode', 'REB')
+        return PenerimaanPembelianHeader::where('fstockmtcode', 'RUB')
             ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
             ->count();
     }
@@ -97,7 +97,7 @@ class ReturPembelianController extends Controller
 
         // Ambil tahun-tahun yang tersedia dari data
         $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->where('fstockmtcode', 'REB')
+            ->where('fstockmtcode', 'RUB')
             ->whereNotNull('fdatetime');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
         $availableYears = $availableYearsQuery
@@ -109,7 +109,7 @@ class ReturPembelianController extends Controller
             $baseQuery = DB::table('trstockmt')
                 ->leftJoin('mswh as warehouse', 'warehouse.fwhcode', '=', 'trstockmt.ffrom')
                 ->leftJoin('mssupplier as supplier', 'supplier.fsuppliercode', '=', 'trstockmt.fsupplier')
-                ->where('trstockmt.fstockmtcode', 'REB');
+                ->where('trstockmt.fstockmtcode', 'RUB');
             $this->applyBranchVisibilityScope($baseQuery, 'trstockmt.fbranchcode');
 
             $query = clone $baseQuery;
@@ -442,9 +442,9 @@ class ReturPembelianController extends Controller
         }
 
         $sep = $hasPpn ? '.' : '/';
-        $prefix = sprintf('REB%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
+        $prefix = sprintf('RUB%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        $lockKey = crc32('STOCKMT|REB|' . $kodeCabang . '|' . $date->format('y-m'));
+        $lockKey = crc32('STOCKMT|RUB|' . $kodeCabang . '|' . $date->format('y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
@@ -1026,7 +1026,7 @@ class ReturPembelianController extends Controller
                 // GENERATE DOCUMENT NUMBER
                 $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
-                $fstockmtcode = 'REB';
+                $fstockmtcode = 'RUB';
 
                 if (empty($fstockmtno)) {
                     $sep = $fincludeppn === 1 ? '.' : '/';
@@ -1674,7 +1674,7 @@ class ReturPembelianController extends Controller
                     $kodeCabang = 'NA';
                 }
 
-                $fstockmtcode = 'REB';
+                $fstockmtcode = 'RUB';
 
                 if (empty($fstockmtno)) {
                     $fstockmtno = $header->fstockmtno;
@@ -2154,7 +2154,7 @@ class ReturPembelianController extends Controller
 
         foreach ($references as $referenceNo) {
             $query = DB::table('trstockmt')
-                ->where('fstockmtcode', 'REB')
+                ->where('fstockmtcode', 'RUB')
                 ->where(function ($inner) use ($referenceNo) {
                     $inner->whereRaw('TRIM(COALESCE(frefno, \'\')) = ?', [$referenceNo])
                         ->orWhereRaw('TRIM(COALESCE(frefpo, \'\')) = ?', [$referenceNo]);
@@ -2223,7 +2223,7 @@ class ReturPembelianController extends Controller
         $targetKreditAccount = $isUangMuka ? ($accountReturnUM ?: $accountPersediaan) : $accountPersediaan;
         $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Kurangi Persediaan Barang';
 
-        $fjurnaltype  = 'REB';
+        $fjurnaltype  = 'RUB';
         $hasPpn = (string) ($returPembelian->fapplyppn ?? '0') === '1' || (string) ($returPembelian->fincludeppn ?? '0') === '1';
         $sep = $hasPpn ? '.' : '/';
         $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
@@ -2329,7 +2329,7 @@ class ReturPembelianController extends Controller
     {
         $jurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fstockmtno)
-            ->where('fjurnaltype', 'REB')
+            ->where('fjurnaltype', 'RUB')
             ->pluck('fjurnalmtid')
             ->filter(fn($id) => ! is_null($id))
             ->unique()

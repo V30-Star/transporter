@@ -2520,7 +2520,7 @@ class SalesOrderController extends Controller
             $upperNo = strtoupper((string) $no);
             return str_starts_with($upperNo, $codeInit . '.') || str_starts_with($upperNo, $codeInit . '/') || str_starts_with($upperNo, 'INV.') || str_starts_with($upperNo, 'INV/');
         });
-        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
+        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'RUJ.'));
 
         if ($usedBySrj->isEmpty() && $usedByInvoice->isEmpty() && $usedByRetur->isEmpty()) {
             return null;

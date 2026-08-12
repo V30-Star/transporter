@@ -111,7 +111,7 @@ class ListingSuratJalanController extends Controller
 
         $rej = DB::table('trstockdt')
             ->select('frefdtno', 'fprdcode', DB::raw('SUM(fqtykecil) AS fqtyrtr'))
-            ->where('fstockmtcode', 'REJ')
+            ->where('fstockmtcode', 'RUJ')
             ->where('fcode', 'S')
             ->groupBy('frefdtno', 'fprdcode');
 
