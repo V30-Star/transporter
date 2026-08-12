@@ -1395,12 +1395,21 @@
                                                         </template>
                                                     </td>
                                                     <td class="p-2">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-sm font-mono focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-600 disabled:cursor-not-allowed"
-                                                            :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || it.frefcode || '')"
-                                                            @input="if (String(it.fitemcode || '').toUpperCase().trim() === 'UM') { it.frefdtno = $event.target.value; it.frefno_display = $event.target.value; it.frefso = $event.target.value; }"
-                                                            :disabled="String(it.fitemcode || '').toUpperCase().trim() !== 'UM' || '{{ $action }}' === 'view'"
-                                                            placeholder="No Ref">
+                                                        <div class="flex w-full max-w-full">
+                                                            <input type="text"
+                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
+                                                                :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || it.frefcode || '')"
+                                                                placeholder="No Ref" disabled>
+                                                            @if ($action !== 'view')
+                                                                <button type="button" @click="openProductHistory(it)"
+                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                    :disabled="!canOpenHistory(it)"
+                                                                    :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                                    title="Riwayat produk">
+                                                                    <x-heroicon-o-clock class="w-4 h-4" />
+                                                                </button>
+                                                            @endif
+                                                        </div>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -1889,6 +1898,57 @@
                                                     class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                                     Simpan
                                                 </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="showHistoryModal" x-cloak
+                                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                        <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                        <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                            <div class="px-5 py-4 border-b flex items-center justify-between">
+                                                <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                                <button type="button" @click="closeHistory()"
+                                                    class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                            </div>
+                                            <div class="p-5 overflow-auto max-h-[65vh]">
+                                                <template x-if="historyLoading">
+                                                    <div class="text-sm text-gray-500">Memuat data...</div>
+                                                </template>
+                                                <template x-if="!historyLoading">
+                                                    <table class="min-w-full text-sm">
+                                                        <thead class="bg-gray-100">
+                                                            <tr>
+                                                                <th class="p-2 text-left">No. Transaksi</th>
+                                                                <th class="p-2 text-left">Tanggal</th>
+                                                                <th class="p-2 text-right">Qty</th>
+                                                                <th class="p-2 text-right">Harga</th>
+                                                                <th class="p-2 text-right">Total</th>
+                                                                <th class="p-2 text-center">Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
+                                                                <tr class="border-t">
+                                                                    <td class="p-2" x-text="row.fsono"></td>
+                                                                    <td class="p-2" x-text="row.fsodate"></td>
+                                                                    <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                                    <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
+                                                                    <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
+                                                                    <td class="p-2 text-center">
+                                                                        <button type="button" @click="selectHistory(row)"
+                                                                            class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">
+                                                                            Pilih
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </template>
+                                                            <tr x-show="!historyRows.length">
+                                                                <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </template>
                                             </div>
                                         </div>
                                     </div>
@@ -2570,6 +2630,10 @@
             descValue: '',
             descSavedIndex: null,
             descItemName: '',
+            showHistoryModal: false,
+            historyLoading: false,
+            historyRows: [],
+            historyTargetRow: null,
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
@@ -3320,6 +3384,7 @@
                     this.onCodeTypedRow(targetRow, index);
                     targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(
                         targetRow.uid);
+                    this.openProductHistory(targetRow);
                     this.focusRowQty(index);
                 }, {
                     passive: true
@@ -3336,6 +3401,56 @@
                         forEdit: false
                     }
                 }));
+            },
+
+            canOpenHistory(targetRow) {
+                return this.getSelectedCustomerCode() !== '' && (targetRow?.fitemcode || '').toString().trim() !== '';
+            },
+            closeHistory() {
+                this.showHistoryModal = false;
+                this.historyLoading = false;
+                this.historyRows = [];
+                this.historyTargetRow = null;
+            },
+            async openProductHistory(targetRow) {
+                const customerCode = this.getSelectedCustomerCode();
+                const productCode = (targetRow?.fitemcode || '').toString().trim();
+
+                if (!customerCode) {
+                    this.showCustomerRequired = true;
+                    return;
+                }
+                if (!productCode) return;
+
+                this.showHistoryModal = true;
+                this.historyLoading = true;
+                this.historyRows = [];
+                this.historyTargetRow = targetRow;
+
+                try {
+                    const params = new URLSearchParams({
+                        fcustno: customerCode,
+                        fprdcode: productCode,
+                    });
+                    const response = await fetch(`{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' },
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload?.message || 'Gagal memuat riwayat produk.');
+                    this.historyRows = Array.isArray(payload?.data) ? payload.data : [];
+                } catch (error) {
+                    this.historyRows = [];
+                    window.toast?.error(error.message || 'Gagal memuat riwayat produk.');
+                } finally {
+                    this.historyLoading = false;
+                }
+            },
+            selectHistory(row) {
+                if (this.historyTargetRow) {
+                    this.historyTargetRow.frefdtno = row?.fsono || '';
+                    this.historyTargetRow.frefno_display = row?.fsono || '';
+                }
+                this.closeHistory();
             },
 
             openDesc(index = null) {
