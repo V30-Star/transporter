@@ -2033,12 +2033,12 @@ class InvoiceController extends Controller
 
             foreach ($soUsageByReference as $referenceKey => $qtyKecil) {
                 $stat = $soStats[$referenceKey] ?? null;
-                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
-                if ((float) $qtyKecil - $available > 0.000001) {
+                // ponytail: compares against original source qty per scope; cumulative over-use across docs no longer blocked, restore remain_qty_kecil compare + except-current usage if that becomes required
+                $sourceQty = max(0, (float) ($stat['source_qty_kecil'] ?? 0));
+                if ((float) $qtyKecil - $sourceQty > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
-                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Sales Order" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
+                    return 'Jumlah input tidak boleh melebihi qty SO' . ($refno !== '' ? " ({$refno})" : '') . ". Produk {$label}.";
                 }
             }
         }
@@ -2048,12 +2048,11 @@ class InvoiceController extends Controller
 
             foreach ($srjUsageByReference as $referenceKey => $qtyKecil) {
                 $stat = $srjStats[$referenceKey] ?? null;
-                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
-                if ((float) $qtyKecil - $available > 0.000001) {
+                $sourceQty = max(0, (float) ($stat['source_qty_kecil'] ?? 0));
+                if ((float) $qtyKecil - $sourceQty > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
-                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Surat Jalan" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
+                    return 'Jumlah input tidak boleh melebihi qty SRJ' . ($refno !== '' ? " ({$refno})" : '') . ". Produk {$label}.";
                 }
             }
         }

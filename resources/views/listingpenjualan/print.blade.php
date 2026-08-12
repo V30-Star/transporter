@@ -601,7 +601,9 @@
         @foreach ($groupedData as $fsono => $details)
             @php
                 $h = $details->first();
-                $isReturn = ($h->ftrcode ?? '') === 'REJ';
+                $ftrcode = strtoupper(trim((string) ($h->ftrcode ?? '')));
+                $ftype = strtoupper(trim((string) ($h->ftype ?? $h->transaction_type ?? '')));
+                $isReturn = $ftrcode === 'REJ' || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN';
                 $sign = $isReturn ? -1 : 1;
                 $viewUrl = $isReturn ? route('returpenjualan.view', $h->ftranmtid) : route('invoice.view', $h->ftranmtid);
                 $editUrl = $isReturn ? route('returpenjualan.edit', $h->ftranmtid) : route('invoice.edit', $h->ftranmtid);
@@ -655,7 +657,9 @@
 
         foreach ($groupedData as $details) {
             $h = $details->first();
-            $sign = ($h->ftrcode ?? '') === 'REJ' ? -1 : 1;
+            $ftrcode = strtoupper(trim((string) ($h->ftrcode ?? '')));
+            $ftype = strtoupper(trim((string) ($h->ftype ?? $h->transaction_type ?? '')));
+            $sign = ($ftrcode === 'REJ' || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN') ? -1 : 1;
             $grandDiscount += abs((float) $h->fdiscount) * $sign;
             $grandNetto += abs((float) $h->famountsonet) * $sign;
             $grandPPN += abs((float) $h->famountpajak) * $sign;

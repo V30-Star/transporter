@@ -1706,12 +1706,11 @@ class ReturPenjualanController extends Controller
 
             foreach ($soUsageByReference as $referenceKey => $qtyKecil) {
                 $stat = $this->resolveReferenceStatWithFallback($soStats, (string) $referenceKey);
-                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
-                if ((float) $qtyKecil - $available > 0.000001) {
+                $sourceQty = max(0, (float) ($stat['source_qty_kecil'] ?? 0));
+                if ((float) $qtyKecil - $sourceQty > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
-                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Faktur Penjualan" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
+                    return 'Jumlah retur tidak boleh melebihi qty Faktur' . ($refno !== '' ? " ({$refno})" : '') . ". Produk {$label}.";
                 }
             }
         }
@@ -1721,12 +1720,11 @@ class ReturPenjualanController extends Controller
 
             foreach ($srjUsageByReference as $referenceKey => $qtyKecil) {
                 $stat = $this->resolveReferenceStatWithFallback($srjStats, (string) $referenceKey);
-                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
-                if ((float) $qtyKecil - $available > 0.000001) {
+                $sourceQty = max(0, (float) ($stat['source_qty_kecil'] ?? 0));
+                if ((float) $qtyKecil - $sourceQty > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
-                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Surat Jalan" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
+                    return 'Jumlah retur tidak boleh melebihi qty SRJ' . ($refno !== '' ? " ({$refno})" : '') . ". Produk {$label}.";
                 }
             }
         }

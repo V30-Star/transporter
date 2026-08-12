@@ -916,7 +916,7 @@ class FakturpembelianController extends Controller
                         ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fpodid', $ids)
-                ->selectRaw('d.fpodid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
+                ->selectRaw('d.fpodid as detail_id, COALESCE(d.fqtykecil, 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
                 ->map(fn($value) => (float) $value)
                 ->all();
@@ -934,7 +934,7 @@ class FakturpembelianController extends Controller
                         ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fstockdtid', $ids)
-                ->selectRaw('d.fstockdtid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
+                ->selectRaw('d.fstockdtid as detail_id, COALESCE(d.fqtykecil, 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
                 ->map(fn($value) => (float) $value)
                 ->all();
@@ -1084,7 +1084,8 @@ class FakturpembelianController extends Controller
             $sat = trim((string) ($satuans[$i] ?? ''));
             $needKecil = $this->qtySourceUnitToKecil($product, $sat, $qty);
             $sourceKey = $sourceType . ':' . $detailId;
-            $availableKecil = $remainKecil + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
+            // ponytail: compares against original source qty per scope; cumulative over-use across docs no longer blocked, restore remain_qty_kecil compare + except-current usage if that becomes required
+            $availableKecil = $remainKecil;
             if ($needKecil > $availableKecil + $tolerance) {
                 $available = $this->qtyKecilToSourceUnit((object) [
                     'fsatuan' => $sat,
@@ -1093,7 +1094,7 @@ class FakturpembelianController extends Controller
                     'fqtykecil_master' => $product->fqtykecil_master ?? 0,
                     'fqtykecil2_master' => $product->fqtykecil2_master ?? 0,
                 ], $availableKecil);
-                $errors->add("fqty.$i", "Qty item {$code} melebihi sisa {$sourceType}. Maksimal {$available}.");
+                $errors->add("fqty.$i", "Qty item {$code} melebihi qty referensi {$sourceType}. Maksimal {$available}.");
             }
         }
 

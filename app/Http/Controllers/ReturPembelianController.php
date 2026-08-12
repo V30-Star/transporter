@@ -542,6 +542,46 @@ class ReturPembelianController extends Controller
             ->first();
     }
 
+    private function validateQtyAgainstPurchaseReference(array $rowsDt): ?string
+    {
+        $refs = collect($rowsDt)->pluck('frefdtno')->map(fn($value) => trim((string) $value))->filter()->unique()->values()->all();
+        if (empty($refs)) {
+            return null;
+        }
+
+        $source = DB::table('trstockdt as d')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->where('d.fstockmtcode', 'BUY')
+            ->whereIn('d.fstockmtno', $refs)
+            ->selectRaw('TRIM(d.fstockmtno) as refno, TRIM(d.fprdcode) as code, MAX(COALESCE(p.fprdname, d.fprdcode)) as name, SUM(COALESCE(d.fqtykecil, 0)) as source_qty')
+            ->groupByRaw('TRIM(d.fstockmtno), TRIM(d.fprdcode)')
+            ->get()
+            ->keyBy(fn($row) => trim((string) $row->refno) . '|' . trim((string) $row->code));
+
+        $usage = [];
+        foreach ($rowsDt as $row) {
+            $refno = trim((string) ($row['frefdtno'] ?? ''));
+            $code = trim((string) ($row['fprdcode'] ?? ''));
+            if ($refno === '' || $code === '' || strtoupper($code) === 'UM') {
+                continue;
+            }
+            $key = $refno . '|' . $code;
+            $usage[$key] = ($usage[$key] ?? 0) + (float) ($row['fqtykecil'] ?? 0);
+        }
+
+        foreach ($usage as $key => $qtyKecil) {
+            $stat = $source->get($key);
+            // ponytail: compares against original BUY source qty per scope; cumulative over-use across docs no longer blocked, restore remain-based check if that becomes required
+            if ((float) $qtyKecil - (float) ($stat->source_qty ?? 0) > 0.000001) {
+                [$refno, $code] = array_pad(explode('|', $key), 2, '');
+                $label = trim((string) ($stat->name ?? $code));
+                return "Jumlah input tidak boleh melebihi qty Faktur Pembelian ({$refno}). Produk {$label}.";
+            }
+        }
+
+        return null;
+    }
+
     public function productHistory(Request $request)
     {
         $supplierCode = trim((string) $request->input('fsupplier', ''));
@@ -930,6 +970,10 @@ class ReturPembelianController extends Controller
                 return back()->withInput()->withErrors([
                     'detail' => 'Minimal 1 item valid (Kode, Satuan, Qty > 0).',
                 ]);
+            }
+
+            if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
             if ($stockResponse = $this->validateStockMinusLines(
@@ -1573,6 +1617,10 @@ class ReturPembelianController extends Controller
                 return back()->withInput()->withErrors([
                     'detail' => 'Minimal 1 item valid (Kode, Satuan, Qty > 0).',
                 ]);
+            }
+
+            if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
             if ($stockResponse = $this->validateStockMinusLines(
