@@ -38,34 +38,38 @@
             overflow: hidden !important;
         }
 
-        .header-section {
+         .header-section {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 0px;
             text-align: center;
-            padding-bottom: 25px;
+            padding-bottom: 20px;
         }
 
         .header-section h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            font-weight: bold;
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #c00;
+            color: #cc0000; /* Dark Red matching Listing PO */
+            letter-spacing: 0.5px;
         }
 
-        .filter-info {
+       .filter-info {
             font-size: 10px;
-            color: #333;
+            color: #475569; /* Slate 600 */
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .supplier-info-kiri {
             position: absolute;
-            top: 15mm;
+            top: 15px; /* Shifted one line up inline with right side metadata */
             left: 0mm;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
+            line-height: 1.5;
         }
 
         .info-tambahan {
@@ -79,8 +83,10 @@
         }
 
         .info-label {
+            font-weight: 600;
             display: inline-block;
-            width: 45px;
+            width: 50px;
+            color: #475569; /* Slate 600 */
         }
 
         .po-header-labels,
