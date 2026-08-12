@@ -878,6 +878,42 @@ class ReturPenjualanController extends Controller
         return null;
     }
 
+    private function resolveReturFjatuhtempo(array $detailRows): ?string
+    {
+        $invRefs = collect($detailRows)
+            ->map(fn ($row) => trim((string) ($row['frefso'] ?? '')))
+            ->filter()
+            ->unique()
+            ->values();
+        $srjRefs = collect($detailRows)
+            ->map(fn ($row) => trim((string) ($row['frefsrj'] ?? '')))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($invRefs->isEmpty() && $srjRefs->isEmpty()) {
+            return null;
+        }
+
+        $query = DB::table('tranmt as m')
+            ->where('m.ftrcode', 'INV')
+            ->whereNotNull('m.fjatuhtempo');
+
+        if ($invRefs->isNotEmpty()) {
+            $query->whereIn('m.fsono', $invRefs->all());
+        }
+
+        if ($srjRefs->isNotEmpty()) {
+            $query->orWhereIn('m.fsono', function ($q) use ($srjRefs) {
+                $q->select('d.fsono')
+                    ->from('trandt as d')
+                    ->whereIn('d.frefsrj', $srjRefs->all());
+            });
+        }
+
+        return $query->max('m.fjatuhtempo');
+    }
+
     private function generateInvoiceCode(?Carbon $onDate = null, ?string $branchCode = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
@@ -1463,6 +1499,7 @@ class ReturPenjualanController extends Controller
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
                     'fprint' => 0,
+                    'fjatuhtempo' => $this->resolveReturFjatuhtempo($detailRows),
                     'fbranchcode' => $request->fbranchcode,
                 ];
 
@@ -2730,6 +2767,7 @@ class ReturPenjualanController extends Controller
                     'ftypesales'       => $ftypesales,
                     'fppnpersen'       => $ppnPersen,
                     'ftaxno'           => $request->ftaxno ?? '0',
+                    'fjatuhtempo'      => $this->resolveReturFjatuhtempo($detailRows),
                 ]);
 
                 $updatedHeader = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
