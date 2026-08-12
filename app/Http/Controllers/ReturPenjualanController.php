@@ -830,7 +830,7 @@ class ReturPenjualanController extends Controller
         }
     }
 
-    private function validateReturProductReferences(array $itemCodes, array $frefso, array $frefsrj): void
+    private function validateReturProductReferences(array $itemCodes, array $frefso, array $frefsrj, array $frefdtno = [], array $frefpr = []): void
     {
         foreach ($itemCodes as $index => $code) {
             $code = strtoupper(trim((string) $code));
@@ -838,7 +838,12 @@ class ReturPenjualanController extends Controller
                 continue;
             }
 
-            if (trim((string) ($frefso[$index] ?? '')) === '' && trim((string) ($frefsrj[$index] ?? '')) === '') {
+            $refSo = trim((string) ($frefso[$index] ?? ''));
+            $refSrj = trim((string) ($frefsrj[$index] ?? ''));
+            $refDtNo = trim((string) ($frefdtno[$index] ?? ''));
+            $refPr = trim((string) ($frefpr[$index] ?? ''));
+
+            if ($refSo === '' && $refSrj === '' && $refDtNo === '' && $refPr === '') {
                 throw ValidationException::withMessages([
                     "fitemcode.{$index}" => "Produk {$code} wajib memiliki no. referensi SRJ atau Faktur Penjualan.",
                 ]);
@@ -1160,8 +1165,10 @@ class ReturPenjualanController extends Controller
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
+        $frefdtno = $request->input('frefdtno', []);
+        $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
-        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj);
+        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj, $frefdtno, $frefpr);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -1569,7 +1576,7 @@ class ReturPenjualanController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Retur Penjualan {$fsono} berhasil disimpan.",
+                    'message' => "Retur Penjualan {$savedFsono} berhasil disimpan.",
                     'redirect_url' => route('returpenjualan.create'),
                     'success_prompt' => [
                         'type' => 'returpenjualan_create',
@@ -1580,7 +1587,7 @@ class ReturPenjualanController extends Controller
 
             return redirect()->route('returpenjualan.create')
                 ->with('last_header', $lastHeader)
-                ->with('success', "Retur Penjualan {$fsono} berhasil disimpan.")
+                ->with('success', "Retur Penjualan {$savedFsono} berhasil disimpan.")
                 ->with('success_prompt', [
                     'type' => 'returpenjualan_create',
                     'redirect_url' => route('returpenjualan.print', $savedFsono),
@@ -2461,8 +2468,10 @@ class ReturPenjualanController extends Controller
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
+        $frefdtno = $request->input('frefdtno', []);
+        $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
-        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj);
+        $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj, $frefdtno, $frefpr);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 

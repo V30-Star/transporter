@@ -3344,7 +3344,11 @@
             hasRequiredReference(row) {
                 if (!row) return true;
                 if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return true;
-                return String(row.frefso || '').trim() !== '' || String(row.frefsrj || '').trim() !== '';
+                return String(row.frefso || '').trim() !== '' ||
+                       String(row.frefsrj || '').trim() !== '' ||
+                       String(row.frefdtno || '').trim() !== '' ||
+                       String(row.frefpr || '').trim() !== '' ||
+                       String(row.frefno_display || '').trim() !== '';
             },
 
             isSRJRow(row) {
