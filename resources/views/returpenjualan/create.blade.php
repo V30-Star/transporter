@@ -701,7 +701,7 @@
                                     inputRefCode.value = 'INV';
                                     inputRefSo.value = header.fsono ?? '';
                                     inputRefSrj.value = ''; // Reset yang lain
-                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fsono ?? '');
+                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.fsono ?? header.frefno ?? '');
 
                                     // Auto-fill customer dari faktur
                                     autoFillCustomer(
@@ -716,7 +716,7 @@
                                     inputRefCode.value = 'SRJ';
                                     inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
                                     inputRefSo.value = ''; // Reset yang lain
-                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fstockmtno ?? '');
+                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.fstockmtno ?? header.fsono ?? '');
 
                                     // Auto-fill customer dari SRJ (fsupplier = customer code)
                                     autoFillCustomer(
@@ -2599,7 +2599,7 @@
                     const documentNo = (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))
                         .toString()
                         .trim();
-                    const referenceNo = (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? documentNo ??
+                    const referenceNo = (src.frefpr ?? header?.fsono ?? header?.fdisplayref ?? documentNo ??
                             '')
                         .toString()
                         .trim();

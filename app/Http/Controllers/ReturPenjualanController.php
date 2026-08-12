@@ -664,9 +664,7 @@ class ReturPenjualanController extends Controller
                 'ftranmtid' => $header->ftranmtid,
                 'fsono' => $header->fsono,
                 'frefno' => trim((string) ($header->frefno ?? '')),
-                'fdisplayref' => trim((string) ($header->frefno ?? '')) !== ''
-                    ? trim((string) ($header->frefno ?? ''))
-                    : trim((string) ($header->fsono ?? '')),
+                'fdisplayref' => trim((string) ($header->fsono ?? '')),
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
                 'fcustomername' => trim((string) ($header->fcustomername ?? '')),
                 'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
@@ -694,9 +692,7 @@ class ReturPenjualanController extends Controller
                     'fdisc' => $this->normalizeDiscountInput($item->fdisc ?? 0),
                     'fdesc' => (string) ($item->fdesc ?? ''),
                     'fnouref' => trim((string) ($header->fsono ?? '')),
-                    'frefpr' => trim((string) ($header->frefno ?? '')) !== ''
-                        ? trim((string) ($header->frefno ?? ''))
-                        : trim((string) ($header->fsono ?? '')),
+                    'frefpr' => trim((string) ($header->fsono ?? '')),
                     'frefso' => trim((string) ($item->frefso ?? '')),
                     'frefsrj' => trim((string) ($item->frefsrj ?? '')),
                     'frefnoacak' => trim((string) ($item->frefnoacak ?? '')),
