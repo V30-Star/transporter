@@ -886,7 +886,11 @@
                                                             placeholder="Auto No Ref UM" disabled>
                                                     </template>
                                                     <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() !== 'UM'">
-                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="editRow.frefdtno || '-'"></div>
+                                                        <div class="flex gap-1">
+                                                            <div class="flex-1 px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="editRow.frefdtno || '-'"></div>
+                                                            <button type="button" @click="openProductHistory(editRow)"
+                                                                class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100">History</button>
+                                                        </div>
                                                     </template>
                                                 </td>
 
@@ -971,7 +975,11 @@
 
                                                     {{-- No.Ref --}}
                                                     <td class="p-2">
-                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="dr.frefdtno || '-'"></div>
+                                                        <div class="flex gap-1">
+                                                            <div class="flex-1 px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="dr.frefdtno || '-'"></div>
+                                                            <button type="button" @click="openProductHistory(dr)"
+                                                                class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100">History</button>
+                                                        </div>
                                                     </td>
 
                                                     {{-- Qty --}}
@@ -1019,6 +1027,52 @@
                                             </template>
                                         </tbody>
                                     </table>
+                                </div>
+
+                                <div x-show="showHistoryModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                    <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                        <div class="px-5 py-4 border-b flex items-center justify-between">
+                                            <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                            <button type="button" @click="closeHistory()" class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                        </div>
+                                        <div class="p-5 overflow-auto max-h-[65vh]">
+                                            <template x-if="historyLoading">
+                                                <div class="text-sm text-gray-500">Memuat data...</div>
+                                            </template>
+                                            <template x-if="!historyLoading">
+                                                <table class="min-w-full text-sm">
+                                                    <thead class="bg-gray-100">
+                                                        <tr>
+                                                            <th class="p-2 text-left">No. Transaksi</th>
+                                                            <th class="p-2 text-left">Tanggal</th>
+                                                            <th class="p-2 text-right">Qty</th>
+                                                            <th class="p-2 text-right">Harga</th>
+                                                            <th class="p-2 text-right">Total</th>
+                                                            <th class="p-2 text-center">Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <template x-for="row in historyRows" :key="row.fstockmtno + row.fstockmtdate">
+                                                            <tr class="border-t">
+                                                                <td class="p-2" x-text="row.fstockmtno"></td>
+                                                                <td class="p-2" x-text="row.fstockmtdate"></td>
+                                                                <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                                <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
+                                                                <td class="p-2 text-right" x-text="fmt(row.ftotprice)"></td>
+                                                                <td class="p-2 text-center">
+                                                                    <button type="button" @click="selectHistory(row)" class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">Pilih</button>
+                                                                </td>
+                                                            </tr>
+                                                        </template>
+                                                        <tr x-show="!historyRows.length">
+                                                            <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 @error('fitemcode')
@@ -1475,6 +1529,10 @@
             minimumDraftRows: 5,
             editingIndex: null,
             editRow: newRow(),
+            showHistoryModal: false,
+            historyLoading: false,
+            historyRows: [],
+            historyTargetRow: null,
 
             totalHarga: 0,
             ppnRate: @json((float) old('ppn_rate', $returpembelian->fppnpersen ?? ($defaultPpnTarif ?? 11))),
@@ -1871,6 +1929,46 @@
                 }
                 this.showDescModal = false;
                 this.syncDescList?.();
+            },
+
+            closeHistory() {
+                this.showHistoryModal = false;
+                this.historyLoading = false;
+                this.historyRows = [];
+                this.historyTargetRow = null;
+            },
+
+            async openProductHistory(row) {
+                const supplierCode = this.getSelectedSupplierCode();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                if (!supplierCode || !productCode) return;
+
+                this.showHistoryModal = true;
+                this.historyLoading = true;
+                this.historyRows = [];
+                this.historyTargetRow = row;
+
+                try {
+                    const params = new URLSearchParams({ fsupplier: supplierCode, fprdcode: productCode });
+                    const res = await fetch(`{{ route('returpembelian.product-history') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json?.message || 'Gagal memuat riwayat produk.');
+                    this.historyRows = Array.isArray(json?.data) ? json.data : [];
+                } catch (e) {
+                    this.historyRows = [];
+                    window.showAppWarningAlert?.('WARNING', e.message || 'Gagal memuat riwayat produk.');
+                } finally {
+                    this.historyLoading = false;
+                }
+            },
+
+            selectHistory(row) {
+                if (this.historyTargetRow) {
+                    this.historyTargetRow.frefdtno = row?.fstockmtno || '';
+                }
+                this.closeHistory();
             },
 
             itemKey(it) {

@@ -441,6 +441,8 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
             ->name('returpembelian.pickable');
         Route::get('/returpembelian/product-price', [ReturPembelianController::class, 'productPrice'])
             ->name('returpembelian.product-price');
+        Route::get('/returpembelian/product-history', [ReturPembelianController::class, 'productHistory'])
+            ->name('returpembelian.product-history');
 
         Route::get('/assembling', [AssemblingController::class, 'index'])->name('assembling.index');
         Route::post('/assembling', [AssemblingController::class, 'store'])->name('assembling.store');

@@ -542,6 +542,48 @@ class ReturPembelianController extends Controller
             ->first();
     }
 
+    public function productHistory(Request $request)
+    {
+        $supplierCode = trim((string) $request->input('fsupplier', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+
+        if ($supplierCode === '' || $productCode === '') {
+            return response()->json([
+                'message' => 'Supplier dan produk wajib dipilih terlebih dahulu.',
+                'data' => [],
+            ], 422);
+        }
+
+        $rows = DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->where('m.fstockmtcode', 'BUY')
+            ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->orderByDesc('m.fstockmtdate')
+            ->orderByDesc('m.fstockmtno')
+            ->get([
+                'm.fstockmtno',
+                'm.fstockmtdate',
+                'd.fqty',
+                'd.fsatuan',
+                'd.fprice',
+                'd.ftotprice',
+            ]);
+
+        return response()->json([
+            'data' => $rows->map(fn ($row) => [
+                'fstockmtno' => (string) ($row->fstockmtno ?? ''),
+                'fstockmtdate' => ! empty($row->fstockmtdate)
+                    ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+                    : '-',
+                'fqty' => (float) ($row->fqty ?? 0),
+                'fsatuan' => (string) ($row->fsatuan ?? ''),
+                'fprice' => (float) ($row->fprice ?? 0),
+                'ftotprice' => (float) ($row->ftotprice ?? 0),
+            ])->values(),
+        ]);
+    }
+
     public function productPrice(Request $request)
     {
         $supplierCode = trim((string) $request->input('fsupplier', ''));
