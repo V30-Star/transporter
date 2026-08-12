@@ -327,7 +327,7 @@ class ListingSOBelumController extends Controller
     {
         $reportType = $request->input('report_type', 'detail');
         $remainQty = 'CASE WHEN d.fsatuan = p.fsatuanbesar AND COALESCE(p.fqtykecil, 0) > 0 THEN COALESCE(d.fqtyremain, 0) / p.fqtykecil ELSE COALESCE(d.fqtyremain, 0) END';
-        $stockQty = "COALESCE(CAST(NULLIF(p.fstok, '') AS NUMERIC), 0)";
+        $stockQty = "COALESCE(CAST(NULLIF(p.fstok::text, '') AS NUMERIC), 0)";
 
         $query = DB::table('trsomt as m')
             ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')

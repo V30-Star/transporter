@@ -53,7 +53,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 0px;
+            margin-bottom: 60px;
             text-align: center;
             padding-bottom: 20px;
         }
