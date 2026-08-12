@@ -2048,14 +2048,12 @@
                 if (isUM) {
                     const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
                     if (invalidItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                     }
                 } else {
                     const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
                     if (umItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).');
                     }
                 }
                 this.recalcTotals();
@@ -2295,7 +2293,12 @@
 
             productMeta(code) {
                 const key = (code || '').toString().trim();
-                const meta = window.PRODUCT_MAP?.[key];
+                const keyUpper = key.toUpperCase();
+                let meta = window.PRODUCT_MAP?.[key] || window.PRODUCT_MAP?.[keyUpper];
+                if (!meta && window.PRODUCT_MAP) {
+                    const foundKey = Object.keys(window.PRODUCT_MAP).find(k => k.trim().toUpperCase() === keyUpper);
+                    if (foundKey) meta = window.PRODUCT_MAP[foundKey];
+                }
                 if (!meta) {
                     return {
                         name: '',
@@ -2701,7 +2704,7 @@
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
                     this.enforceQtyRow(row);
-                    if (row.fitemcode === 'UM' && this.ftypesales === 0) {
+                    if ((row.fitemcode || '').toString().trim().toUpperCase() === 'UM' && this.ftypesales === 0) {
                         this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
                         row.fitemcode = '';
                         row.fitemname = '';
