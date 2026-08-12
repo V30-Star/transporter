@@ -31,6 +31,7 @@
             </div>
         </div>
 
+        <div class="overflow-x-auto">
         <table id="wilayahTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -82,6 +83,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 @endsection
 
@@ -98,7 +100,7 @@
             width: 4.5rem;
             padding: .35rem .5rem;
         }
-        #wilayahTable { width: 100% !important; }
+        #wilayahTable { width: auto !important; min-width: 100%; }
         #wilayahTable th, #wilayahTable td {
             text-align: left !important;
             vertical-align: middle;

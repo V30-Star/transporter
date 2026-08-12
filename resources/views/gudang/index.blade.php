@@ -35,6 +35,7 @@
         </div>
 
         {{-- Tabel --}}
+        <div class="overflow-x-auto">
         <table id="gudangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -103,6 +104,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
 
     </div>
 @endsection
@@ -126,7 +128,8 @@
 
         /* Stabilkan tabel */
         #gudangTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #gudangTable th,

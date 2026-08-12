@@ -34,6 +34,7 @@
             </div>
         </div>
 
+        <div class="overflow-x-auto">
         <table id="customerTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -69,6 +70,7 @@
             <tbody>
             </tbody>
         </table>
+        </div>
 
     </div>
 @endsection
@@ -89,7 +91,8 @@
         }
 
         #customerTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #customerTable th,

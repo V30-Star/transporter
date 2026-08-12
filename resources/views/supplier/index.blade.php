@@ -35,6 +35,7 @@
         </div>
 
         {{-- Table --}}
+        <div class="overflow-x-auto">
         <table id="supplierTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -102,6 +103,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
 
     </div>
 @endsection
@@ -124,7 +126,8 @@
 
         /* Stabilkan tabel */
         #supplierTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #supplierTable th,

@@ -42,7 +42,8 @@
         </div>
 
         {{-- Tabel — tbody kosong, data dimuat via AJAX --}}
-        <table id="productTable" class="min-w-full border text-sm">
+        <div class="overflow-x-auto">
+            <table id="productTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-3 py-2" style="width: 12rem;">
@@ -174,6 +175,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        </div>
 
         {{-- Modal Laporan --}}
         <div x-show="$store.laporanStore.showModal" x-cloak
@@ -501,8 +503,8 @@
         }
 
         #productTable {
-            width: 100% !important;
-            table-layout: fixed;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #productTable th,
