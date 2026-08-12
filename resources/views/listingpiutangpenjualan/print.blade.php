@@ -304,31 +304,22 @@
             border-top: 1px solid #919191;
             border-bottom: 1px solid #919191;
             padding-top: 1px;
-            display: flex;
-            justify-content: flex-end;
         }
 
         .grand-total-panel {
-            width: 85mm;
             font-size: 10px;
         }
 
         .grand-total-row {
             display: grid;
-            grid-template-columns: 25mm 30mm 30mm;
+            grid-template-columns: 8mm 12mm 28mm 20mm 22mm 30mm 30mm 30mm;
+            gap: 4px;
             font-weight: bold;
+            padding: 4px 3px;
         }
 
-        .grand-total-row:last-child {
-            border-bottom: none;
-            color: black;
-        }
-
-        .grand-total-row div {
-            padding: 6px 8px;
-        }
-
-        .grand-total-row div:not(:first-child) {
+        .grand-total-row>div:nth-child(2),
+        .grand-total-row>div:nth-child(3) {
             text-align: right;
         }
 
@@ -478,7 +469,7 @@
             <div class="journal-block">
                 <div class="group-total-row">
                     <div style="grid-column: span 5; text-align: right; padding-right: 8px;">
-                        Total({{ $first->fcustname }})</div>
+                        Total ({{ $first->fcustname }})</div>
                     <div>{{ number_format((float) $customerFaktur, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $customerPiutang, 2, ',', '.') }}</div>
                     <div></div>
@@ -493,9 +484,10 @@
         <div class="grand-total-section">
             <div class="grand-total-panel">
                 <div class="grand-total-row">
-                    <div>Grand Total:</div>
+                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Grand Total:</div>
                     <div>{{ number_format((float) $grandFaktur, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $grandPiutang, 2, ',', '.') }}</div>
+                    <div></div>
                 </div>
             </div>
         </div>
