@@ -2746,17 +2746,14 @@
 
             applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                const typeSales = Number(document.getElementById('ftypesales')?.value ?? 0);
-                if (typeSales !== 0 || productCode !== 'UM') return;
+                if (productCode !== 'UM') return;
 
                 const customerCode = this.getSelectedCustomerCode();
                 const documents = window.INVOICE_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
                 const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
-                if (!doc) return;
-
-                row.frefdtno = doc.fsono;
-                row.frefno_display = doc.fsono;
-                row.frefcode = 'UM';
+                row.frefdtno = doc ? doc.fsono : '';
+                row.frefno_display = doc ? doc.fsono : '';
+                row.frefcode = doc ? 'UM' : '';
             },
 
             recalc(row) {

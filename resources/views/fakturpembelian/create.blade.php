@@ -1482,18 +1482,14 @@
 
             applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                const ftypebuy = (document.querySelector('select[name="ftypebuy"]')?.value || '').toString().trim();
-                // Hanya berlaku untuk Tipe Pembelian Uang Muka (ftypebuy=2) dan item UM
-                if (ftypebuy !== '2' || productCode !== 'UM') return;
+                if (productCode !== 'UM') return;
 
                 const supplierCode = this.getSelectedSupplierCode();
                 if (!supplierCode) return;
 
                 const documents = window.FPB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
                 const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
-                if (!doc) return;
-
-                row.frefdtno = doc.fstockmtno;
+                row.frefdtno = doc ? doc.fstockmtno : '';
             },
 
 
@@ -1967,6 +1963,7 @@
 
                 if (meta.code) row.fitemcode = meta.code;
                 this.hydrateRowFromMeta(row, meta, true);
+                this.applyOutstandingDpRef(row);
                 if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
                 this.applyPurchasePrice(row);
                 this.onRowUpdated(index);
