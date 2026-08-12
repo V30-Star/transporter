@@ -380,14 +380,22 @@
                                 </div>
                             </div>
 
-                            {{-- Tanggal --}}
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Tanggal</label>
-                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
-                                @error('fsodate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                            <div class="flex gap-2">
+                                <div class="w-1/2">
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
+                                    <input disabled type="date" name="fsodate" value="{{ old('fsodate', isset($returpenjualan->fsodate) ? \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d') : date('Y-m-d')) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
+                                    @error('fsodate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="block text-xs font-bold mb-1">Type</label>
+                                    <select disabled name="ftypesales" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                        <option value="0" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 0 ? 'selected' : '' }}>Penjualan</option>
+                                        <option value="1" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 1 ? 'selected' : '' }}>Uang Muka</option>
+                                    </select>
+                                </div>
                             </div>
 
                             {{-- Customer --}}
@@ -831,15 +839,30 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
-                                    <input type="date" id="fsodate" name="fsodate"
-                                        value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
-                                    <input type="hidden" id="ftempohr" value="0">
-                                    @error('fsodate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
+                                <div class="flex gap-2">
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                        <input type="date" id="fsodate" name="fsodate"
+                                            value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror"
+                                            {{ $action === 'view' ? 'disabled' : '' }}>
+                                        <input type="hidden" id="ftempohr" value="0">
+                                        @error('fsodate')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/2">
+                                        <label class="block text-xs font-bold mb-1">Type <span class="text-red-500">*</span></label>
+                                        <select name="ftypesales" x-model.number="ftypesales" @change="onTypeChanged()"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypesales') border-red-500 text-red-600 @enderror"
+                                            {{ $action === 'view' ? 'disabled' : '' }}>
+                                            <option value="0" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 0 ? 'selected' : '' }}>Penjualan</option>
+                                            <option value="1" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 1 ? 'selected' : '' }}>Uang Muka</option>
+                                        </select>
+                                        @error('ftypesales')
+                                            <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-3.5 h-3.5 flex-shrink-0" /> {{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
 
                                 {{-- Customer --}}
@@ -2939,6 +2962,24 @@
                 const selected = document.querySelector('select[name="ftypesales"]')?.value;
                 if (selected !== undefined && selected !== null && selected !== '') {
                     this.ftypesales = Number(selected);
+                }
+            },
+
+            onTypeChanged() {
+                this.syncTransactionType();
+                const isUM = this.ftypesales !== 0;
+                if (isUM) {
+                    const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    if (invalidItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    }
+                } else {
+                    const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                    if (umItems.length > 0) {
+                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
+                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                    }
                 }
             },
 
