@@ -2154,8 +2154,23 @@
                 },
 
                 selectHistory(row) {
-                    if (this.historyTargetRow) {
-                        this.historyTargetRow.frefdtno = row?.fstockmtno || '';
+                    if (this.historyTargetRow && row) {
+                        this.historyTargetRow.frefdtno = row.fstockmtno || row.fsono || '';
+                        if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
+                            this.historyTargetRow.fqty = +row.fqty;
+                        }
+                        const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
+                        if (priceVal !== null && priceVal >= 0) {
+                            this.historyTargetRow.fprice = priceVal;
+                            if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
+                                this.historyTargetRow.fpriceInput = this.fmt(priceVal);
+                            }
+                        }
+                        if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
+                            this.historyTargetRow.fsatuan = row.fsatuan;
+                        }
+                        this.recalc?.(this.historyTargetRow);
+                        this.recalcTotals?.();
                     }
                     this.closeHistory();
                 },

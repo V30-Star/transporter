@@ -2048,14 +2048,12 @@
                 if (isUM) {
                     const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
                     if (invalidItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                     }
                 } else {
                     const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
                     if (umItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
+                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).');
                     }
                 }
                 this.recalcTotals();
@@ -2295,7 +2293,12 @@
 
             productMeta(code) {
                 const key = (code || '').toString().trim();
-                const meta = window.PRODUCT_MAP?.[key];
+                const keyUpper = key.toUpperCase();
+                let meta = window.PRODUCT_MAP?.[key] || window.PRODUCT_MAP?.[keyUpper];
+                if (!meta && window.PRODUCT_MAP) {
+                    const foundKey = Object.keys(window.PRODUCT_MAP).find(k => k.trim().toUpperCase() === keyUpper);
+                    if (foundKey) meta = window.PRODUCT_MAP[foundKey];
+                }
                 if (!meta) {
                     return {
                         name: '',
@@ -2511,7 +2514,11 @@
             hasRequiredReference(row) {
                 if (!row) return true;
                 if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return true;
-                return String(row.frefso || '').trim() !== '' || String(row.frefsrj || '').trim() !== '';
+                return String(row.frefso || '').trim() !== '' ||
+                       String(row.frefsrj || '').trim() !== '' ||
+                       String(row.frefdtno || '').trim() !== '' ||
+                       String(row.frefpr || '').trim() !== '' ||
+                       String(row.frefno_display || '').trim() !== '';
             },
 
             isSRJRow(row) {
@@ -2701,7 +2708,7 @@
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
                     this.enforceQtyRow(row);
-                    if (row.fitemcode === 'UM' && this.ftypesales === 0) {
+                    if ((row.fitemcode || '').toString().trim().toUpperCase() === 'UM' && this.ftypesales === 0) {
                         this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
                         row.fitemcode = '';
                         row.fitemname = '';
@@ -2854,8 +2861,24 @@
                 }
             },
             selectHistory(row) {
-                if (this.historyTargetRow) {
-                    this.historyTargetRow.frefpr = row?.fsono || '';
+                if (this.historyTargetRow && row) {
+                    this.historyTargetRow.frefpr = row.fsono || '';
+                    if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
+                        this.historyTargetRow.fqty = +row.fqty;
+                    }
+                    if (typeof row.fprice !== 'undefined' && +row.fprice >= 0) {
+                        this.historyTargetRow.fprice = +row.fprice;
+                        if (typeof this.historyTargetRow.fpriceInput !== 'undefined') {
+                            this.historyTargetRow.fpriceInput = this.fmt(+row.fprice);
+                        }
+                    }
+                    if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
+                        this.historyTargetRow.fsatuan = row.fsatuan;
+                    }
+                    const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
+                    if (targetIndex !== -1) {
+                        this.onRowUpdated(targetIndex);
+                    }
                 }
                 this.closeHistory();
             },

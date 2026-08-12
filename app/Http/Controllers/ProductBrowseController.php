@@ -28,7 +28,7 @@ class ProductBrowseController extends Controller
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
             ->where('fapproval', 1)
             ->when($exactCode !== '', function ($q) use ($exactCode) {
-                $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
+                $q->whereRaw('LOWER(TRIM(fprdcode)) = LOWER(?)', [$exactCode]);
             })
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", [strtolower($ftypeFilter)]);
@@ -44,7 +44,7 @@ class ProductBrowseController extends Controller
             ->whereRaw("COALESCE(TRIM(CAST(msprd.fnonactive AS TEXT)), '0') != '1'")
             ->where('msprd.fapproval', 1)
             ->when($exactCode !== '', function ($q) use ($exactCode) {
-                $q->whereRaw('TRIM(msprd.fprdcode) = ?', [$exactCode]);
+                $q->whereRaw('LOWER(TRIM(msprd.fprdcode)) = LOWER(?)', [$exactCode]);
             })
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(msprd.ftype, ''))) = ?", [strtolower($ftypeFilter)]);
