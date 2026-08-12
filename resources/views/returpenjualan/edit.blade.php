@@ -3373,6 +3373,7 @@
             },
 
             onCodeTypedRow(row, index = null) {
+                row.fitemcode = String(row.fitemcode ?? '').trim();
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 if (!this.normalizeNoAcak(row.fnoacak)) {
                     row.fnoacak = this.generateUniqueNoAcak();
