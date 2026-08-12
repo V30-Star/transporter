@@ -409,7 +409,7 @@
                 @if (request()->boolean('tgl_pembayaran'))
                     <div>Tgl.Pembayaran s.d.: {{ request('tgl_pembayaran_date') ? \Carbon\Carbon::parse(request('tgl_pembayaran_date'))->format('d/m/Y') : \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}</div>
                 @else
-                    <div>Tgl.Pembayaran s.d.: Semua</div>
+                    <div>Tgl.Pembayaran: Semua</div>
                 @endif
                 @if (request('due_filter') === 'due')
                     <div>Jatuh Tempo s/d: {{ request('due_date') ?: request('per_tanggal') }}</div>
