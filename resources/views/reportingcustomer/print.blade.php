@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 40px;
             text-align: center;
             padding-bottom: 35px;
         }
@@ -435,6 +435,12 @@
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
+            <div class="supplier-info-kiri">
+                Customer: {{ request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua' }}
+                <br>Salesman: {{ request('salesman') ?: 'Semua' }}
+                <br>Limit: {{ request('limit') ? number_format((float) request('limit'), 0, ',', '.') : '0' }}
+                <br>Blocked: {{ request('is_blocked') ? 'Ya' : 'Tidak' }}
+            </div>
             <h2>List of Master Customer</h2>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -501,6 +507,12 @@
         @if ($data->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
+                    <div class="supplier-info-kiri" style="top: 15px;">
+                        Customer: {{ request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua' }}
+                        <br>Salesman: {{ request('salesman') ?: 'Semua' }}
+                        <br>Limit: {{ request('limit') ? number_format((float) request('limit'), 0, ',', '.') : '0' }}
+                        <br>Blocked: {{ request('is_blocked') ? 'Ya' : 'Tidak' }}
+                    </div>
                     <h2>List of Master Customer</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>

@@ -51,7 +51,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 50px;
             text-align: center;
             padding-bottom: 35px;
         }
@@ -516,6 +516,12 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 Gudang: {{ $warehouseName }}
+                <br>Produk: {{ request('prd_from') || request('prd_to') ? (request('prd_from') ?: 'Awal') . ' s/d ' . (request('prd_to') ?: 'Akhir') : 'Semua' }}
+                <br>Group: {{ request('group') ?: 'Semua' }}
+                <br>Merek: {{ request('merek') ?: 'Semua' }}
+                <br>Urut: {{ request('sort_by') === 'name' ? 'Nama Produk' : 'Kode Produk' }}
+                <br>Hanya Stok > 0: {{ request('only_stock') ? 'Ya' : 'Tidak' }}
+                <br>Kolom: {{ implode(', ', collect(['hpp' => 'HPP', 'price1' => 'Jual 1', 'price2' => 'Jual 2', 'price3' => 'Jual 3'])->filter(fn($lbl, $key) => $showCols[$key] ?? false)->values()->all()) }}
             </div>
             <h2>Master Product List</h2>
             <div class="info-tambahan">
@@ -595,6 +601,15 @@
         @if ($data->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
+                    <div class="supplier-info-kiri" style="top: 15px;">
+                        Gudang: {{ $warehouseName }}
+                        <br>Produk: {{ request('prd_from') || request('prd_to') ? (request('prd_from') ?: 'Awal') . ' s/d ' . (request('prd_to') ?: 'Akhir') : 'Semua' }}
+                        <br>Group: {{ request('group') ?: 'Semua' }}
+                        <br>Merek: {{ request('merek') ?: 'Semua' }}
+                        <br>Urut: {{ request('sort_by') === 'name' ? 'Nama Produk' : 'Kode Produk' }}
+                        <br>Hanya Stok > 0: {{ request('only_stock') ? 'Ya' : 'Tidak' }}
+                        <br>Kolom: {{ implode(', ', collect(['hpp' => 'HPP', 'price1' => 'Jual 1', 'price2' => 'Jual 2', 'price3' => 'Jual 3'])->filter(fn($lbl, $key) => $showCols[$key] ?? false)->values()->all()) }}
+                    </div>
                     <h2>Master Product List</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>

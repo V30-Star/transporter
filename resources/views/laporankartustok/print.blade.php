@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 60px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -451,6 +451,21 @@
         $period = (request('date_from') ?: date('Y-01-01')) . ' s/d ' . (request('date_to') ?: date('Y-12-31'));
         $groupBy = request('grouping', 'group') === 'merek' ? 'Merek' : 'Group Produk';
         $pagePerWh = request()->boolean('page_per_warehouse');
+        $whText = request('warehouse') ?: 'Semua';
+        $groupText = request('group_code') ?: 'Semua';
+        $merekText = request('merek') ?: 'Semua';
+        $productRange = (request('product_from') ?: 'Awal') . ' s/d ' . (request('product_to') ?: 'Akhir');
+        if (!request('product_from') && !request('product_to')) $productRange = 'Semua';
+        $stockStatusText = match (request('stock_status', 'all')) {
+            'not_zero' => 'Stok <> 0',
+            'positive' => 'Stok > 0',
+            'negative' => 'Stok < 0',
+            'zero' => 'Stok = 0',
+            'below_min' => 'Stok < Min Stok',
+            default => 'Semua',
+        };
+        $reportModeText = request('report_mode', 'rekap') === 'detail' ? 'Detail' : 'Rekap';
+        $pagePerWhText = $pagePerWh ? 'Ya' : 'Tidak';
     @endphp
 
     <div class="no-print">
@@ -488,11 +503,18 @@
             <div class="supplier-info-kiri">
                 Cabang: {{ $branchText }}
                 <br>Periode: {{ $period }}
+                <br>Gudang: {{ $whText }}
+                <br>Group Produk: {{ $groupText }}
+                <br>Merek: {{ $merekText }}
+                <br>Produk: {{ $productRange }}
+                <br>Ganti Halaman/Gudang: {{ $pagePerWhText }}
                 <br>Mode: {{ strtoupper($mode) }}
             </div>
             <h2>{{ $title }}</h2>
             <div class="filter-info">
                 Grouping: {{ $groupBy }}
+                <br>Status Stok: {{ $stockStatusText }}
+                <br>Tampilan: {{ $reportModeText }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -636,7 +658,14 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Cabang: {{ $branchText }}
                         <br>Periode: {{ $period }}
+                        <br>Gudang: {{ $whText }}
+                        <br>Group Produk: {{ $groupText }}
+                        <br>Merek: {{ $merekText }}
+                        <br>Produk: {{ $productRange }}
+                        <br>Ganti Halaman/Gudang: {{ $pagePerWhText }}
                         <br>Mode: {{ strtoupper($mode) }}
+                        <br>Status Stok: {{ $stockStatusText }}
+                        <br>Tampilan: {{ $reportModeText }}
                     </div>
                     <h2>{{ $title }}</h2>
                     <div class="filter-info">

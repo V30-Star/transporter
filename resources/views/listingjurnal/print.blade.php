@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -471,6 +471,7 @@
     @php
         $grandTotalDebet = 0;
         $grandTotalKredit = 0;
+        $sortText = request('sort_by', 'no_jurnal') === 'tanggal_jurnal' ? 'Tanggal Jurnal' : 'No. Jurnal';
     @endphp
 
     {{-- Hidden Raw Data Container --}}
@@ -479,6 +480,7 @@
             <div class="supplier-info-kiri">
                 Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
                 <br>Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                <br>Urut: {{ $sortText }}
             </div>
             <h2>Listing Jurnal Transaksi</h2>
             <div class="filter-info">
@@ -599,6 +601,7 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
                         <br>Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                        <br>Urut: {{ $sortText }}
                     </div>
                     <h2>Listing Jurnal Transaksi</h2>
                     <div class="info-tambahan">

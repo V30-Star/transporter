@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 35px;
         }
@@ -431,6 +431,9 @@
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
+            <div class="supplier-info-kiri">
+                Supplier: {{ request('supplier_from') || request('supplier_to') ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir') : 'Semua' }}
+            </div>
             <h2>List of Master Supplier</h2>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -489,6 +492,9 @@
         @if ($data->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
+                    <div class="supplier-info-kiri" style="top: 15px;">
+                        Supplier: {{ request('supplier_from') || request('supplier_to') ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir') : 'Semua' }}
+                    </div>
                     <h2>List of Master Supplier</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>

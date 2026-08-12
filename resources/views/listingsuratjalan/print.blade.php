@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 20px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -420,6 +420,8 @@
         $branchText = request()->has('branch_codes')
             ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
+        $sjStatus = request('belum_faktur') ? 'Yg Belum Faktur' : 'Semua';
+        $sjDisplay = request('display_type', 'detail') === 'rekap' ? 'Rekap' : 'Detail';
     @endphp
 
     <div class="no-print">
@@ -449,6 +451,8 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 Customer: {{ request('customer') ?: 'Semua' }}
+                <br>Status: {{ $sjStatus }}
+                <br>Display: {{ $sjDisplay }}
                 <br>Cabang: {{ $branchText }}
             </div>
             <h2>Listing Surat Jalan</h2>
@@ -535,6 +539,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Customer: {{ request('customer') ?: 'Semua' }}
+                        <br>Status: {{ $sjStatus }}
+                        <br>Display: {{ $sjDisplay }}
                         <br>Cabang: {{ $branchText }}
                     </div>
                     <h2>Listing Surat Jalan</h2>

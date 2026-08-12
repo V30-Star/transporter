@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -487,6 +487,7 @@
             <div class="supplier-info-kiri">
                 Cabang: {{ !empty(request('branch_codes')) ? implode(', ', (array) request('branch_codes')) : 'Semua' }}
                 <br>No. Account: {{ request('account_no') ?: 'Semua' }}
+                <br>Giro Mundur: {{ request('giro_mundur') ? 'Ya' : 'Tidak' }}
             </div>
             <h2>Listing Pengeluaran Kas/Bank</h2>
             <div class="filter-info">
@@ -576,6 +577,7 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Cabang: {{ !empty(request('branch_codes')) ? implode(', ', (array) request('branch_codes')) : 'Semua' }}
                         <br>No. Account: {{ request('account_no') ?: 'Semua' }}
+                        <br>Giro Mundur: {{ request('giro_mundur') ? 'Ya' : 'Tidak' }}
                     </div>
                     <h2>Listing Pengeluaran Kas/Bank</h2>
                     <div class="info-tambahan">

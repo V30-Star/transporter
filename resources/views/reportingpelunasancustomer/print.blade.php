@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 2px;
         }
@@ -507,6 +507,8 @@
                 Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                 No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                 Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
+                Customer: {{ $filters['customer_from'] !== '' || $filters['customer_to'] !== '' ? (($filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal') . ' s/d ' . ($filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir')) : 'Semua' }}<br>
+                Giro Mundur: {{ $filters['only_giro_mundur'] ? 'Ya' : 'Tidak' }}
             </div>
             <h2>Listing Pelunasan Customer</h2>
             <div class="filter-info">
@@ -659,6 +661,8 @@
                         Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                         No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                         Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
+                        Customer: {{ $filters['customer_from'] !== '' || $filters['customer_to'] !== '' ? (($filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal') . ' s/d ' . ($filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir')) : 'Semua' }}<br>
+                        Giro Mundur: {{ $filters['only_giro_mundur'] ? 'Ya' : 'Tidak' }}
                     </div>
                     <h2>Listing Pelunasan Customer</h2>
                     <div class="info-tambahan">

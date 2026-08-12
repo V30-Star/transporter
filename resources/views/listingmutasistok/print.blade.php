@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -420,6 +420,10 @@
         $branchText = request()->has('branch_codes')
             ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
+        $productText = request('selected_products')
+            ? implode(', ', array_filter(array_map('trim', explode(',', request('selected_products')))))
+            : 'Semua';
+        $displayType = request('display_type', 'detail') === 'rekap' ? 'Rekap' : 'Detail';
     @endphp
 
     <div class="no-print">
@@ -457,10 +461,12 @@
             <div class="supplier-info-kiri">
                 Gudang Asal: {{ request('warehouse_from') ?: 'Semua' }}
                 <br>Gudang Tujuan: {{ request('warehouse_to') ?: 'Semua' }}
+                <br>Produk: {{ $productText }}
                 <br>Cabang: {{ $branchText }}
             </div>
             <h2>Listing Mutasi Stok</h2>
             <div class="filter-info">
+                Display: {{ $displayType }}
                 Periode:
                 {{ request('date_from') ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }}
                 s/d
@@ -542,7 +548,9 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Gudang Asal: {{ request('warehouse_from') ?: 'Semua' }}
                         <br>Gudang Tujuan: {{ request('warehouse_to') ?: 'Semua' }}
+                        <br>Produk: {{ $productText }}
                         <br>Cabang: {{ $branchText }}
+                        <br>Display: {{ $displayType }}
                     </div>
                     <h2>Listing Mutasi Stok</h2>
                     <div class="info-tambahan">
