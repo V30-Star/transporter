@@ -73,6 +73,7 @@
             </div>
         </div>
 
+        <div class="overflow-x-auto">
         <table id="tr_pohTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -112,6 +113,7 @@
                 {{-- DataTables akan mengisinya secara otomatis --}}
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.tr_pohStore.showDeleteModal" x-cloak
@@ -190,7 +192,8 @@
 
         /* Stabilkan tabel */
         #tr_pohTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #tr_pohTable th,

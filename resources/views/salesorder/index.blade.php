@@ -75,6 +75,7 @@
             </div>
         </div>
 
+        <div class="overflow-x-auto">
         <table id="salesorderTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -120,6 +121,7 @@
                 {{-- DataTables akan mengisinya secara otomatis --}}
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.trsomtStore.showDeleteModal" x-cloak
@@ -198,7 +200,8 @@
 
         /* Stabilkan tabel */
         #salesorderTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #salesorderTable th,

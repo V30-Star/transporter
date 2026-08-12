@@ -77,6 +77,7 @@
         </div>
 
         {{-- Table --}}
+        <div class="overflow-x-auto">
         <table id="tr_prhTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -111,6 +112,7 @@
             <tbody>
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.tr_prhStore.showDeleteModal" x-cloak
@@ -184,7 +186,8 @@
 
         /* Stabilkan tabel */
         #tr_prhTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #tr_prhTable th,

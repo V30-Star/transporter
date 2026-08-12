@@ -74,6 +74,7 @@
 
         {{-- Table --}}
         {{-- GANTI TABEL ANDA DENGAN INI --}}
+        <div class="overflow-x-auto">
         <table id="returpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -94,6 +95,7 @@
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.returpembelianStore.showDeleteModal" x-cloak
@@ -168,7 +170,8 @@
 
         /* Stabilkan tabel */
         #returpembelianTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #returpembelianTable th,

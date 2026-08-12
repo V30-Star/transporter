@@ -77,6 +77,7 @@
                 class="w-full border rounded px-3 py-2 text-sm" placeholder="Cari gudang...">
         </div>
 
+        <div class="overflow-x-auto">
         <table id="adjstockTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -110,6 +111,7 @@
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.adjstockStore.showDeleteModal" x-cloak
@@ -188,8 +190,9 @@
         }
 
         /* Stabilkan tabel */
-        #tr_prhTable {
-            width: 100% !important;
+        #adjstockTable {
+            width: auto !important;
+            min-width: 100%;
         }
 
         #tr_prhTable th,

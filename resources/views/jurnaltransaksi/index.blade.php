@@ -74,6 +74,7 @@
             </div>
         </div>
 
+        <div class="overflow-x-auto">
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -88,6 +89,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        </div>
 
         <div x-show="showDeleteModal" x-cloak @keydown.escape.window="closeDelete()"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -148,7 +150,8 @@
         }
 
         #mutasiTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #mutasiTable th,

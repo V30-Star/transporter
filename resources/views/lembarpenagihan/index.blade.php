@@ -14,6 +14,7 @@
             @endif
         </div>
 
+        <div class="overflow-x-auto">
         <table id="tagihanTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -29,6 +30,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        </div>
 
         {{-- Modal Create Limit --}}
         <div x-show="$store.tagihanStore.showCreateLimitModal" x-cloak

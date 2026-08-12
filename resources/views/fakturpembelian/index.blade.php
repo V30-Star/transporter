@@ -75,6 +75,7 @@
 
         {{-- Table --}}
         {{-- GANTI TABEL ANDA DENGAN INI --}}
+        <div class="overflow-x-auto">
         <table id="fakturpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -132,6 +133,7 @@
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
         </table>
+        </div>
 
         {{-- Modal Delete --}}
         <div x-show="$store.fakturpembelianStore.showDeleteModal" x-cloak
@@ -206,7 +208,8 @@
 
         /* Stabilkan tabel */
         #fakturpembelianTable {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 100%;
         }
 
         #fakturpembelianTable th,
