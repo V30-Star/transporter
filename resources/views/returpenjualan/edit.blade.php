@@ -3717,8 +3717,24 @@
                 }
             },
             selectHistory(row) {
-                if (this.historyTargetRow) {
-                    this.historyTargetRow.frefpr = row?.fsono || '';
+                if (this.historyTargetRow && row) {
+                    this.historyTargetRow.frefpr = row.fsono || '';
+                    if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
+                        this.historyTargetRow.fqty = +row.fqty;
+                    }
+                    if (typeof row.fprice !== 'undefined' && +row.fprice >= 0) {
+                        this.historyTargetRow.fprice = +row.fprice;
+                        if (typeof this.historyTargetRow.fpriceInput !== 'undefined') {
+                            this.historyTargetRow.fpriceInput = this.fmt(+row.fprice);
+                        }
+                    }
+                    if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
+                        this.historyTargetRow.fsatuan = row.fsatuan;
+                    }
+                    const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
+                    if (targetIndex !== -1) {
+                        this.onRowUpdated(targetIndex);
+                    }
                 }
                 this.closeHistory();
             },

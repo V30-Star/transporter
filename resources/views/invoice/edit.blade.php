@@ -3446,9 +3446,26 @@
                 }
             },
             selectHistory(row) {
-                if (this.historyTargetRow) {
-                    this.historyTargetRow.frefdtno = row?.fsono || '';
-                    this.historyTargetRow.frefno_display = row?.fsono || '';
+                if (this.historyTargetRow && row) {
+                    this.historyTargetRow.frefdtno = row.fsono || row.fstockmtno || '';
+                    this.historyTargetRow.frefno_display = row.fsono || row.fstockmtno || '';
+                    if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
+                        this.historyTargetRow.fqty = +row.fqty;
+                    }
+                    const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
+                    if (priceVal !== null && priceVal >= 0) {
+                        this.historyTargetRow.fprice = priceVal;
+                        if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
+                            this.historyTargetRow.fpriceInput = this.fmt(priceVal);
+                        }
+                    }
+                    if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
+                        this.historyTargetRow.fsatuan = row.fsatuan;
+                    }
+                    const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
+                    if (targetIndex !== -1 && typeof this.onRowUpdated === 'function') {
+                        this.onRowUpdated(targetIndex);
+                    }
                 }
                 this.closeHistory();
             },
