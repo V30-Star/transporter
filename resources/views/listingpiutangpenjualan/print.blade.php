@@ -119,7 +119,9 @@
         }
 
         .item-row>div:nth-child(7),
-        .po-header-labels>div:nth-child(7) {
+        .po-header-labels>div:nth-child(7),
+        .group-total-row>div:nth-child(3),
+        .grand-total-row>div:nth-child(3) {
             padding-right: 6px;
         }
 
