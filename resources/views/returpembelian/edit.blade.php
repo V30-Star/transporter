@@ -886,10 +886,13 @@
                                                             placeholder="Auto No Ref UM" disabled>
                                                     </template>
                                                     <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() !== 'UM'">
-                                                        <div class="flex gap-1">
-                                                            <div class="flex-1 px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="editRow.frefdtno || '-'"></div>
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="editRow.frefdtno || '-'"></div>
                                                             <button type="button" @click="openProductHistory(editRow)"
-                                                                class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100">History</button>
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                title="Riwayat produk">
+                                                                <x-heroicon-o-clock class="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </template>
                                                 </td>
@@ -975,10 +978,13 @@
 
                                                     {{-- No.Ref --}}
                                                     <td class="p-2">
-                                                        <div class="flex gap-1">
-                                                            <div class="flex-1 px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="dr.frefdtno || '-'"></div>
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="dr.frefdtno || '-'"></div>
                                                             <button type="button" @click="openProductHistory(dr)"
-                                                                class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100">History</button>
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                title="Riwayat produk">
+                                                                <x-heroicon-o-clock class="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </td>
 
