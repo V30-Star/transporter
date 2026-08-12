@@ -132,10 +132,10 @@
             color: #000000;
             /* font-weight: bold; */
             font-size: 8.5px;
-            padding: 6px 8px;
-            border-bottom: 1px solid #000000;
+            padding: 2px 6px;
+            /* border-bottom: 1px solid #000000; */
             margin-top: 10px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -143,8 +143,6 @@
         .group-total-row {
             background-color: transparent;
             font-weight: bold;
-            border-top: 1px dashed #000000; /* Subtle dashed separator */
-            border-bottom: 1px solid #000000;
         }
 
         /* Alignment & Monospace Fonts */
@@ -349,7 +347,7 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         /* Zoom Out Button Style */
@@ -401,10 +399,10 @@
 
         .grand-total-row {
             color: #304ee7;
-            border-top: 1px solid #000000;
-            border-bottom: 3px double #000000;
+            /* border-top: 1px solid #000000; */
+            border-bottom: 1px solid #000000;
             padding: 5px 0;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: bold;
         }
 

@@ -399,12 +399,14 @@
             </div>
             <h2>Listing Piutang Penjualan</h2>
             <div class="filter-info">
-                Per Tanggal: {{ \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}
+                <div>Per Tanggal: {{ \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}</div>
                 @if (request()->boolean('tgl_pembayaran'))
-                    | Tgl. Pembayaran: {{ request('tgl_pembayaran_date') ?: request('per_tanggal') }}
+                    <div>Tgl.Pembayaran s.d.: {{ request('tgl_pembayaran_date') ? \Carbon\Carbon::parse(request('tgl_pembayaran_date'))->format('d/m/Y') : \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}</div>
+                @else
+                    <div>Tgl.Pembayaran s.d.: Semua</div>
                 @endif
                 @if (request('due_filter') === 'due')
-                    | Jatuh Tempo s/d: {{ request('due_date') ?: request('per_tanggal') }}
+                    <div>Jatuh Tempo s/d: {{ request('due_date') ?: request('per_tanggal') }}</div>
                 @endif
             </div>
             <div class="info-tambahan">
