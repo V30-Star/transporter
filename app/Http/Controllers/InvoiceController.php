@@ -1715,6 +1715,11 @@ class InvoiceController extends Controller
             ->values()
             ->all();
         $headerRefNo = trim((string) $request->input('frefno', ''));
+        if ($headerRefNo === '') {
+            $srjDocs = collect($srjReferenceDocs)->filter(fn($v) => $v !== '' && $v !== '1');
+            $soDocs = collect($detailRows)->pluck('frefso')->map(fn($v) => trim((string) $v))->filter(fn($v) => $v !== '' && $v !== '1')->unique();
+            $headerRefNo = $srjDocs->merge($soDocs)->unique()->implode(', ');
+        }
 
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
@@ -2923,6 +2928,11 @@ class InvoiceController extends Controller
             ->values()
             ->all();
         $headerRefNo = trim((string) $request->input('frefno', ''));
+        if ($headerRefNo === '') {
+            $srjDocs = collect($srjReferenceDocs)->filter(fn($v) => $v !== '' && $v !== '1');
+            $soDocs = collect($detailRows)->pluck('frefso')->map(fn($v) => trim((string) $v))->filter(fn($v) => $v !== '' && $v !== '1')->unique();
+            $headerRefNo = $srjDocs->merge($soDocs)->unique()->implode(', ');
+        }
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
