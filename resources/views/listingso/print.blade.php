@@ -49,7 +49,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 60px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -503,12 +503,41 @@
         </a>
     </div>
 
+    {{-- Filter Params --}}
+    @php
+        $branchFilter = request()->has('branch_codes') && !empty(request()->input('branch_codes'))
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
+        $customerFilter = request('customer_code')
+            ?: (request('cust_from') && request('cust_to')
+                ? '['.request('cust_from').'] s/d ['.request('cust_to').']'
+                : 'Semua');
+        $selectedProductCodes = collect(explode(',', (string) request('selected_products')))
+            ->map(fn ($code) => trim($code))
+            ->filter();
+        $productFilter = $selectedProductCodes->isNotEmpty()
+            ? $selectedProductCodes->implode(', ')
+            : (request('product_code')
+                ?: (request('prd_from') && request('prd_to')
+                    ? '['.request('prd_from').'] s/d ['.request('prd_to').']'
+                    : 'Semua'));
+        $groupFilter = request('group_code') ?: 'Semua';
+        $merekFilter = request('merek_code') ?: 'Semua';
+        $soFilter = request('so_filter') === 'only_pending' ? 'Hanya Pending' : 'Semua';
+        $descFilter = request()->boolean('show_description') ? 'Ya' : 'Tidak';
+    @endphp
+
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Customer: {{ request('customer_code') ?: (request('cust_from') ?: 'Semua') }}
-                <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                Customer: {{ $customerFilter }}
+                <br>Cabang: {{ $branchFilter }}
+                <br>Produk: {{ $productFilter }}
+                <br>Group Produk: {{ $groupFilter }}
+                <br>Merek: {{ $merekFilter }}
+                <br>Status SO: {{ $soFilter }}
+                <br>Deskripsi: {{ $descFilter }}
             </div>
             <h2>Listing Sales Order</h2>
             <div class="filter-info">
@@ -617,8 +646,13 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        Customer: {{ request('customer_code') ?: (request('cust_from') ?: 'Semua') }}
-                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                        Customer: {{ $customerFilter }}
+                        <br>Cabang: {{ $branchFilter }}
+                        <br>Produk: {{ $productFilter }}
+                        <br>Group Produk: {{ $groupFilter }}
+                        <br>Merek: {{ $merekFilter }}
+                        <br>Status SO: {{ $soFilter }}
+                        <br>Deskripsi: {{ $descFilter }}
                     </div>
                     <h2>Listing Sales Order</h2>
                     <div class="info-tambahan">

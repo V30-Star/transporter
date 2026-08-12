@@ -49,7 +49,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -489,13 +489,22 @@
             $grandPpn += (float) $h->header_ppn;
             $grandRetur += (float) $h->header_total;
         }
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $detail = request()->boolean('detail');
+        $rekap = request()->boolean('rekap');
+        $modeText = $detail && $rekap ? 'Detail + Rekap' : ($detail ? 'Detail' : ($rekap ? 'Rekap' : 'Detail'));
     @endphp
 
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                Cabang: {{ $branchText }}
+                <br>Produk: {{ $productText }}
+                <br>Mode: {{ $modeText }}
             </div>
             <h2>Listing Retur Pembelian</h2>
             <div class="filter-info">
@@ -607,7 +616,9 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                        Cabang: {{ $branchText }}
+                        <br>Produk: {{ $productText }}
+                        <br>Mode: {{ $modeText }}
                     </div>
                     <h2>Listing Retur Pembelian</h2>
                     <div class="info-tambahan">

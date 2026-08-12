@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 50px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -491,14 +491,25 @@
 
     @php
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $customerText = request('cust_from') ? '[' . request('cust_from') . '] s/d [' . request('cust_to') . ']' : 'Semua';
+        $salesmanText = request('salesman_code') ?: 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $detail = request()->boolean('detail');
+        $rekap = request()->boolean('rekap');
+        $modeText = $detail && $rekap ? 'Detail + Rekap' : ($detail ? 'Detail' : ($rekap ? 'Rekap' : 'Detail'));
     @endphp
 
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="customer-info-kiri">
-                Customer: {{ request('cust_from') ? '[' . request('cust_from') . '] s/d [' . request('cust_to') . ']' : 'Semua' }}
-                <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                Customer: {{ $customerText }}
+                <br>Cabang: {{ $branchText }}
+                <br>Salesman: {{ $salesmanText }}
+                <br>Produk: {{ $productText }}
+                <br>Mode: {{ $modeText }}
             </div>
             <h2>Listing Retur Penjualan</h2>
             <div class="filter-info">
@@ -616,8 +627,11 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="customer-info-kiri" style="top: 15px;">
-                        Customer: {{ request('cust_from') ? '[' . request('cust_from') . '] s/d [' . request('cust_to') . ']' : 'Semua' }}
-                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                        Customer: {{ $customerText }}
+                        <br>Cabang: {{ $branchText }}
+                        <br>Salesman: {{ $salesmanText }}
+                        <br>Produk: {{ $productText }}
+                        <br>Mode: {{ $modeText }}
                     </div>
                     <h2>Listing Retur Penjualan</h2>
                     <div class="info-tambahan">

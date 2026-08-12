@@ -49,7 +49,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 35px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -358,11 +358,25 @@
     </div>
 
     {{-- Hidden Raw Data Container --}}
+    @php
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $supplierText = request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua';
+        $warehouseText = request('warehouse') ?: 'Semua';
+        $statusText = request('status') ?: 'Semua';
+        $sortText = request('sort_by') ?: 'No. Transaksi';
+        $detail = request()->boolean('is_detail');
+        $rekap = request()->boolean('is_rekap');
+        $modeText = $detail && $rekap ? 'Detail + Rekap' : ($detail ? 'Detail' : ($rekap ? 'Rekap' : 'Detail'));
+    @endphp
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
-                <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                Supplier: {{ $supplierText }}
+                <br>Cabang: {{ $branchText }}
+                <br>Gudang: {{ $warehouseText }}
+                <br>Status: {{ $statusText }}
+                <br>Urut: {{ $sortText }}
+                <br>Mode: {{ $modeText }}
             </div>
             <h2>Listing Penerimaan Barang</h2>
             <div class="filter-info">
@@ -453,8 +467,12 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
-                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                        Supplier: {{ $supplierText }}
+                        <br>Cabang: {{ $branchText }}
+                        <br>Gudang: {{ $warehouseText }}
+                        <br>Status: {{ $statusText }}
+                        <br>Urut: {{ $sortText }}
+                        <br>Mode: {{ $modeText }}
                     </div>
                     <h2>Listing Penerimaan Barang</h2>
                     <div class="info-tambahan">

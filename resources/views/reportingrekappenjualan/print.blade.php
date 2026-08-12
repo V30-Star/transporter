@@ -48,7 +48,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 55px;
             text-align: center;
             padding-bottom: 15px;
         }
@@ -343,12 +343,26 @@
     @php
         $grandTotal = 0;
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
+        $groupText = request('group_code') ?: 'Semua';
+        $merekText = request('merek_code') ?: 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $groupByText = request('group_by') === 'merek' ? 'Merek' : 'Group Produk';
+        $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
     @endphp
 
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Cabang: {{ $branchText }}
+                Cabang: {{ $branchText }}<br>
+                Salesman: {{ $salesmanText }}<br>
+                Produk: {{ $productText }}<br>
+                Group Produk: {{ $groupText }}<br>
+                Merek: {{ $merekText }}<br>
+                Grouping: {{ $groupByText }}<br>
+                Retur Penjualan: {{ $returText }}
             </div>
             <h2>{{ $title }}</h2>
             <div class="filter-info">
@@ -435,7 +449,13 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        Cabang: {{ $branchText }}
+                        Cabang: {{ $branchText }}<br>
+                        Salesman: {{ $salesmanText }}<br>
+                        Produk: {{ $productText }}<br>
+                        Group Produk: {{ $groupText }}<br>
+                        Merek: {{ $merekText }}<br>
+                        Grouping: {{ $groupByText }}<br>
+                        Retur Penjualan: {{ $returText }}
                     </div>
                     <h2>{{ $title }}</h2>
                     <div class="info-tambahan">

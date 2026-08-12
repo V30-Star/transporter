@@ -475,6 +475,7 @@
             trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
                 ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
                 : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
     @endphp
 
     <div id="raw-source" style="display: none;">
@@ -482,6 +483,7 @@
             <div class="supplier-info-kiri">
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
+                <br>Salesman: {{ $salesmanText }}
             </div>
             <h2>{{ $title }}</h2>
             <div class="filter-info">
@@ -608,6 +610,7 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
+                        <br>Salesman: {{ $salesmanText }}
                     </div>
                     <h2>{{ $title }}</h2>
                     <div class="info-tambahan">

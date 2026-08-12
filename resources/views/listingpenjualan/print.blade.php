@@ -523,12 +523,23 @@
         $branchText = request()->has('branch_codes')
             ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
-        $customerText = request('cust_from') ? '[' . request('cust_from') . ']' : 'Semua';
+        $customerText = request('cust_from')
+            ? '[' . request('cust_from') . ']' . (request('cust_to') ? ' s/d [' . request('cust_to') . ']' : '')
+            : 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $groupText = request('group_code') ?: 'Semua';
+        $merekText = request('merek_code') ?: 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
         $salesTypeText = match ((string) request('ftypesales', '')) {
             '1' => 'Uang Muka (UM)',
             '0' => 'Penjualan',
             default => 'Semua',
         };
+        $fakturText = request()->has('belum_kirim') ? 'Belum Kirim' : 'Semua Faktur';
+        $displayText = request('display_type') === 'rekap' ? 'Rekap' : 'Detail';
+        $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
     @endphp
 
     {{-- Hidden Raw Data Container --}}
@@ -537,7 +548,14 @@
             <div class="supplier-info-kiri">
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
+                <br>Produk: {{ $productText }}
+                <br>Group Produk: {{ $groupText }}
+                <br>Merek: {{ $merekText }}
+                <br>Salesman: {{ $salesmanText }}
                 <br>Tipe: {{ $salesTypeText }}
+                <br>Faktur: {{ $fakturText }}
+                <br>Display: {{ $displayText }}
+                <br>Retur Penjualan: {{ $returText }}
             </div>
             <h2>Listing Penjualan</h2>
             <div class="filter-info">
@@ -683,6 +701,14 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
+                        <br>Produk: {{ $productText }}
+                        <br>Group Produk: {{ $groupText }}
+                        <br>Merek: {{ $merekText }}
+                        <br>Salesman: {{ $salesmanText }}
+                        <br>Tipe: {{ $salesTypeText }}
+                        <br>Faktur: {{ $fakturText }}
+                        <br>Display: {{ $displayText }}
+                        <br>Retur Penjualan: {{ $returText }}
                     </div>
                     <h2>Listing Penjualan</h2>
                     <div class="info-tambahan">

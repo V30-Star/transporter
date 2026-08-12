@@ -144,7 +144,6 @@
         .row-total {
             background-color: transparent;
             font-weight: bold;
-            border-top: 1px dashed #000000; /* Subtle dashed separator */
             border-bottom: 1px solid #000000;
         }
 

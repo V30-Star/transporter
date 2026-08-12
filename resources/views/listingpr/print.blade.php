@@ -49,7 +49,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -470,14 +470,20 @@
                 $totalQtyPO += (float) $d->fqtypo;
             }
         }
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $supplierText = request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua';
+        $sortText = request('sort_by') ?: 'No. PR';
+        $statusText = request()->has('only_pending') ? 'Hanya Pending' : 'Semua PR';
     @endphp
 
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
-                <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                Supplier: {{ $supplierText }}
+                <br>Cabang: {{ $branchText }}
+                <br>Urut: {{ $sortText }}
+                <br>Status: {{ $statusText }}
             </div>
             <h2>Listing Purchase Request</h2>
             <div class="filter-info">
@@ -564,8 +570,10 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
-                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                        Supplier: {{ $supplierText }}
+                        <br>Cabang: {{ $branchText }}
+                        <br>Urut: {{ $sortText }}
+                        <br>Status: {{ $statusText }}
                     </div>
                     <h2>Listing Purchase Request</h2>
                     <div class="info-tambahan">

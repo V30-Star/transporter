@@ -49,7 +49,7 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 25px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -509,6 +509,11 @@
         $totalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
         $customerText = request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
+        $returText = request()->has('include_retur') ? 'Ya' : 'Tidak';
+        $productText = (request('prd_from') || request('prd_to'))
+            ? (request('prd_from') ?: 'Awal') . ' s/d ' . (request('prd_to') ?: 'Akhir')
+            : 'Semua';
     @endphp
 
     {{-- Hidden Raw Data Container --}}
@@ -517,6 +522,9 @@
             <div class="supplier-info-kiri">
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
+                <br>Salesman: {{ $salesmanText }}
+                <br>Produk: {{ $productText }}
+                <br>Retur: {{ $returText }}
             </div>
             <h2>Listing Penjualan Dengan HPP</h2>
             <div class="filter-info">
@@ -640,6 +648,9 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
+                        <br>Salesman: {{ $salesmanText }}
+                        <br>Produk: {{ $productText }}
+                        <br>Retur: {{ $returText }}
                     </div>
                     <h2>Listing Penjualan Dengan HPP</h2>
                     <div class="info-tambahan">

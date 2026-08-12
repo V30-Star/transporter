@@ -488,6 +488,12 @@
         $customerText = request('cust_from')
             ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '')
             : 'Semua';
+        $groupText = request('group_prd') ?: 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $stokText = request()->has('only_stok') ? 'Ya' : 'Tidak';
+        $rekapText = ($reportType ?? request('report_type', 'detail')) === 'rekap' ? 'Rekap' : 'Detail';
         $isRekap = ($reportType ?? request('report_type', 'detail')) === 'rekap';
     @endphp
 
@@ -497,6 +503,10 @@
             <div class="supplier-info-kiri">
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
+                <br>Group Produk: {{ $groupText }}
+                <br>Produk: {{ $productText }}
+                <br>Hanya Stok > 0: {{ $stokText }}
+                <br>Jenis: {{ $rekapText }}
             </div>
             <h2>SO Yang Belum Dikirim(By Customer)</h2>
             <div class="filter-info">
@@ -595,6 +605,10 @@
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
+                        <br>Group Produk: {{ $groupText }}
+                        <br>Produk: {{ $productText }}
+                        <br>Hanya Stok > 0: {{ $stokText }}
+                        <br>Jenis: {{ $rekapText }}
                     </div>
                     <h2>SO Yang Belum Dikirim(By Customer)</h2>
                     <div class="info-tambahan">

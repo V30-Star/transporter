@@ -40,7 +40,7 @@
 
          .header-section {
             position: relative;
-            margin-bottom: 0px;
+            margin-bottom: 20px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -395,13 +395,21 @@
         $branchText = request()->has('branch_codes')
             ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
+        $wilayahText = request('wilayah') ?: 'Semua';
+        $customerText = request('cust_from') || request('cust_to')
+            ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+            : 'Semua';
     @endphp
 
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
                 Cabang: {{ $branchText }}<br>
-                Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+                Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
+                Salesman: {{ $salesmanText }}<br>
+                Wilayah: {{ $wilayahText }}<br>
+                Customer: {{ $customerText }}
             </div>
             <h2>Listing Piutang Penjualan</h2>
             <div class="filter-info">
@@ -507,7 +515,10 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15mm;">
                         Cabang: {{ $branchText }}<br>
-                        Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+                        Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
+                        Salesman: {{ $salesmanText }}<br>
+                        Wilayah: {{ $wilayahText }}<br>
+                        Customer: {{ $customerText }}
                     </div>
                     <h2>Listing Piutang Penjualan</h2>
                     <div class="info-tambahan">
