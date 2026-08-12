@@ -105,12 +105,16 @@
                         <input type="date" name="due_date" value="{{ date('Y-m-d') }}" class="w-full border rounded px-3 py-2 text-sm">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded border">
+                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded border">
                         <label class="flex items-center text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="report_mode" value="detail" checked class="report-mode-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Detail
                         </label>
                         <label class="flex items-center text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="report_mode" value="rekap" class="report-mode-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Rekap
+                        </label>
+                        <label class="flex items-center text-sm font-bold text-red-600 cursor-pointer select-none">
+                            <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2 w-4 h-4 text-red-600 focus:ring-red-500 rounded border-red-300">
+                            <span class="text-red-600 font-bold">Termasuk Retur Penjualan</span>
                         </label>
                     </div>
                 </div>

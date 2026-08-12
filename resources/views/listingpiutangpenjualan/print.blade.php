@@ -40,7 +40,7 @@
 
          .header-section {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             text-align: center;
             padding-bottom: 20px;
         }
@@ -400,6 +400,7 @@
         $customerText = request('cust_from') || request('cust_to')
             ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
             : 'Semua';
+        $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
     @endphp
 
     <div id="raw-source" style="display: none;">
@@ -409,7 +410,8 @@
                 Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
                 Salesman: {{ $salesmanText }}<br>
                 Wilayah: {{ $wilayahText }}<br>
-                Customer: {{ $customerText }}
+                Customer: {{ $customerText }}<br>
+                Retur Penjualan: {{ $returText }}
             </div>
             <h2>Listing Piutang Penjualan</h2>
             <div class="filter-info">
@@ -518,7 +520,8 @@
                         Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
                         Salesman: {{ $salesmanText }}<br>
                         Wilayah: {{ $wilayahText }}<br>
-                        Customer: {{ $customerText }}
+                        Customer: {{ $customerText }}<br>
+                        Retur Penjualan: {{ $returText }}
                     </div>
                     <h2>Listing Piutang Penjualan</h2>
                     <div class="info-tambahan">
