@@ -85,7 +85,7 @@
         .info-table {
             float: right;
             font-size: 12px;
-            margin-top: -68px;
+            margin-top: -65px;
         }
 
         .info-table td {
@@ -112,12 +112,16 @@
             vertical-align: top;
         }
 
-        .text-center {
-            text-align: center;
+        .text-center,
+        .tb th.text-center,
+        .tb td.text-center {
+            text-align: center !important;
         }
 
-        .text-right {
-            text-align: right;
+        .text-right,
+        .tb th.text-right,
+        .tb td.text-right {
+            text-align: right !important;
         }
 
         .muted {
@@ -173,17 +177,17 @@
         }
 
         .sign-container {
-            margin-top: 18px;
+            margin-top: -70px;
             clear: both;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            gap: 16px;
+            gap: 10px;
         }
 
         .sign-table {
             border-collapse: collapse;
-            width: 450px;
+            width: 400px;
         }
 
         .sign-table td {
@@ -270,9 +274,6 @@
                     Alamat : {{ $hdr->customer_address ?? '-' }}
                 </div>
                 <div style="font-size: 11px;">
-                    Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
-                </div>
-                <div style="font-size: 11px;">
                     Keterangan : {{ $hdr->fket ?: '-' }}
                 </div>
             </div>
@@ -282,16 +283,6 @@
                     <td>Tanggal</td>
                     <td>:</td>
                     <td>{{ $fmt($hdr->fsodate) }}</td>
-                </tr>
-                <tr>
-                    <td>Tempo</td>
-                    <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                </tr>
-                <tr>
-                    <td>No. Ref / PO</td>
-                    <td>:</td>
-                    <td>{{ $hdr->frefno ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td>Sales</td>
@@ -310,9 +301,9 @@
                     <th style="width: 5%;">No.</th>
                     <th style="width: 15%;">Kode Produk</th>
                     <th style="width: 34%;">Nama Produk</th>
-                    <th style="width: 14%;" class="text-right">Qty</th>
-                    <th style="width: 15%;" class="text-right">@ Harga</th>
-                    <th style="width: 17%;" class="text-right">Total Harga</th>
+                    <th style="width: 14%; text-align: right;" class="text-right">Qty</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">@ Harga</th>
+                    <th style="width: 17%; text-align: right;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
