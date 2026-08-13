@@ -534,7 +534,6 @@
                 <div>Masuk</div>
                 <div>Keluar</div>
                 <div>Saldo Akhir</div>
-                <div>Gudang</div>
             </div>
         @else
             <div class="detail-header-labels">
@@ -576,7 +575,6 @@
                                 <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
-                                <div>{{ $row->fwhcode }}</div>
                             </div>
                         </div>
                     @endforeach
