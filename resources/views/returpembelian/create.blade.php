@@ -1136,18 +1136,32 @@
             ftypebuy: @json((int) old('ftypebuy', 0)),
 
             onTypeChanged() {
+                const el = document.querySelector('select[name="ftypebuy"]');
+                if (el) this.ftypebuy = Number(el.value);
                 const isUM = this.ftypebuy !== 0;
                 const invalidSaved = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode)));
                 const invalidDrafts = this.draftRows.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode)));
 
                 if (invalidSaved.length > 0 || invalidDrafts.length > 0) {
+                    document.querySelectorAll('.fpb-detail-table input').forEach(input => {
+                        input.value = '';
+                        input.blur();
+                    });
                     window.showAppWarningAlert('WARNING', isUM ? 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.' : 'Tipe Pembelian tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
                     this.savedItems = this.savedItems.filter(r => (isUM ? this.isUMCode(r.fitemcode) : !this.isUMCode(r.fitemcode)));
-                    this.draftRows.forEach((r, idx) => {
-                        if ((r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode))) {
-                            this.draftRows.splice(idx, 1, newDraftRow());
+                    this.draftRows = this.draftRows.map(r => {
+                        const code = (r.fitemcode || '').toString().trim().toUpperCase();
+                        if (code !== '' && (isUM ? !this.isUMCode(code) : this.isUMCode(code))) {
+                            return newDraftRow();
                         }
+                        return r;
                     });
+                }
+                if (this.editingIndex !== null) {
+                    const editCode = (this.editRow?.fitemcode || '').toString().trim().toUpperCase();
+                    if (editCode !== '' && (isUM ? !this.isUMCode(editCode) : this.isUMCode(editCode))) {
+                        this.cancelEdit();
+                    }
                 }
                 this.syncDraftRows();
                 this.recalcTotals();
@@ -1357,8 +1371,18 @@
             onCodeTypedRow(row) {
                 const code = (row.fitemcode || '').toString().trim().toUpperCase();
                 if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
+                    if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                        document.activeElement.value = '';
+                        document.activeElement.blur();
+                    }
                     window.showAppWarningAlert('WARNING', this.ftypebuy !== 0 ? 'Tipe Uang Muka hanya boleh menginput produk UM!' : 'Produk UM hanya untuk tipe Uang Muka!');
-                    Object.assign(row, newDraftRow());
+                    const idx = this.draftRows.indexOf(row);
+                    if (idx !== -1) {
+                        this.draftRows[idx] = newDraftRow();
+                        this.draftRows = [...this.draftRows];
+                    } else {
+                        Object.assign(row, newDraftRow());
+                    }
                     this.syncDraftRows();
                     return;
                 }
@@ -1476,7 +1500,8 @@
             },
 
             removeDraftRow(di) {
-                if (this.draftRows.length > this.minimumDraftRows || this.draftRowHasContent(this.draftRows[di])) {
+                const totalVisible = (this.savedItems || []).length + this.draftRows.length;
+                if (totalVisible > this.minimumDraftRows || this.draftRowHasContent(this.draftRows[di])) {
                     this.draftRows.splice(di, 1);
                     this.syncDraftRows();
                 }
@@ -1487,15 +1512,17 @@
             },
 
             syncDraftRows() {
-                while (this.draftRows.length < this.minimumDraftRows) {
+                const targetDrafts = Math.max(this.minimumDraftRows - (this.savedItems || []).length, 1);
+
+                while (this.draftRows.length < targetDrafts) {
                     this.draftRows.push(newDraftRow());
                 }
 
-                while (this.draftRows.length > this.minimumDraftRows && !this.draftRowHasContent(this.draftRows[this.draftRows.length - 1]) && this.draftRows.slice(0, -1).some(row => !this.isComplete(row))) {
+                while (this.draftRows.length > targetDrafts && !this.draftRowHasContent(this.draftRows[this.draftRows.length - 1]) && this.draftRows.slice(0, -1).some(row => !this.isComplete(row))) {
                     this.draftRows.pop();
                 }
 
-                if (this.draftRows.length >= this.minimumDraftRows && this.draftRows.every(row => this.isComplete(row))) {
+                if (this.draftRows.length > 0 && this.draftRows.every(row => this.isComplete(row))) {
                     this.draftRows.push(newDraftRow());
                 }
             },
@@ -1535,6 +1562,7 @@
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
                 this.syncDescList?.();
+                this.syncDraftRows();
                 this.recalcTotals();
             },
 
