@@ -299,7 +299,6 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">No.</th>
-                    <th style="width: 15%;">Kode Produk</th>
                     <th style="width: 34%;">Nama Produk</th>
                     <th style="width: 14%; text-align: right;" class="text-right">Qty</th>
                     <th style="width: 15%; text-align: right;" class="text-right">@ Harga</th>
@@ -310,7 +309,6 @@
                 @foreach ($dt as $i => $r)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
                             <div>{{ $r->product_name ?? '-' }}</div>
                             @if (!empty($r->fdesc))
