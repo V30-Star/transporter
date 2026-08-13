@@ -2362,8 +2362,25 @@
                 return '';
             },
 
+            parseQtyValue(value) {
+                const raw = String(value ?? '').trim();
+                if (raw === '') return 0;
+                const lastComma = raw.lastIndexOf(',');
+                const lastDot = raw.lastIndexOf('.');
+                const decimal = lastComma > lastDot ? ',' : '.';
+                let normalized = raw.replace(/[^0-9,.-]+/g, '');
+                if (lastComma !== -1 && lastDot !== -1) {
+                    normalized = decimal === ',' ? normalized.replace(/\./g, '').replace(',', '.') : normalized.replace(/,/g, '');
+                } else if (/^[+-]?\d{1,3}([,.]\d{3})+$/.test(normalized)) {
+                    normalized = normalized.replace(/[,.]/g, '');
+                } else {
+                    normalized = normalized.replace(',', '.');
+                }
+                return Number(normalized) || 0;
+            },
+
             getRowQtyLimit(row) {
-                const parsedLimit = parseFloat(row?.maxqty ?? 0);
+                const parsedLimit = this.parseQtyValue(row?.maxqty ?? 0);
                 const limitSource = Math.max(0, Number.isFinite(parsedLimit) ? parsedLimit : 0);
                 if (row?.maxqty_unit !== 'kecil') return limitSource;
 
@@ -2373,7 +2390,7 @@
             getRowReferenceQty(row) {
                 const value = row?.ref_qty ?? row?.faktur_qty ?? row?.srj_qty ?? row?.fsono_qty;
                 if (value === undefined || value === null || value === '') return this.getRowQtyLimit(row);
-                const qty = parseFloat(value);
+                const qty = this.parseQtyValue(value);
                 return Number.isFinite(qty) ? qty : 0;
             },
 
@@ -2390,7 +2407,7 @@
                     return false;
                 }
 
-                const qty = parseFloat(row?.fqty ?? 0);
+                const qty = this.parseQtyValue(row?.fqty ?? 0);
                 row.qtyInvalid = !Number.isFinite(qty) || qty <= 0 || qty > limit;
                 if (qty > limit) {
                     if (showToast) window.toast?.error(
@@ -2770,12 +2787,16 @@
 
                     if (String(row?.fitemcode || '').toUpperCase().trim() === 'UM') continue;
 
-                    const returnQty = parseFloat(row.fqty ?? row.qty ?? 0) || 0;
+                    const returnQty = this.parseQtyValue(row.fqty ?? row.qty ?? 0);
                     const refQty = this.getRowReferenceQty(row);
                     if (returnQty > refQty || !this.validateReferenceQty(row, true)) {
                         row.qtyInvalid = true;
                         this.focusRowQty(this.savedItems.indexOf(row));
-                        alert(`Row ${i + 1}: Qty Retur (${returnQty}) melebihi Qty Referensi (${refQty})`);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validasi Gagal',
+                            text: `Row ${i + 1}: Qty retur (${returnQty}) melebihi Qty referensi (${refQty})`,
+                        });
                         return false;
                     }
                 }
