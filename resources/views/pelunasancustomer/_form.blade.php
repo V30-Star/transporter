@@ -317,7 +317,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                                 :class="referenceTextClass(row)"
                                                 class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white">
                                         @endif
-                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="isRejRow(row) ? 'RUJ' : (row.ftrcode || 'INV')">
+                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="isRejRow(row) ? (row.ftrcode || 'REJ') : (row.ftrcode || 'INV')">
                                     </td>
                                     <td class="p-2">
                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="row.fdatetime || '-'"></div>
@@ -845,7 +845,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
                 normalizeRow(row = {}, index = 0) {
                     const sisa = this.toNumber(row.fsisa_piutang);
-                    const isRej = String(row.ftrcode || '').trim().toUpperCase() === 'RUJ';
+                    const isRej = ['REJ', 'RUJ'].includes(String(row.ftrcode || '').trim().toUpperCase());
                     return {
                         uid: row.uid || `pc-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
@@ -942,7 +942,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             fdiscpersen: this.toNumber(row.fdiscpersen),
                             fdiscount: this.toNumber(row.fdiscount),
                             fkasdtvalue: this.toNumber(row.fkasdtvalue),
-                            ftrcode: this.isRejRow(row) ? 'RUJ' : (String(row.ftrcode || 'INV').trim() || 'INV'),
+                            ftrcode: this.isRejRow(row) ? (row.ftrcode || 'REJ') : (String(row.ftrcode || 'INV').trim() || 'INV'),
                         })));
                 },
 
@@ -970,7 +970,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                         return;
                     }
                     const prefix = row.frefno.split('.')[0] || '';
-                    row.ftrcode = prefix === 'RUJ' ? 'RUJ' : 'INV';
+                    row.ftrcode = ['REJ', 'RUJ'].includes(prefix) ? prefix : 'INV';
                 },
 
                 clearNotaRow(row, keepRef = true) {
@@ -1421,44 +1421,45 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                         return refNo === '' || selectedSonos.includes(refNo);
                     });
 
-                    this.tempSelectedNotas.forEach(record => {
-                        const remain = this.toNumber(record.famountremain);
-                        const trCode = String(record.ftrcode || 'INV').trim().toUpperCase() || 'INV';
-                        if (remain <= 0 && trCode !== 'RUJ') return;
+                        this.tempSelectedNotas.forEach(record => {
+                            const remain = this.toNumber(record.famountremain);
+                            const trCode = String(record.ftrcode || 'INV').trim().toUpperCase() || 'INV';
+                            const isRetur = ['REJ', 'RUJ'].includes(trCode);
+                            if (remain <= 0 && !isRetur) return;
 
-                        const fsono = String(record.fsono || '').trim();
-                        const existing = this.rows.find((row) => String(row.frefno || '').trim() === fsono);
-                        
-                        if (!existing) {
-                            const targetRow = this.findTargetRowForNota();
-                            let amount = this.toNumber(record.famountso ?? record.famount);
+                            const fsono = String(record.fsono || '').trim();
+                            const existing = this.rows.find((row) => String(row.frefno || '').trim() === fsono);
+                            
+                            if (!existing) {
+                                const targetRow = this.findTargetRowForNota();
+                                let amount = this.toNumber(record.famountso ?? record.famount);
 
-                            if (trCode === 'RUJ') {
-                                amount = amount * -1;
-                                targetRow.fsisa_piutang = 0;
-                                targetRow.originalSisa = Math.abs(remain);
-                                targetRow.fkasdtvalue = -Math.abs(remain);
-                            } else {
-                                targetRow.fsisa_piutang = remain;
-                                targetRow.originalSisa = remain;
-                                targetRow.fkasdtvalue = remain;
+                                if (isRetur) {
+                                    amount = amount * -1;
+                                    targetRow.fsisa_piutang = 0;
+                                    targetRow.originalSisa = Math.abs(remain);
+                                    targetRow.fkasdtvalue = -Math.abs(remain);
+                                } else {
+                                    targetRow.fsisa_piutang = remain;
+                                    targetRow.originalSisa = remain;
+                                    targetRow.fkasdtvalue = remain;
+                                }
+
+                                targetRow.frefno = fsono;
+                                targetRow.fdatetime = record.fsodate || '';
+                                targetRow.fcustno = String(record.fcustno || '').trim();
+                                targetRow.fcustomername = String(record.fcustomername || '').trim();
+                                targetRow.ftempo = Number(record.ftempo || 0);
+                                targetRow.fnilai_nota = Math.abs(amount);
+                                targetRow.fdiscpersen = 0;
+                                targetRow.fdiscount = 0;
+                                targetRow.ftrcode = trCode;
+
+                                if (!isRetur) {
+                                    targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
+                                }
                             }
-
-                            targetRow.frefno = fsono;
-                            targetRow.fdatetime = record.fsodate || '';
-                            targetRow.fcustno = String(record.fcustno || '').trim();
-                            targetRow.fcustomername = String(record.fcustomername || '').trim();
-                            targetRow.ftempo = Number(record.ftempo || 0);
-                            targetRow.fnilai_nota = Math.abs(amount);
-                            targetRow.fdiscpersen = 0;
-                            targetRow.fdiscount = 0;
-                            targetRow.ftrcode = trCode;
-
-                            if (trCode !== 'RUJ') {
-                                targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
-                            }
-                        }
-                    });
+                        });
 
                     if (this.rows.length === 0) {
                         this.rows.push(this.emptyRow());
@@ -1486,12 +1487,12 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 isRejRow(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
                     const refNo = String(row?.frefno || '').trim().toUpperCase();
-                    return code === 'RUJ' || refNo.startsWith('RUJ.');
+                    return ['REJ', 'RUJ'].includes(code) || refNo.startsWith('REJ.') || refNo.startsWith('RUJ.');
                 },
 
                 referenceTextClass(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
-                    return ['RUJ', 'RUB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
+                    return ['REJ', 'RUJ', 'REB', 'RUB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
                 showValidationError(message) {

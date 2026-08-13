@@ -598,11 +598,13 @@
                                 'SJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
                                 'SRJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
                                 'INV' => ['view' => 'invoice.view', 'edit' => 'invoice.edit'],
+                                'REJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
                                 'RUJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
                                 'PR' => ['view' => 'tr_prh.view', 'edit' => 'tr_prh.edit'],
                                 'PO' => ['view' => 'tr_poh.view', 'edit' => 'tr_poh.edit'],
                                 'PB' => ['view' => 'penerimaanbarang.view', 'edit' => 'penerimaanbarang.edit'],
                                 'BUY' => ['view' => 'fakturpembelian.view', 'edit' => 'fakturpembelian.edit'],
+                                'REB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
                                 'RUB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
                                 'ADJ' => ['view' => 'adjstock.view', 'edit' => 'adjstock.edit'],
                                 'MUT' => ['view' => 'mutasi.view', 'edit' => 'mutasi.edit'],
@@ -615,7 +617,7 @@
                         @endphp
                         <div class="journal-block">
                             <div class="detail-row">
-                                <div class="truncate {{ in_array($code, ['RUJ', 'RUB']) ? 'text-rej' : '' }}" title="{{ $row->fstockmt }}">
+                                <div class="truncate {{ in_array($code, ['REJ', 'RUJ', 'REB', 'RUB']) ? 'text-rej' : '' }}" title="{{ $row->fstockmt }}">
                                     @if ($canClick)
                                         <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fstockmt }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fstockmt }}</span>
                                     @else

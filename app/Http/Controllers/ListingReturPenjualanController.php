@@ -45,7 +45,7 @@ class ListingReturPenjualanController extends Controller
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoin('mswh as w', 'm.ffrom', '=', 'w.fwhcode')
-            ->where('m.ftrcode', 'RUJ')
+            ->whereIn('m.ftrcode', ['REJ', 'RUJ'])
             ->select(
                 'm.ftranmtid as fstockmtid',
                 'm.fsono as fstockmtno',

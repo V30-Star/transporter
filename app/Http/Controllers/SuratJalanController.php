@@ -2405,7 +2405,7 @@ class SuratJalanController extends Controller
             $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
         }
 
-        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'RUJ.'));
+        $usedByRetur = $usedBySalesDocs->filter(fn($no) => preg_match('/^(REJ|RUJ)\./i', (string) $no));
         if ($usedByRetur->isNotEmpty()) {
             $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
         }

@@ -393,7 +393,7 @@
         @forelse ($rows->groupBy('fmerek') as $groupCode => $items)
             @php
                 $groupName = $items->first()->fgroupname ?: $groupCode;
-                $groupTotal = $items->sum(fn($item) => $item->fsource === 'RUJ' ? -abs((float) $item->famount) : abs((float) $item->famount));
+                $groupTotal = $items->sum(fn($item) => in_array($item->fsource, ['REJ', 'RUJ'], true) ? -abs((float) $item->famount) : abs((float) $item->famount));
                 $grandTotal += $groupTotal;
             @endphp
 
@@ -403,7 +403,7 @@
 
             @foreach ($items as $index => $row)
                 @php
-                    $isReturn = $row->fsource === 'RUJ';
+                    $isReturn = in_array($row->fsource, ['REJ', 'RUJ'], true);
                     $rowQty = $isReturn ? -abs((float) $row->fqty) : abs((float) $row->fqty);
                     $rowAmount = $isReturn ? -abs((float) $row->famount) : abs((float) $row->famount);
                 @endphp

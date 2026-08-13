@@ -554,7 +554,7 @@
                                                 <template x-if="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                         <button type="button" @click="openProductHistory(it)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                             :disabled="!canOpenHistory(it)"
@@ -2443,7 +2443,7 @@
                 }
                 row.fitemname = meta.name || '';
                 if (row.frefcode !== 'SRJ' && row.frefcode !== 'SO' && row.frefcode !== 'INV' && row.frefcode !==
-                    'UM' && row.frefcode !== 'RUJ') {
+                    'UM' && !['REJ', 'RUJ'].includes(row.frefcode)) {
                     row.frefcode = '';
                 }
                 const currentUnit = (row.fsatuan ?? '').toString().trim();

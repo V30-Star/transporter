@@ -20,7 +20,7 @@ class ReturPembelianController extends Controller
 
     private function todayCreateCount(): int
     {
-        return PenerimaanPembelianHeader::where('fstockmtcode', 'RUB')
+        return PenerimaanPembelianHeader::whereIn('fstockmtcode', ['REB', 'RUB'])
             ->whereBetween('fdatetime', [now()->startOfDay(), now()->endOfDay()])
             ->count();
     }
@@ -97,7 +97,7 @@ class ReturPembelianController extends Controller
 
         // Ambil tahun-tahun yang tersedia dari data
         $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->where('fstockmtcode', 'RUB')
+            ->whereIn('fstockmtcode', ['REB', 'RUB'])
             ->whereNotNull('fdatetime');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
         $availableYears = $availableYearsQuery
@@ -109,7 +109,7 @@ class ReturPembelianController extends Controller
             $baseQuery = DB::table('trstockmt')
                 ->leftJoin('mswh as warehouse', 'warehouse.fwhcode', '=', 'trstockmt.ffrom')
                 ->leftJoin('mssupplier as supplier', 'supplier.fsuppliercode', '=', 'trstockmt.fsupplier')
-                ->where('trstockmt.fstockmtcode', 'RUB');
+                ->whereIn('trstockmt.fstockmtcode', ['REB', 'RUB']);
             $this->applyBranchVisibilityScope($baseQuery, 'trstockmt.fbranchcode');
 
             $query = clone $baseQuery;
@@ -441,10 +441,11 @@ class ReturPembelianController extends Controller
             $kodeCabang = 'NA';
         }
 
+        $trCode = $isUm ? 'RUB' : 'REB';
         $sep = $hasPpn ? '.' : '/';
-        $prefix = sprintf('RUB%s%s%s%s%s', $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
+        $prefix = sprintf('%s%s%s%s%s%s', $trCode, $sep, $kodeCabang, $sep, $date->format('y') . $date->format('m'), $sep);
 
-        $lockKey = crc32('STOCKMT|RUB|' . $kodeCabang . '|' . $date->format('y-m'));
+        $lockKey = crc32('STOCKMT|' . $trCode . '|' . $kodeCabang . '|' . $date->format('y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
@@ -1026,7 +1027,9 @@ class ReturPembelianController extends Controller
                 // GENERATE DOCUMENT NUMBER
                 $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
-                $fstockmtcode = 'RUB';
+                $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
+                $hasUMItem = (int) $request->input('ftypebuy', 0) !== 0 || collect($itemCodes)->contains(fn ($c) => strtoupper(trim((string) $c)) === 'UM');
+                $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
 
                 if (empty($fstockmtno)) {
                     $sep = $fincludeppn === 1 ? '.' : '/';
@@ -1674,7 +1677,9 @@ class ReturPembelianController extends Controller
                     $kodeCabang = 'NA';
                 }
 
-                $fstockmtcode = 'RUB';
+                $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
+                $hasUMItem = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0) !== 0 || collect($itemCodes)->contains(fn ($c) => strtoupper(trim((string) $c)) === 'UM');
+                $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
 
                 if (empty($fstockmtno)) {
                     $fstockmtno = $header->fstockmtno;
@@ -2154,7 +2159,7 @@ class ReturPembelianController extends Controller
 
         foreach ($references as $referenceNo) {
             $query = DB::table('trstockmt')
-                ->where('fstockmtcode', 'RUB')
+                ->whereIn('fstockmtcode', ['REB', 'RUB'])
                 ->where(function ($inner) use ($referenceNo) {
                     $inner->whereRaw('TRIM(COALESCE(frefno, \'\')) = ?', [$referenceNo])
                         ->orWhereRaw('TRIM(COALESCE(frefpo, \'\')) = ?', [$referenceNo]);
@@ -2219,17 +2224,20 @@ class ReturPembelianController extends Controller
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN');
         $accountReturnUM    = $setAccounts->get('RETURUANGMUKA') ?: $setAccounts->get('UANGMUKAPEMBELIAN');
 
-        $isUangMuka = (int) ($returPembelian->ftypebuy ?? 0) !== 0;
+        $returPembelian = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
+        $isUangMuka = (int) ($returPembelian->ftypebuy ?? 0) !== 0
+            || DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->whereRaw("UPPER(TRIM(COALESCE(fprdcode, ''))) = 'UM'")->exists();
         $targetKreditAccount = $isUangMuka ? ($accountReturnUM ?: $accountPersediaan) : $accountPersediaan;
         $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Kurangi Persediaan Barang';
 
+        $trCode = $isUangMuka ? 'RUB' : 'REB';
         $fjurnaltype  = 'JRB';
         $hasPpn = (string) ($returPembelian->fapplyppn ?? '0') === '1' || (string) ($returPembelian->fincludeppn ?? '0') === '1';
         $sep = $hasPpn ? '.' : '/';
-        $jurnalPrefix = sprintf('JV%sRUB%s%s%s%s%s', $sep, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
+        $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $trCode, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|RUB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
+            $lockKey = crc32('JURNAL|' . $trCode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
             $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
                 ->selectRaw("MAX(CAST(SUBSTRING(fjurnalno FROM '([0-9]+)$') AS integer)) AS lastno")->value('lastno');

@@ -503,10 +503,10 @@
     </div>
 
     @php
-        $totalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountgross ?? 0)) * (($items->first()->fsource ?? '') === 'RUJ' ? -1 : 1));
-        $totalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (($items->first()->fsource ?? '') === 'RUJ' ? -1 : 1));
-        $totalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (($row->fsource ?? '') === 'RUJ' ? -1 : 1));
-        $totalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'RUJ' ? -1 : 1));
+        $totalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountgross ?? 0)) * (in_array($items->first()->fsource ?? '', ['REJ', 'RUJ'], true) ? -1 : 1));
+        $totalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (in_array($items->first()->fsource ?? '', ['REJ', 'RUJ'], true) ? -1 : 1));
+        $totalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (in_array($row->fsource ?? '', ['REJ', 'RUJ'], true) ? -1 : 1));
+        $totalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (in_array($row->fsource ?? '', ['REJ', 'RUJ'], true) ? -1 : 1));
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
         $customerText = request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua';
         $salesmanText = request('salesman') ?: 'Semua';
@@ -570,7 +570,7 @@
         @foreach ($groupedData as $fsono => $items)
             @php
                 $h = $items->first();
-                $isReturn = ($h->fsource ?? '') === 'RUJ';
+                $isReturn = in_array($h->fsource ?? '', ['REJ', 'RUJ'], true);
                 $sign = $isReturn ? -1 : 1;
                 $forceNewPage = $isReturn && ! $returnSectionStarted;
                 if ($isReturn) {

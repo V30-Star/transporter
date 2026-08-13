@@ -492,7 +492,7 @@
                 $totalDiscount += $discount;
                 $totalDpp += $dpp;
                 $totalPpn += $ppn;
-                $isReturn = ($row->ftrcode ?? '') === 'RUJ';
+                $isReturn = in_array($row->ftrcode ?? '', ['REJ', 'RUJ'], true);
                 $viewUrl = $isReturn ? route('returpenjualan.view', $row->ftranmtid) : route('invoice.view', $row->ftranmtid);
                 $editUrl = $isReturn ? route('returpenjualan.edit', $row->ftranmtid) : route('invoice.edit', $row->ftranmtid);
             @endphp

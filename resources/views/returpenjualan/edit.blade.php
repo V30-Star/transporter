@@ -556,7 +556,7 @@
                                                     <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatQtyValue(it.fqty)"></div>
@@ -1106,7 +1106,7 @@
                                                     </td>
                                                     <td class="p-2">
                                                         <template x-if="action === 'view'">
-                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefsrj || it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefsrj || it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                         </template>
                                                         <template x-if="action !== 'view'">
                                                             <div>
@@ -1119,7 +1119,7 @@
                                                                 <template x-if="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'">
                                                                     <div class="flex w-full max-w-full">
                                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
                                                                         <button type="button" @click="openProductHistory(it)"
                                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                                             :disabled="!canOpenHistory(it)"

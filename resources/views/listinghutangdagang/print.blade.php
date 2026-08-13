@@ -533,7 +533,7 @@
             @if ($mode === 'detail')
                 @foreach ($items as $index => $row)
                     @php
-                        $isReturn = ($row->fstockmtcode ?? '') === 'RUB';
+                        $isReturn = in_array($row->fstockmtcode ?? '', ['REB', 'RUB'], true);
                         $viewUrl = $isReturn ? route('returpembelian.view', $row->fstockmtid) : route('fakturpembelian.view', $row->fstockmtid);
                         $editUrl = $isReturn ? route('returpembelian.edit', $row->fstockmtid) : route('fakturpembelian.edit', $row->fstockmtid);
                     @endphp

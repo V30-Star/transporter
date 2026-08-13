@@ -521,7 +521,7 @@
                 @foreach ($items as $row)
                     @php
                         $hasTrx = !empty($row->ftranmtid);
-                        $isReturn = ($row->ftrcode ?? '') === 'RUJ';
+                        $isReturn = in_array($row->ftrcode ?? '', ['REJ', 'RUJ'], true);
                         $viewUrl = $hasTrx ? ($isReturn ? route('returpenjualan.view', $row->ftranmtid) : route('invoice.view', $row->ftranmtid)) : '#';
                         $editUrl = $hasTrx ? ($isReturn ? route('returpenjualan.edit', $row->ftranmtid) : route('invoice.edit', $row->ftranmtid)) : '#';
                     @endphp

@@ -603,7 +603,7 @@
                 $h = $details->first();
                 $ftrcode = strtoupper(trim((string) ($h->ftrcode ?? '')));
                 $ftype = strtoupper(trim((string) ($h->ftype ?? $h->transaction_type ?? '')));
-                $isReturn = $ftrcode === 'RUJ' || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN';
+                $isReturn = in_array($ftrcode, ['REJ', 'RUJ'], true) || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN';
                 $sign = $isReturn ? -1 : 1;
                 $viewUrl = $isReturn ? route('returpenjualan.view', $h->ftranmtid) : route('invoice.view', $h->ftranmtid);
                 $editUrl = $isReturn ? route('returpenjualan.edit', $h->ftranmtid) : route('invoice.edit', $h->ftranmtid);
@@ -659,7 +659,7 @@
             $h = $details->first();
             $ftrcode = strtoupper(trim((string) ($h->ftrcode ?? '')));
             $ftype = strtoupper(trim((string) ($h->ftype ?? $h->transaction_type ?? '')));
-            $sign = ($ftrcode === 'RUJ' || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN') ? -1 : 1;
+            $sign = (in_array($ftrcode, ['REJ', 'RUJ'], true) || $ftrcode === 'RETUR PENJUALAN' || $ftype === 'RETUR PENJUALAN') ? -1 : 1;
             $grandDiscount += abs((float) $h->fdiscount) * $sign;
             $grandNetto += abs((float) $h->famountsonet) * $sign;
             $grandPPN += abs((float) $h->famountpajak) * $sign;

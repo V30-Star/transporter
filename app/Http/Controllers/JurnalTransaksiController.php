@@ -130,7 +130,7 @@ class JurnalTransaksiController extends Controller
         if (in_array($source, ['purchase', 'purchase_return'], true)) {
             $query = DB::table('trstockmt as m')
                 ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'm.fsupplier')
-                ->where('m.fstockmtcode', $source === 'purchase' ? 'BUY' : 'RUB')
+                ->whereIn('m.fstockmtcode', $source === 'purchase' ? ['BUY'] : ['REB', 'RUB'])
                 ->whereRaw('ABS(COALESCE(m.famountremain, 0)) > 0')
                 ->selectRaw("m.fstockmtno AS ref_no, m.fstockmtdate AS ref_date, m.fsupplier AS party_code, COALESCE(s.fsuppliername, m.fsupplier) AS party_name, m.famountremain AS amount_remain");
 
@@ -146,7 +146,7 @@ class JurnalTransaksiController extends Controller
         } else {
             $query = DB::table('tranmt as m')
                 ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'm.fcustno')
-                ->where('m.ftrcode', $source === 'sales' ? 'INV' : 'RUJ')
+                ->whereIn('m.ftrcode', $source === 'sales' ? ['INV'] : ['REJ', 'RUJ'])
                 ->whereRaw('ABS(COALESCE(m.famountremain, 0)) > 0')
                 ->selectRaw("m.fsono AS ref_no, m.fsodate AS ref_date, m.fcustno AS party_code, COALESCE(c.fcustomername, m.fcustno) AS party_name, m.famountremain AS amount_remain");
 
@@ -1773,9 +1773,9 @@ class JurnalTransaksiController extends Controller
             $source = $accountSources[$account];
             $exists = match ($source) {
                 'purchase' => DB::table('trstockmt')->where('fstockmtcode', 'BUY')->whereRaw('TRIM(fstockmtno) = ?', [$refNo])->exists(),
-                'purchase_return' => DB::table('trstockmt')->where('fstockmtcode', 'RUB')->whereRaw('TRIM(fstockmtno) = ?', [$refNo])->exists(),
+                'purchase_return' => DB::table('trstockmt')->whereIn('fstockmtcode', ['REB', 'RUB'])->whereRaw('TRIM(fstockmtno) = ?', [$refNo])->exists(),
                 'sales' => DB::table('tranmt')->where('ftrcode', 'INV')->whereRaw('TRIM(fsono) = ?', [$refNo])->exists(),
-                'sales_return' => DB::table('tranmt')->where('ftrcode', 'RUJ')->whereRaw('TRIM(fsono) = ?', [$refNo])->exists(),
+                'sales_return' => DB::table('tranmt')->whereIn('ftrcode', ['REJ', 'RUJ'])->whereRaw('TRIM(fsono) = ?', [$refNo])->exists(),
                 default => false,
             };
 
