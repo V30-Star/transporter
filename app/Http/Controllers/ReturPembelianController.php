@@ -2223,13 +2223,13 @@ class ReturPembelianController extends Controller
         $targetKreditAccount = $isUangMuka ? ($accountReturnUM ?: $accountPersediaan) : $accountPersediaan;
         $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Kurangi Persediaan Barang';
 
-        $fjurnaltype  = 'RUB';
+        $fjurnaltype  = 'JRB';
         $hasPpn = (string) ($returPembelian->fapplyppn ?? '0') === '1' || (string) ($returPembelian->fincludeppn ?? '0') === '1';
         $sep = $hasPpn ? '.' : '/';
-        $jurnalPrefix = sprintf('JV%s%s%s%s%s%s%s', $sep, $fjurnaltype, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
+        $jurnalPrefix = sprintf('JV%sRUB%s%s%s%s%s', $sep, $sep, $kodeCabang, $sep, $fstockmtdate->format('y') . $fstockmtdate->format('m'), $sep);
 
         if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
+            $lockKey = crc32('JURNAL|RUB|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
             $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
                 ->selectRaw("MAX(CAST(SUBSTRING(fjurnalno FROM '([0-9]+)$') AS integer)) AS lastno")->value('lastno');
@@ -2329,7 +2329,7 @@ class ReturPembelianController extends Controller
     {
         $jurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fstockmtno)
-            ->where('fjurnaltype', 'RUB')
+            ->whereIn('fjurnaltype', ['JRB', 'RUB'])
             ->pluck('fjurnalmtid')
             ->filter(fn($id) => ! is_null($id))
             ->unique()
