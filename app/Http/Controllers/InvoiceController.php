@@ -1700,12 +1700,12 @@ class InvoiceController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $validationMessage], 422);
-            }
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
+        //     if ($request->expectsJson()) {
+        //         return response()->json(['message' => $validationMessage], 422);
+        //     }
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')
@@ -2911,13 +2911,13 @@ class InvoiceController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateReferenceUsage(
-            $soUsageByReference,
-            $srjUsageByReference,
-            $header->fsono
-        )) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReferenceUsage(
+        //     $soUsageByReference,
+        //     $srjUsageByReference,
+        //     $header->fsono
+        // )) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')

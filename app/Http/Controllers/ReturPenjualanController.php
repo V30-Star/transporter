@@ -1447,12 +1447,12 @@ class ReturPenjualanController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $validationMessage], 422);
-            }
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
+        //     if ($request->expectsJson()) {
+        //         return response()->json(['message' => $validationMessage], 422);
+        //     }
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         // KALKULASI TOTAL
         $fapplyppn = '0'; // 0: Exclude
@@ -2750,16 +2750,16 @@ class ReturPenjualanController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateReferenceUsage(
-            $soUsageByReference,
-            $srjUsageByReference,
-            $header->fsono
-        )) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $validationMessage], 422);
-            }
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReferenceUsage(
+        //     $soUsageByReference,
+        //     $srjUsageByReference,
+        //     $header->fsono
+        // )) {
+        //     if ($request->expectsJson()) {
+        //         return response()->json(['message' => $validationMessage], 422);
+        //     }
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         // 5. KALKULASI TOTAL
         $fapplyppn = '0';
