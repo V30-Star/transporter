@@ -3411,7 +3411,6 @@
                     this.onCodeTypedRow(targetRow, index);
                     targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(
                         targetRow.uid);
-                    this.openProductHistory(targetRow);
                     this.focusRowQty(index);
                 }, {
                     passive: true
@@ -3431,7 +3430,6 @@
             },
 
             canOpenHistory(targetRow) {
-                if (Number(this.ftypesales) === 1) return false;
                 return this.getSelectedCustomerCode() !== '' && (targetRow?.fitemcode || '').toString().trim() !== '';
             },
             closeHistory() {

@@ -2479,7 +2479,6 @@
             },
 
             canOpenHistory(targetRow) {
-                if (Number(this.ftypesales) === 1) return false;
                 return this.getSelectedCustomerCode() !== '' && (targetRow?.fitemcode || '').toString().trim() !== '';
             },
             closeHistory() {
@@ -2743,7 +2742,6 @@
                     this.applyOutstandingDpRef(row);
                     this.applyInvoicePrice(row);
                     this.onRowUpdated(index);
-                    this.openProductHistory(row);
                     this.focusRowQty(index);
                 }, {
                     passive: true

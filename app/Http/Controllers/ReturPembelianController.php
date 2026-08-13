@@ -417,7 +417,7 @@ class ReturPembelianController extends Controller
         ]);
     }
 
-    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true, bool $isUm = false): string
     {
         $date = $onDate ?: now();
 
@@ -993,6 +993,7 @@ class ReturPembelianController extends Controller
 
             // DATABASE TRANSACTION
             DB::transaction(function () use (
+                $request,
                 $typeBuy,
                 $fstockmtdate,
                 $fsupplier,
@@ -1643,6 +1644,7 @@ class ReturPembelianController extends Controller
 
             // DATABASE TRANSACTION
             DB::transaction(function () use (
+                $request,
                 $typeBuy,
                 $header,
                 $fstockmtdate,

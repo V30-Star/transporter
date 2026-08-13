@@ -1549,7 +1549,6 @@
             },
 
             canOpenHistory(row) {
-                if (String(this.selectedType) === '2') return false;
                 const productCode = (row?.fitemcode || '').toString().trim();
                 return this.getSelectedSupplierCode() !== '' && productCode !== '';
             },
@@ -2617,7 +2616,6 @@
                         this.applyOutstandingDpRef(row);
                         if (!(Number(row.fqty) > 0)) row.fqty = 1;
                         this.recalc(row);
-                        if (row.fitemcode) this.openProductHistory(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);
                         this.onRowUpdated(index >= 0 ? index : null);
                     };
