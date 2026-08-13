@@ -606,6 +606,8 @@ class ReturPembelianController extends Controller
                 'm.fstockmtno',
                 'm.fstockmtdate',
                 'd.fqty',
+                DB::raw('COALESCE(d.fqty, 0) as faktur_qty'),
+                DB::raw('COALESCE(d.fqty, 0) as source_qty'),
                 'd.fsatuan',
                 'd.fprice',
                 'd.ftotprice',
@@ -618,6 +620,9 @@ class ReturPembelianController extends Controller
                     ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
                     : '-',
                 'fqty' => (float) ($row->fqty ?? 0),
+                'ref_qty' => (float) ($row->source_qty ?? $row->fqty ?? 0),
+                'source_qty' => (float) ($row->source_qty ?? $row->fqty ?? 0),
+                'faktur_qty' => (float) ($row->faktur_qty ?? $row->fqty ?? 0),
                 'fsatuan' => (string) ($row->fsatuan ?? ''),
                 'fprice' => (float) ($row->fprice ?? 0),
                 'ftotprice' => (float) ($row->ftotprice ?? 0),

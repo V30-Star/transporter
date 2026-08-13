@@ -845,7 +845,7 @@
                                 <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
                                 <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
                                     <div class="px-5 py-4 border-b flex items-center justify-between">
-                                        <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
                                         <button type="button" @click="closeHistory()" class="text-gray-500 hover:text-gray-700">Tutup</button>
                                     </div>
                                     <div class="p-5 overflow-auto max-h-[65vh]">
@@ -1549,6 +1549,7 @@
             },
 
             canOpenHistory(row) {
+                if (String(this.selectedType) === '2') return false;
                 const productCode = (row?.fitemcode || '').toString().trim();
                 return this.getSelectedSupplierCode() !== '' && productCode !== '';
             },
@@ -1561,6 +1562,7 @@
             },
 
             async openProductHistory(row) {
+                if (!this.canOpenHistory(row)) return;
                 const supplierCode = this.getSelectedSupplierCode();
                 const productCode = (row?.fitemcode || '').toString().trim();
 
@@ -2186,6 +2188,10 @@
                         fqtyterima: +(src.fqtyterima || 0),
                         fqtysisa_source: Number(src.fqtysisa ?? sourceLimit ?? 0),
                         fqtyremain_source: Number(src.fqtyremain ?? sourceQtyKecil ?? 0),
+                        ref_qty: sourceLimit,
+                        source_qty: sourceLimit,
+                        po_qty: sourceType === 'PO' ? sourceLimit : 0,
+                        pb_qty: sourceType === 'PB' ? sourceLimit : 0,
 
                         // Data quantity
                         fqty: sourceLimit,
@@ -2316,6 +2322,10 @@
                     'fsource',
                     'fnouref',
                     'frefpr',
+                    'ref_qty',
+                    'source_qty',
+                    'po_qty',
+                    'pb_qty',
                 ];
 
                 container.innerHTML = '';
@@ -2648,6 +2658,12 @@
                 for (const row of validRows) {
                     const code = (row.fitemcode || '').toString().trim().toUpperCase();
                     if (!code) continue;
+                    const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
+                    const refQty = Number(String(row.ref_qty || row.source_qty || row.po_qty || row.pb_qty || row.fqtysisa_source || row.maxqty || 0).replace(/[^0-9.-]+/g, "")) || 0;
+                    if (refQty > 0 && inputQty > refQty) {
+                        Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                        return;
+                    }
                     if (seenCodes.has(code)) {
                         if (window.showTransactionErrorModal) {
                             window.showTransactionErrorModal(
@@ -2732,6 +2748,10 @@
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0,
+                ref_qty: 0,
+                source_qty: 0,
+                po_qty: 0,
+                pb_qty: 0,
                 lockQty: false,
             };
         }

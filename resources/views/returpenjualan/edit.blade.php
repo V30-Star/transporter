@@ -1649,7 +1649,7 @@
                                                 <div
                                                     class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
                                                     <div class="px-5 py-4 border-b flex items-center justify-between">
-                                                        <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                                        <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
                                                         <button type="button" @click="closeHistory()"
                                                             class="text-gray-500 hover:text-gray-700">Tutup</button>
                                                     </div>
@@ -3241,8 +3241,8 @@
             },
 
             getRowReferenceQty(row) {
-                const value = row?.ref_qty ?? row?.faktur_qty ?? row?.srj_qty ?? row?.fsono_qty;
-                if (value === undefined || value === null || value === '') return this.getRowQtyLimit(row);
+                const value = row?.faktur_qty ?? row?.qty_faktur ?? row?.srj_qty ?? row?.qty_asal ?? row?.ref_qty ?? row?.fsono_qty;
+                if (value === undefined || value === null || value === '') return 0;
                 const qty = this.parseQtyValue(value);
                 return Number.isFinite(qty) ? qty : 0;
             },
@@ -3255,9 +3255,8 @@
 
                 const limit = this.getRowReferenceQty(row);
                 if (limit <= 0) {
-                    row.qtyInvalid = true;
-                    if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
-                    return false;
+                    row.qtyInvalid = false;
+                    return true;
                 }
 
                 const qty = this.parseQtyValue(row?.fqty ?? 0);
@@ -3288,8 +3287,8 @@
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
                     String(row?.frefsrj ?? '').trim() !== '';
                 if (hasRef) {
-                    const limit = this.getRowQtyLimit(row);
-                    if (n > limit) {
+                    const limit = this.getRowReferenceQty(row);
+                    if (limit > 0 && n > limit) {
                         row.fqty = limit;
                         row.qtyInvalid = false;
                         window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`
@@ -3473,6 +3472,7 @@
                     const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
                         Number(src.fqtyremain_dokumen) :
                         this.qtyKecilToUnit(src.fqtyremain, satuan, meta);
+                    const refQty = this.parseQtyValue(src.faktur_qty ?? src.qty_faktur ?? src.srj_qty ?? src.qty_asal ?? src.fqty ?? displayQty);
 
                     if (!itemcode || !itemname || !satuan) {
                         skipped.push({
@@ -3517,6 +3517,10 @@
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
+                        ref_qty: refQty,
+                        faktur_qty: source === 'INV' ? refQty : 0,
+                        srj_qty: source === 'SRJ' ? refQty : 0,
+                        fsono_qty: source === 'SO' ? refQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fterima: Number(src.fterima ?? 0),
@@ -3645,7 +3649,18 @@
 
                     const returnQty = this.parseQtyValue(row.fqty ?? row.qty ?? 0);
                     const refQty = this.getRowReferenceQty(row);
-                    if (returnQty > refQty || !this.validateReferenceQty(row, true)) {
+                    console.log({ returnQty, refQty, rowData: row });
+                    if (refQty <= 0) {
+                        row.qtyInvalid = true;
+                        this.focusRowQty(this.savedItems.indexOf(row));
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validasi Gagal',
+                            text: `Row ${i + 1}: Qty referensi Faktur/SRJ tidak ditemukan.`,
+                        });
+                        return false;
+                    }
+                    if (refQty > 0 && (returnQty > refQty || !this.validateReferenceQty(row, true))) {
                         row.qtyInvalid = true;
                         this.focusRowQty(this.savedItems.indexOf(row));
                         Swal.fire({
@@ -3764,6 +3779,12 @@
             selectHistory(row) {
                 if (this.historyTargetRow && row) {
                     this.historyTargetRow.frefpr = row.fsono || '';
+                    this.historyTargetRow.frefso = row.fsono || '';
+                    this.historyTargetRow.frefcode = 'INV';
+                    this.historyTargetRow.frefdtno = row.frefdtno || '';
+                    this.historyTargetRow.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak ?? '');
+                    this.historyTargetRow.ref_qty = this.parseQtyValue(row.faktur_qty ?? row.qty_faktur ?? row.qty_asal ?? row.fqty ?? 0);
+                    this.historyTargetRow.faktur_qty = this.historyTargetRow.ref_qty;
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
                         this.historyTargetRow.fqty = +row.fqty;
                     }

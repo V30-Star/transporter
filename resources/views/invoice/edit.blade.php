@@ -355,7 +355,7 @@
 
                         <div>
                             <label class="block text-xs font-bold mb-1">Type</label>
-                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
+                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales ?? 0) }}"
                                 disabled
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftypesales') border-red-500 @enderror">
                                 <option value="0">Penjualan</option>
@@ -980,7 +980,7 @@
             return;
         }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) window.submitFormWithStockMinusConfirmation?.($el) }) }
+        if (n < 1) { showNoItems = true } else if (window.invoiceReferenceQtyGuard?.($el) !== false) { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) window.submitFormWithStockMinusConfirmation?.($el) }) }
       ">
                 @csrf
                 @method('PATCH')
@@ -1907,7 +1907,7 @@
                                         <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
                                         <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
                                             <div class="px-5 py-4 border-b flex items-center justify-between">
-                                                <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                                <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
                                                 <button type="button" @click="closeHistory()"
                                                     class="text-gray-500 hover:text-gray-700">Tutup</button>
                                             </div>
@@ -2417,6 +2417,20 @@
         return '';
     };
 
+    window.invoiceReferenceQtyGuard = function(form) {
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const rows = tableRoot?._x_dataStack?.[0]?.submitItems || [];
+        for (const row of rows) {
+            const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
+            const refQty = Number(String(row.ref_qty || row.source_qty || row.sj_qty || row.do_qty || row.so_qty || row.maxqty || 0).replace(/[^0-9.-]+/g, "")) || 0;
+            if (refQty > 0 && inputQty > refQty) {
+                Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                return false;
+            }
+        }
+        return true;
+    };
+
     window.invoiceCreditApprovalGuard = async function(form) {
         const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
         const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;
@@ -2634,6 +2648,7 @@
             historyLoading: false,
             historyRows: [],
             historyTargetRow: null,
+            ftypesales: Number(document.querySelector('select[name="ftypesales"]')?.value || @json((int) old('ftypesales', $invoice->ftypesales ?? 0))),
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
@@ -3183,6 +3198,11 @@
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src
                             .frefnoacak ?? src.fnoacak ?? '')),
+                        ref_qty: displayQty,
+                        source_qty: displayQty,
+                        sj_qty: source === 'SRJ' ? displayQty : 0,
+                        do_qty: source === 'SRJ' ? displayQty : 0,
+                        so_qty: source === 'SO' ? displayQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
@@ -3343,6 +3363,13 @@
             },
 
             init() {
+                const typeSelect = document.querySelector('select[name="ftypesales"]');
+                if (typeSelect) {
+                    this.ftypesales = Number(typeSelect.value || 0);
+                    typeSelect.addEventListener('change', (e) => {
+                        this.ftypesales = Number(e.target.value || 0);
+                    });
+                }
                 this.recalcTotals();
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
@@ -3404,6 +3431,7 @@
             },
 
             canOpenHistory(targetRow) {
+                if (Number(this.ftypesales) === 1) return false;
                 return this.getSelectedCustomerCode() !== '' && (targetRow?.fitemcode || '').toString().trim() !== '';
             },
             closeHistory() {
@@ -3413,6 +3441,7 @@
                 this.historyTargetRow = null;
             },
             async openProductHistory(targetRow) {
+                if (!this.canOpenHistory(targetRow)) return;
                 const customerCode = this.getSelectedCustomerCode();
                 const productCode = (targetRow?.fitemcode || '').toString().trim();
 

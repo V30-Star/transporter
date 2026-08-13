@@ -523,6 +523,8 @@ class ReturPenjualanController extends Controller
                 'h.fsodate',
                 'c.fcustomername',
                 'd.fqty',
+                'd.ftrandtid as frefdtno',
+                DB::raw("COALESCE(NULLIF(TRIM(d.fnoacak::text), ''), '') as frefnoacak"),
                 'd.fsatuan',
                 'd.fprice',
                 'd.famount',
@@ -538,6 +540,11 @@ class ReturPenjualanController extends Controller
                         : '-',
                     'fcustomername' => (string) ($row->fcustomername ?? ''),
                     'fqty' => (float) ($row->fqty ?? 0),
+                    'frefdtno' => $row->frefdtno,
+                    'frefnoacak' => trim((string) ($row->frefnoacak ?? '')),
+                    'faktur_qty' => (float) ($row->fqty ?? 0),
+                    'qty_faktur' => (float) ($row->fqty ?? 0),
+                    'qty_asal' => (float) ($row->fqty ?? 0),
                     'fsatuan' => (string) ($row->fsatuan ?? ''),
                     'fprice' => (float) ($row->fprice ?? 0),
                     'famount' => (float) ($row->famount ?? 0),
@@ -684,6 +691,9 @@ class ReturPenjualanController extends Controller
                     'fitemcode' => trim((string) ($item->fitemcode ?? '')),
                     'fitemname' => trim((string) ($item->fitemname ?? '')),
                     'fqty' => (float) ($item->fqty ?? 0),
+                    'faktur_qty' => (float) ($item->fqty ?? 0),
+                    'qty_faktur' => (float) ($item->fqty ?? 0),
+                    'qty_asal' => (float) ($item->fqty ?? 0),
                     'fqtyremain' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'maxqty' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
@@ -866,7 +876,9 @@ class ReturPenjualanController extends Controller
 
             $referenceDetail = $this->resolveReturReferenceSourceDetail($source, $docNo, $code, $frefnoacaks[$index] ?? null);
             if (! $referenceDetail) {
-                continue;
+                throw ValidationException::withMessages([
+                    "fqty.{$index}" => "Row " . ($index + 1) . ": Referensi Faktur/SRJ tidak ditemukan.",
+                ]);
             }
 
             $refQty = (float) ($referenceDetail->fqty ?? 0);

@@ -743,7 +743,7 @@
                                 <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
                                 <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
                                     <div class="px-5 py-4 border-b flex items-center justify-between">
-                                        <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
                                         <button type="button" @click="closeHistory()" class="text-gray-500 hover:text-gray-700">Tutup</button>
                                     </div>
                                     <div class="p-5 overflow-auto max-h-[65vh]">
@@ -1525,6 +1525,15 @@
                     this.showNoItems = true;
                     return;
                 }
+                const rows = [...this.savedItems, ...completeDrafts];
+                for (const row of rows) {
+                    const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
+                    const refQty = Number(String(row.ref_qty || row.source_qty || row.faktur_qty || row.po_qty || row.fqty_asal || 0).replace(/[^0-9.-]+/g, "")) || 0;
+                    if (refQty > 0 && inputQty > refQty) {
+                        Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                        return false;
+                    }
+                }
                 return window.submitFormWithStockMinusConfirmation?.($event);
             },
 
@@ -1697,6 +1706,9 @@
             selectHistory(row) {
                 if (this.historyTargetRow && row) {
                     this.historyTargetRow.frefdtno = row.fstockmtno || row.fsono || '';
+                    this.historyTargetRow.ref_qty = Number(row.ref_qty ?? row.source_qty ?? row.faktur_qty ?? row.fqty ?? 0) || 0;
+                    this.historyTargetRow.source_qty = this.historyTargetRow.ref_qty;
+                    this.historyTargetRow.faktur_qty = this.historyTargetRow.ref_qty;
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
                         this.historyTargetRow.fqty = +row.fqty;
                     }
@@ -1820,6 +1832,9 @@
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
+                ref_qty: 0,
+                source_qty: 0,
+                faktur_qty: 0,
                 fnouref: '',
                 frefpr: '',
                 fqty: 0,
