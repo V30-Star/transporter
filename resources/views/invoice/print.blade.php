@@ -39,7 +39,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 5px;
+            margin-bottom: 0px;
         }
 
         .comp-name {
@@ -59,7 +59,7 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
         }
 
@@ -96,7 +96,7 @@
         .tb {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .tb th {
@@ -260,17 +260,14 @@
             </div>
         </div>
 
-        <div style="overflow: hidden; margin-top: 10px;">
+        <div style="overflow: hidden; margin-top: 0px;">
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
                 <div style="font-weight: bold;">
                     {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
                 </div>
                 <div style="font-size: 11px;">
-                    Alamat : {{ $hdr->customer_address ?? '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
+                    {{ $hdr->customer_address ?? '-' }}
                 </div>
                 <div style="font-size: 11px;">
                     Keterangan : {{ $hdr->fket ?: '-' }}
@@ -297,9 +294,6 @@
                     <td>Sales</td>
                     <td>:</td>
                     <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
                 </tr>
             </table>
         </div>
@@ -399,8 +393,7 @@
             </table>
 
             <div class="meta-right">
-                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
-                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}</div>
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>
