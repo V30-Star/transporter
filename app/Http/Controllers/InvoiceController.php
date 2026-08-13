@@ -1506,29 +1506,22 @@ class InvoiceController extends Controller
         $usedNoAcaks = [];
 
         // Logika UM
-        $hasUM = in_array('UM', $itemCodes);
+        $hasUM = collect($itemCodes)->map(fn($code) => strtoupper(trim((string) $code)))->contains('UM');
         if ($typeSales === 1) {
             $invalidAdvanceCodes = collect($itemCodes)
                 ->map(fn($code) => trim((string) $code))
-                ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                ->filter(fn($code) => $code !== '' && !str_starts_with(strtoupper($code), 'UM'))
                 ->unique()
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                $msg = "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!";
+                $msg = 'Tipe Penjualan ini Uang Muka Muka hanya boleh menginput Uang Muka saja.';
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $msg], 422);
                 }
                 return back()
                     ->withInput()
                     ->with('error', $msg);
-            }
-            if (! $hasUM) {
-                $msg = 'Transaksi Uang Muka harus memakai produk UM.';
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return back()->withInput()->with('error', $msg);
             }
         }
 
@@ -1562,6 +1555,14 @@ class InvoiceController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             if (empty($code) || $qty <= 0) {
                 continue;
+            }
+
+            if ($typeSales === 1 && !str_starts_with(strtoupper($code), 'UM')) {
+                $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             $refDtNo = trim((string) ($frefdtno[$i] ?? ''));
@@ -2628,7 +2629,7 @@ class InvoiceController extends Controller
             'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
             'frefno' => ['nullable', 'string', 'max:100'],
-            'ftypesales' => ['required', 'in:0,1'],
+            'ftypesales' => ['nullable', 'in:0,1'],
             'ftaxno' => ['nullable', 'string', 'max:50'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -2708,7 +2709,7 @@ class InvoiceController extends Controller
         }
 
         $itemCodes = $request->input('fitemcode', []);
-        $typeSales = (int) $request->input('ftypesales');
+        $typeSales = (int) $request->input('ftypesales', $header->ftypesales ?? 0);
         $itemDescs = $request->input('fdesc', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
@@ -2728,21 +2729,22 @@ class InvoiceController extends Controller
         $totalSalesNet = 0.0;
         $usedNoAcaks = [];
 
-        $hasUM = in_array('UM', $itemCodes);
+        $hasUM = collect($itemCodes)->map(fn($code) => strtoupper(trim((string) $code)))->contains('UM');
         if ($typeSales === 1) {
             $invalidAdvanceCodes = collect($itemCodes)
                 ->map(fn($code) => trim((string) $code))
-                ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                ->filter(fn($code) => $code !== '' && !str_starts_with(strtoupper($code), 'UM'))
                 ->unique()
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
+                $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
                 return back()
                     ->withInput()
-                    ->with('error', "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!");
-            }
-            if (! $hasUM) {
-                return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
+                    ->with('error', $msg);
             }
         }
 
@@ -2776,6 +2778,14 @@ class InvoiceController extends Controller
 
             if (empty($code) || $qty <= 0) {
                 continue;
+            }
+
+            if ($typeSales === 1 && !str_starts_with(strtoupper($code), 'UM')) {
+                $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             $refDtNo = trim((string) ($frefdtno[$i] ?? ''));

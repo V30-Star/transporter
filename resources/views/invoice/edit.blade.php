@@ -361,6 +361,7 @@
                                 <option value="0">Penjualan</option>
                                 <option value="1">Uang Muka</option>
                             </select>
+                            <input type="hidden" name="ftypesales" :value="ftypesales">
                             @error('ftypesales')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -966,6 +967,26 @@
                 data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                 @submit.prevent="
         if ('{{ $action }}' === 'view') { return }
+        const isUM = String(document.querySelector('input[name=\'ftypesales\']')?.value || document.getElementById('ftypesales')?.value || '0') === '1';
+        if (isUM) {
+            const itemInputs = Array.from($el.querySelectorAll('input[name^=\'fitemcode\']'));
+            const invalidInput = itemInputs.find(inp => {
+                const val = (inp.value || '').trim().toUpperCase();
+                return val !== '' && !val.startsWith('UM');
+            });
+            if (invalidInput) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tipe Uang Muka Invalid',
+                    text: 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                    }
+                });
+                return;
+            }
+        }
         const duplicateCode = window.getInvoiceDuplicateCode?.($el);
         if (duplicateCode) {
             Swal.fire({
@@ -3100,11 +3121,38 @@
                     this.hydrateRowFromMeta(row, null);
                     return;
                 }
+                const isUM = String(this.ftypesales || '0') === '1';
+                const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (isUM && code !== '' && !code.startsWith('UM')) {
+                    window.toast?.error('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                    row.fitemcode = '';
+                    this.hydrateRowFromMeta(row, null);
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.applyOutstandingDpRef(row);
                 this.applyInvoicePrice(row);
                 this.onRowUpdated(index);
+            },
+
+            onTypeSalesChange() {
+                const isUM = String(this.ftypesales || '0') === '1';
+                if (isUM) {
+                    let hasInvalid = false;
+                    (this.savedItems || []).forEach((row, i) => {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        if (code !== '' && !code.startsWith('UM')) {
+                            hasInvalid = true;
+                            row.fitemcode = '';
+                            this.hydrateRowFromMeta(row, null);
+                            this.onRowUpdated(i);
+                        }
+                    });
+                    if (hasInvalid) {
+                        window.toast?.warning('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM. Item non-UM telah dihapus.');
+                    }
+                }
             },
 
             getSelectedCustomerCode() {
@@ -3128,7 +3176,16 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                this.addManyFromPR(header, items, source);
+                let pickItems = items;
+                const isUM = String(this.ftypesales || '0') === '1';
+                if (isUM) {
+                    const invalidItems = pickItems.filter(it => !String(it.fprdcode || it.fitemcode || '').trim().toUpperCase().startsWith('UM'));
+                    if (invalidItems.length > 0) {
+                        window.toast?.error('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                        pickItems = pickItems.filter(it => String(it.fprdcode || it.fitemcode || '').trim().toUpperCase().startsWith('UM'));
+                    }
+                }
+                this.addManyFromPR(header, pickItems, source);
             },
 
             normalizeNoAcak(value) {
@@ -3378,6 +3435,7 @@
                     this.ftypesales = Number(typeSelect.value || 0);
                     typeSelect.addEventListener('change', (e) => {
                         this.ftypesales = Number(e.target.value || 0);
+                        this.onTypeSalesChange();
                     });
                 }
                 this.recalcTotals();
@@ -3414,6 +3472,12 @@
                         product
                     } = e.detail || {};
                     if (!product) return;
+                    const isUM = String(this.ftypesales || '0') === '1';
+                    const prodCode = (product.fprdcode || '').toString().trim().toUpperCase();
+                    if (isUM && !prodCode.startsWith('UM')) {
+                        window.toast?.error('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                        return;
+                    }
                     const index = Number.isInteger(this.browseTarget) ? this.browseTarget : -1;
                     if (index < 0 || !this.savedItems[index]) return;
                     const targetRow = this.savedItems[index];
@@ -3432,9 +3496,11 @@
                     return;
                 }
                 this.browseTarget = index;
+                const isUM = String(this.ftypesales || '0') === '1';
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: false
+                        forEdit: false,
+                        codePrefix: isUM ? 'UM' : ''
                     }
                 }));
             },

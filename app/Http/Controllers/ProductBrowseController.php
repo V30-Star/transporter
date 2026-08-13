@@ -15,6 +15,7 @@ class ProductBrowseController extends Controller
         $exactCode = trim((string) $request->input('fprdcode_exact', ''));
         $ftypeFilter = trim((string) $request->input('ftype_filter', ''));
         $ftypeExclude = trim((string) $request->input('exclude_type', ''));
+        $codePrefix = trim((string) $request->input('fprdcode_prefix', ''));
         $searchParam = $request->input('search');
         $searchValue = trim(is_array($searchParam) ? ($searchParam['value'] ?? '') : (string) $searchParam);
         $orderColumn = $request->input('order_column', 'fprdname');
@@ -29,6 +30,9 @@ class ProductBrowseController extends Controller
             ->where('fapproval', 1)
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('LOWER(TRIM(fprdcode)) = LOWER(?)', [$exactCode]);
+            })
+            ->when($codePrefix !== '', function ($q) use ($codePrefix) {
+                $q->whereRaw('LOWER(TRIM(fprdcode)) LIKE LOWER(?)', [strtolower($codePrefix) . '%']);
             })
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(ftype, ''))) = ?", [strtolower($ftypeFilter)]);
@@ -45,6 +49,9 @@ class ProductBrowseController extends Controller
             ->where('msprd.fapproval', 1)
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('LOWER(TRIM(msprd.fprdcode)) = LOWER(?)', [$exactCode]);
+            })
+            ->when($codePrefix !== '', function ($q) use ($codePrefix) {
+                $q->whereRaw('LOWER(TRIM(msprd.fprdcode)) LIKE LOWER(?)', [strtolower($codePrefix) . '%']);
             })
             ->when($ftypeFilter !== '', function ($q) use ($ftypeFilter) {
                 $q->whereRaw("LOWER(TRIM(COALESCE(msprd.ftype, ''))) = ?", [strtolower($ftypeFilter)]);
