@@ -112,11 +112,11 @@
             vertical-align: top;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
@@ -173,7 +173,7 @@
         }
 
         .sign-container {
-            margin-top: 18px;
+            margin-top: -50px;
             clear: both;
             display: flex;
             justify-content: space-between;
@@ -183,7 +183,7 @@
 
         .sign-table {
             border-collapse: collapse;
-            width: 450px;
+            width: 400px;
         }
 
         .sign-table td {
@@ -307,13 +307,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 15%;">Kode Produk</th>
-                    <th style="width: 30%;">Nama Produk</th>
-                    <th style="width: 13%;" class="text-right">Qty</th>
-                    <th style="width: 13%;" class="text-right">@ Harga</th>
-                    <th style="width: 8%;" class="text-center">Disc.%</th>
-                    <th style="width: 16%;" class="text-right">Total Harga</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
+                    <th style="width: 45%;">Nama Produk</th>
+                    <th style="width: 13%; text-align: right;" class="text-right">Qty</th>
+                    <th style="width: 13%; text-align: right;" class="text-right">@ Harga</th>
+                    <th style="width: 8%; text-align: center;" class="text-center">Disc.%</th>
+                    <th style="width: 16%; text-align: right;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
@@ -328,7 +327,6 @@
                     @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
                             <div>{{ $r->product_name ?? '-' }}</div>
                             @if (!empty($r->fdesc))
@@ -343,11 +341,6 @@
                 @endforeach
             </tbody>
         </table>
-
-        <div class="note-block">
-            <div class="note-title">Catatan</div>
-            <div>{{ $hdr->fket ?: '-' }}</div>
-        </div>
 
         <div class="footer-line"></div>
 
