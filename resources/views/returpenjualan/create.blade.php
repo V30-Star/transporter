@@ -260,7 +260,7 @@
             window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items'));
             return;
         }
-        window.submitFormWithStockMinusConfirmation?.($el);
+        onSubmit($event);
       ">
             @csrf
 
@@ -501,7 +501,7 @@
                                 </thead>
                                 <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                        <tr class="border-t align-top hover:bg-gray-50">
+                                        <tr class="border-t align-top hover:bg-gray-50" :class="it.qtyInvalid ? 'bg-red-50' : ''">
                                             <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                             <td class="p-2">
                                                 <div class="flex">
@@ -568,6 +568,7 @@
                                             <td class="p-2 text-right">
                                                 <input type="number"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                    :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
                                                     min="0" step="0.01" :id="'qty_row_' + i"
                                                     x-model.number="it.fqty" @input="enforceQtyRow(it); onRowUpdated(i)"
                                                     @change="enforceQtyRow(it); onRowUpdated(i)"
@@ -2362,31 +2363,43 @@
             },
 
             getRowQtyLimit(row) {
-                const limitSource = Math.max(0, Number(row?.maxqty ?? 0) || 0);
+                const parsedLimit = parseFloat(row?.maxqty ?? 0);
+                const limitSource = Math.max(0, Number.isFinite(parsedLimit) ? parsedLimit : 0);
                 if (row?.maxqty_unit !== 'kecil') return limitSource;
 
                 return this.qtyKecilToUnit(limitSource, row?.fsatuan || '', this.productMeta(row?.fitemcode));
             },
 
+            getRowReferenceQty(row) {
+                const value = row?.ref_qty ?? row?.faktur_qty ?? row?.srj_qty ?? row?.fsono_qty;
+                if (value === undefined || value === null || value === '') return this.getRowQtyLimit(row);
+                const qty = parseFloat(value);
+                return Number.isFinite(qty) ? qty : 0;
+            },
+
             validateReferenceQty(row, showToast = true) {
+                if (String(row?.fitemcode || '').toUpperCase().trim() === 'UM') return true;
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
                     String(row?.frefsrj ?? '').trim() !== '';
                 if (!hasRef) return true;
 
-                const limit = this.getRowQtyLimit(row);
+                const limit = this.getRowReferenceQty(row);
                 if (limit <= 0) {
+                    row.qtyInvalid = true;
                     if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
                     return false;
                 }
 
-                const qty = Number(row?.fqty ?? 0);
+                const qty = parseFloat(row?.fqty ?? 0);
+                row.qtyInvalid = !Number.isFinite(qty) || qty <= 0 || qty > limit;
                 if (qty > limit) {
                     if (showToast) window.toast?.error(
                         `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                     return false;
                 }
 
-                return Number(row?.fqty ?? 0) > 0;
+                row.qtyInvalid = false;
+                return qty > 0;
             },
 
             enforceQtyRow(row) {
@@ -2426,6 +2439,7 @@
                     const limit = this.getRowQtyLimit(row);
                     if (n > limit) {
                         row.fqty = limit;
+                        row.qtyInvalid = false;
                         window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`
                         .trim());
                     }
@@ -2738,25 +2752,35 @@
             },
 
             onSubmit($event) {
-                if (this.submitItems.length === 0) {
-                    $event.preventDefault();
+                $event?.preventDefault?.();
+                const items = this.submitItems;
+
+                if (items.length === 0) {
                     this.showNoItems = true;
-                    return;
+                    return false;
                 }
 
-                for (const row of this.submitItems) {
+                for (let i = 0; i < items.length; i++) {
+                    const row = items[i];
+                    row.qtyInvalid = false;
                     if (!this.hasRequiredReference(row)) {
-                        $event.preventDefault();
                         this.showToast(`Produk ${row.fitemcode} wajib memiliki no. referensi SRJ atau Faktur Penjualan.`, 'error');
-                        return;
+                        return false;
                     }
 
-                    if (!this.validateReferenceQty(row, true)) {
-                        $event.preventDefault();
-                        return;
+                    if (String(row?.fitemcode || '').toUpperCase().trim() === 'UM') continue;
+
+                    const returnQty = parseFloat(row.fqty ?? row.qty ?? 0) || 0;
+                    const refQty = this.getRowReferenceQty(row);
+                    if (returnQty > refQty || !this.validateReferenceQty(row, true)) {
+                        row.qtyInvalid = true;
+                        this.focusRowQty(this.savedItems.indexOf(row));
+                        alert(`Row ${i + 1}: Qty Retur (${returnQty}) melebihi Qty Referensi (${refQty})`);
+                        return false;
                     }
                 }
-                return window.submitFormWithStockMinusConfirmation?.($event);
+
+                return window.submitFormWithStockMinusConfirmation?.($event?.target);
             },
 
             focusRowUnit(row, index) {

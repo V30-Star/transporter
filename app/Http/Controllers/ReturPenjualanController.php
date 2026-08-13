@@ -847,6 +847,44 @@ class ReturPenjualanController extends Controller
         }
     }
 
+    private function validateSubmittedReturReferenceQty(array $itemCodes, array $qtys, array $frefso, array $frefsrj, array $frefnoacaks = []): void
+    {
+        foreach ($itemCodes as $index => $code) {
+            $code = trim((string) $code);
+            $returnQty = (float) ($qtys[$index] ?? 0);
+            if ($code === '' || strtoupper($code) === 'UM' || $returnQty <= 0) {
+                continue;
+            }
+
+            $srjNo = trim((string) ($frefsrj[$index] ?? ''));
+            $fakturNo = trim((string) ($frefso[$index] ?? ''));
+            $source = $srjNo !== '' ? 'SRJ' : ($fakturNo !== '' ? 'INV' : '');
+            $docNo = $srjNo !== '' ? $srjNo : $fakturNo;
+            if ($source === '') {
+                continue;
+            }
+
+            $referenceDetail = $this->resolveReturReferenceSourceDetail($source, $docNo, $code, $frefnoacaks[$index] ?? null);
+            if (! $referenceDetail) {
+                continue;
+            }
+
+            $refQty = (float) ($referenceDetail->fqty ?? 0);
+            $returnQtyForCompare = $returnQty;
+            $refQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+            if ($refQty > 0 && $refQtyKecil > 0) {
+                $returnQtyForCompare = $returnQty * ($refQtyKecil / $refQty);
+                $refQty = $refQtyKecil;
+            }
+
+            if ($returnQtyForCompare - $refQty > 0.000001) {
+                throw ValidationException::withMessages([
+                    "fqty.{$index}" => "Row " . ($index + 1) . ": Qty Retur ({$returnQty}) melebihi Qty Referensi (" . (float) ($referenceDetail->fqty ?? 0) . ").",
+                ]);
+            }
+        }
+    }
+
     private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
     {
         $sourceCode = strtoupper(trim($sourceCode));
@@ -1166,6 +1204,7 @@ class ReturPenjualanController extends Controller
         $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
         $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj, $frefdtno, $frefpr);
+        $this->validateSubmittedReturReferenceQty($itemCodes, $qtys, $frefso, $frefsrj, $request->input('frefnoacak', []));
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -1317,6 +1356,16 @@ class ReturPenjualanController extends Controller
                 && (float) ($product->fqtykecil2 ?? 0) > 0
             ) {
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
+            }
+
+            if ($referenceDetail && $qtyKecil - (float) ($referenceDetail->fqtykecil ?? 0) > 0.000001) {
+                $refLabel = $refSrjDoc !== '' ? 'SRJ' : 'Faktur';
+                $refNo = $refSrjDoc !== '' ? $refSrjDoc : $refSoDoc;
+                $msg = "Qty retur produk {$code} melebihi qty {$refLabel} {$refNo}.";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
@@ -2472,6 +2521,7 @@ class ReturPenjualanController extends Controller
         $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
         $this->validateReturProductReferences($itemCodes, $frefso, $frefsrj, $frefdtno, $frefpr);
+        $this->validateSubmittedReturReferenceQty($itemCodes, $qtys, $frefso, $frefsrj, $request->input('frefnoacak', []));
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -2614,6 +2664,16 @@ class ReturPenjualanController extends Controller
                 && (float) ($product->fqtykecil2 ?? 0) > 0
             ) {
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
+            }
+
+            if ($referenceDetail && $qtyKecil - (float) ($referenceDetail->fqtykecil ?? 0) > 0.000001) {
+                $refLabel = $refSrjDoc !== '' ? 'SRJ' : 'Faktur';
+                $refNo = $refSrjDoc !== '' ? $refSrjDoc : $refSoDoc;
+                $msg = "Qty retur produk {$code} melebihi qty {$refLabel} {$refNo}.";
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->with('error', $msg);
             }
 
             $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);

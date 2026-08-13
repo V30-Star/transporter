@@ -323,11 +323,6 @@
             </tbody>
         </table>
 
-        <div class="note-block">
-            <div class="note-title">Catatan</div>
-            <div>{{ $hdr->fket ?: '-' }}</div>
-        </div>
-
         <div class="footer-line"></div>
 
         <div style="overflow: hidden;">
