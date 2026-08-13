@@ -309,23 +309,14 @@
                 <tr>
                     <th style="width: 5%;">No.</th>
                     <th style="width: 15%;">Kode Produk</th>
-                    <th style="width: 30%;">Nama Produk</th>
-                    <th style="width: 13%;" class="text-right">Qty</th>
-                    <th style="width: 13%;" class="text-right">@ Harga</th>
-                    <th style="width: 8%;" class="text-center">Disc.%</th>
-                    <th style="width: 16%;" class="text-right">Total Harga</th>
+                    <th style="width: 34%;">Nama Produk</th>
+                    <th style="width: 14%;" class="text-right">Qty</th>
+                    <th style="width: 15%;" class="text-right">@ Harga</th>
+                    <th style="width: 17%;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
-                    @php
-                        $discVal = $r->fdisc ?? '0';
-                        if (is_numeric($discVal)) {
-                            $formattedDisc = (float)$discVal == (int)$discVal ? (int)$discVal : number_format((float)$discVal, 2, ',', '.');
-                        } else {
-                            $formattedDisc = $discVal;
-                        }
-                    @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->product_code ?? '-' }}</td>
@@ -336,8 +327,7 @@
                             @endif
                         </td>
                         <td class="text-right">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->funit ?? ($r->fsatuan ?? '') }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-center">{{ $formattedDisc }}</td>
+                        <td class="text-right">{{ number_format($r->fsalesnet ?? $r->fprice ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
