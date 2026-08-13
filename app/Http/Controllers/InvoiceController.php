@@ -1406,8 +1406,27 @@ class InvoiceController extends Controller
                 'ftypesales' => ['required', 'in:0,1'],
                 'ftaxno' => ['nullable', 'string', 'max:50'],
                 'fketinternal' => ['nullable', 'string', 'max:300'],
-                'fitemcode' => ['required', 'array', 'min:1'],
-                'fitemcode.*' => ['required', 'string', 'max:30'],
+                'fitemcode' => [
+                    'required',
+                    'array',
+                    'min:1',
+                    function ($attribute, $value, $fail) use ($request) {
+                        $typeSales = (int) $request->input('ftypesales', 0);
+                        foreach ((array) $value as $code) {
+                            $c = strtoupper(trim((string) $code));
+                            if (empty($c)) continue;
+
+                            if ($typeSales === 1 && ! str_starts_with($c, 'UM')) {
+                                $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                                return;
+                            }
+                            if ($typeSales !== 1 && str_starts_with($c, 'UM')) {
+                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                                return;
+                            }
+                        }
+                    },
+                ],
                 'fqty' => ['required', 'array'],
                 'fqty.*' => ['numeric', 'min:0.01'],
                 'fprice' => ['required', 'array'],
@@ -1515,7 +1534,23 @@ class InvoiceController extends Controller
                 ->values()
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
-                $msg = 'Tipe Penjualan ini Uang Muka Muka hanya boleh menginput Uang Muka saja.';
+                $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()
+                    ->withInput()
+                    ->with('error', $msg);
+            }
+        } else {
+            $invalidUmCodes = collect($itemCodes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
+                ->unique()
+                ->values()
+                ->all();
+            if (! empty($invalidUmCodes)) {
+                $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $msg], 422);
                 }
@@ -2632,8 +2667,27 @@ class InvoiceController extends Controller
             'ftypesales' => ['nullable', 'in:0,1'],
             'ftaxno' => ['nullable', 'string', 'max:50'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:30'],
+            'fitemcode' => [
+                'required',
+                'array',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request, $header) {
+                    $typeSales = (int) $request->input('ftypesales', $header->ftypesales ?? 0);
+                    foreach ((array) $value as $code) {
+                        $c = strtoupper(trim((string) $code));
+                        if (empty($c)) continue;
+
+                        if ($typeSales === 1 && ! str_starts_with($c, 'UM')) {
+                            $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                            return;
+                        }
+                        if ($typeSales !== 1 && str_starts_with($c, 'UM')) {
+                            $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                            return;
+                        }
+                    }
+                },
+            ],
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0.01'],
             'fprice' => ['required', 'array'],
@@ -2739,6 +2793,22 @@ class InvoiceController extends Controller
                 ->all();
             if (! empty($invalidAdvanceCodes)) {
                 $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()
+                    ->withInput()
+                    ->with('error', $msg);
+            }
+        } else {
+            $invalidUmCodes = collect($itemCodes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
+                ->unique()
+                ->values()
+                ->all();
+            if (! empty($invalidUmCodes)) {
+                $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $msg], 422);
                 }

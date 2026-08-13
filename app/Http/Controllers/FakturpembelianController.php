@@ -1314,6 +1314,7 @@ class FakturpembelianController extends Controller
 
             $allowNegativeStockQty = stock_boleh_minus();
             $hasPpn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1';
+            $typeBuy = (int) $request->input('ftypebuy', 0);
             // 1) VALIDASI
             $request->validate([
                 'fstockmtno' => [
@@ -1333,6 +1334,26 @@ class FakturpembelianController extends Controller
                 'frefpo' => [$hasPpn ? 'required' : 'nullable', 'string', 'max:100'],
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
+                'fitemcode' => [
+                    'required',
+                    'array',
+                    'min:1',
+                    function ($attribute, $value, $fail) use ($typeBuy) {
+                        foreach ((array) $value as $code) {
+                            $c = strtoupper(trim((string) $code));
+                            if (empty($c)) continue;
+
+                            if ($typeBuy === 2 && ! str_starts_with($c, 'UM')) {
+                                $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                                return;
+                            }
+                            if ($typeBuy !== 2 && str_starts_with($c, 'UM')) {
+                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                                return;
+                            }
+                        }
+                    },
+                ],
                 'fqty' => ['required', 'array'],
                 'fqty.*' => [
                     'required',
@@ -1402,22 +1423,43 @@ class FakturpembelianController extends Controller
             $discs = $request->input('fdiscpersen', []);
             $descs = $request->input('fdesc', []);
 
-            if ((string) $ftypebuy === '2') {
+            $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
+            $hasUM = collect($codes)->map(fn($code) => strtoupper(trim((string) $code)))->contains('UM');
+            if ($typeBuy === 2) {
                 $invalidAdvanceCodes = collect($codes)
                     ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->filter(fn($code) => $code !== '' && !str_starts_with(strtoupper($code), 'UM'))
                     ->unique()
                     ->values()
                     ->all();
 
                 if (! empty($invalidAdvanceCodes)) {
-                    $message = "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!";
+                    $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
                     if ($request->expectsJson()) {
-                        return response()->json(['message' => $message], 422);
+                        return response()->json(['message' => $msg], 422);
                     }
-                    return back()->withInput()->withErrors([
-                        'detail' => $message,
-                    ]);
+
+                    return back()
+                        ->withInput()
+                        ->with('error', $msg);
+                }
+            } else {
+                $invalidUmCodes = collect($codes)
+                    ->map(fn($code) => trim((string) $code))
+                    ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (! empty($invalidUmCodes)) {
+                    $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
+                    if ($request->expectsJson()) {
+                        return response()->json(['message' => $msg], 422);
+                    }
+
+                    return back()
+                        ->withInput()
+                        ->with('error', $msg);
                 }
             }
 
@@ -2184,6 +2226,8 @@ class FakturpembelianController extends Controller
 
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
             $hasPpn = $fapplyppn === 1;
+            $header = PenerimaanPembelianHeader::find($fstockmtid);
+            $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
 
             // VALIDASI
             $validatedData = $request->validate([
@@ -2194,6 +2238,26 @@ class FakturpembelianController extends Controller
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'faccid' => ['nullable', 'integer'],
+                'fitemcode' => [
+                    'required',
+                    'array',
+                    'min:1',
+                    function ($attribute, $value, $fail) use ($typeBuy) {
+                        foreach ((array) $value as $code) {
+                            $c = strtoupper(trim((string) $code));
+                            if (empty($c)) continue;
+
+                            if ($typeBuy === 2 && ! str_starts_with($c, 'UM')) {
+                                $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                                return;
+                            }
+                            if ($typeBuy !== 2 && str_starts_with($c, 'UM')) {
+                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                                return;
+                            }
+                        }
+                    },
+                ],
                 'fsatuan' => ['nullable', 'array'],
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'frefdtno' => ['nullable', 'array'],
@@ -2272,7 +2336,7 @@ class FakturpembelianController extends Controller
             $faccid = $request->input('faccid');
             $fprdjadi = $request->input('fprdjadi');
             $ftempohr = $request->input('ftempohr');
-            $ftypebuy = $request->input('ftypebuy');
+            $ftypebuy = $request->input('ftypebuy', $header->ftypebuy ?? 0);
             $isAdvancePaymentDetail = (string) $ftypebuy === '2';
             $fcurrency = $request->input('fcurrency', 'IDR');
             $frate = (float) $request->input('frate', 1);
@@ -2308,18 +2372,25 @@ class FakturpembelianController extends Controller
             $discs = $request->input('fdiscpersen', []);
             $descs = $request->input('fdesc', []);
 
-            if ((string) $ftypebuy === '2') {
+            $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
+            $hasUM = collect($codes)->map(fn($code) => strtoupper(trim((string) $code)))->contains('UM');
+            if ($typeBuy === 2) {
                 $invalidAdvanceCodes = collect($codes)
                     ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '')
+                    ->filter(fn($code) => $code !== '' && !str_starts_with(strtoupper($code), 'UM'))
                     ->unique()
                     ->values()
                     ->all();
 
                 if (! empty($invalidAdvanceCodes)) {
-                    return back()->withInput()->withErrors([
-                        'detail' => "Tipe Penjualan: Uang Muka.\nHanya boleh input Uang Muka !!!",
-                    ]);
+                    $msg = 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.';
+                    if ($request->expectsJson()) {
+                        return response()->json(['message' => $message], 422);
+                    }
+
+                    return back()
+                        ->withInput()
+                        ->with('error', $msg);
                 }
             }
 
