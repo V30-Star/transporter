@@ -85,11 +85,11 @@
             border-bottom: 1px solid #eee;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
@@ -228,12 +228,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:5%;">No.</th>
+                    <th style="width:5%; text-align:center;" class="text-center">No.</th>
                     <th style="width:15%;">Kode Akun</th>
                     <th style="width:30%;">Nama Akun</th>
                     <th style="width:30%;">Uraian</th>
-                    <th style="width:5%; text-align:center;">D/K</th>
-                    <th style="width:15%; text-align:right;">Jumlah (Rp)</th>
+                    <th style="width:5%; text-align:center;" class="text-center">D/K</th>
+                    <th style="width:15%; text-align:right;" class="text-right">Jumlah (Rp)</th>
                 </tr>
             </thead>
             <tbody>

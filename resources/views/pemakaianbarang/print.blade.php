@@ -133,11 +133,11 @@
             font-size: 9px;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
@@ -323,11 +323,11 @@
             <table class="tb">
                 <thead>
                     <tr>
-                        <th style="width: 8%;" class="text-center">No.</th>
+                        <th style="width: 8%; text-align: center;" class="text-center">No.</th>
                         <th style="width: 22%;">Kode Barang</th>
                         <th style="width: 45%;">Nama Barang</th>
-                        <th style="width: 12%; text-align: right;">Qty.</th>
-                        <th style="width: 13%; text-align: center;">Satuan</th>
+                        <th style="width: 12%; text-align: right;" class="text-right">Qty.</th>
+                        <th style="width: 13%; text-align: center;" class="text-center">Satuan</th>
                     </tr>
                 </thead>
                 <tbody>

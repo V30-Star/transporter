@@ -130,11 +130,11 @@
             vertical-align: top;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
@@ -277,13 +277,13 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;" class="text-center">No</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No</th>
                     <th style="width: 22%;">Account</th>
                     <th style="width: 18%;">Sub Account</th>
                     <th style="width: 15%;">No. Referensi</th>
                     <th>Uraian</th>
-                    <th style="width: 8%;" class="text-center">D/K</th>
-                    <th style="width: 12%;" class="text-right">Nilai Bayar</th>
+                    <th style="width: 8%; text-align: center;" class="text-center">D/K</th>
+                    <th style="width: 12%; text-align: right;" class="text-right">Nilai Bayar</th>
                 </tr>
             </thead>
             <tbody>

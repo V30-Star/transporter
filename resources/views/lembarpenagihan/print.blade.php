@@ -112,11 +112,11 @@
             vertical-align: top;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
@@ -289,12 +289,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 25%;">No. Nota</th>
                     <th style="width: 18%;">Tanggal Nota</th>
-                    <th style="width: 18%;" class="text-right">Nilai Nota</th>
-                    <th style="width: 16%;" class="text-right">Ongkos Kirim</th>
-                    <th style="width: 18%;" class="text-right">Sisa Piutang</th>
+                    <th style="width: 18%; text-align: right;" class="text-right">Nilai Nota</th>
+                    <th style="width: 16%; text-align: right;" class="text-right">Ongkos Kirim</th>
+                    <th style="width: 18%; text-align: right;" class="text-right">Sisa Piutang</th>
                 </tr>
             </thead>
             <tbody>

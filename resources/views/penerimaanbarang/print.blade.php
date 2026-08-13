@@ -114,8 +114,8 @@
             vertical-align: top;
         }
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .text-right, .tb th.text-right { text-align: right; }
+        .text-center, .tb th.text-center { text-align: center; }
 
         /* Footer Section */
         .footer-line {
@@ -251,12 +251,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Quantity</th>
-                    <th style="width: 15%; text-align: right;">@ Harga</th>
-                    <th style="width: 5%; text-align: center;">Disc.%</th>
-                    <th style="width: 15%; text-align: right;">Total Harga</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">Quantity</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">@ Harga</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">Disc.%</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
             <tbody>

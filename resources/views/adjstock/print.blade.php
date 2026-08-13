@@ -114,11 +114,11 @@
             vertical-align: top;
         }
 
-        .text-right {
+        .text-right, .tb th.text-right {
             text-align: right;
         }
 
-        .text-center {
+        .text-center, .tb th.text-center {
             text-align: center;
         }
 
@@ -257,11 +257,11 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 20%;">Kode Barang</th>
                     <th style="width: 50%;">Nama Barang</th>
-                    <th style="width: 10%; text-align: center;">Qty.</th>
-                    <th style="width: 15%; text-align: center;">Satuan</th>
+                    <th style="width: 10%; text-align: center;" class="text-center">Qty.</th>
+                    <th style="width: 15%; text-align: center;" class="text-center">Satuan</th>
                 </tr>
             </thead>
             <tbody>

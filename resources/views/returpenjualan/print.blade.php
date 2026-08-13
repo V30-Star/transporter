@@ -298,8 +298,8 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 34%;">Nama Produk</th>
+                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
+                    <th style="width: 49%;">Nama Produk</th>
                     <th style="width: 14%; text-align: right;" class="text-right">Qty</th>
                     <th style="width: 15%; text-align: right;" class="text-right">@ Harga</th>
                     <th style="width: 17%; text-align: right;" class="text-right">Total Harga</th>
