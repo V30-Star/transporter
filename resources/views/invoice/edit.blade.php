@@ -2418,13 +2418,23 @@
     };
 
     window.invoiceReferenceQtyGuard = function(form) {
+        function parseNum(val) {
+            if (val === null || val === undefined || val === '') return 0;
+            let clean = String(val).replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]+/g, '');
+            return parseFloat(clean) || 0;
+        }
+
         const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
         const rows = tableRoot?._x_dataStack?.[0]?.submitItems || [];
         for (const row of rows) {
-            const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
-            const refQty = Number(String(row.ref_qty || row.source_qty || row.sj_qty || row.do_qty || row.so_qty || row.maxqty || 0).replace(/[^0-9.-]+/g, "")) || 0;
+            const inputQty = parseNum(row.qty || row.fqty);
+            const refQty = parseNum(row.po_qty || row.do_qty || row.sj_qty || row.qty_ref || row.ref_qty || row.source_qty || row.maxqty || row.fqtyremain_source || row.fqtysisa_source);
             if (refQty > 0 && inputQty > refQty) {
-                Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    text: `Qty (${inputQty}) melebihi Qty Referensi (${refQty}).`
+                });
                 return false;
             }
         }
