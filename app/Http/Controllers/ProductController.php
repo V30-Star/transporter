@@ -1076,7 +1076,7 @@ class ProductController extends Controller
                 s.fsuppliername,
                 m.fstockmtdate,
                 m.fcurrency,
-                COALESCE(d.fprice, 0) AS fprice,
+                COALESCE(d.fpricenet, 0) AS fprice,
                 d.fqty,
                 d.fsatuan,
                 m.fbranchcode AS fcabangkode
