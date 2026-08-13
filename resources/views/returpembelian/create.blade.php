@@ -1137,19 +1137,19 @@
 
             onTypeChanged() {
                 const isUM = this.ftypebuy !== 0;
-                if (isUM) {
-                    const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && !this.isUMCode(r.fitemcode));
-                    if (invalidItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => this.isUMCode(r.fitemcode));
-                    }
-                } else {
-                    const umItems = this.savedItems.filter(r => this.isUMCode(r.fitemcode));
-                    if (umItems.length > 0) {
-                        window.showAppWarningAlert('WARNING', 'Tipe Pembelian tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
-                        this.savedItems = this.savedItems.filter(r => !this.isUMCode(r.fitemcode));
-                    }
+                const invalidSaved = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode)));
+                const invalidDrafts = this.draftRows.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode)));
+
+                if (invalidSaved.length > 0 || invalidDrafts.length > 0) {
+                    window.showAppWarningAlert('WARNING', isUM ? 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM). Item produk biasa telah dihapus.' : 'Tipe Pembelian tidak boleh menginput Uang Muka (UM). Item Uang Muka telah dihapus.');
+                    this.savedItems = this.savedItems.filter(r => (isUM ? this.isUMCode(r.fitemcode) : !this.isUMCode(r.fitemcode)));
+                    this.draftRows.forEach((r, idx) => {
+                        if ((r.fitemcode || '').toString().trim().toUpperCase() !== '' && (isUM ? !this.isUMCode(r.fitemcode) : this.isUMCode(r.fitemcode))) {
+                            this.draftRows.splice(idx, 1, newDraftRow());
+                        }
+                    });
                 }
+                this.syncDraftRows();
                 this.recalcTotals();
             },
 
@@ -1358,10 +1358,7 @@
                 const code = (row.fitemcode || '').toString().trim().toUpperCase();
                 if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
                     window.showAppWarningAlert('WARNING', this.ftypebuy !== 0 ? 'Tipe Uang Muka hanya boleh menginput produk UM!' : 'Produk UM hanya untuk tipe Uang Muka!');
-                    row.fitemcode = '';
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
+                    Object.assign(row, newDraftRow());
                     this.syncDraftRows();
                     return;
                 }
