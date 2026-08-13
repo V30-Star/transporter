@@ -879,13 +879,13 @@
 
                                                 {{-- No.Ref --}}
                                                 <td class="p-2">
-                                                    <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() === 'UM'">
+                                                    <template x-if="String(editRow.fitemcode || '').toUpperCase().trim().startsWith('UM')">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
                                                             :value="editRow.frefdtno || ''"
                                                             placeholder="Auto No Ref UM" disabled>
                                                     </template>
-                                                    <template x-if="String(editRow.fitemcode || '').toUpperCase().trim() !== 'UM'">
+                                                    <template x-if="!String(editRow.fitemcode || '').toUpperCase().trim().startsWith('UM')">
                                                         <div class="flex w-full max-w-full">
                                                             <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="editRow.frefdtno || '-'"></div>
                                                             <button type="button" @click="openProductHistory(editRow)"
@@ -1539,6 +1539,7 @@
             historyLoading: false,
             historyRows: [],
             historyTargetRow: null,
+            ftypebuy: @json((int) $currentType),
 
             totalHarga: 0,
             ppnRate: @json((float) old('ppn_rate', $returpembelian->fppnpersen ?? ($defaultPpnTarif ?? 11))),
@@ -1599,11 +1600,15 @@
                 return this.fmt(value);
             },
 
+            isUMCode(code) {
+                return (code || '').toString().trim().toUpperCase().startsWith('UM');
+            },
+
             hasNonUMProducts() {
                 const activeRows = [...(this.savedItems || []), ...(this.draftRows || [])];
                 return activeRows.some(row => {
                     const code = (row?.fitemcode || '').toString().trim().toUpperCase();
-                    return code !== '' && code !== 'UM';
+                    return code !== '' && !this.isUMCode(code);
                 });
             },
 
@@ -1611,7 +1616,7 @@
                 row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
 
-                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const isUM = this.isUMCode(row?.fitemcode);
                 let absPrice = Math.abs(+row.fprice || 0);
                 if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
                     const sanitized = this.sanitizePriceValue(row.fpriceInput);
@@ -1641,7 +1646,7 @@
             onPriceInput(row) {
                 row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
                 const absPrice = Math.abs(+(row.fpriceInput || 0));
-                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const isUM = this.isUMCode(row?.fitemcode);
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 this.recalc(row);
@@ -1649,7 +1654,7 @@
 
             blurPriceInput(row) {
                 const absPrice = Math.abs(+(this.sanitizePriceValue(row.fpriceInput) || 0));
-                const isUM = (row?.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                const isUM = this.isUMCode(row?.fitemcode);
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
@@ -1662,7 +1667,7 @@
 
                 allRows.forEach(row => {
                     if (!row || !row.fitemcode) return;
-                    const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                    const isUM = this.isUMCode(row.fitemcode);
                     if (isUM) {
                         let absPrice = Math.abs(+row.fprice || 0);
                         const shouldBeNegative = hasOther;
@@ -1680,10 +1685,23 @@
                     .filter(item => this.isComplete && this.isComplete(item))
                     .reduce((sum, item) => sum + (+item.ftotprice || 0), 0);
                 this.totalHarga = savedSum + draftSum;
+                this.syncDraftRows();
             },
 
             ensureMinimumDraftRows() {
+                this.syncDraftRows();
+            },
+
+            syncDraftRows() {
                 while (this.draftRows.length < this.minimumDraftRows) {
+                    this.draftRows.push(newDraftRow());
+                }
+
+                while (this.draftRows.length > this.minimumDraftRows && !this.draftRowHasContent(this.draftRows[this.draftRows.length - 1]) && this.draftRows.slice(0, -1).some(row => !this.isComplete(row))) {
+                    this.draftRows.pop();
+                }
+
+                if (this.draftRows.length >= this.minimumDraftRows && this.draftRows.every(row => this.isComplete(row))) {
                     this.draftRows.push(newDraftRow());
                 }
             },
@@ -1695,7 +1713,7 @@
             removeDraftRow(di) {
                 if (this.draftRows.length > this.minimumDraftRows || this.draftRowHasContent(this.draftRows[di])) {
                     this.draftRows.splice(di, 1);
-                    this.ensureMinimumDraftRows();
+                    this.syncDraftRows();
                 }
             },
 
@@ -1733,7 +1751,7 @@
 
             applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                if (productCode !== 'UM') return;
+                if (!this.isUMCode(productCode)) return;
 
                 const supplierCode = this.getSelectedSupplierCode();
                 if (!supplierCode) return;
@@ -1760,7 +1778,18 @@
             },
 
             onCodeTypedRow(row) {
+                const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
+                    window.showAppWarningAlert('WARNING', this.ftypebuy !== 0 ? 'Tipe Uang Muka hanya boleh menginput produk UM!' : 'Produk UM hanya untuk tipe Uang Muka!');
+                    row.fitemcode = '';
+                    row.fitemname = '';
+                    row.units = [];
+                    row.fsatuan = '';
+                    this.syncDraftRows();
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.syncDraftRows();
             },
 
             isComplete(row) {
@@ -2062,7 +2091,7 @@
 
                     // ── UM / Type guard ─────────────────────────────────────
                     const chosenCode  = (product.fprdcode || '').toString().trim().toUpperCase();
-                    const isUMProduct = chosenCode === 'UM';
+                    const isUMProduct = this.isUMCode(chosenCode);
                     const isUMType    = this.ftypebuy !== 0;
 
                     if (isUMProduct && !isUMType) {
@@ -2429,7 +2458,7 @@
                             url: "{{ route('products.browse') }}",
                             type: 'GET',
                             data: (d) => {
-                                const ftypebuy = this.ftypebuy ?? 0;
+                                const ftypebuy = @json((int) $currentType);
                                 const result = {
                                     draw: d.draw,
                                     start: d.start,
@@ -2438,9 +2467,9 @@
                                     order_column: d.columns[d.order[0].column].data,
                                     order_dir: d.order[0].dir
                                 };
-                                // Uang Muka: tampilkan hanya UM; Pembelian: sembunyikan UM
+                                // Uang Muka: tampilkan hanya kode produk UM; Pembelian: sembunyikan tipe UM
                                 if (ftypebuy !== 0) {
-                                    result.ftype_filter = 'UM';
+                                    result.fprdcode_prefix = 'UM';
                                 } else {
                                     result.exclude_type = 'UM';
                                 }

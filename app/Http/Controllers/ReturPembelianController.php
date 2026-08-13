@@ -82,6 +82,29 @@ class ReturPembelianController extends Controller
         throw ValidationException::withMessages($messages);
     }
 
+    private function isAdvancePaymentProductCode(string $code): bool
+    {
+        return str_starts_with(strtoupper(trim($code)), 'UM');
+    }
+
+    private function validateAdvancePaymentProducts(int $typeBuy, array $codes, Request $request): ?object
+    {
+        $hasUM = collect($codes)->contains(fn($code) => $this->isAdvancePaymentProductCode((string) $code));
+        $hasNonUM = collect($codes)->contains(fn($code) => trim((string) $code) !== '' && ! $this->isAdvancePaymentProductCode((string) $code));
+
+        if ($typeBuy === 0 && $hasUM) {
+            $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
+        } elseif ($typeBuy !== 0 && $hasNonUM) {
+            $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
+        } else {
+            return null;
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['message' => $msg], 422)
+            : back()->withInput()->with('error', $msg);
+    }
+
     public function index(Request $request)
     {
         // --- 1. PERMISSIONS ---
@@ -563,7 +586,7 @@ class ReturPembelianController extends Controller
         foreach ($rowsDt as $row) {
             $refno = trim((string) ($row['frefdtno'] ?? ''));
             $code = trim((string) ($row['fprdcode'] ?? ''));
-            if ($refno === '' || $code === '' || strtoupper($code) === 'UM') {
+            if ($refno === '' || $code === '' || $this->isAdvancePaymentProductCode($code)) {
                 continue;
             }
             $key = $refno . '|' . $code;
@@ -794,7 +817,16 @@ class ReturPembelianController extends Controller
                     },
                 ],
                 'fprice' => ['required', 'array'],
-                'fprice.*' => ['numeric', 'min:0'],
+                'fprice.*' => [
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        $index = (int) str_replace('fprice.', '', $attribute);
+                        $code = (string) $request->input("fitemcode.{$index}", '');
+                        if (! $this->isAdvancePaymentProductCode($code) && (float) $value < 0) {
+                            $fail('Harga tidak boleh minus.');
+                        }
+                    },
+                ],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
                 'frefno' => ['nullable', 'string', 'max:100'],
@@ -876,29 +908,13 @@ class ReturPembelianController extends Controller
             $typeBuy = (int) $request->input('ftypebuy', 0);
 
             // BUILD DETAIL ROWS
-            $hasUM = collect($codes)->map(fn($c) => strtoupper(trim((string) $c)))->contains('UM');
-            $hasNonUM = collect($codes)
-                ->map(fn($c) => strtoupper(trim((string) $c)))
-                ->filter(fn($c) => $c !== '' && $c !== 'UM')
-                ->isNotEmpty();
+            $hasNonUM = collect($codes)->contains(fn($c) => trim((string) $c) !== '' && ! $this->isAdvancePaymentProductCode((string) $c));
             $outstandingDpDoc = $this->getSupplierOutstandingDpDocument($fsupplier);
             $outstandingDpRef = trim((string) ($outstandingDpDoc->fstockmtno ?? ''));
             $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
-            if ($typeBuy === 0 && $hasUM) {
-                $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
-                if (request()->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return back()->withInput()->with('error', $msg);
-            }
-
-            if ($typeBuy !== 0 && $hasNonUM) {
-                $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
-                if (request()->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return back()->withInput()->with('error', $msg);
+            if ($response = $this->validateAdvancePaymentProducts($typeBuy, $codes, $request)) {
+                return $response;
             }
 
             $rowsDt = [];
@@ -918,7 +934,7 @@ class ReturPembelianController extends Controller
                     continue;
                 }
 
-                if (strtoupper(trim((string) $code)) === 'UM') {
+                if ($this->isAdvancePaymentProductCode($code)) {
                     $rref = $outstandingDpRef !== '' ? $outstandingDpRef : $rref;
                     $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                     $price = $hasNonUM ? -$absPrice : $absPrice;
@@ -1034,7 +1050,7 @@ class ReturPembelianController extends Controller
                 $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
                 $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
-                $hasUMItem = (int) $request->input('ftypebuy', 0) !== 0 || collect($itemCodes)->contains(fn ($c) => strtoupper(trim((string) $c)) === 'UM');
+                $hasUMItem = (int) $request->input('ftypebuy', 0) !== 0 || collect($itemCodes)->contains(fn ($c) => $this->isAdvancePaymentProductCode((string) $c));
                 $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
 
                 if (empty($fstockmtno)) {
@@ -1433,7 +1449,16 @@ class ReturPembelianController extends Controller
                     },
                 ],
                 'fprice' => ['required', 'array'],
-                'fprice.*' => ['numeric', 'min:0'],
+                'fprice.*' => [
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        $index = (int) str_replace('fprice.', '', $attribute);
+                        $code = (string) $request->input("fitemcode.{$index}", '');
+                        if (! $this->isAdvancePaymentProductCode($code) && (float) $value < 0) {
+                            $fail('Harga tidak boleh minus.');
+                        }
+                    },
+                ],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
                 'frefno' => ['nullable', 'string'],
@@ -1530,29 +1555,13 @@ class ReturPembelianController extends Controller
             $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
 
             // BUILD DETAIL ROWS
-            $hasUM = collect($codes)->map(fn($c) => strtoupper(trim((string) $c)))->contains('UM');
-            $hasNonUM = collect($codes)
-                ->map(fn($c) => strtoupper(trim((string) $c)))
-                ->filter(fn($c) => $c !== '' && $c !== 'UM')
-                ->isNotEmpty();
+            $hasNonUM = collect($codes)->contains(fn($c) => trim((string) $c) !== '' && ! $this->isAdvancePaymentProductCode((string) $c));
             $outstandingDpDoc = $this->getSupplierOutstandingDpDocument($fsupplier);
             $outstandingDpRef = trim((string) ($outstandingDpDoc->fstockmtno ?? ''));
             $outstandingDpAmount = (float) ($outstandingDpDoc->fsisadp ?? 0);
 
-            if ($typeBuy === 0 && $hasUM) {
-                $msg = 'Tipe Pembelian tidak boleh menginput Uang Muka (UM).';
-                if (request()->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return back()->withInput()->with('error', $msg);
-            }
-
-            if ($typeBuy !== 0 && $hasNonUM) {
-                $msg = 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).';
-                if (request()->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return back()->withInput()->with('error', $msg);
+            if ($response = $this->validateAdvancePaymentProducts($typeBuy, $codes, $request)) {
+                return $response;
             }
 
             $rowsDt = [];
@@ -1572,7 +1581,7 @@ class ReturPembelianController extends Controller
                     continue;
                 }
 
-                if (strtoupper(trim((string) $code)) === 'UM') {
+                if ($this->isAdvancePaymentProductCode($code)) {
                     $rref = $outstandingDpRef !== '' ? $outstandingDpRef : $rref;
                     $absPrice = $outstandingDpAmount > 0 ? $outstandingDpAmount : abs($price);
                     $price = $hasNonUM ? -$absPrice : $absPrice;
@@ -1685,7 +1694,7 @@ class ReturPembelianController extends Controller
                 }
 
                 $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
-                $hasUMItem = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0) !== 0 || collect($itemCodes)->contains(fn ($c) => strtoupper(trim((string) $c)) === 'UM');
+                $hasUMItem = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0) !== 0 || collect($itemCodes)->contains(fn ($c) => $this->isAdvancePaymentProductCode((string) $c));
                 $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
 
                 if (empty($fstockmtno)) {
@@ -2233,7 +2242,7 @@ class ReturPembelianController extends Controller
 
         $returPembelian = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
         $isUangMuka = (int) ($returPembelian->ftypebuy ?? 0) !== 0
-            || DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->whereRaw("UPPER(TRIM(COALESCE(fprdcode, ''))) = 'UM'")->exists();
+            || DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->whereRaw("UPPER(TRIM(COALESCE(fprdcode, ''))) LIKE 'UM%'")->exists();
         $targetKreditAccount = $isUangMuka ? ($accountReturnUM ?: $accountPersediaan) : $accountPersediaan;
         $accountNote = $isUangMuka ? 'Retur Uang Muka' : 'Kurangi Persediaan Barang';
 
