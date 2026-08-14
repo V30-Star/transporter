@@ -1553,7 +1553,7 @@
                 const supplierCode = this.getSelectedSupplierCode();
                 const productCode = (row?.fitemcode || '').toString().trim();
                 const unit = (row?.fsatuan || '').toString().trim();
-                if (!supplierCode || !productCode || !unit) return;
+                if (!supplierCode || !productCode || !unit || String(productCode).toUpperCase().startsWith('UM')) return;
 
                 const params = new URLSearchParams({
                     fsupplier: supplierCode,
@@ -2178,7 +2178,9 @@
                 this.hydrateRowFromMeta(row, meta, true);
                 this.applyOutstandingDpRef(row);
                 if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
-                this.applyPurchasePrice(row);
+                if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
+                    this.applyPurchasePrice(row);
+                }
                 this.onRowUpdated(index);
             },
 
@@ -2817,7 +2819,9 @@
                             units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
                             stock: product.fminstock || 0,
                         }, true);
-                        this.applyPurchasePrice(row);
+                        if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
+                            this.applyPurchasePrice(row);
+                        }
                         this.applyOutstandingDpRef(row);
                         if (!(Number(row.fqty) > 0)) row.fqty = 1;
                         this.recalc(row);
