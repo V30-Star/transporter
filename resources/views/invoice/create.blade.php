@@ -659,9 +659,7 @@
                                                         placeholder="No Ref" disabled>
                                                     <button type="button" @click="openProductHistory(it)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                        :disabled="!canOpenHistory(it)"
-                                                        :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                        title="Riwayat produk">
+                                                        title="Riwayat produk / Uang Muka">
                                                         <x-heroicon-o-clock class="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -2015,7 +2013,7 @@
                 const customerCode = this.getSelectedCustomerCode();
                 const productCode = (row?.fitemcode || '').toString().trim();
                 const unit = (row?.fsatuan || '').toString().trim();
-                if (!customerCode || !productCode || !unit) return;
+                if (!customerCode || !productCode || !unit || String(productCode).toUpperCase().startsWith('UM')) return;
 
                 const params = new URLSearchParams({
                     fcustno: customerCode,
@@ -2045,7 +2043,7 @@
 
             applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                if (productCode !== 'UM') return;
+                if (!productCode.startsWith('UM')) return;
 
                 const customerCode = this.getSelectedCustomerCode();
                 const documents = window.INVOICE_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
@@ -2053,6 +2051,16 @@
                 row.frefdtno = doc ? doc.fsono : '';
                 row.frefno_display = doc ? doc.fsono : '';
                 row.frefcode = doc ? 'UM' : '';
+                if (doc) {
+                    const price = Math.abs(Number(doc.fsisadp || 0));
+                    row.ref_price = price;
+                    row.maxprice = price;
+                    row.source_price = price;
+                    row.fsisadp = price;
+                    row.fprice = price;
+                    row.fpriceInput = this.fmt(price);
+                    this.recalc(row);
+                }
             },
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
@@ -2076,16 +2084,29 @@
                 this.recalcTotals();
             },
 
-            sanitizePriceValue(value) {
-                let str = (value ?? '').toString().trim();
-                if (str === '') return '';
-                if (str.includes(',')) {
-                    str = str.replace(/\./g, '').replace(',', '.');
+            parseMoney(val) {
+                if (val === null || val === undefined || val === '') return 0;
+                let str = val.toString().trim();
+                if (str.includes('.') && str.includes(',')) {
+                    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                        str = str.replace(/,/g, '');
+                    } else {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                } else if (str.includes(',')) {
+                    str = str.replace(',', '.');
+                } else if (str.includes('.')) {
+                    const parts = str.split('.');
+                    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                        str = parts.join('');
+                    }
                 }
-                const raw = str.replace(/[^0-9.]/g, '');
-                const parts = raw.split('.');
-                if (parts.length <= 1) return raw;
-                return `${parts.shift()}.${parts.join('')}`;
+                const num = Number(str.replace(/[^0-9.-]+/g, ''));
+                return Number.isFinite(num) ? num : 0;
+            },
+
+            sanitizePriceValue(value) {
+                return this.parseMoney(value);
             },
 
             focusPriceInput(row) {
@@ -2094,15 +2115,42 @@
             },
 
             onPriceInput(row) {
-                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                let parsed = this.parseMoney(row.fpriceInput);
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && parsed > refPrice) {
+                    parsed = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
+                row.fprice = Math.max(0, parsed);
                 this.recalc(row);
+                this.recalcTotals();
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
+                let parsed = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && parsed > refPrice) {
+                    parsed = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
+                row.fprice = Math.max(0, parsed);
                 row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
+                this.recalcTotals();
             },
 
             recalcTotals() {
@@ -2351,7 +2399,9 @@
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.applyOutstandingDpRef(row);
-                this.applyInvoicePrice(row);
+                if (!typedCode.startsWith('UM')) {
+                    this.applyInvoicePrice(row);
+                }
                 this.onRowUpdated(index);
             },
 
@@ -2587,15 +2637,26 @@
                 this.historyTargetRow = null;
             },
             async openProductHistory(targetRow) {
-                if (!this.canOpenHistory(targetRow)) return;
                 const customerCode = this.getSelectedCustomerCode();
                 const productCode = (targetRow?.fitemcode || '').toString().trim();
 
                 if (!customerCode) {
                     this.showCustomerRequired = true;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Customer wajib dipilih terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Customer wajib dipilih terlebih dahulu.' });
+                    }
                     return;
                 }
-                if (!productCode) return;
+                if (!productCode) {
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Pilih atau isi kode produk terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Pilih atau isi kode produk terlebih dahulu.' });
+                    }
+                    return;
+                }
 
                 this.showHistoryModal = true;
                 this.historyLoading = true;
@@ -2607,7 +2668,7 @@
                         fcustno: customerCode,
                         fprdcode: productCode,
                     });
-                    const response = await fetch(`{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
+                    const response = await fetch(`{{ route('invoice.product-history') }}?${params.toString()}`, {
                         headers: { Accept: 'application/json' },
                     });
                     const payload = await response.json();
@@ -2615,7 +2676,11 @@
                     this.historyRows = Array.isArray(payload?.data) ? payload.data : [];
                 } catch (error) {
                     this.historyRows = [];
-                    window.toast?.error(error.message || 'Gagal memuat riwayat produk.');
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', error.message || 'Gagal memuat riwayat produk.');
+                    } else {
+                        window.toast?.error(error.message || 'Gagal memuat riwayat produk.');
+                    }
                 } finally {
                     this.historyLoading = false;
                 }
@@ -2629,9 +2694,14 @@
                     }
                     const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                     if (priceVal !== null && priceVal >= 0) {
-                        this.historyTargetRow.fprice = priceVal;
+                        const absPrice = Math.abs(priceVal);
+                        this.historyTargetRow.ref_price = absPrice;
+                        this.historyTargetRow.maxprice = absPrice;
+                        this.historyTargetRow.source_price = absPrice;
+                        this.historyTargetRow.fsisadp = Number(row.fsisadp ?? absPrice);
+                        this.historyTargetRow.fprice = absPrice;
                         if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
-                            this.historyTargetRow.fpriceInput = this.fmt(priceVal);
+                            this.historyTargetRow.fpriceInput = this.fmt(absPrice);
                         }
                     }
                     if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
@@ -2641,6 +2711,8 @@
                     if (targetIndex !== -1 && typeof this.onRowUpdated === 'function') {
                         this.onRowUpdated(targetIndex);
                     }
+                    this.recalc?.(this.historyTargetRow);
+                    this.recalcTotals?.();
                 }
                 this.closeHistory();
             },
@@ -2855,7 +2927,9 @@
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     this.applyOutstandingDpRef(row);
-                    this.applyInvoicePrice(row);
+                    if (!prodCode.startsWith('UM')) {
+                        this.applyInvoicePrice(row);
+                    }
                     this.onRowUpdated(index);
                     this.focusRowQty(index);
                 }, {

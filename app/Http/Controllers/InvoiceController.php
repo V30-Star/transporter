@@ -1334,6 +1334,132 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function productHistory(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+
+        if ($customerCode === '') {
+            return response()->json([
+                'message' => 'Customer wajib dipilih terlebih dahulu.',
+                'data' => [],
+            ], 422);
+        }
+
+        if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
+            $rows = DB::table('trsisadp_penjualan')
+                ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
+                ->where('fsisadp', '>', 0)
+                ->orderByDesc('fsodate')
+                ->orderByDesc('fsono')
+                ->get();
+
+            return response()->json([
+                'data' => $rows->map(function ($row) {
+                    return [
+                        'fsono' => (string) ($row->fsono ?? ''),
+                        'fsodate' => ! empty($row->fsodate)
+                            ? Carbon::parse($row->fsodate)->format('d/m/Y')
+                            : '-',
+                        'fcustomername' => (string) ($row->fcustomername ?? ''),
+                        'fqty' => 1,
+                        'frefdtno' => (string) ($row->fsono ?? ''),
+                        'frefnoacak' => '',
+                        'faktur_qty' => 1,
+                        'qty_faktur' => 1,
+                        'qty_asal' => 1,
+                        'fsatuan' => 'PCS',
+                        'fprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'famount' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'ftotprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'fsisadp' => (float) ($row->fsisadp ?? 0),
+                        'fdesc' => '',
+                    ];
+                })->values(),
+            ]);
+        }
+
+        $rows = DB::table('trandt as d')
+            ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
+            ->where('h.fcustno', $customerCode)
+            ->where('d.fprdcode', $productCode)
+            ->where(function ($q) {
+                $q->where('h.fsono', 'like', 'INV.%')
+                  ->orWhere('h.fsono', 'like', 'INV/%');
+            })
+            ->orderByDesc('h.fsodate')
+            ->orderByDesc('h.fsono')
+            ->get([
+                'h.fsono',
+                'h.fsodate',
+                'c.fcustomername',
+                'd.fqty',
+                'd.ftrandtid as frefdtno',
+                DB::raw("COALESCE(NULLIF(TRIM(d.fnoacak::text), ''), '') as frefnoacak"),
+                'd.fsatuan',
+                'd.fprice',
+                'd.famount',
+                'd.fdesc',
+            ]);
+
+        return response()->json([
+            'data' => $rows->map(function ($row) {
+                return [
+                    'fsono' => (string) ($row->fsono ?? ''),
+                    'fsodate' => ! empty($row->fsodate)
+                        ? Carbon::parse($row->fsodate)->format('d/m/Y')
+                        : '-',
+                    'fcustomername' => (string) ($row->fcustomername ?? ''),
+                    'fqty' => (float) ($row->fqty ?? 0),
+                    'frefdtno' => $row->frefdtno,
+                    'frefnoacak' => trim((string) ($row->frefnoacak ?? '')),
+                    'faktur_qty' => (float) ($row->fqty ?? 0),
+                    'qty_faktur' => (float) ($row->fqty ?? 0),
+                    'qty_asal' => (float) ($row->fqty ?? 0),
+                    'fsatuan' => (string) ($row->fsatuan ?? ''),
+                    'fprice' => (float) ($row->fprice ?? 0),
+                    'famount' => (float) ($row->famount ?? 0),
+                    'ftotprice' => (float) ($row->famount ?? 0),
+                    'fsisadp' => 0,
+                    'fdesc' => (string) ($row->fdesc ?? ''),
+                ];
+            })->values(),
+        ]);
+    }
+
+    private function validateAdvancePaymentPriceAgainstReference(array $codes, array $frefdtno, array $prices, string $customerCode): ?string
+    {
+        $customerCode = trim($customerCode);
+        foreach ($codes as $i => $code) {
+            $c = trim((string) $code);
+            if (! str_starts_with(strtoupper($c), 'UM')) {
+                continue;
+            }
+
+            $refno = trim((string) ($frefdtno[$i] ?? ''));
+            $inputPrice = abs((float) ($prices[$i] ?? 0));
+
+            if ($refno !== '') {
+                $dp = DB::table('trsisadp_penjualan')
+                    ->whereRaw('TRIM(fsono) = ?', [$refno])
+                    ->when($customerCode !== '', fn($q) => $q->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode]))
+                    ->first();
+
+                if ($dp) {
+                    $maxAllowed = (float) ($dp->fsisadp ?? $dp->famountsonet ?? 0);
+                    if ($inputPrice - $maxAllowed > 0.0001) {
+                        $formattedInput = number_format($inputPrice, 2, ',', '.');
+                        $formattedMax = number_format($maxAllowed, 2, ',', '.');
+                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refno} (Rp {$formattedMax}).";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function priceInfo(Request $request)
     {
         $data = $request->validate([
@@ -1558,6 +1684,13 @@ class InvoiceController extends Controller
                     ->withInput()
                     ->with('error', $msg);
             }
+        }
+
+        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefdtno, $prices, (string) $fcustno)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umValidation], 422);
+            }
+            return back()->withInput()->with('error', $umValidation);
         }
 
         $productCodes = collect($itemCodes)
@@ -2816,6 +2949,13 @@ class InvoiceController extends Controller
                     ->withInput()
                     ->with('error', $msg);
             }
+        }
+
+        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefdtno, $prices, (string) $fcustno)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umValidation], 422);
+            }
+            return back()->withInput()->with('error', $umValidation);
         }
 
         $productCodes = collect($itemCodes)
