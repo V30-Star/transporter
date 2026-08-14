@@ -53,6 +53,7 @@ class EnsureRoutePermission
         'listingpiutangpenjualan' => 'printListingPiutangPenjualan',
         'reportingrekappenjualan' => 'printLaporanRekapPenjualan',
         'reportingrekappenjualancustomerproduk' => 'printLaporanRekapPenjualan',
+        'reportingrekappenjualansalesproduk' => 'printLaporanRekapPenjualan',
         'analisaumurpiutang' => 'printAnalisaUmurPiutang',
         'bukupiutang' => 'printBukuPiutang',
         'listingfakturpajakpenjualan' => 'printListingFakturPajakPenjualan',

@@ -64,6 +64,7 @@ use App\Http\Controllers\ReportingPrController;
 use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\ReportingRekapPenjualanController;
 use App\Http\Controllers\ReportingRekapPenjualanCustomerProdukController;
+use App\Http\Controllers\ReportingRekapPenjualanSalesProdukController;
 use App\Http\Controllers\ReportingSubaccountController;
 use App\Http\Controllers\ReportingSupplierController;
 use App\Http\Controllers\ReturPembelianController;
@@ -691,6 +692,9 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/reportingrekappenjualancustomerproduk', [ReportingRekapPenjualanCustomerProdukController::class, 'index'])->name('reportingrekappenjualancustomerproduk.index');
         Route::get('/reportingrekappenjualancustomerproduk/print', [ReportingRekapPenjualanCustomerProdukController::class, 'print'])->name('reportingrekappenjualancustomerproduk.print');
         Route::get('/reportingrekappenjualancustomerproduk/excel', [ReportingRekapPenjualanCustomerProdukController::class, 'exportExcel'])->name('reportingrekappenjualancustomerproduk.excel');
+        Route::get('/reportingrekappenjualansalesproduk', [ReportingRekapPenjualanSalesProdukController::class, 'index'])->name('reportingrekappenjualansalesproduk.index');
+        Route::get('/reportingrekappenjualansalesproduk/print', [ReportingRekapPenjualanSalesProdukController::class, 'print'])->name('reportingrekappenjualansalesproduk.print');
+        Route::get('/reportingrekappenjualansalesproduk/excel', [ReportingRekapPenjualanSalesProdukController::class, 'exportExcel'])->name('reportingrekappenjualansalesproduk.excel');
 
         Route::get('/analisaumurpiutang', [AnalisaUmurPiutangController::class, 'index'])->name('analisaumurpiutang.index');
         Route::get('/analisaumurpiutang/print', [AnalisaUmurPiutangController::class, 'print'])->name('analisaumurpiutang.print');
