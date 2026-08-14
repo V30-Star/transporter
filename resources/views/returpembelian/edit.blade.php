@@ -898,8 +898,9 @@
 
                                                 {{-- @ Harga --}}
                                                 <td class="p-2 text-right">
-                                                    <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                    <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                         x-ref="editPrice" x-model="editRow.fpriceInput"
+                                                        :disabled="!!editRow.frefdtno"
                                                         @input="onPriceInput(editRow)" @blur="blurPriceInput(editRow)">
                                                 </td>
 
@@ -989,8 +990,9 @@
 
                                                     {{-- @ Harga --}}
                                                     <td class="p-2 text-right">
-                                                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                             x-model="dr.fpriceInput"
+                                                            :disabled="!!dr.frefdtno"
                                                             @input="onPriceInput(dr)" @blur="blurPriceInput(dr)">
                                                     </td>
 

@@ -1149,8 +1149,9 @@
                                                         </template>
                                                         <template x-if="action !== 'view'">
                                                             <input type="text" inputmode="decimal"
-                                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                                 :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                                :disabled="!!(String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || ''))"
                                                                 @focus="focusPriceInput(it); $event.target.select()"
                                                                 @input="onPriceInput(it); onRowUpdated(i)"
                                                                 @blur="blurPriceInput(it); onRowUpdated(i)"

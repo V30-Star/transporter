@@ -576,10 +576,11 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                  <input type="text" inputmode="decimal"
-                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                     :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                     @focus="focusPriceInput(it); $event.target.select()"
-                                                     @input="onPriceInput(it); onRowUpdated(i)"
+                                                     class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                      :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                      :disabled="!!(String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || ''))"
+                                                      @focus="focusPriceInput(it); $event.target.select()"
+                                                      @input="onPriceInput(it); onRowUpdated(i)"
                                                      @blur="blurPriceInput(it); onRowUpdated(i)"
                                                      @keydown.enter.prevent="onRowUpdated(i)">
                                             </td>
