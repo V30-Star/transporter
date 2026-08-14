@@ -1608,6 +1608,19 @@
                 row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
 
+                const refQty = Number(row.ref_qty || row.source_qty || row.faktur_qty || row.po_qty || row.fqty_asal || row.maxqty || 0);
+                if (refQty > 0 && row.fqty > refQty) {
+                    row.fqty = refQty;
+                    const refDoc = String(row?.frefdtno || row?.frefpr || row?.fpono || '').trim();
+                    const refLabel = refDoc.startsWith('RUB') ? 'RUB' : (refDoc.startsWith('UMB') ? 'UMB' : 'Referensi');
+                    const message = `Qty tidak boleh melebihi Qty ${refLabel} (${refQty}).`;
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    } else if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    }
+                }
+
                 const isUM = this.isUMCode(row?.fitemcode);
                 let absPrice = Math.abs(+row.fprice || 0);
                 if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
@@ -1940,9 +1953,11 @@
                 const rows = [...this.savedItems, ...completeDrafts];
                 for (const row of rows) {
                     const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
-                    const refQty = Number(String(row.ref_qty || row.source_qty || row.faktur_qty || row.po_qty || row.fqty_asal || 0).replace(/[^0-9.-]+/g, "")) || 0;
+                    const refQty = Number(String(row.ref_qty || row.source_qty || row.faktur_qty || row.po_qty || row.fqty_asal || row.maxqty || 0).replace(/[^0-9.-]+/g, "")) || 0;
                     if (refQty > 0 && inputQty > refQty) {
-                        Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                        const refDoc = String(row?.frefdtno || row?.frefpr || row?.fpono || '').trim();
+                        const refLabel = refDoc.startsWith('RUB') ? 'RUB' : (refDoc.startsWith('UMB') ? 'UMB' : 'Referensi/Faktur');
+                        Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: `Qty tidak boleh melebihi Qty ${refLabel} (${refQty})` });
                         return false;
                     }
                 }
@@ -2072,11 +2087,14 @@
             selectHistory(row) {
                 if (this.historyTargetRow && row) {
                     this.historyTargetRow.frefdtno = row.fstockmtno || row.fsono || '';
-                    this.historyTargetRow.ref_qty = Number(row.ref_qty ?? row.source_qty ?? row.faktur_qty ?? row.fqty ?? 0) || 0;
-                    this.historyTargetRow.source_qty = this.historyTargetRow.ref_qty;
-                    this.historyTargetRow.faktur_qty = this.historyTargetRow.ref_qty;
+                    const refQtyVal = Number(row.fqtyremain ?? row.maxqty ?? row.ref_qty ?? row.source_qty ?? row.faktur_qty ?? row.qty_asal ?? row.fqty ?? 0);
+                    this.historyTargetRow.ref_qty = refQtyVal;
+                    this.historyTargetRow.maxqty = refQtyVal;
+                    this.historyTargetRow.source_qty = refQtyVal;
+                    this.historyTargetRow.faktur_qty = refQtyVal;
+                    this.historyTargetRow.qty_asal = Number(row.qty_asal ?? refQtyVal);
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
-                        this.historyTargetRow.fqty = +row.fqty;
+                        this.historyTargetRow.fqty = Math.min(+row.fqty, refQtyVal > 0 ? refQtyVal : +row.fqty);
                     }
                     const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                     if (priceVal !== null && priceVal >= 0) {

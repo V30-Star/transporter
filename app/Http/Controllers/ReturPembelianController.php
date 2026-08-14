@@ -629,9 +629,70 @@ class ReturPembelianController extends Controller
                     if ($inputPrice - $maxAllowed > 0.0001) {
                         $formattedInput = number_format($inputPrice, 2, ',', '.');
                         $formattedMax = number_format($maxAllowed, 2, ',', '.');
-                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refno} (Rp {$formattedMax}).";
+                        $refType = str_starts_with(strtoupper($refno), 'RUB') ? 'RUB' : 'UMB';
+                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refType} {$refno} (Rp {$formattedMax}).";
                     }
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private function validateAdvancePaymentQtyAgainstReference(array $rowsDt, string $supplierCode, ?string $exceptStockmtno = null): ?string
+    {
+        $supplierCode = trim($supplierCode);
+        $usageByRef = [];
+
+        foreach ($rowsDt as $row) {
+            $code = trim((string) ($row['fprdcode'] ?? ''));
+            if (! $this->isAdvancePaymentProductCode($code)) {
+                continue;
+            }
+
+            $refno = trim((string) ($row['frefdtno'] ?? ''));
+            if ($refno === '') {
+                continue;
+            }
+
+            $inputQty = abs((float) ($row['fqty'] ?? 0));
+            $usageByRef[$refno] = ($usageByRef[$refno] ?? 0.0) + $inputQty;
+        }
+
+        foreach ($usageByRef as $refno => $totalInputQty) {
+            $refDetail = DB::table('trstockdt')
+                ->whereRaw('TRIM(fstockmtno) = ?', [$refno])
+                ->where('fprdcode', 'UM')
+                ->first();
+
+            $maxQty = null;
+            if ($refDetail) {
+                $maxQty = (float) ($refDetail->fqtyremain ?? $refDetail->fqty ?? 0);
+            } else {
+                $dp = DB::table('trsisadp_pembelian')
+                    ->whereRaw('TRIM(fstockmtno) = ?', [$refno])
+                    ->first();
+                if ($dp) {
+                    $maxQty = 1.0;
+                }
+            }
+
+            if (! empty($exceptStockmtno)) {
+                $existingUsage = (float) DB::table('trstockdt')
+                    ->where('fstockmtno', $exceptStockmtno)
+                    ->where('fprdcode', 'UM')
+                    ->whereRaw('TRIM(frefdtno) = ?', [$refno])
+                    ->sum('fqty');
+                if ($maxQty !== null) {
+                    $maxQty += $existingUsage;
+                }
+            }
+
+            if ($maxQty !== null && $maxQty > 0 && ($totalInputQty - $maxQty > 0.00001)) {
+                $formattedInput = number_format($totalInputQty, 2, ',', '.');
+                $formattedMax = number_format($maxQty, 2, ',', '.');
+                $refType = str_starts_with(strtoupper($refno), 'RUB') ? 'RUB' : 'UMB';
+                return "Qty Uang Muka ({$formattedInput}) tidak boleh melebihi sisa qty pada referensi {$refType} {$refno} (Maksimal {$formattedMax}).";
             }
         }
 
@@ -651,33 +712,53 @@ class ReturPembelianController extends Controller
         }
 
         if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
-            $rows = DB::table('trsisadp_pembelian')
-                ->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode])
-                ->where(function ($q) {
-                    $q->where('fsisadp', '>', 0)
-                      ->orWhere('fsisadp_rp', '>', 0);
+            $rows = DB::table('trsisadp_pembelian as s')
+                ->leftJoin('trstockdt as d', function ($j) {
+                    $j->on('d.fstockmtno', '=', 's.fstockmtno')
+                      ->where('d.fprdcode', '=', 'UM');
                 })
-                ->orderByDesc('fstockmtdate')
-                ->orderByDesc('fstockmtno')
+                ->whereRaw('TRIM(COALESCE(s.fsupplier, \'\')) = ?', [$supplierCode])
+                ->where(function ($q) {
+                    $q->where('s.fsisadp', '>', 0)
+                      ->orWhere('s.fsisadp_rp', '>', 0);
+                })
+                ->orderByDesc('s.fstockmtdate')
+                ->orderByDesc('s.fstockmtno')
+                ->select(
+                    's.*',
+                    'd.fstockdtid as detail_id',
+                    DB::raw('COALESCE(d.fqty, 1) as ref_qty'),
+                    DB::raw('COALESCE(d.fqtyremain, d.fqty, 1) as remain_qty'),
+                    DB::raw("COALESCE(d.fsatuan, 'PCS') as ref_satuan"),
+                    DB::raw("COALESCE(d.fnoacak::text, '') as ref_noacak")
+                )
                 ->get();
 
             return response()->json([
-                'data' => $rows->map(fn ($row) => [
-                    'fstockmtno' => (string) ($row->fstockmtno ?? ''),
-                    'fstockmtdate' => ! empty($row->fstockmtdate)
-                        ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
-                        : '-',
-                    'fqty' => 1,
-                    'ref_qty' => 1,
-                    'source_qty' => 1,
-                    'faktur_qty' => 1,
-                    'fsatuan' => 'PCS',
-                    'fprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
-                    'ftotprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
-                    'famount' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
-                    'fsisadp' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? 0),
-                    'fsuppliername' => (string) ($row->fsuppliername ?? ''),
-                ])->values(),
+                'data' => $rows->map(function ($row) {
+                    $docQty = (float) ($row->remain_qty ?? $row->ref_qty ?? 1);
+                    return [
+                        'fstockmtno' => (string) ($row->fstockmtno ?? ''),
+                        'fstockmtdate' => ! empty($row->fstockmtdate)
+                            ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+                            : '-',
+                        'fqty' => $docQty,
+                        'ref_qty' => $docQty,
+                        'source_qty' => $docQty,
+                        'faktur_qty' => $docQty,
+                        'qty_faktur' => $docQty,
+                        'qty_asal' => (float) ($row->ref_qty ?? 1),
+                        'fqtyremain' => $docQty,
+                        'maxqty' => $docQty,
+                        'fsatuan' => (string) ($row->ref_satuan ?? 'PCS'),
+                        'fprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                        'ftotprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                        'famount' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                        'fsisadp' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? 0),
+                        'fsuppliername' => (string) ($row->fsuppliername ?? ''),
+                        'fdesc' => '',
+                    ];
+                })->values(),
             ]);
         }
 
@@ -1065,6 +1146,10 @@ class ReturPembelianController extends Controller
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
+            if ($validationMessage = $this->validateAdvancePaymentQtyAgainstReference($rowsDt, (string) $fsupplier)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
             if ($stockResponse = $this->validateStockMinusLines(
                 $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom),
                 $request->boolean('force_save')
@@ -1301,6 +1386,24 @@ class ReturPembelianController extends Controller
 
         // 4. Map the data for savedItems
         $savedItems = $returpembelian->details->map(function ($d) {
+            $itemCode = trim($d->fitemcode_text ?? '');
+            $refDtNo = trim($d->frefdtno ?? '');
+            $refQty = null;
+            $refPrice = (float) ($d->fprice ?? 0);
+            if (str_starts_with(strtoupper($itemCode), 'UM') && $refDtNo !== '') {
+                $refDetail = DB::table('trstockdt')->whereRaw('TRIM(fstockmtno) = ?', [$refDtNo])->where('fprdcode', 'UM')->first();
+                if ($refDetail) {
+                    $refQty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($refDetail->fqtyremain ?? 0));
+                    $refPrice = (float) ($refDetail->fprice ?? $refPrice);
+                } else {
+                    $dp = DB::table('trsisadp_pembelian')->whereRaw('TRIM(fstockmtno) = ?', [$refDtNo])->first();
+                    if ($dp) {
+                        $refQty = max(0.0, (float) ($d->fqty ?? 0) + 1.0);
+                        $refPrice = (float) ($dp->fsisadp ?? $dp->fsisadp_rp ?? $dp->famountmt ?? $refPrice);
+                    }
+                }
+            }
+
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1314,7 +1417,13 @@ class ReturPembelianController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
+                'ref_qty' => $refQty,
+                'maxqty' => $refQty,
+                'qty_asal' => $refQty,
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice,
+                'maxprice' => $refPrice,
+                'source_price' => $refPrice,
                 'fdiscpersen' => (float) ($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
@@ -1709,6 +1818,10 @@ class ReturPembelianController extends Controller
             }
 
             if ($validationMessage = $this->validateAdvancePaymentPriceAgainstReference($rowsDt, (string) $fsupplier)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
+            if ($validationMessage = $this->validateAdvancePaymentQtyAgainstReference($rowsDt, (string) $fsupplier, (string) $header->fstockmtno)) {
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
