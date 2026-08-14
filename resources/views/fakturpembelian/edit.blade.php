@@ -2620,14 +2620,18 @@
                 async onCodeTypedRow(row, index = null, inputValue = null) {
                     const typedCode = (inputValue ?? row.fitemcode ?? '').toString().trim().toUpperCase();
 
+                    if (!typedCode) {
+                        this.clearRow(row);
+                        this.onRowUpdated(index);
+                        return;
+                    }
+
                     if (typedCode !== '' && !this.requireSupplierBeforeManualProduct()) {
-                        row.fitemcode = '';
-                        this.hydrateRowFromMeta(row, null);
+                        this.clearRow(row);
                         return;
                     }
                     if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM')) {
-                        row.fitemcode = '';
-                        this.hydrateRowFromMeta(row, null);
+                        this.clearRow(row);
                         const message = "Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.";
                         if (typeof window.showAppWarningAlert === 'function') {
                             window.showAppWarningAlert('Informasi', message);
@@ -2637,8 +2641,7 @@
                         return;
                     }
                     if (!this.isUangMuka() && typedCode !== '' && typedCode.startsWith('UM')) {
-                        row.fitemcode = '';
-                        this.hydrateRowFromMeta(row, null);
+                        this.clearRow(row);
                         const message = "Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.";
                         if (typeof window.showAppWarningAlert === 'function') {
                             window.showAppWarningAlert('Informasi', message);
@@ -2658,8 +2661,7 @@
                         const prodType = (meta.ftype || '').toString().trim().toLowerCase();
                         if (String(this.selectedType) === '1') {
                             if (prodType !== 'jasa') {
-                                row.fitemcode = '';
-                                this.hydrateRowFromMeta(row, null);
+                                this.clearRow(row);
                                 const message = "Tipe Pembelian: Non Stok.\nHanya boleh memilih produk dengan tipe Jasa !!!";
                                 if (typeof window.showAppWarningAlert === 'function') {
                                     window.showAppWarningAlert('Informasi', message);
@@ -2670,8 +2672,7 @@
                             }
                         } else {
                             if (prodType === 'jasa') {
-                                row.fitemcode = '';
-                                this.hydrateRowFromMeta(row, null);
+                                this.clearRow(row);
                                 const typeName = String(this.selectedType) === '2' ? 'Uang Muka' : (String(this.selectedType) === '3' ? 'Lain-lain' : 'Stok');
                                 const message = `Tipe Pembelian: ${typeName}.\nProduk dengan tipe Jasa tidak boleh dipilih untuk tipe ini !!!`;
                                 if (typeof window.showAppWarningAlert === 'function') {
@@ -2908,6 +2909,12 @@
                         fketdt: (source.fketdt ?? '').toString(),
                         frefnoacak: this.normalizeRefNoAcak(source.frefnoacak),
                     };
+                },
+
+                clearRow(row) {
+                    if (!row) return;
+                    Object.assign(row, newRow(), { uid: row.uid });
+                    this.recalc(row);
                 },
 
                 parseQty(val) {
@@ -3197,13 +3204,11 @@
                 onTypeBuyChange() {
                     if (this.isUangMuka()) {
                         let hasInvalid = false;
-                        (this.savedItems || []).forEach((row, i) => {
+                        (this.savedItems || []).forEach((row) => {
                             const code = (row.fitemcode || '').toString().trim().toUpperCase();
                             if (code !== '' && !code.startsWith('UM')) {
                                 hasInvalid = true;
-                                row.fitemcode = '';
-                                this.hydrateRowFromMeta(row, null);
-                                this.recalc(row);
+                                this.clearRow(row);
                             }
                         });
                         if (hasInvalid) {
@@ -3216,13 +3221,11 @@
                         }
                     } else {
                         let hasInvalid = false;
-                        (this.savedItems || []).forEach((row, i) => {
+                        (this.savedItems || []).forEach((row) => {
                             const code = (row.fitemcode || '').toString().trim().toUpperCase();
                             if (code !== '' && code.startsWith('UM')) {
                                 hasInvalid = true;
-                                row.fitemcode = '';
-                                this.hydrateRowFromMeta(row, null);
-                                this.recalc(row);
+                                this.clearRow(row);
                             }
                         });
                         if (hasInvalid) {
