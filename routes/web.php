@@ -60,6 +60,7 @@ use App\Http\Controllers\ReportingPelunasanCustomerController;
 use App\Http\Controllers\ReportingPelunasanSupplierController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
+use App\Http\Controllers\ReportingPenjualanDpController;
 use App\Http\Controllers\ReportingPrController;
 use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\ReportingRekapPenjualanController;
@@ -699,6 +700,9 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/reportingrekappenjualansalescustomer', [ReportingRekapPenjualanSalesCustomerController::class, 'index'])->name('reportingrekappenjualansalescustomer.index');
         Route::get('/reportingrekappenjualansalescustomer/print', [ReportingRekapPenjualanSalesCustomerController::class, 'print'])->name('reportingrekappenjualansalescustomer.print');
         Route::get('/reportingrekappenjualansalescustomer/excel', [ReportingRekapPenjualanSalesCustomerController::class, 'exportExcel'])->name('reportingrekappenjualansalescustomer.excel');
+        Route::get('/reportingpenjualandp', [ReportingPenjualanDpController::class, 'index'])->name('reportingpenjualandp.index');
+        Route::get('/reportingpenjualandp/print', [ReportingPenjualanDpController::class, 'print'])->name('reportingpenjualandp.print');
+        Route::get('/reportingpenjualandp/excel', [ReportingPenjualanDpController::class, 'exportExcel'])->name('reportingpenjualandp.excel');
 
         Route::get('/analisaumurpiutang', [AnalisaUmurPiutangController::class, 'index'])->name('analisaumurpiutang.index');
         Route::get('/analisaumurpiutang/print', [AnalisaUmurPiutangController::class, 'print'])->name('analisaumurpiutang.print');

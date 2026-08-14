@@ -800,6 +800,13 @@
                                 <span class="ml-3">{{ 'Rekap Penjualan Sales By Customer' }}</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('reportingpenjualandp.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Laporan Penjualan DP' }}</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('printAnalisaUmurPiutang'))
