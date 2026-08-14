@@ -1721,7 +1721,7 @@
             async fetchProductPriceHistory(row) {
                 const supplierCode = (document.getElementById('supplierCodeHidden')?.value || '').trim();
                 const productCode = (row?.fitemcode || '').toString().trim();
-                if (!productCode) return;
+                if (!productCode || this.isUMCode(productCode)) return;
                 if (row.frefpr || row.frefdtno) return;
 
                 try {
@@ -1869,14 +1869,14 @@
                     };
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
-                        await this.fetchProductPriceHistory(this.editRow);
+                        if (!isUMProduct) await this.fetchProductPriceHistory(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
                     } else if (typeof this.browseTarget === 'number') {
                         // draft row by index
                         const dr = this.draftRows[this.browseTarget];
                         if (dr) {
                             apply(dr);
-                            await this.fetchProductPriceHistory(dr);
+                            if (!isUMProduct) await this.fetchProductPriceHistory(dr);
                             // Force Alpine reactivity
                             this.draftRows.splice(this.browseTarget, 1, { ...dr });
                             this.$nextTick(() => document.getElementById('draft-qty-' + this.browseTarget)?.focus());

@@ -2039,6 +2039,34 @@
                 } finally {
                     this.historyLoading = false;
                 }
+            async fetchProductPriceHistory(row) {
+                const supplierCode = (document.getElementById('supplierCodeHidden')?.value || '').trim();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                if (!productCode || this.isUMCode(productCode)) return;
+                if (row.frefpr || row.frefdtno) return;
+
+                try {
+                    const params = new URLSearchParams({
+                        fsupplier: supplierCode,
+                        fprdcode: productCode,
+                        fsatuan: (row.fsatuan || '').toString().trim(),
+                    });
+                    const res = await fetch(`{{ route('returpembelian.product-price') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!res.ok) return;
+                    const json = await res.json();
+                    if (json.source === 'history' || json.price > 0) {
+                        row.fprice = Number(json.price ?? 0);
+                        row.fpriceInput = this.fmt(row.fprice);
+                        if (json.discount !== undefined && json.discount !== null && json.discount !== '') {
+                            row.fdisc = json.discount;
+                        }
+                        this.recalc(row);
+                    }
+                } catch (e) {
+                    console.error('Error fetching purchase product price history:', e);
+                }
             },
 
             selectHistory(row) {
@@ -2150,13 +2178,13 @@
                     };
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
-                        await this.fetchProductPriceHistory(this.editRow);
+                        if (!isUMProduct) await this.fetchProductPriceHistory(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
                     } else if (typeof this.browseTarget === 'number') {
                         const dr = this.draftRows[this.browseTarget];
                         if (dr) {
                             apply(dr);
-                            await this.fetchProductPriceHistory(dr);
+                            if (!isUMProduct) await this.fetchProductPriceHistory(dr);
                             this.draftRows.splice(this.browseTarget, 1, {
                                 ...dr
                             });
