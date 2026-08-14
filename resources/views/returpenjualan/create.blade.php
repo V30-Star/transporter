@@ -2047,13 +2047,27 @@
                 this.syncTransactionType();
                 const isUM = this.ftypesales !== 0;
                 if (isUM) {
-                    const invalidItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() !== '' && (r.fitemcode || '').toString().trim().toUpperCase() !== 'UM');
-                    if (invalidItems.length > 0) {
+                    let hasInvalid = false;
+                    (this.savedItems || []).forEach((row) => {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        if (code !== '' && !code.startsWith('UM')) {
+                            hasInvalid = true;
+                            this.clearRow(row);
+                        }
+                    });
+                    if (hasInvalid) {
                         window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                     }
                 } else {
-                    const umItems = this.savedItems.filter(r => (r.fitemcode || '').toString().trim().toUpperCase() === 'UM');
-                    if (umItems.length > 0) {
+                    let hasInvalid = false;
+                    (this.savedItems || []).forEach((row) => {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        if (code !== '' && code.startsWith('UM')) {
+                            hasInvalid = true;
+                            this.clearRow(row);
+                        }
+                    });
+                    if (hasInvalid) {
                         window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).');
                     }
                 }
@@ -2578,7 +2592,25 @@
             },
 
             onCodeTypedRow(row, index = null) {
-                row.fitemcode = String(row.fitemcode ?? '').trim();
+                const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (!typedCode) {
+                    this.clearRow(row);
+                    this.onRowUpdated(index);
+                    return;
+                }
+                this.syncTransactionType();
+                const isUM = this.ftypesales !== 0;
+                if (isUM && typedCode !== '' && !typedCode.startsWith('UM')) {
+                    this.clearRow(row);
+                    window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
+                    return;
+                }
+                if (!isUM && typedCode !== '' && typedCode.startsWith('UM')) {
+                    this.clearRow(row);
+                    window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).');
+                    return;
+                }
+                row.fitemcode = typedCode;
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 if (!this.normalizeNoAcak(row.fnoacak)) {
                     row.fnoacak = this.generateUniqueNoAcak();
@@ -2743,12 +2775,12 @@
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
                     this.enforceQtyRow(row);
-                    if ((row.fitemcode || '').toString().trim().toUpperCase() === 'UM' && this.ftypesales === 0) {
-                        this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
-                        row.fitemcode = '';
-                        row.fitemname = '';
-                        row.fsatuan = '';
-                        row.units = [];
+                    const isUM = this.ftypesales !== 0;
+                    const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                    if (isUM && code !== '' && !code.startsWith('UM')) {
+                        this.clearRow(row);
+                    } else if (!isUM && code.startsWith('UM')) {
+                        this.clearRow(row);
                     }
 
                     if (Number(row.fprice) < 0) {
@@ -2972,6 +3004,12 @@
                 };
             },
 
+            clearRow(row) {
+                if (!row) return;
+                Object.assign(row, newRow(), { uid: row.uid, formIndex: row.formIndex });
+                this.recalc(row);
+            },
+
             allocateFormIndex() {
                 const index = Number(this.nextFormIndex || 0);
                 this.nextFormIndex = index + 1;
@@ -3030,6 +3068,7 @@
                     });
                     if (!res.ok) return;
                     const json = await res.json();
+                    if ((row?.fitemcode || '').toString().trim() !== productCode) return;
                     if (json.source === 'history' || json.price > 0) {
                         row.fprice = Number(json.price ?? 0);
                         row.fpriceInput = this.fmt(row.fprice);
@@ -3096,15 +3135,15 @@
 
                     // ── UM / Type guard ─────────────────────────────────────
                     const chosenCode  = (product.fprdcode || '').toString().trim().toUpperCase();
-                    const isUMProduct = chosenCode === 'UM';
+                    const isUMProduct = chosenCode.startsWith('UM');
                     const isUMType    = this.ftypesales !== 0;
 
                     if (isUMProduct && !isUMType) {
-                        this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                        window.showAppWarningAlert('WARNING', 'Tipe Penjualan tidak boleh menginput Uang Muka (UM).');
                         return;
                     }
                     if (!isUMProduct && chosenCode !== '' && isUMType) {
-                        this.showToast('Tipe Uang Muka hanya boleh menginput produk UM!', 'error');
+                        window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                         return;
                     }
                     // ────────────────────────────────────────────────────────
