@@ -1101,6 +1101,75 @@ class FakturpembelianController extends Controller
         return $errors;
     }
 
+    private function validateSourcePriceForRows(array $codes, array $prices, array $sources, array $refdtids, array $refdtnos = []): \Illuminate\Support\MessageBag
+    {
+        $errors = new \Illuminate\Support\MessageBag;
+        $tolerance = 0.01;
+
+        $poIds = [];
+        $pbIds = [];
+        $poRefKeys = [];
+        $pbRefKeys = [];
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = strtoupper(trim((string) ($codeRaw ?? '')));
+            if ($code === '') {
+                continue;
+            }
+
+            $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+            $detailId = (int) ($refdtids[$i] ?? 0);
+            $refNo = trim((string) ($refdtnos[$i] ?? ''));
+
+            if ($sourceType === 'PO') {
+                if ($detailId > 0) $poIds[] = $detailId;
+                if ($refNo !== '') $poRefKeys[] = $refNo;
+            } elseif ($sourceType === 'PB') {
+                if ($detailId > 0) $pbIds[] = $detailId;
+                if ($refNo !== '') $pbRefKeys[] = $refNo;
+            }
+        }
+
+        $poById = empty($poIds) ? [] : DB::table('tr_pod')->whereIn('fpodid', $poIds)->pluck('fprice', 'fpodid')->map(fn($v) => (float) $v)->all();
+        $pbById = empty($pbIds) ? [] : DB::table('trstockdt')->whereIn('fstockdtid', $pbIds)->pluck('fprice', 'fstockdtid')->map(fn($v) => (float) $v)->all();
+
+        $poByDocPrd = empty($poRefKeys) ? [] : DB::table('tr_pod')->whereIn('fpono', $poRefKeys)->get(['fpono', 'fprdcode', 'fprice'])
+            ->mapWithKeys(fn($r) => [trim($r->fpono) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
+        $pbByDocPrd = empty($pbRefKeys) ? [] : DB::table('trstockdt')->whereIn('fstockmtno', $pbRefKeys)->where('fstockmtcode', 'TER')->get(['fstockmtno', 'fprdcode', 'fprice'])
+            ->mapWithKeys(fn($r) => [trim($r->fstockmtno) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = strtoupper(trim((string) ($codeRaw ?? '')));
+            if ($code === '') {
+                continue;
+            }
+
+            $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+            $detailId = (int) ($refdtids[$i] ?? 0);
+            $refNo = trim((string) ($refdtnos[$i] ?? ''));
+            $inputPrice = (float) ($prices[$i] ?? 0);
+
+            if (! in_array($sourceType, ['PO', 'PB'], true)) {
+                continue;
+            }
+
+            $docKey = $refNo . ':' . $code;
+            $maxPrice = null;
+            if ($sourceType === 'PO') {
+                $maxPrice = $poById[$detailId] ?? ($poByDocPrd[$docKey] ?? null);
+            } elseif ($sourceType === 'PB') {
+                $maxPrice = $pbById[$detailId] ?? ($pbByDocPrd[$docKey] ?? null);
+            }
+
+            if ($maxPrice !== null && $maxPrice > 0 && $inputPrice > $maxPrice + $tolerance) {
+                $formattedMax = number_format($maxPrice, 2, '.', ',');
+                $errors->add("fprice.$i", "Harga item {$code} melebihi harga referensi {$sourceType}. Maksimal {$formattedMax}.");
+            }
+        }
+
+        return $errors;
+    }
+
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null, bool $hasPpn = true): string
     {
         $date = $onDate ?: now();
@@ -1291,6 +1360,84 @@ class FakturpembelianController extends Controller
                 'price' => $history ? 'history' : 'default',
                 'discount' => $history ? 'history' : 'default',
             ],
+        ]);
+    }
+
+    public function productHistory(Request $request)
+    {
+        $supplierCode = trim((string) $request->input('fsupplier', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+
+        if ($supplierCode === '') {
+            return response()->json([
+                'message' => 'Supplier wajib dipilih terlebih dahulu.',
+                'data' => [],
+            ], 422);
+        }
+
+        if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
+            $rows = DB::table('trsisadp_pembelian')
+                ->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode])
+                ->where(function ($q) {
+                    $q->where('fsisadp', '>', 0)
+                      ->orWhere('fsisadp_rp', '>', 0);
+                })
+                ->orderByDesc('fstockmtdate')
+                ->orderByDesc('fstockmtno')
+                ->get();
+
+            return response()->json([
+                'data' => $rows->map(fn ($row) => [
+                    'fstockmtno' => (string) ($row->fstockmtno ?? ''),
+                    'fstockmtdate' => ! empty($row->fstockmtdate)
+                        ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+                        : '-',
+                    'fqty' => 1,
+                    'ref_qty' => 1,
+                    'source_qty' => 1,
+                    'faktur_qty' => 1,
+                    'fsatuan' => 'PCS',
+                    'fprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'ftotprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'famount' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'fsisadp' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? 0),
+                    'fsuppliername' => (string) ($row->fsuppliername ?? ''),
+                ])->values(),
+            ]);
+        }
+
+        $rows = DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->where('m.fstockmtcode', 'BUY')
+            ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->orderByDesc('m.fstockmtdate')
+            ->orderByDesc('m.fstockmtno')
+            ->get([
+                'm.fstockmtno',
+                'm.fstockmtdate',
+                'd.fqty',
+                DB::raw('COALESCE(d.fqty, 0) as faktur_qty'),
+                DB::raw('COALESCE(d.fqty, 0) as source_qty'),
+                'd.fsatuan',
+                'd.fprice',
+                'd.ftotprice',
+            ]);
+
+        return response()->json([
+            'data' => $rows->map(fn ($row) => [
+                'fstockmtno' => (string) ($row->fstockmtno ?? ''),
+                'fstockmtdate' => ! empty($row->fstockmtdate)
+                    ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+                    : '-',
+                'fqty' => (float) ($row->fqty ?? 0),
+                'ref_qty' => (float) ($row->source_qty ?? $row->fqty ?? 0),
+                'source_qty' => (float) ($row->source_qty ?? $row->fqty ?? 0),
+                'faktur_qty' => (float) ($row->faktur_qty ?? $row->fqty ?? 0),
+                'fsatuan' => (string) ($row->fsatuan ?? ''),
+                'fprice' => (float) ($row->fprice ?? 0),
+                'ftotprice' => (float) ($row->ftotprice ?? 0),
+            ])->values(),
         ]);
     }
 
@@ -1551,8 +1698,10 @@ class FakturpembelianController extends Controller
 
             $sourceValidationCodes = [];
             $sourceValidationQtys = [];
+            $sourceValidationPrices = [];
             $sourceValidationSources = [];
             $sourceValidationRefdtids = [];
+            $sourceValidationRefdtnos = [];
             $sourceValidationSatuans = [];
 
             foreach ($codes as $i => $code) {
@@ -1562,8 +1711,10 @@ class FakturpembelianController extends Controller
 
                 $sourceValidationCodes[] = $code;
                 $sourceValidationQtys[] = $qtys[$i] ?? null;
+                $sourceValidationPrices[] = $prices[$i] ?? null;
                 $sourceValidationSources[] = $sources[$i] ?? null;
                 $sourceValidationRefdtids[] = $refdtids[$i] ?? null;
+                $sourceValidationRefdtnos[] = $refdtnos[$i] ?? null;
                 $sourceValidationSatuans[] = $satuans[$i] ?? null;
             }
 
@@ -1575,6 +1726,15 @@ class FakturpembelianController extends Controller
                 $sourceValidationSatuans,
                 $extraAvailableBySourceRef
             );
+
+            $priceErrors = $this->validateSourcePriceForRows(
+                $sourceValidationCodes,
+                $sourceValidationPrices,
+                $sourceValidationSources,
+                $sourceValidationRefdtids,
+                $sourceValidationRefdtnos
+            );
+            $errors->merge($priceErrors);
 
             if ($errors->isNotEmpty()) {
                 if ($request->expectsJson()) {
@@ -2140,7 +2300,31 @@ class FakturpembelianController extends Controller
         $currentAccountName = $currentAccountRecord?->faccname ?? '';
         [$poUnits, $pbUnits] = $this->getReferenceUnitMaps($fakturpembelian->details);
 
-        $savedItems = $fakturpembelian->details->map(function ($d) use ($poUnits, $pbUnits) {
+        $refDetailIds = $fakturpembelian->details->pluck('frefdtid')->filter(fn($id) => (int) $id > 0)->all();
+        $refDocNos = $fakturpembelian->details->map(fn($d) => trim((string) ($d->frefdtno ?: $d->frefso)))->filter()->unique()->all();
+
+        $poPrices = empty($refDetailIds) ? [] : DB::table('tr_pod')->whereIn('fpodid', $refDetailIds)->pluck('fprice', 'fpodid')->all();
+        $pbPrices = empty($refDetailIds) ? [] : DB::table('trstockdt')->whereIn('fstockdtid', $refDetailIds)->pluck('fprice', 'fstockdtid')->all();
+        $poQtys = empty($refDetailIds) ? [] : DB::table('tr_pod')->whereIn('fpodid', $refDetailIds)->pluck('fqtykecil', 'fpodid')->all();
+        $pbQtys = empty($refDetailIds) ? [] : DB::table('trstockdt')->whereIn('fstockdtid', $refDetailIds)->pluck('fqtykecil', 'fstockdtid')->all();
+
+        $poDocRows = empty($refDocNos) ? collect() : DB::table('tr_pod')->whereIn('fpono', $refDocNos)->get(['fpono', 'fprdcode', 'fprice', 'fqtykecil']);
+        $pbDocRows = empty($refDocNos) ? collect() : DB::table('trstockdt')->whereIn('fstockmtno', $refDocNos)->where('fstockmtcode', 'TER')->get(['fstockmtno', 'fprdcode', 'fprice', 'fqtykecil']);
+
+        $poPricesByDoc = $poDocRows->mapWithKeys(fn($r) => [trim($r->fpono) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
+        $poQtysByDoc = $poDocRows->mapWithKeys(fn($r) => [trim($r->fpono) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fqtykecil])->all();
+        $pbPricesByDoc = $pbDocRows->mapWithKeys(fn($r) => [trim($r->fstockmtno) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
+        $pbQtysByDoc = $pbDocRows->mapWithKeys(fn($r) => [trim($r->fstockmtno) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fqtykecil])->all();
+
+        $savedItems = $fakturpembelian->details->map(function ($d) use ($poUnits, $pbUnits, $poPrices, $pbPrices, $poQtys, $pbQtys, $poPricesByDoc, $poQtysByDoc, $pbPricesByDoc, $pbQtysByDoc) {
+            $detailId = (int) ($d->frefdtid ?? 0);
+            $docNo = trim((string) ($d->frefdtno ?: $d->frefso));
+            $docKey = $docNo . ':' . strtoupper(trim((string) ($d->fprdcode ?? '')));
+
+            $refPrice = $poPrices[$detailId] ?? ($pbPrices[$detailId] ?? ($poPricesByDoc[$docKey] ?? ($pbPricesByDoc[$docKey] ?? null)));
+            $refQty = $poQtys[$detailId] ?? ($pbQtys[$detailId] ?? ($poQtysByDoc[$docKey] ?? ($pbQtysByDoc[$docKey] ?? null)));
+            $sourceType = isset($poPrices[$detailId]) || isset($poPricesByDoc[$docKey]) ? 'PO' : ((isset($pbPrices[$detailId]) || isset($pbPricesByDoc[$docKey])) ? 'PB' : ($d->fsource ?? ''));
+
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -2153,10 +2337,17 @@ class FakturpembelianController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
+                'frefdtid' => $d->frefdtid ?? null,
+                'fsource' => $sourceType,
                 'frefnoacak' => $d->frefnoacak ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice !== null ? (float) $refPrice : 0,
+                'maxprice' => $refPrice !== null ? (float) $refPrice : 0,
+                'source_price' => $refPrice !== null ? (float) $refPrice : 0,
+                'ref_qty' => $refQty !== null ? (float) $refQty : (float) ($d->fqty ?? 0),
+                'maxqty' => $refQty !== null ? (float) $refQty : (float) ($d->fqty ?? 0),
                 'fdiscpersen' => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
@@ -2499,8 +2690,10 @@ class FakturpembelianController extends Controller
 
             $sourceValidationCodes = [];
             $sourceValidationQtys = [];
+            $sourceValidationPrices = [];
             $sourceValidationSources = [];
             $sourceValidationRefdtids = [];
+            $sourceValidationRefdtnos = [];
             $sourceValidationSatuans = [];
 
             foreach ($codes as $i => $code) {
@@ -2510,8 +2703,10 @@ class FakturpembelianController extends Controller
 
                 $sourceValidationCodes[] = $code;
                 $sourceValidationQtys[] = $qtys[$i] ?? null;
+                $sourceValidationPrices[] = $prices[$i] ?? null;
                 $sourceValidationSources[] = $sources[$i] ?? null;
                 $sourceValidationRefdtids[] = $refdtids[$i] ?? null;
+                $sourceValidationRefdtnos[] = $refdtnos[$i] ?? null;
                 $sourceValidationSatuans[] = $satuans[$i] ?? null;
             }
 
@@ -2523,6 +2718,15 @@ class FakturpembelianController extends Controller
                 $sourceValidationSatuans,
                 $oldUsageBySourceRef
             );
+
+            $priceErrors = $this->validateSourcePriceForRows(
+                $sourceValidationCodes,
+                $sourceValidationPrices,
+                $sourceValidationSources,
+                $sourceValidationRefdtids,
+                $sourceValidationRefdtnos
+            );
+            $errors->merge($priceErrors);
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();

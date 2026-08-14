@@ -500,11 +500,44 @@ class ReturPenjualanController extends Controller
         $customerCode = trim((string) $request->input('fcustno', ''));
         $productCode = trim((string) $request->input('fprdcode', ''));
 
-        if ($customerCode === '' || $productCode === '') {
+        if ($customerCode === '') {
             return response()->json([
-                'message' => 'Customer dan produk wajib dipilih terlebih dahulu.',
+                'message' => 'Customer wajib dipilih terlebih dahulu.',
                 'data' => [],
             ], 422);
+        }
+
+        if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
+            $rows = DB::table('trsisadp_penjualan')
+                ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
+                ->where('fsisadp', '>', 0)
+                ->orderByDesc('fsodate')
+                ->orderByDesc('fsono')
+                ->get();
+
+            return response()->json([
+                'data' => $rows->map(function ($row) {
+                    return [
+                        'fsono' => (string) ($row->fsono ?? ''),
+                        'fsodate' => ! empty($row->fsodate)
+                            ? Carbon::parse($row->fsodate)->format('d/m/Y')
+                            : '-',
+                        'fcustomername' => (string) ($row->fcustomername ?? ''),
+                        'fqty' => 1,
+                        'frefdtno' => (string) ($row->fsono ?? ''),
+                        'frefnoacak' => '',
+                        'faktur_qty' => 1,
+                        'qty_faktur' => 1,
+                        'qty_asal' => 1,
+                        'fsatuan' => 'PCS',
+                        'fprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'famount' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'ftotprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
+                        'fsisadp' => (float) ($row->fsisadp ?? 0),
+                        'fdesc' => '',
+                    ];
+                })->values(),
+            ]);
         }
 
         $rows = DB::table('trandt as d')

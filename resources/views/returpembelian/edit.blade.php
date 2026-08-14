@@ -879,22 +879,14 @@
 
                                                 {{-- No.Ref --}}
                                                 <td class="p-2">
-                                                    <template x-if="String(editRow.fitemcode || '').toUpperCase().trim().startsWith('UM')">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
-                                                            :value="editRow.frefdtno || ''"
-                                                            placeholder="Auto No Ref UM" disabled>
-                                                    </template>
-                                                    <template x-if="!String(editRow.fitemcode || '').toUpperCase().trim().startsWith('UM')">
-                                                        <div class="flex w-full max-w-full">
-                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="editRow.frefdtno || '-'"></div>
-                                                            <button type="button" @click="openProductHistory(editRow)"
-                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                                title="Riwayat produk">
-                                                                <x-heroicon-o-clock class="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </template>
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="editRow.frefdtno || '-'"></div>
+                                                        <button type="button" @click="openProductHistory(editRow)"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                            title="Riwayat produk / Uang Muka">
+                                                            <x-heroicon-o-clock class="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
 
                                                 {{-- Qty --}}

@@ -611,11 +611,42 @@ class ReturPembelianController extends Controller
         $supplierCode = trim((string) $request->input('fsupplier', ''));
         $productCode = trim((string) $request->input('fprdcode', ''));
 
-        if ($supplierCode === '' || $productCode === '') {
+        if ($supplierCode === '') {
             return response()->json([
-                'message' => 'Supplier dan produk wajib dipilih terlebih dahulu.',
+                'message' => 'Supplier wajib dipilih terlebih dahulu.',
                 'data' => [],
             ], 422);
+        }
+
+        if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
+            $rows = DB::table('trsisadp_pembelian')
+                ->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode])
+                ->where(function ($q) {
+                    $q->where('fsisadp', '>', 0)
+                      ->orWhere('fsisadp_rp', '>', 0);
+                })
+                ->orderByDesc('fstockmtdate')
+                ->orderByDesc('fstockmtno')
+                ->get();
+
+            return response()->json([
+                'data' => $rows->map(fn ($row) => [
+                    'fstockmtno' => (string) ($row->fstockmtno ?? ''),
+                    'fstockmtdate' => ! empty($row->fstockmtdate)
+                        ? Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+                        : '-',
+                    'fqty' => 1,
+                    'ref_qty' => 1,
+                    'source_qty' => 1,
+                    'faktur_qty' => 1,
+                    'fsatuan' => 'PCS',
+                    'fprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'ftotprice' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'famount' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? $row->famountmt ?? 0),
+                    'fsisadp' => (float) ($row->fsisadp ?? $row->fsisadp_rp ?? 0),
+                    'fsuppliername' => (string) ($row->fsuppliername ?? ''),
+                ])->values(),
+            ]);
         }
 
         $rows = DB::table('trstockmt as m')

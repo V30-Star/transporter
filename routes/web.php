@@ -360,6 +360,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::post('/fakturpembelian', [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
         Route::get('/fakturpembelian/price-info', [FakturpembelianController::class, 'priceInfo'])->name('fakturpembelian.price-info');
+        Route::get('/fakturpembelian/product-history', [FakturpembelianController::class, 'productHistory'])->name('fakturpembelian.product-history');
         Route::get('/fakturpembelian/{fstockmtid}/view', [FakturpembelianController::class, 'view'])->where('fstockmtid', '.*')->name('fakturpembelian.view');
         Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->where('fstockmtid', '.*')->name('fakturpembelian.edit');
         Route::get('/fakturpembelian/{fstockmtid}/delete', [FakturpembelianController::class, 'delete'])->where('fstockmtid', '.*')->name('fakturpembelian.delete');

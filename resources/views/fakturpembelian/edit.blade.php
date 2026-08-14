@@ -1096,8 +1096,8 @@
                                                         <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
                                                             x-model.number="it.fqty" :id="'qty_saved_' + i" :min="@json(stock_boleh_minus()) ? null : 0" step="any"
                                                             @focus="activeRow = it.uid; $event.target.select()"
-                                                            @blur="activeRow = null; enforceQtyRow(it);" @input="onRowUpdated(i)"
-                                                            @change="onRowUpdated(i)"
+                                                            @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it); onRowUpdated(i)"
+                                                            @change="enforceQtyRow(it); onRowUpdated(i)"
                                                             @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
                                                         <div class="text-[10px] text-slate-400 text-right mt-0.5"
                                                             x-show="it.fsource === 'PO' || it.fsource === 'PB'"
@@ -1117,7 +1117,7 @@
                                                             x-model="it.fpriceInput" :id="'price_saved_' + i"
                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                             @blur="activeRow = null; blurPriceInput(it)" @input="onPriceInput(it)"
-                                                            @change="recalc(it)"
+                                                            @change="blurPriceInput(it)"
                                                             @keydown.enter.prevent="$refs['biaya_saved_' + i]?.focus()">
                                                     </td>
 
@@ -2002,16 +2002,30 @@
                     }
                 },
 
-                sanitizePriceValue(value) {
-                    let str = (value ?? '').toString().trim();
-                    if (str === '') return '';
-                    if (str.includes(',')) {
-                        str = str.replace(/\./g, '').replace(',', '.');
+                parseMoney(val) {
+                    if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+                    let str = String(val ?? '').trim();
+                    if (!str) return 0;
+                    if (str.includes('.') && str.includes(',')) {
+                        if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+                            str = str.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            str = str.replace(/,/g, '');
+                        }
+                    } else if (str.includes(',')) {
+                        str = str.replace(',', '.');
+                    } else if (str.includes('.')) {
+                        const parts = str.split('.');
+                        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                            str = parts.join('');
+                        }
                     }
-                    const raw = str.replace(/[^0-9.]/g, '');
-                    const parts = raw.split('.');
-                    if (parts.length <= 1) return raw;
-                    return `${parts.shift()}.${parts.join('')}`;
+                    const num = Number(str.replace(/[^0-9.-]+/g, ''));
+                    return Number.isFinite(num) ? num : 0;
+                },
+
+                sanitizePriceValue(value) {
+                    return this.parseMoney(value);
                 },
 
                 focusPriceInput(row) {
@@ -2020,15 +2034,42 @@
                 },
 
                 onPriceInput(row) {
-                    row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                    row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                    const parsed = this.parseMoney(row.fpriceInput);
+                    const refPrice = Number(row.ref_price || row.maxprice || row.source_price || 0);
+                    if (refPrice > 0 && parsed > refPrice) {
+                        row.fprice = refPrice;
+                        row.fpriceInput = this.fmt(refPrice);
+                        const message = `Harga tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        }
+                    } else {
+                        row.fprice = parsed;
+                    }
                     this.recalc(row);
+                    this.recalcTotals();
                 },
 
                 blurPriceInput(row) {
-                    row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
-                    row.fpriceInput = this.fmt(row.fprice);
+                    const parsed = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
+                    const refPrice = Number(row.ref_price || row.maxprice || row.source_price || 0);
+                    if (refPrice > 0 && parsed > refPrice) {
+                        row.fprice = refPrice;
+                        row.fpriceInput = this.fmt(refPrice);
+                        const message = `Harga tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        }
+                    } else {
+                        row.fprice = parsed;
+                        row.fpriceInput = this.fmt(row.fprice);
+                    }
                     this.recalc(row);
+                    this.recalcTotals();
                 },
 
                 parseDiscount(value) {
@@ -2147,7 +2188,7 @@
 
                     try {
                         const params = new URLSearchParams({ fsupplier: supplierCode, fprdcode: productCode });
-                        const response = await fetch(`{{ route('returpembelian.product-history') }}?${params.toString()}`, {
+                        const response = await fetch(`{{ route('fakturpembelian.product-history') }}?${params.toString()}`, {
                             headers: { Accept: 'application/json' }
                         });
                         const payload = await response.json();
@@ -2166,10 +2207,15 @@
                         this.historyTargetRow.frefdtno = row.fstockmtno || row.fsono || '';
                         if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
                             this.historyTargetRow.fqty = +row.fqty;
+                            this.historyTargetRow.ref_qty = +row.fqty;
+                            this.historyTargetRow.maxqty = +row.fqty;
                         }
                         const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                         if (priceVal !== null && priceVal >= 0) {
                             this.historyTargetRow.fprice = priceVal;
+                            this.historyTargetRow.ref_price = priceVal;
+                            this.historyTargetRow.maxprice = priceVal;
+                            this.historyTargetRow.source_price = priceVal;
                             if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
                                 this.historyTargetRow.fpriceInput = this.fmt(priceVal);
                             }
@@ -2352,40 +2398,25 @@
                 enforceQtyRow(row) {
                     if (row?.lockQty) return;
                     const n = +row.fqty;
-                    const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
-                    const isSourceRow = ['PO', 'PB'].includes(sourceType);
-                    if (isSourceRow) {
-                        if (!Number.isFinite(n)) {
-                            row.fqty = 0;
-                            return;
-                        }
-                            if (!@json(stock_boleh_minus()) && n < 0) row.fqty = 0;
-                        return;
-                    }
-                    const meta = this.productMeta(row.fitemcode);
-                    const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-                    const satuan = row.fsatuan || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    }
-
-                    if (!Number.isFinite(n)) {
+                    if (!Number.isFinite(n) || n < 0) {
                         row.fqty = 0;
+                        this.recalc(row);
+                        this.recalcTotals();
                         return;
                     }
-                    if (!@json(stock_boleh_minus()) && n < 0) row.fqty = 0;
+
+                    const refQty = Number(row.ref_qty || row.source_qty || row.po_qty || row.pb_qty || row.fqtysisa_source || 0);
+                    if (refQty > 0 && n > refQty) {
+                        row.fqty = refQty;
+                        const message = `Qty tidak boleh melebihi Qty Referensi (${refQty}).`;
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        }
+                    }
+                    this.recalc(row);
+                    this.recalcTotals();
                 },
 
                 hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -2393,7 +2424,9 @@
                         row.fitemname = '';
                         row.units = [];
                         row.fsatuan = '';
-                        row.maxqty = 0;
+                        if (!['PO', 'PB'].includes((row.fsource || '').toString().trim().toUpperCase())) {
+                            row.maxqty = 0;
+                        }
                         return;
                     }
                     row.fitemname = meta.name || '';
@@ -2417,8 +2450,10 @@
                     }
 
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                    const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                    row.maxqty = stock;
+                    if (!['PO', 'PB'].includes((row.fsource || '').toString().trim().toUpperCase())) {
+                        const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                        row.maxqty = stock;
+                    }
                 },
 
                 getSelectedSupplierCode() {
@@ -2771,7 +2806,7 @@
                         }
                     }
 
-                    this.addManyFromSource(header, items, 'PB');
+                    this.addManyFromSource(header, pickItems, 'PB');
                 },
 
                 normalizeRefNoAcak(value) {
@@ -2838,6 +2873,10 @@
 
                             // Financial
                             fprice: +(src.fprice || 0),
+                            ref_price: +(src.fprice || 0),
+                            maxprice: +(src.fprice || 0),
+                            source_price: +(src.fprice || 0),
+                            fpriceInput: this.fmt(+(src.fprice || 0)),
                             fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
                             fbiaya: sourceType === 'PB' ? +(src.fbiaya || 0) : 0,
                             ftotprice: +(src.fharga || 0),
@@ -2851,6 +2890,7 @@
                         if (rawMeta) {
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false);
                         }
+                        row.ref_qty = sourceLimit;
                         row.maxqty = sourceLimit;
                         if (!(Number(row.fqtysisa_source) > 0 || Number(row.maxqty) > 0)) return;
                         if (Number(row.fqtysisa_source) > 0) {
@@ -2978,6 +3018,9 @@
                         'source_qty',
                         'po_qty',
                         'pb_qty',
+                        'ref_price',
+                        'maxprice',
+                        'source_price',
                     ];
 
                     container.innerHTML = '';
@@ -3452,10 +3495,26 @@
                     for (const row of validRows) {
                         const code = (row.fitemcode || '').toString().trim().toUpperCase();
                         if (!code) continue;
-                        const inputQty = Number(String(row.fqty ?? row.qty ?? 0).replace(/[^0-9.-]+/g, "")) || 0;
-                        const refQty = Number(String(row.ref_qty || row.source_qty || row.po_qty || row.pb_qty || row.fqtysisa_source || row.maxqty || 0).replace(/[^0-9.-]+/g, "")) || 0;
+                        const inputQty = this.parseQty(row.fqty);
+                        const refQty = Number(row.ref_qty || row.source_qty || row.po_qty || row.pb_qty || row.fqtysisa_source || 0);
                         if (refQty > 0 && inputQty > refQty) {
-                            Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: 'Qty tidak boleh melebihi Qty Referensi/Faktur' });
+                            const message = `Qty item ${code} tidak boleh melebihi Qty Referensi (${refQty}).`;
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('WARNING', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: message });
+                            }
+                            return;
+                        }
+                        const inputPrice = this.parseMoney(row.fprice);
+                        const refPrice = this.parseMoney(row.ref_price || row.maxprice || row.source_price || 0);
+                        if (refPrice > 0 && inputPrice > refPrice) {
+                            const message = `Harga item ${code} tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                            if (typeof window.showAppWarningAlert === 'function') {
+                                window.showAppWarningAlert('WARNING', message);
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'error', title: 'Validasi Gagal', text: message });
+                            }
                             return;
                         }
                         if (seenCodes.has(code)) {
@@ -3533,6 +3592,9 @@
                     fqty: 0,
                     fterima: 0,
                     fprice: 0,
+                    ref_price: 0,
+                    maxprice: 0,
+                    source_price: 0,
                     fpriceInput: undefined,
                     fdiscpersen: '0',
                     fbiaya: 0,
