@@ -240,6 +240,9 @@
                 'frefpr' => (string) ($oldRefprs[$i] ?? ''),
                 'fqty' => (float) ($oldQtys[$i] ?? 0),
                 'fprice' => (float) ($oldPrices[$i] ?? 0),
+                'ref_price' => (float) (old('ref_price', [])[$i] ?? old('fref_price', [])[$i] ?? $oldPrices[$i] ?? 0),
+                'maxprice' => (float) (old('maxprice', [])[$i] ?? old('fmaxprice', [])[$i] ?? $oldPrices[$i] ?? 0),
+                'source_price' => (float) (old('source_price', [])[$i] ?? old('fsource_price', [])[$i] ?? $oldPrices[$i] ?? 0),
                 'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
                 'fdiscpersen' => (string) ($oldDiscs[$i] ?? '0'),
                 'ftotprice' => (float) ($oldTotals[$i] ?? 0),
@@ -657,8 +660,6 @@
                                                 <td class="p-2 text-right">
                                                     <input type="text" inputmode="decimal"
                                                         class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                        :disabled="hasTerSourceItems"
-                                                        :class="hasTerSourceItems ? 'bg-gray-50 text-gray-500 cursor-not-allowed border-slate-200' : ''"
                                                         x-model="it.fpriceInput" :id="'price_saved_' + i"
                                                         @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                         @blur="activeRow = null; blurPriceInput(it)" @input="onPriceInput(it)"

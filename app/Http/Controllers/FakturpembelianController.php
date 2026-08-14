@@ -1124,7 +1124,7 @@ class FakturpembelianController extends Controller
             if ($sourceType === 'PO') {
                 if ($detailId > 0) $poIds[] = $detailId;
                 if ($refNo !== '') $poRefKeys[] = $refNo;
-            } elseif ($sourceType === 'PB') {
+            } elseif ($sourceType === 'PB' || $sourceType === 'TER') {
                 if ($detailId > 0) $pbIds[] = $detailId;
                 if ($refNo !== '') $pbRefKeys[] = $refNo;
             }
@@ -1135,35 +1135,41 @@ class FakturpembelianController extends Controller
 
         $poByDocPrd = empty($poRefKeys) ? [] : DB::table('tr_pod')->whereIn('fpono', $poRefKeys)->get(['fpono', 'fprdcode', 'fprice'])
             ->mapWithKeys(fn($r) => [trim($r->fpono) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
-        $pbByDocPrd = empty($pbRefKeys) ? [] : DB::table('trstockdt')->whereIn('fstockmtno', $pbRefKeys)->where('fstockmtcode', 'TER')->get(['fstockmtno', 'fprdcode', 'fprice'])
+        $pbByDocPrd = empty($pbRefKeys) ? [] : DB::table('trstockdt')->whereIn('fstockmtno', $pbRefKeys)->get(['fstockmtno', 'fprdcode', 'fprice'])
             ->mapWithKeys(fn($r) => [trim($r->fstockmtno) . ':' . strtoupper(trim($r->fprdcode)) => (float) $r->fprice])->all();
+
+        $cleanCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
+        $products = empty($cleanCodes) ? [] : DB::table('msprd')->whereIn('fprdcode', $cleanCodes)->pluck('fprdname', 'fprdcode')->all();
 
         foreach ($codes as $i => $codeRaw) {
             $code = strtoupper(trim((string) ($codeRaw ?? '')));
-            if ($code === '') {
+            if ($code === '' || str_starts_with($code, 'UM')) {
                 continue;
             }
 
             $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
             $detailId = (int) ($refdtids[$i] ?? 0);
             $refNo = trim((string) ($refdtnos[$i] ?? ''));
-            $inputPrice = (float) ($prices[$i] ?? 0);
+            $inputPrice = abs((float) ($prices[$i] ?? 0));
 
-            if (! in_array($sourceType, ['PO', 'PB'], true)) {
+            if (! in_array($sourceType, ['PO', 'PB', 'TER'], true)) {
                 continue;
             }
 
             $docKey = $refNo . ':' . $code;
             $maxPrice = null;
+            $refLabel = $sourceType === 'PO' ? 'PO' : 'TER';
             if ($sourceType === 'PO') {
                 $maxPrice = $poById[$detailId] ?? ($poByDocPrd[$docKey] ?? null);
-            } elseif ($sourceType === 'PB') {
+            } elseif ($sourceType === 'PB' || $sourceType === 'TER') {
                 $maxPrice = $pbById[$detailId] ?? ($pbByDocPrd[$docKey] ?? null);
             }
 
             if ($maxPrice !== null && $maxPrice > 0 && $inputPrice > $maxPrice + $tolerance) {
-                $formattedMax = number_format($maxPrice, 2, '.', ',');
-                $errors->add("fprice.$i", "Harga item {$code} melebihi harga referensi {$sourceType}. Maksimal {$formattedMax}.");
+                $formattedMax = number_format($maxPrice, 2, ',', '.');
+                $prodName = $products[$code] ?? $code;
+                $refDocText = $refNo !== '' ? " ({$refNo})" : '';
+                $errors->add("fprice.$i", "Harga item {$prodName} melebihi harga referensi {$refLabel}{$refDocText}. Maksimal {$formattedMax}.");
             }
         }
 
@@ -2112,20 +2118,24 @@ class FakturpembelianController extends Controller
 
         $poRefSet = [];
         $pbRefSet = [];
+        $poPriceMap = [];
+        $pbPriceMap = [];
         if (! empty($detailRefIds)) {
-            $poRefSet = DB::table('tr_pod')
+            $poRows = DB::table('tr_pod')
                 ->whereIn('fpodid', $detailRefIds)
-                ->pluck('fpodid')
-                ->map(fn($id) => (int) $id)
-                ->flip()
-                ->all();
+                ->get(['fpodid', 'fprice']);
+            foreach ($poRows as $pr) {
+                $poRefSet[(int) $pr->fpodid] = true;
+                $poPriceMap[(int) $pr->fpodid] = (float) $pr->fprice;
+            }
 
-            $pbRefSet = DB::table('trstockdt')
+            $pbRows = DB::table('trstockdt')
                 ->whereIn('fstockdtid', $detailRefIds)
-                ->pluck('fstockdtid')
-                ->map(fn($id) => (int) $id)
-                ->flip()
-                ->all();
+                ->get(['fstockdtid', 'fprice']);
+            foreach ($pbRows as $pr) {
+                $pbRefSet[(int) $pr->fstockdtid] = true;
+                $pbPriceMap[(int) $pr->fstockdtid] = (float) $pr->fprice;
+            }
         }
 
         $oldUsageBySourceRef = [];
@@ -2147,7 +2157,7 @@ class FakturpembelianController extends Controller
         [$poUnits, $pbUnits] = $this->getReferenceUnitMaps($fakturpembelian->details);
 
         // 4. Map the data for savedItems
-        $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $oldUsageBySourceRef, $poUnits, $pbUnits) {
+        $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $poPriceMap, $pbPriceMap, $oldUsageBySourceRef, $poUnits, $pbUnits) {
             $detailId = (int) ($d->frefdtid ?? 0);
             $sourceType = isset($poRefSet[$detailId]) ? 'PO' : (isset($pbRefSet[$detailId]) ? 'PB' : '');
             $sourceRemain = $sourceType !== '' && $detailId > 0 ? $this->getSourceRemain($sourceType, $detailId) : null;
@@ -2156,6 +2166,16 @@ class FakturpembelianController extends Controller
             if ($sourceType !== '' && $detailId > 0) {
                 $sourceKey = $sourceType . ':' . $detailId;
                 $maxFromSource = max(0, (float) ($sourceRemain ?? 0) + (float) ($oldUsageBySourceRef[$sourceKey] ?? 0));
+            }
+
+            $refPrice = null;
+            if ($sourceType === 'PO' && isset($poPriceMap[$detailId])) {
+                $refPrice = $poPriceMap[$detailId];
+            } elseif (($sourceType === 'PB' || $sourceType === 'TER') && isset($pbPriceMap[$detailId])) {
+                $refPrice = $pbPriceMap[$detailId];
+            }
+            if ($refPrice === null) {
+                $refPrice = (float) ($d->fprice ?? 0);
             }
 
             return [
@@ -2176,6 +2196,9 @@ class FakturpembelianController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice,
+                'maxprice' => $refPrice,
+                'source_price' => $refPrice,
                 'fdiscpersen' => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
@@ -2729,6 +2752,9 @@ class FakturpembelianController extends Controller
             $errors->merge($priceErrors);
 
             if ($errors->isNotEmpty()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $errors->first(), 'errors' => $errors->toArray()], 422);
+                }
                 return back()->withErrors($errors)->withInput();
             }
 
