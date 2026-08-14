@@ -1230,13 +1230,14 @@ class ReturPembelianController extends Controller
                 $mm = $fstockmtdate->format('m');
                 $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
                 $hasUMItem = (int) $request->input('ftypebuy', 0) !== 0 || collect($itemCodes)->contains(fn ($c) => $this->isAdvancePaymentProductCode((string) $c));
-                $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
+                $docPrefixCode = $hasUMItem ? 'RUB' : 'REB';
+                $fstockmtcode = 'REB';
 
                 if (empty($fstockmtno)) {
                     $sep = $fincludeppn === 1 ? '.' : '/';
-                    $prefix = sprintf('%s%s%s%s%s%s', $fstockmtcode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
+                    $prefix = sprintf('%s%s%s%s%s%s', $docPrefixCode, $sep, $kodeCabang, $sep, $yy . $mm, $sep);
 
-                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
+                    $lockKey = crc32('STOCKMT|' . $docPrefixCode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
                     if (DB::getDriverName() === 'pgsql') {
                         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
@@ -1904,9 +1905,7 @@ class ReturPembelianController extends Controller
                     $kodeCabang = 'NA';
                 }
 
-                $itemCodes = (array) $request->input('fprdcode', $request->input('fitemcode', []));
-                $hasUMItem = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0) !== 0 || collect($itemCodes)->contains(fn ($c) => $this->isAdvancePaymentProductCode((string) $c));
-                $fstockmtcode = $hasUMItem ? 'RUB' : 'REB';
+                $fstockmtcode = 'REB';
 
                 if (empty($fstockmtno)) {
                     $fstockmtno = $header->fstockmtno;

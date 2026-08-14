@@ -1895,7 +1895,7 @@ class ReturPenjualanController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => $typeSales,
-                    'ftrcode' => $trCode,
+                    'ftrcode' => 'REJ',
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
                     'fprint' => 0,
@@ -1907,7 +1907,7 @@ class ReturPenjualanController extends Controller
 
                 foreach ($detailRows as &$row) {
                     $row['fsono'] = $fsono;
-                    $row['frefcode'] = $trCode;
+                    $row['frefcode'] = 'REJ';
                 }
                 unset($row);
 
@@ -1917,7 +1917,7 @@ class ReturPenjualanController extends Controller
                 $fstockmtno = $fsono;
                 $masterStockData = [
                     'fstockmtno' => $fstockmtno,
-                    'fstockmtcode' => $trCode,
+                    'fstockmtcode' => 'REJ',
                     'fstockmtdate' => $fsodate,
                     'fprdout' => '0',
                     'fsupplier' => mb_substr($request->fcustno, 0, 10),
@@ -1940,7 +1940,7 @@ class ReturPenjualanController extends Controller
 
                 foreach ($stockDetailRows as &$srow) {
                     $srow['fstockmtno'] = $fstockmtno;
-                    $srow['fstockmtcode'] = $trCode;
+                    $srow['fstockmtcode'] = 'REJ';
                 }
                 unset($srow);
 
@@ -3255,6 +3255,7 @@ class ReturPenjualanController extends Controller
                     'fincludeppn'      => $fincludeppn,
                     'fapplyppn'        => $fapplyppn,
                     'ftypesales'       => $ftypesales,
+                    'ftrcode'          => 'REJ',
                     'fppnpersen'       => $ppnPersen,
                     'ftaxno'           => $request->ftaxno ?? '0',
                     'fjatuhtempo'      => $this->resolveReturFjatuhtempo($detailRows),
@@ -3374,7 +3375,7 @@ class ReturPenjualanController extends Controller
                 if ($stockHeader) {
                     // Update Stock Header
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->update([
-                        'fstockmtcode'     => 'RUJ',
+                        'fstockmtcode'     => 'REJ',
                         'fstockmtdate'     => $fsodate,
                         'fsupplier'        => mb_substr($request->fcustno, 0, 10),
                         'ffrom'            => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
@@ -3448,7 +3449,7 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->delete();
                     foreach ($stockDetailRows as &$srow) {
                         $srow['fstockmtno'] = $fstockmtno;
-                        $srow['fstockmtcode'] = 'RUJ';
+                        $srow['fstockmtcode'] = 'REJ';
 
                         $insertedStockDtId = DB::table('trstockdt')->insertGetId($srow, 'fstockdtid');
                         $sdtObj = DB::table('trstockdt')->where('fstockdtid', $insertedStockDtId)->first();
