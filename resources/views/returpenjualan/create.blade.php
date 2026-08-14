@@ -57,11 +57,15 @@
                 'fqty' => (float) ($oldReturJualQtys[$index] ?? 0),
                 'fterima' => (float) ($oldReturJualTerimas[$index] ?? 0),
                 'fprice' => (float) ($oldReturJualPrices[$index] ?? 0),
+                'ref_price' => (float) (old('fref_price', [])[$index] ?? $oldReturJualPrices[$index] ?? 0),
+                'maxprice' => (float) (old('fmaxprice', [])[$index] ?? $oldReturJualPrices[$index] ?? 0),
+                'source_price' => (float) (old('fsource_price', [])[$index] ?? $oldReturJualPrices[$index] ?? 0),
                 'fdisc' => $oldReturJualDiscs[$index] ?? 0,
                 'ftotal' => (float) ($oldReturJualTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldReturJualDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldReturJualKetdts[$index] ?? ''),
                 'maxqty' => max(0, (float) ($oldReturJualQtys[$index] ?? 0)),
+                'maxqty_unit' => 'kecil',
             ];
         }
 
@@ -610,6 +614,8 @@
                                     <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
                                     <input type="hidden" :name="`fterima[${it.formIndex}]`" :value="it.fterima">
                                     <input type="hidden" :name="`fprice[${it.formIndex}]`" :value="it.fprice">
+                                    <input type="hidden" :name="`fref_price[${it.formIndex}]`" :value="it.ref_price || it.maxprice || it.source_price || 0">
+                                    <input type="hidden" :name="`fmaxqty[${it.formIndex}]`" :value="it.maxqty">
                                     <input type="hidden" :name="`fdisc[${it.formIndex}]`" :value="it.fdisc">
                                     <input type="hidden" :name="`ftotal[${it.formIndex}]`" :value="it.ftotal">
                                     <input type="hidden" :name="`fdesc[${it.formIndex}]`" :value="it.fdesc">
@@ -2737,7 +2743,10 @@
                         fsono_qty: source === 'SO' ? refQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
                         fterima: Number(src.fterima ?? 0),
-                        fprice: Number(src.fprice ?? 0),
+                        fprice: Number(src.fprice ?? src.fharga ?? 0),
+                        ref_price: Number(src.fprice ?? src.fharga ?? 0),
+                        maxprice: Number(src.fprice ?? src.fharga ?? 0),
+                        source_price: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',

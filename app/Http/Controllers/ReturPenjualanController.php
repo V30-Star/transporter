@@ -962,6 +962,131 @@ class ReturPenjualanController extends Controller
         return null;
     }
 
+    private function findReturReferenceStat(array $stats, string $doc, string $code, string $refNoAcak): ?array
+    {
+        $key = $this->buildReferenceUsageKey($doc, $code, $refNoAcak);
+        if (isset($stats[$key])) {
+            return $stats[$key];
+        }
+        $doc = trim($doc);
+        $code = trim($code);
+        foreach ($stats as $stat) {
+            if (trim((string) ($stat['ref_doc'] ?? '')) === $doc && trim((string) ($stat['product_code'] ?? '')) === $code) {
+                return $stat;
+            }
+        }
+        return null;
+    }
+
+    private function validateSourcePriceForRows(
+        array $codes,
+        array $prices,
+        array $refSos,
+        array $refSrjs,
+        array $refDtNos = [],
+        array $refNoAcaks = []
+    ): \Illuminate\Support\MessageBag {
+        $errors = new \Illuminate\Support\MessageBag;
+        $tolerance = 0.01;
+
+        $cleanCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $codes))));
+        if (empty($cleanCodes)) {
+            return $errors;
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', $cleanCodes)
+            ->pluck('fprdname', 'fprdcode');
+
+        $soDocs = [];
+        $srjDocs = [];
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            if ($code === '' || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentFaktur($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            if ($srjDoc !== '') {
+                $srjDocs[] = $srjDoc;
+            } elseif ($soDoc !== '') {
+                $soDocs[] = $soDoc;
+            }
+        }
+
+        $soDocs = array_values(array_unique(array_filter($soDocs)));
+        $srjDocs = array_values(array_unique(array_filter($srjDocs)));
+
+        $soStats = empty($soDocs) ? [] : $this->getReturReferenceStats('SO', $soDocs);
+        $srjStats = empty($srjDocs) ? [] : $this->getReturReferenceStats('SRJ', $srjDocs);
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            $inputPrice = abs((float) ($prices[$i] ?? 0));
+            if ($code === '' || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($refNoAcaks[$i] ?? null) ?? '';
+
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentFaktur($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            $maxPrice = null;
+            $refType = '';
+            $refDoc = '';
+            if ($srjDoc !== '') {
+                $stat = $this->findReturReferenceStat($srjStats, $srjDoc, $code, $refNoAcak);
+                if ($stat) {
+                    $maxPrice = (float) ($stat['source_price'] ?? 0);
+                    $refType = 'SRJ';
+                    $refDoc = $srjDoc;
+                }
+            } elseif ($soDoc !== '') {
+                $stat = $this->findReturReferenceStat($soStats, $soDoc, $code, $refNoAcak);
+                if ($stat) {
+                    $maxPrice = (float) ($stat['source_price'] ?? 0);
+                    $refType = 'Faktur';
+                    $refDoc = $soDoc;
+                }
+            }
+
+            if ($maxPrice !== null && $maxPrice > 0 && $inputPrice > $maxPrice + $tolerance) {
+                $formattedMax = number_format($maxPrice, 2, ',', '.');
+                $prodName = $products[$code] ?? $code;
+                $errors->add("fprice.$i", "Harga item {$prodName} melebihi harga referensi {$refType} ({$refDoc}). Maksimal {$formattedMax}.");
+            }
+        }
+
+        return $errors;
+    }
+
+    private function isDocumentSrj(?string $docNo): bool
+    {
+        $docNo = strtoupper(trim((string) ($docNo ?? '')));
+        return strpos($docNo, 'SRJ.') === 0 || strpos($docNo, 'SJ.') === 0 || strpos($docNo, 'SRJ/') === 0 || strpos($docNo, 'SJ/') === 0;
+    }
+
+    private function isDocumentFaktur(?string $docNo): bool
+    {
+        $docNo = strtoupper(trim((string) ($docNo ?? '')));
+        return strpos($docNo, 'INV.') === 0 || strpos($docNo, 'INV/') === 0 || strpos($docNo, 'SO.') === 0 || strpos($docNo, 'SO/') === 0;
+    }
+
     private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
     {
         $sourceCode = strtoupper(trim($sourceCode));
@@ -979,7 +1104,7 @@ class ReturPenjualanController extends Controller
                 ->where('fprdcode', $productCode)
                 ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where('fnoacak', $normalizedRefNoAcak))
                 ->orderBy('fstockdtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak', 'fprice']);
         }
 
         if (in_array($sourceCode, ['S', 'SO', 'INV'], true)) {
@@ -988,7 +1113,7 @@ class ReturPenjualanController extends Controller
                 ->where('fprdcode', $productCode)
                 ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where('fnoacak', $normalizedRefNoAcak))
                 ->orderBy('ftrandtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak', 'fprice']);
         }
 
         return null;
@@ -1298,6 +1423,22 @@ class ReturPenjualanController extends Controller
                 return response()->json(['message' => $umValidation], 422);
             }
             return back()->withInput()->with('error', $umValidation);
+        }
+
+        $priceErrors = $this->validateSourcePriceForRows(
+            $itemCodes,
+            $prices,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks
+        );
+        if ($priceErrors->any()) {
+            $firstMessage = $priceErrors->first();
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstMessage, 'errors' => $priceErrors->toArray()], 422);
+            }
+            return back()->withInput()->with('error', $firstMessage)->withErrors($priceErrors);
         }
 
         if ($typeSales === 1) {
@@ -2041,14 +2182,15 @@ class ReturPenjualanController extends Controller
             return [];
         }
 
-        if ($type === 'SO') {
+        if ($type === 'SO' || $type === 'INV') {
             $sourceRows = DB::table('trandt as d')
                 ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
                 ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
                 ->whereIn('d.fsono', $docNos)
                 ->where(function ($q) {
                     $q->where('h.fsono', 'like', 'INV.%')
-                      ->orWhere('h.fsono', 'like', 'INV/%');
+                      ->orWhere('h.fsono', 'like', 'INV/%')
+                      ->orWhere('h.ftrcode', 'INV');
                 })
                 ->selectRaw("
                     TRIM(d.fsono) as ref_doc,
@@ -2056,6 +2198,7 @@ class ReturPenjualanController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
+                    MAX(COALESCE(d.fprice, 0)) as source_price,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
@@ -2073,6 +2216,7 @@ class ReturPenjualanController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
+                    MAX(COALESCE(d.fprice, 0)) as source_price,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
@@ -2092,6 +2236,7 @@ class ReturPenjualanController extends Controller
                 'product_code' => trim((string) ($row->product_code ?? '')),
                 'product_name' => trim((string) ($row->product_name ?? '')),
                 'source_unit' => trim((string) ($row->source_unit ?? '')),
+                'source_price' => (float) ($row->source_price ?? 0),
                 'ref_noacak' => $normalizedRefNoAcak,
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
@@ -2240,10 +2385,19 @@ class ReturPenjualanController extends Controller
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
+                ->leftJoin('trstockdt as sj_dt', function ($join) {
+                    $join->on('sj_dt.fstockmtno', '=', 'trandt.frefsrj')
+                        ->on('sj_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
+                ->leftJoin('trandt as inv_dt', function ($join) {
+                    $join->on('inv_dt.fsono', '=', 'trandt.frefso')
+                        ->on('inv_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
-                    'msprd.fprdname'
+                    'msprd.fprdname',
+                    DB::raw("COALESCE(sj_dt.fprice, inv_dt.fprice, trandt.fprice) as ref_price")
                 )
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
@@ -2289,6 +2443,7 @@ class ReturPenjualanController extends Controller
 
             $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
             $maxqty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($summary['fqtysisa_ref'] ?? 0));
+            $refPrice = (float) ($d->ref_price ?? $d->fprice ?? 0);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -2300,7 +2455,11 @@ class ReturPenjualanController extends Controller
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fqtyremain' => $maxqty,
                 'maxqty' => $maxqty,
+                'maxqty_unit' => '',
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice,
+                'maxprice' => $refPrice,
+                'source_price' => $refPrice,
                 'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
@@ -2327,6 +2486,10 @@ class ReturPenjualanController extends Controller
             'fsatuanbesar2',
             'fqtykecil',
             'fqtykecil2',
+            'fhargajual',
+            'fhargajual2',
+            'fhargajual3',
+            'fhargabeli',
             'fminstock'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
@@ -2380,10 +2543,19 @@ class ReturPenjualanController extends Controller
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
+                ->leftJoin('trstockdt as sj_dt', function ($join) {
+                    $join->on('sj_dt.fstockmtno', '=', 'trandt.frefsrj')
+                        ->on('sj_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
+                ->leftJoin('trandt as inv_dt', function ($join) {
+                    $join->on('inv_dt.fsono', '=', 'trandt.frefso')
+                        ->on('inv_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
-                    'msprd.fprdname'
+                    'msprd.fprdname',
+                    DB::raw("COALESCE(sj_dt.fprice, inv_dt.fprice, trandt.fprice) as ref_price")
                 )
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
@@ -2420,6 +2592,7 @@ class ReturPenjualanController extends Controller
             }
 
             $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
+            $refPrice = (float) ($d->ref_price ?? $d->fprice ?? 0);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -2431,6 +2604,7 @@ class ReturPenjualanController extends Controller
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fqtyremain' => (float) ($d->fqtyremain ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice,
                 'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
@@ -2622,6 +2796,22 @@ class ReturPenjualanController extends Controller
                 return response()->json(['message' => $umValidation], 422);
             }
             return back()->withInput()->with('error', $umValidation);
+        }
+
+        $priceErrors = $this->validateSourcePriceForRows(
+            $itemCodes,
+            $prices,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks
+        );
+        if ($priceErrors->any()) {
+            $firstMessage = $priceErrors->first();
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstMessage, 'errors' => $priceErrors->toArray()], 422);
+            }
+            return back()->withInput()->with('error', $firstMessage)->withErrors($priceErrors);
         }
 
         if ($typeSales === 1) {
