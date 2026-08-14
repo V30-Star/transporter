@@ -2444,7 +2444,7 @@
                 return selectVal === '1' || modelVal === '1';
             },
 
-            onCodeTypedRow(row, index = null) {
+            async onCodeTypedRow(row, index = null) {
                 const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
                 if (!typedCode) {
                     this.clearRow(row);
@@ -2983,7 +2983,7 @@
                     passive: true
                 });
 
-                window.addEventListener('product-chosen', (e) => {
+                window.addEventListener('product-chosen', async (e) => {
                     const {
                         product
                     } = e.detail || {};
