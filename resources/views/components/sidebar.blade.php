@@ -779,6 +779,13 @@
                                 <span class="ml-3">{{ 'Laporan Rekap Penjualan' }}</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('reportingrekappenjualancustomerproduk.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Rekap Penjualan Customer Per Produk' }}</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('printAnalisaUmurPiutang'))
