@@ -1583,7 +1583,7 @@
                 }
             },
 
-            applyOutstandingDpRef(row) {
+            async applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (productCode !== 'UM') return;
 
@@ -1591,8 +1591,54 @@
                 if (!supplierCode) return;
 
                 const documents = window.FPB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
-                const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
-                row.frefdtno = doc ? doc.fstockmtno : '';
+                let doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
+
+                if (!doc) {
+                    try {
+                        const params = new URLSearchParams({ fsupplier: supplierCode, fprdcode: 'UM' });
+                        const res = await fetch(`{{ route('fakturpembelian.product-history') }}?${params.toString()}`, {
+                            headers: { Accept: 'application/json' }
+                        });
+                        if (res.ok) {
+                            const payload = await res.json();
+                            if (Array.isArray(payload?.data) && payload.data.length > 0) {
+                                doc = payload.data[0];
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Gagal memuat history UM otomatis:', e);
+                    }
+                }
+
+                if (doc) {
+                    row.frefdtno = doc.fstockmtno || '';
+                    const refQty = Number(doc.fqtyremain ?? doc.maxqty ?? doc.ref_qty ?? doc.source_qty ?? doc.faktur_qty ?? doc.fqty ?? 1);
+                    row.ref_qty = refQty;
+                    row.maxqty = refQty;
+                    row.source_qty = refQty;
+                    row.faktur_qty = refQty;
+                    row.qty_asal = Number(doc.qty_asal ?? refQty);
+                    row.fqty = refQty;
+                    if (doc.fsatuan && Array.isArray(row.units) && row.units.includes(doc.fsatuan)) {
+                        row.fsatuan = doc.fsatuan;
+                    } else if (doc.fsatuan) {
+                        row.fsatuan = doc.fsatuan;
+                    }
+                    const refPrice = Math.abs(Number(doc.fprice ?? doc.fsisadp ?? doc.fsisadp_rp ?? doc.famountmt ?? 0));
+                    if (refPrice > 0) {
+                        row.fprice = refPrice;
+                        row.ref_price = refPrice;
+                        row.maxprice = refPrice;
+                        row.source_price = refPrice;
+                        if (typeof row.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
+                            row.fpriceInput = this.fmt(refPrice);
+                        }
+                    }
+                    this.recalc?.(row);
+                    this.recalcTotals?.();
+                } else {
+                    row.frefdtno = '';
+                }
             },
 
             canOpenHistory(row) {
@@ -2184,7 +2230,7 @@
 
                 if (meta.code) row.fitemcode = meta.code;
                 this.hydrateRowFromMeta(row, meta, true);
-                this.applyOutstandingDpRef(row);
+                await this.applyOutstandingDpRef(row);
                 if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
                 if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
                     this.applyPurchasePrice(row);
@@ -2818,7 +2864,7 @@
                         }
                     }
 
-                    const apply = (row) => {
+                    const apply = async (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         const meta = this.productMeta(row.fitemcode);
                         this.hydrateRowFromMeta(row, meta.name ? meta : {
@@ -2830,7 +2876,7 @@
                         if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
                             this.applyPurchasePrice(row);
                         }
-                        this.applyOutstandingDpRef(row);
+                        await this.applyOutstandingDpRef(row);
                         if (!(Number(row.fqty) > 0)) row.fqty = 1;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);

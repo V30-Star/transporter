@@ -821,18 +821,32 @@ class ReturPenjualanController extends Controller
 
     private function getCustomerAdvanceWarningMap(): array
     {
-        $documentsByCustomer = DB::table('trsisadp_penjualan')
-            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
-            ->addSelect(['fsono', 'fsodate', 'fsisadp'])
-            ->where('fsisadp', '>', 0)
-            ->orderBy('fsodate')
-            ->orderBy('fsono')
+        $documentsByCustomer = DB::table('trsisadp_penjualan as s')
+            ->leftJoin('trandt as d', function ($j) {
+                $j->on('d.fsono', '=', 's.fsono')
+                  ->where('d.fprdcode', '=', 'UM');
+            })
+            ->selectRaw('TRIM(COALESCE(s.fcustno, \'\')) as fcustno')
+            ->addSelect([
+                's.fsono',
+                's.fsodate',
+                's.fsisadp',
+                DB::raw('COALESCE(d.fqty, 1) as fqty'),
+                DB::raw('COALESCE(d.fqty, 1) as qty_asal'),
+                DB::raw("COALESCE(d.fsatuan, 'PCS') as fsatuan"),
+            ])
+            ->where('s.fsisadp', '>', 0)
+            ->orderBy('s.fsodate')
+            ->orderBy('s.fsono')
             ->get()
             ->map(fn ($doc) => [
-                'fcustno' => trim((string) ($doc->fcustno ?? '')),
-                'fsono'   => trim((string) ($doc->fsono ?? '')),
-                'fsodate' => $doc->fsodate,
-                'fsisadp' => (float) ($doc->fsisadp ?? 0),
+                'fcustno'  => trim((string) ($doc->fcustno ?? '')),
+                'fsono'    => trim((string) ($doc->fsono ?? '')),
+                'fsodate'  => $doc->fsodate,
+                'fsisadp'  => (float) ($doc->fsisadp ?? 0),
+                'fqty'     => (float) ($doc->fqty ?? 1),
+                'qty_asal' => (float) ($doc->qty_asal ?? 1),
+                'fsatuan'  => (string) ($doc->fsatuan ?? 'PCS'),
             ])
             ->filter(fn ($doc) => $doc['fcustno'] !== '' && $doc['fsono'] !== '')
             ->groupBy('fcustno');
@@ -867,12 +881,22 @@ class ReturPenjualanController extends Controller
             return null;
         }
 
-        return DB::table('trsisadp_penjualan')
-            ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
-            ->where('fsisadp', '>', 0)
-            ->orderBy('fsodate')
-            ->orderBy('fsono')
-            ->first(['fsono', 'fsisadp']);
+        return DB::table('trsisadp_penjualan as s')
+            ->leftJoin('trandt as d', function ($j) {
+                $j->on('d.fsono', '=', 's.fsono')
+                  ->where('d.fprdcode', '=', 'UM');
+            })
+            ->whereRaw('TRIM(COALESCE(s.fcustno, \'\')) = ?', [$customerCode])
+            ->where('s.fsisadp', '>', 0)
+            ->orderBy('s.fsodate')
+            ->orderBy('s.fsono')
+            ->select([
+                's.*',
+                DB::raw('COALESCE(d.fqty, 1) as fqty'),
+                DB::raw('COALESCE(d.fqty, 1) as qty_asal'),
+                DB::raw("COALESCE(d.fsatuan, 'PCS') as fsatuan"),
+            ])
+            ->first();
     }
 
     private function sanitizeReturReferences(array &$frefso, array $frefsrj): void

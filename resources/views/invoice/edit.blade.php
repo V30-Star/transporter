@@ -2861,25 +2861,65 @@
                 }
             },
 
-            applyOutstandingDpRef(row) {
+            async applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (!productCode.startsWith('UM')) return;
 
                 const customerCode = this.getSelectedCustomerCode();
+                if (!customerCode) return;
+
                 const documents = window.INVOICE_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
-                const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
-                row.frefdtno = doc ? doc.fsono : '';
-                row.frefno_display = doc ? doc.fsono : '';
-                row.frefcode = doc ? 'UM' : '';
+                let doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
+
+                if (!doc) {
+                    try {
+                        const params = new URLSearchParams({ fcustno: customerCode, fprdcode: 'UM' });
+                        const res = await fetch(`{{ route('invoice.product-history') }}?${params.toString()}`, {
+                            headers: { Accept: 'application/json' }
+                        });
+                        if (res.ok) {
+                            const payload = await res.json();
+                            if (Array.isArray(payload?.data) && payload.data.length > 0) {
+                                doc = payload.data[0];
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Gagal memuat history UM otomatis:', e);
+                    }
+                }
+
                 if (doc) {
-                    const price = Math.abs(Number(doc.fsisadp || 0));
-                    row.ref_price = price;
-                    row.maxprice = price;
-                    row.source_price = price;
-                    row.fsisadp = price;
-                    row.fprice = price;
-                    row.fpriceInput = this.fmt(price);
-                    this.recalc(row);
+                    const docNo = doc.fsono || doc.fstockmtno || '';
+                    row.frefdtno = docNo;
+                    row.frefno_display = docNo;
+                    row.frefcode = 'UM';
+                    const refQty = Number(doc.fqtyremain ?? doc.maxqty ?? doc.ref_qty ?? doc.source_qty ?? doc.faktur_qty ?? doc.qty_asal ?? doc.fqty ?? 1);
+                    row.ref_qty = refQty;
+                    row.maxqty = refQty;
+                    row.source_qty = refQty;
+                    row.faktur_qty = refQty;
+                    row.qty_asal = Number(doc.qty_asal ?? refQty);
+                    row.fqty = refQty;
+                    if (doc.fsatuan && Array.isArray(row.units) && row.units.includes(doc.fsatuan)) {
+                        row.fsatuan = doc.fsatuan;
+                    } else if (doc.fsatuan) {
+                        row.fsatuan = doc.fsatuan;
+                    }
+                    const price = Math.abs(Number(doc.fprice ?? doc.fsisadp ?? doc.fsisadp_rp ?? doc.famountmt ?? 0));
+                    if (price > 0) {
+                        row.ref_price = price;
+                        row.maxprice = price;
+                        row.source_price = price;
+                        row.fsisadp = price;
+                        row.fprice = price;
+                        row.fpriceInput = this.fmt(price);
+                    }
+                    this.recalc?.(row);
+                    this.recalcTotals?.();
+                } else {
+                    row.frefdtno = '';
+                    row.frefno_display = '';
+                    row.frefcode = '';
                 }
             },
 
@@ -3233,7 +3273,7 @@
                 }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
-                this.applyOutstandingDpRef(row);
+                await this.applyOutstandingDpRef(row);
                 if (!typedCode.startsWith('UM')) {
                     this.applyInvoicePrice(row);
                 }

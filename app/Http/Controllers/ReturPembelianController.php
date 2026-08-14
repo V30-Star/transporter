@@ -291,12 +291,25 @@ class ReturPembelianController extends Controller
 
     private function getSupplierAdvanceWarningMap(): array
     {
-        $documentsBySupplier = DB::table('trsisadp_pembelian')
-            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
-            ->addSelect(['fstockmtno', 'fstockmtdate', 'fsisadp', 'fsisadp_rp'])
-            ->where('fsisadp', '>', 0)
-            ->orderBy('fstockmtdate')
-            ->orderBy('fstockmtno')
+        $documentsBySupplier = DB::table('trsisadp_pembelian as s')
+            ->leftJoin('trstockdt as d', function ($j) {
+                $j->on('d.fstockmtno', '=', 's.fstockmtno')
+                  ->where('d.fprdcode', '=', 'UM');
+            })
+            ->selectRaw('TRIM(COALESCE(s.fsupplier, \'\')) as fsupplier')
+            ->addSelect([
+                's.fstockmtno',
+                's.fstockmtdate',
+                's.fsisadp',
+                's.fsisadp_rp',
+                's.famountmt',
+                DB::raw('COALESCE(d.fqtyremain, d.fqty, 1) as fqty'),
+                DB::raw('COALESCE(d.fqty, 1) as qty_asal'),
+                DB::raw("COALESCE(d.fsatuan, 'PCS') as fsatuan"),
+            ])
+            ->where('s.fsisadp', '>', 0)
+            ->orderBy('s.fstockmtdate')
+            ->orderBy('s.fstockmtno')
             ->get()
             ->map(fn ($doc) => [
                 'fsupplier'    => trim((string) ($doc->fsupplier ?? '')),
@@ -304,6 +317,10 @@ class ReturPembelianController extends Controller
                 'fstockmtdate' => $doc->fstockmtdate,
                 'fsisadp'      => (float) ($doc->fsisadp ?? 0),
                 'fsisadp_rp'   => (float) ($doc->fsisadp_rp ?? 0),
+                'famountmt'    => (float) ($doc->famountmt ?? 0),
+                'fqty'         => (float) ($doc->fqty ?? 1),
+                'qty_asal'     => (float) ($doc->qty_asal ?? 1),
+                'fsatuan'      => (string) ($doc->fsatuan ?? 'PCS'),
             ])
             ->filter(fn ($doc) => $doc['fsupplier'] !== '' && $doc['fstockmtno'] !== '')
             ->groupBy('fsupplier');
@@ -339,12 +356,22 @@ class ReturPembelianController extends Controller
             return null;
         }
 
-        return DB::table('trsisadp_pembelian')
-            ->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode])
-            ->where('fsisadp', '>', 0)
-            ->orderBy('fstockmtdate')
-            ->orderBy('fstockmtno')
-            ->first(['fstockmtno', 'fsisadp']);
+        return DB::table('trsisadp_pembelian as s')
+            ->leftJoin('trstockdt as d', function ($j) {
+                $j->on('d.fstockmtno', '=', 's.fstockmtno')
+                  ->where('d.fprdcode', '=', 'UM');
+            })
+            ->whereRaw('TRIM(COALESCE(s.fsupplier, \'\')) = ?', [$supplierCode])
+            ->where('s.fsisadp', '>', 0)
+            ->orderBy('s.fstockmtdate')
+            ->orderBy('s.fstockmtno')
+            ->select([
+                's.*',
+                DB::raw('COALESCE(d.fqtyremain, d.fqty, 1) as fqty'),
+                DB::raw('COALESCE(d.fqty, 1) as qty_asal'),
+                DB::raw("COALESCE(d.fsatuan, 'PCS') as fsatuan"),
+            ])
+            ->first();
     }
 
     public function pickable(Request $request)
