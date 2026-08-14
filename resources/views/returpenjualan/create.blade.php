@@ -3181,9 +3181,11 @@
 
             openBrowseFor(index) {
                 this.browseTarget = typeof index === 'number' ? index : this.savedItems.length - 1;
+                const isUM = this.ftypesales !== 0;
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: false
+                        forEdit: false,
+                        codePrefix: isUM ? 'UM' : ''
                     }
                 }));
             },
@@ -3691,9 +3693,9 @@
                                     order_column: d.columns[d.order[0].column].data,
                                     order_dir: d.order[0].dir
                                 };
-                                // Uang Muka: tampilkan hanya UM; Penjualan: sembunyikan UM
+                                // Uang Muka: tampilkan hanya kode produk UM; Penjualan: sembunyikan tipe UM
                                 if (ftypesales !== 0) {
-                                    result.ftype_filter = 'UM';
+                                    result.fprdcode_prefix = 'UM';
                                 } else {
                                     result.exclude_type = 'UM';
                                 }
