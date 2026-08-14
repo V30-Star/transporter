@@ -930,6 +930,38 @@ class ReturPenjualanController extends Controller
         }
     }
 
+    private function validateAdvancePaymentPriceAgainstReference(array $codes, array $frefsrj, array $frefso, array $frefdtno, array $prices, string $customerCode): ?string
+    {
+        $customerCode = trim($customerCode);
+        foreach ($codes as $i => $code) {
+            $c = trim((string) $code);
+            if (! str_starts_with(strtoupper($c), 'UM')) {
+                continue;
+            }
+
+            $refno = trim((string) ($frefsrj[$i] ?? $frefso[$i] ?? $frefdtno[$i] ?? ''));
+            $inputPrice = abs((float) ($prices[$i] ?? 0));
+
+            if ($refno !== '') {
+                $dp = DB::table('trsisadp_penjualan')
+                    ->whereRaw('TRIM(fsono) = ?', [$refno])
+                    ->when($customerCode !== '', fn($q) => $q->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode]))
+                    ->first();
+
+                if ($dp) {
+                    $maxAllowed = (float) ($dp->fsisadp ?? $dp->famountsonet ?? 0);
+                    if ($inputPrice - $maxAllowed > 0.0001) {
+                        $formattedInput = number_format($inputPrice, 2, ',', '.');
+                        $formattedMax = number_format($maxAllowed, 2, ',', '.');
+                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refno} (Rp {$formattedMax}).";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
     {
         $sourceCode = strtoupper(trim($sourceCode));
@@ -1260,6 +1292,13 @@ class ReturPenjualanController extends Controller
             $frefsrj,
             $frefnoacaks
         );
+
+        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umValidation], 422);
+            }
+            return back()->withInput()->with('error', $umValidation);
+        }
 
         if ($typeSales === 1) {
             $frefcode = 'UM';
@@ -2577,6 +2616,13 @@ class ReturPenjualanController extends Controller
             $frefsrj,
             $frefnoacaks
         );
+
+        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umValidation], 422);
+            }
+            return back()->withInput()->with('error', $umValidation);
+        }
 
         if ($typeSales === 1) {
             $frefcode = 'UM';
