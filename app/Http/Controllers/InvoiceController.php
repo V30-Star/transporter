@@ -1119,7 +1119,13 @@ class InvoiceController extends Controller
     private function isDocumentSrj(?string $docNo): bool
     {
         $docNo = strtoupper(trim((string) ($docNo ?? '')));
-        return strpos($docNo, 'SRJ.') === 0 || strpos($docNo, 'SJ.') === 0;
+        return strpos($docNo, 'SRJ.') === 0 || strpos($docNo, 'SJ.') === 0 || strpos($docNo, 'SRJ/') === 0 || strpos($docNo, 'SJ/') === 0;
+    }
+
+    private function isDocumentSo(?string $docNo): bool
+    {
+        $docNo = strtoupper(trim((string) ($docNo ?? '')));
+        return strpos($docNo, 'SO.') === 0 || strpos($docNo, 'SO/') === 0 || strpos($docNo, 'S.') === 0 || strpos($docNo, 'S/') === 0;
     }
 
     private function resolveInvoiceReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
@@ -1141,7 +1147,7 @@ class InvoiceController extends Controller
                     $query->where('fnoacak', $normalizedRefNoAcak);
                 })
                 ->orderBy('ftrsodtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fprice']);
         }
 
         if (in_array($sourceCode, ['R', 'SRJ'], true)) {
@@ -1152,7 +1158,7 @@ class InvoiceController extends Controller
                     $query->where('fnoacak', $normalizedRefNoAcak);
                 })
                 ->orderBy('fstockdtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil', 'frefso', 'fnoacak']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'frefso', 'fnoacak', 'fprice']);
         }
 
         return null;
@@ -1460,6 +1466,275 @@ class InvoiceController extends Controller
         return null;
     }
 
+    private function findInvoiceReferenceStat(array $stats, string $doc, string $code, string $refNoAcak): ?array
+    {
+        $key = $this->buildReferenceUsageKey($doc, $code, $refNoAcak);
+        if (isset($stats[$key])) {
+            return $stats[$key];
+        }
+        $doc = trim($doc);
+        $code = trim($code);
+        foreach ($stats as $stat) {
+            if (trim((string) ($stat['ref_doc'] ?? '')) === $doc && trim((string) ($stat['product_code'] ?? '')) === $code) {
+                return $stat;
+            }
+        }
+        return null;
+    }
+
+    private function getInvoiceExtraAvailable(array $extraAvailable, string $doc, string $code, string $refNoAcak): float
+    {
+        $key = $this->buildReferenceUsageKey($doc, $code, $refNoAcak);
+        if (isset($extraAvailable[$key])) {
+            return (float) $extraAvailable[$key];
+        }
+        $doc = trim($doc);
+        $code = trim($code);
+        $total = 0.0;
+        foreach ($extraAvailable as $k => $qty) {
+            $parts = explode('|', (string) $k);
+            if (trim($parts[0] ?? '') === $doc && trim($parts[1] ?? '') === $code) {
+                $total += (float) $qty;
+            }
+        }
+        return $total;
+    }
+
+    private function validateSourceRemainForRows(
+        array $codes,
+        array $qtys,
+        array $satuans,
+        array $refSos,
+        array $refSrjs,
+        array $refDtNos = [],
+        array $refNoAcaks = [],
+        ?string $exceptFsono = null
+    ): \Illuminate\Support\MessageBag {
+        $errors = new \Illuminate\Support\MessageBag;
+        $tolerance = 0.00001;
+
+        $cleanCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $codes))));
+        if (empty($cleanCodes)) {
+            return $errors;
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', $cleanCodes)
+            ->get([
+                'fprdcode',
+                'fprdname',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
+            ->keyBy('fprdcode');
+
+        $soDocs = [];
+        $srjDocs = [];
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            if ($code === '' || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentSo($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            if ($srjDoc !== '') {
+                $srjDocs[] = $srjDoc;
+            } elseif ($soDoc !== '') {
+                $soDocs[] = $soDoc;
+            }
+        }
+
+        $soDocs = array_values(array_unique(array_filter($soDocs)));
+        $srjDocs = array_values(array_unique(array_filter($srjDocs)));
+
+        $soStats = empty($soDocs) ? [] : $this->getInvoiceReferenceStats('SO', $soDocs, $exceptFsono);
+        $srjStats = empty($srjDocs) ? [] : $this->getInvoiceReferenceStats('SRJ', $srjDocs, $exceptFsono);
+
+        // Extra available qty from current invoice when editing
+        $extraAvailable = [];
+        if (! empty($exceptFsono)) {
+            $currentDetails = DB::table('trandt')
+                ->where('fsono', $exceptFsono)
+                ->get(['frefso', 'frefsrj', 'fprdcode', 'frefnoacak', 'frefnosoacak', 'fqtykecil']);
+            foreach ($currentDetails as $cur) {
+                $cSrj = trim((string) ($cur->frefsrj ?? ''));
+                $cSo = trim((string) ($cur->frefso ?? ''));
+                $cPrd = trim((string) ($cur->fprdcode ?? ''));
+                $cAcak = $this->normalizeReferenceRandomNumbers($cSrj !== '' ? ($cur->frefnoacak ?? null) : ($cur->frefnosoacak ?? null)) ?? '';
+                $cDoc = $cSrj !== '' ? $cSrj : $cSo;
+                if ($cDoc !== '' && $cPrd !== '') {
+                    $cKey = $this->buildReferenceUsageKey($cDoc, $cPrd, $cAcak);
+                    $extraAvailable[$cKey] = ($extraAvailable[$cKey] ?? 0) + (float) ($cur->fqtykecil ?? 0);
+                }
+            }
+        }
+
+        $soUsage = [];
+        $srjUsage = [];
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            $qty = (float) ($qtys[$i] ?? 0);
+            if ($code === '' || $qty <= 0 || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+
+            $product = $products->get($code);
+            $sat = trim((string) ($satuans[$i] ?? ''));
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $product->fqtykecil;
+                } elseif ($sat === trim((string) ($product->fsatuanbesar2 ?? '')) && (float) ($product->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $product->fqtykecil2;
+                }
+            }
+
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($refNoAcaks[$i] ?? null) ?? '';
+
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentSo($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            if ($srjDoc !== '') {
+                $key = $this->buildReferenceUsageKey($srjDoc, $code, $refNoAcak);
+                $srjUsage[$key] = ($srjUsage[$key] ?? 0) + $qtyKecil;
+                $stat = $this->findInvoiceReferenceStat($srjStats, $srjDoc, $code, $refNoAcak);
+                $extra = $this->getInvoiceExtraAvailable($extraAvailable, $srjDoc, $code, $refNoAcak);
+                $available = (float) ($stat['remain_qty_kecil'] ?? $stat['source_qty_kecil'] ?? 0) + $extra;
+                if ($stat !== null && ($srjUsage[$key] - $available) > $tolerance) {
+                    $prodName = $stat['product_name'] ?? ($product->fprdname ?? $code);
+                    $errors->add("fqty.$i", "Qty item {$prodName} melebihi sisa referensi SRJ ({$srjDoc}).");
+                }
+            } elseif ($soDoc !== '') {
+                $key = $this->buildReferenceUsageKey($soDoc, $code, $refNoAcak);
+                $soUsage[$key] = ($soUsage[$key] ?? 0) + $qtyKecil;
+                $stat = $this->findInvoiceReferenceStat($soStats, $soDoc, $code, $refNoAcak);
+                $extra = $this->getInvoiceExtraAvailable($extraAvailable, $soDoc, $code, $refNoAcak);
+                $available = (float) ($stat['remain_qty_kecil'] ?? $stat['source_qty_kecil'] ?? 0) + $extra;
+                if ($stat !== null && ($soUsage[$key] - $available) > $tolerance) {
+                    $prodName = $stat['product_name'] ?? ($product->fprdname ?? $code);
+                    $errors->add("fqty.$i", "Qty item {$prodName} melebihi sisa referensi SO ({$soDoc}).");
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    private function validateSourcePriceForRows(
+        array $codes,
+        array $prices,
+        array $refSos,
+        array $refSrjs,
+        array $refDtNos = [],
+        array $refNoAcaks = []
+    ): \Illuminate\Support\MessageBag {
+        $errors = new \Illuminate\Support\MessageBag;
+        $tolerance = 0.01;
+
+        $cleanCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $codes))));
+        if (empty($cleanCodes)) {
+            return $errors;
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', $cleanCodes)
+            ->pluck('fprdname', 'fprdcode');
+
+        $soDocs = [];
+        $srjDocs = [];
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            if ($code === '' || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentSo($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            if ($srjDoc !== '') {
+                $srjDocs[] = $srjDoc;
+            } elseif ($soDoc !== '') {
+                $soDocs[] = $soDoc;
+            }
+        }
+
+        $soDocs = array_values(array_unique(array_filter($soDocs)));
+        $srjDocs = array_values(array_unique(array_filter($srjDocs)));
+
+        $soStats = empty($soDocs) ? [] : $this->getInvoiceReferenceStats('SO', $soDocs);
+        $srjStats = empty($srjDocs) ? [] : $this->getInvoiceReferenceStats('SRJ', $srjDocs);
+
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim((string) ($codeRaw ?? ''));
+            $inputPrice = (float) ($prices[$i] ?? 0);
+            if ($code === '' || str_starts_with(strtoupper($code), 'UM')) {
+                continue;
+            }
+
+            $soDoc = trim((string) ($refSos[$i] ?? ''));
+            $srjDoc = trim((string) ($refSrjs[$i] ?? ''));
+            $refDtNo = trim((string) ($refDtNos[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($refNoAcaks[$i] ?? null) ?? '';
+
+            if ($srjDoc === '' && $this->isDocumentSrj($refDtNo)) {
+                $srjDoc = $refDtNo;
+            } elseif ($soDoc === '' && ($this->isDocumentSo($refDtNo) || (!str_starts_with($refDtNo, 'SRJ') && $refDtNo !== ''))) {
+                $soDoc = $refDtNo;
+            }
+
+            $maxPrice = null;
+            $refType = '';
+            $refDoc = '';
+            if ($srjDoc !== '') {
+                $stat = $this->findInvoiceReferenceStat($srjStats, $srjDoc, $code, $refNoAcak);
+                if ($stat) {
+                    $maxPrice = (float) ($stat['source_price'] ?? 0);
+                    $refType = 'SRJ';
+                    $refDoc = $srjDoc;
+                }
+            } elseif ($soDoc !== '') {
+                $stat = $this->findInvoiceReferenceStat($soStats, $soDoc, $code, $refNoAcak);
+                if ($stat) {
+                    $maxPrice = (float) ($stat['source_price'] ?? 0);
+                    $refType = 'SO';
+                    $refDoc = $soDoc;
+                }
+            }
+
+            if ($maxPrice !== null && $maxPrice > 0 && $inputPrice > $maxPrice + $tolerance) {
+                $formattedMax = number_format($maxPrice, 2, ',', '.');
+                $prodName = $products[$code] ?? $code;
+                $errors->add("fprice.$i", "Harga item {$prodName} melebihi harga referensi {$refType} ({$refDoc}). Maksimal {$formattedMax}.");
+            }
+        }
+
+        return $errors;
+    }
+
     public function priceInfo(Request $request)
     {
         $data = $request->validate([
@@ -1691,6 +1966,34 @@ class InvoiceController extends Controller
                 return response()->json(['message' => $umValidation], 422);
             }
             return back()->withInput()->with('error', $umValidation);
+        }
+
+        $errors = $this->validateSourceRemainForRows(
+            $itemCodes,
+            $qtys,
+            $satuans,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks
+        );
+        $priceErrors = $this->validateSourcePriceForRows(
+            $itemCodes,
+            $prices,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks
+        );
+        if ($priceErrors->any()) {
+            $errors->merge($priceErrors);
+        }
+        if ($errors->any()) {
+            $firstMessage = $errors->first();
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstMessage, 'errors' => $errors->toArray()], 422);
+            }
+            return back()->withInput()->with('error', $firstMessage)->withErrors($errors);
         }
 
         $productCodes = collect($itemCodes)
@@ -2401,6 +2704,7 @@ class InvoiceController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
+                    MAX(COALESCE(d.fprice, 0)) as source_price,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
@@ -2418,6 +2722,7 @@ class InvoiceController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
+                    MAX(COALESCE(d.fprice, 0)) as source_price,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
@@ -2436,6 +2741,7 @@ class InvoiceController extends Controller
                 'product_code' => trim((string) ($row->product_code ?? '')),
                 'product_name' => trim((string) ($row->product_name ?? '')),
                 'source_unit' => trim((string) ($row->source_unit ?? '')),
+                'source_price' => (float) ($row->source_price ?? 0),
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
                 'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? $row->source_qty_kecil ?? 0),
@@ -2553,13 +2859,22 @@ class InvoiceController extends Controller
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trandt.fprdcode')
                 ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
+                ->leftJoin('trsodt as so_dt', function ($join) {
+                    $join->on('so_dt.fsono', '=', 'trandt.frefso')
+                        ->on('so_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
                 ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtno', '=', 'trandt.frefsrj')
+                ->leftJoin('trstockdt as sj_dt', function ($join) {
+                    $join->on('sj_dt.fstockmtno', '=', 'trandt.frefsrj')
+                        ->on('sj_dt.fprdcode', '=', 'trandt.fprdcode');
+                })
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
                     'msprd.fprdname',
                     'so_hdr.fsono as fsono_ref',
-                    'sj_hdr.fstockmtno as fstockno_ref'
+                    'sj_hdr.fstockmtno as fstockno_ref',
+                    DB::raw("COALESCE(sj_dt.fprice, so_dt.fprice, trandt.fprice) as ref_price")
                 )
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->where(function ($q) use ($ftranmtid) {
@@ -2616,6 +2931,7 @@ class InvoiceController extends Controller
 
             $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
             $maxqty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($summary['fqtysisa_ref'] ?? 0));
+            $refPrice = (float) ($d->ref_price ?? $d->fprice ?? 0);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -2633,6 +2949,9 @@ class InvoiceController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
+                'ref_price' => $refPrice,
+                'maxprice' => $refPrice,
+                'source_price' => $refPrice,
                 'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
@@ -2642,6 +2961,7 @@ class InvoiceController extends Controller
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyremain' => $maxqty,
                 'maxqty' => $maxqty,
+                'maxqty_unit' => '',
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
                 'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
@@ -2956,6 +3276,35 @@ class InvoiceController extends Controller
                 return response()->json(['message' => $umValidation], 422);
             }
             return back()->withInput()->with('error', $umValidation);
+        }
+
+        $errors = $this->validateSourceRemainForRows(
+            $itemCodes,
+            $qtys,
+            $satuans,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks,
+            $header->fsono
+        );
+        $priceErrors = $this->validateSourcePriceForRows(
+            $itemCodes,
+            $prices,
+            $frefso,
+            $frefsrj,
+            $frefdtno,
+            $frefnoacaks
+        );
+        if ($priceErrors->any()) {
+            $errors->merge($priceErrors);
+        }
+        if ($errors->any()) {
+            $firstMessage = $errors->first();
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $firstMessage, 'errors' => $errors->toArray()], 422);
+            }
+            return back()->withInput()->with('error', $firstMessage)->withErrors($errors);
         }
 
         $productCodes = collect($itemCodes)

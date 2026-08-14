@@ -228,12 +228,16 @@
                 'fqty' => (float) ($oldInvoiceQtys[$index] ?? 0),
                 'fterima' => (float) ($oldInvoiceTerimas[$index] ?? 0),
                 'fprice' => $price,
+                'ref_price' => (float) (old('fref_price', [])[$index] ?? $price),
+                'maxprice' => (float) (old('fmaxprice', [])[$index] ?? $price),
+                'source_price' => (float) (old('fsource_price', [])[$index] ?? $price),
                 'fpriceInput' => number_format($price, 2, ',', '.'),
                 'fdisc' => $oldInvoiceDiscs[$index] ?? 0,
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
                 'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? ($oldInvoiceQtys[$index] ?? 0))),
+                'maxqty_unit' => 'kecil',
             ];
         }
 
@@ -581,7 +585,7 @@
                                                 <template x-if="it.units && it.units.length > 1">
                                                     <select
                                                         class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                        x-model="it.fsatuan" @change="applyInvoicePrice(it); onRowUpdated(i)">
+                                                        x-model="it.fsatuan" @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" :selected="u === it.fsatuan"
                                                                 x-text="u"></option>
@@ -629,6 +633,8 @@
                                                     :value="it.fqty">
                                                 <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
                                                     :value="it.maxqty">
+                                                <input type="hidden" :name="`fref_price[${it.formIndex}]`"
+                                                    :value="it.ref_price || it.maxprice || it.source_price || 0">
                                                 <input type="hidden" :name="`fterima[${it.formIndex}]`"
                                                     :value="it.fterima">
                                                 <input type="hidden" :name="`fprice[${it.formIndex}]`"
@@ -1400,7 +1406,7 @@
                                                             <select
                                                                 class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                                 :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                                @change="applyInvoicePrice(it); onRowUpdated(i)"
+                                                                @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)"
                                                                 @keydown.enter.prevent="focusRowQty(i)"
                                                                 {{ $action === 'view' ? 'disabled' : '' }}>
                                                                 <template x-for="u in it.units" :key="u">
@@ -1518,6 +1524,8 @@
                                                 :value="it.ftotal">
                                             <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
                                                 :value="it.maxqty">
+                                            <input type="hidden" :name="`fref_price[${it.formIndex}]`"
+                                                :value="it.ref_price || it.maxprice || it.source_price || 0">
                                             <input type="hidden" :name="`fdesc[${it.formIndex}]`"
                                                 :value="it.fdesc">
                                             <input type="hidden" :name="`fketdt[${it.formIndex}]`"
@@ -3028,9 +3036,7 @@
                 return ratio > 0 ? qty / ratio : qty;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                // On Invoice Edit: do not show/compute stock/max qty limit.
-                // Qty limiting is handled only by reference max qty validation (if present on the row).
+            formatStockLimit(row) {
                 return '';
             },
 
@@ -3102,7 +3108,8 @@
 
             validateReferenceQty(row, showToast = true) {
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
-                    String(row?.frefsrj ?? '').trim() !== '';
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
                 if (!hasRef) return true;
 
                 const limit = this.getRowQtyLimit(row);
@@ -3122,14 +3129,36 @@
             },
 
             enforceQtyRow(row) {
-                const n = +row.fqty;
+                let n = +row.fqty;
 
                 if (!Number.isFinite(n)) {
                     row.fqty = 0;
                     return;
                 }
-                if (n < 0) row.fqty = 0;
+                if (n < 0) {
+                    row.fqty = 0;
+                    return;
+                }
 
+                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
+                if (hasRef) {
+                    const limit = this.getRowQtyLimit(row);
+                    if (limit > 0 && n > limit) {
+                        row.fqty = limit;
+                        const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
+                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : 'referensi') : 'SO';
+                        const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        } else {
+                            window.toast?.error(message);
+                        }
+                    }
+                }
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -3356,6 +3385,9 @@
                         so_qty: source === 'SO' ? displayQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
+                        ref_price: Number(src.fprice ?? src.fharga ?? 0),
+                        maxprice: Number(src.fprice ?? src.fharga ?? 0),
+                        source_price: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
