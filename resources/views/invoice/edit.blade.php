@@ -3148,7 +3148,7 @@
                     if (limit > 0 && n > limit) {
                         row.fqty = limit;
                         const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
-                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : 'referensi') : 'SO';
+                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
                         const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
                         if (typeof window.showAppWarningAlert === 'function') {
                             window.showAppWarningAlert('WARNING', message);
@@ -3692,8 +3692,15 @@
                 if (this.historyTargetRow && row) {
                     this.historyTargetRow.frefdtno = row.fsono || row.fstockmtno || '';
                     this.historyTargetRow.frefno_display = row.fsono || row.fstockmtno || '';
+                    const refQtyVal = Number(row.fqtyremain ?? row.maxqty ?? row.faktur_qty ?? row.qty_faktur ?? row.fqty ?? 0);
+                    if (refQtyVal > 0) {
+                        this.historyTargetRow.maxqty = refQtyVal;
+                        this.historyTargetRow.ref_qty = refQtyVal;
+                        this.historyTargetRow.source_qty = refQtyVal;
+                        this.historyTargetRow.qty_asal = Number(row.qty_asal ?? refQtyVal);
+                    }
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
-                        this.historyTargetRow.fqty = +row.fqty;
+                        this.historyTargetRow.fqty = Math.min(+row.fqty, refQtyVal > 0 ? refQtyVal : +row.fqty);
                     }
                     const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                     if (priceVal !== null && priceVal >= 0) {

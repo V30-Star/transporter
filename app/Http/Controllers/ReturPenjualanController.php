@@ -508,28 +508,43 @@ class ReturPenjualanController extends Controller
         }
 
         if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
-            $rows = DB::table('trsisadp_penjualan')
-                ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
-                ->where('fsisadp', '>', 0)
-                ->orderByDesc('fsodate')
-                ->orderByDesc('fsono')
+            $rows = DB::table('trsisadp_penjualan as s')
+                ->leftJoin('trandt as d', function ($j) {
+                    $j->on('d.fsono', '=', 's.fsono')
+                      ->where('d.fprdcode', '=', 'UM');
+                })
+                ->whereRaw('TRIM(COALESCE(s.fcustno, \'\')) = ?', [$customerCode])
+                ->where('s.fsisadp', '>', 0)
+                ->orderByDesc('s.fsodate')
+                ->orderByDesc('s.fsono')
+                ->select(
+                    's.*',
+                    'd.ftrandtid as detail_id',
+                    DB::raw('COALESCE(d.fqty, 1) as ref_qty'),
+                    DB::raw('COALESCE(d.fqtyremain, d.fqty, 1) as remain_qty'),
+                    DB::raw("COALESCE(d.fsatuan, 'PCS') as ref_satuan"),
+                    DB::raw("COALESCE(d.fnoacak::text, '') as ref_noacak")
+                )
                 ->get();
 
             return response()->json([
                 'data' => $rows->map(function ($row) {
+                    $docQty = (float) ($row->remain_qty ?? $row->ref_qty ?? 1);
                     return [
                         'fsono' => (string) ($row->fsono ?? ''),
                         'fsodate' => ! empty($row->fsodate)
                             ? Carbon::parse($row->fsodate)->format('d/m/Y')
                             : '-',
                         'fcustomername' => (string) ($row->fcustomername ?? ''),
-                        'fqty' => 1,
+                        'fqty' => $docQty,
                         'frefdtno' => (string) ($row->fsono ?? ''),
-                        'frefnoacak' => '',
-                        'faktur_qty' => 1,
-                        'qty_faktur' => 1,
-                        'qty_asal' => 1,
-                        'fsatuan' => 'PCS',
+                        'frefnoacak' => trim((string) ($row->ref_noacak ?? '')),
+                        'faktur_qty' => $docQty,
+                        'qty_faktur' => $docQty,
+                        'qty_asal' => (float) ($row->ref_qty ?? 1),
+                        'fqtyremain' => $docQty,
+                        'maxqty' => $docQty,
+                        'fsatuan' => (string) ($row->ref_satuan ?? 'PCS'),
                         'fprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
                         'famount' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
                         'ftotprice' => (float) ($row->fsisadp ?? $row->famountsonet ?? 0),
@@ -953,9 +968,81 @@ class ReturPenjualanController extends Controller
                     if ($inputPrice - $maxAllowed > 0.0001) {
                         $formattedInput = number_format($inputPrice, 2, ',', '.');
                         $formattedMax = number_format($maxAllowed, 2, ',', '.');
-                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refno} (Rp {$formattedMax}).";
+                        $refType = str_starts_with(strtoupper($refno), 'RUJ') ? 'RUJ' : 'UMJ';
+                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refType} {$refno} (Rp {$formattedMax}).";
                     }
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private function validateAdvancePaymentQtyAgainstReference(
+        array $codes,
+        array $frefsrj,
+        array $frefso,
+        array $frefdtno,
+        array $qtys,
+        string $customerCode,
+        ?string $exceptFsono = null
+    ): ?string {
+        $customerCode = trim($customerCode);
+        $usageByRef = [];
+
+        foreach ($codes as $i => $code) {
+            $c = trim((string) $code);
+            if (! str_starts_with(strtoupper($c), 'UM')) {
+                continue;
+            }
+
+            $refno = trim((string) ($frefsrj[$i] ?? $frefso[$i] ?? $frefdtno[$i] ?? ''));
+            if ($refno === '') {
+                continue;
+            }
+
+            $inputQty = abs((float) ($qtys[$i] ?? 0));
+            $usageByRef[$refno] = ($usageByRef[$refno] ?? 0.0) + $inputQty;
+        }
+
+        foreach ($usageByRef as $refno => $totalInputQty) {
+            $refDetail = DB::table('trandt')
+                ->whereRaw('TRIM(fsono) = ?', [$refno])
+                ->where('fprdcode', 'UM')
+                ->first();
+
+            $maxQty = null;
+            if ($refDetail) {
+                $maxQty = (float) ($refDetail->fqtyremain ?? $refDetail->fqty ?? 0);
+            } else {
+                $dp = DB::table('trsisadp_penjualan')
+                    ->whereRaw('TRIM(fsono) = ?', [$refno])
+                    ->first();
+                if ($dp) {
+                    $maxQty = 1.0;
+                }
+            }
+
+            if (! empty($exceptFsono)) {
+                $existingUsage = (float) DB::table('trandt')
+                    ->where('fsono', $exceptFsono)
+                    ->where('fprdcode', 'UM')
+                    ->where(function ($q) use ($refno) {
+                        $q->whereRaw('TRIM(frefsrj) = ?', [$refno])
+                          ->orWhereRaw('TRIM(frefso) = ?', [$refno])
+                          ->orWhereRaw('TRIM(frefdtno) = ?', [$refno]);
+                    })
+                    ->sum('fqty');
+                if ($maxQty !== null) {
+                    $maxQty += $existingUsage;
+                }
+            }
+
+            if ($maxQty !== null && $maxQty > 0 && ($totalInputQty - $maxQty > 0.00001)) {
+                $formattedInput = number_format($totalInputQty, 2, ',', '.');
+                $formattedMax = number_format($maxQty, 2, ',', '.');
+                $refType = str_starts_with(strtoupper($refno), 'RUJ') ? 'RUJ' : 'UMJ';
+                return "Qty Uang Muka ({$formattedInput}) tidak boleh melebihi sisa qty pada referensi {$refType} {$refno} (Maksimal {$formattedMax}).";
             }
         }
 
@@ -1418,11 +1505,18 @@ class ReturPenjualanController extends Controller
             $frefnoacaks
         );
 
-        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
+        if ($umPriceValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => $umValidation], 422);
+                return response()->json(['message' => $umPriceValidation], 422);
             }
-            return back()->withInput()->with('error', $umValidation);
+            return back()->withInput()->with('error', $umPriceValidation);
+        }
+
+        if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $qtys, (string) $request->input('fcustno'))) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umQtyValidation], 422);
+            }
+            return back()->withInput()->with('error', $umQtyValidation);
         }
 
         $priceErrors = $this->validateSourcePriceForRows(
@@ -2445,6 +2539,21 @@ class ReturPenjualanController extends Controller
             $maxqty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($summary['fqtysisa_ref'] ?? 0));
             $refPrice = (float) ($d->ref_price ?? $d->fprice ?? 0);
 
+            $detailRef = $valSrj !== '' ? $valSrj : ($valSo !== '' ? $valSo : trim((string) ($d->frefdtno ?? '')));
+            if (str_starts_with(strtoupper(trim($d->fitemcode ?? '')), 'UM') && $detailRef !== '') {
+                $refDetail = DB::table('trandt')->whereRaw('TRIM(fsono) = ?', [$detailRef])->where('fprdcode', 'UM')->first();
+                if ($refDetail) {
+                    $maxqty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($refDetail->fqtyremain ?? 0));
+                    $refPrice = (float) ($refDetail->fprice ?? $refPrice);
+                } else {
+                    $dp = DB::table('trsisadp_penjualan')->whereRaw('TRIM(fsono) = ?', [$detailRef])->first();
+                    if ($dp) {
+                        $maxqty = max(0.0, (float) ($d->fqty ?? 0) + 1.0);
+                        $refPrice = (float) ($dp->fsisadp ?? $dp->famountsonet ?? $refPrice);
+                    }
+                }
+            }
+
             return [
                 'uid' => $d->ftrandtid,
                 'fitemcode' => (string) ($d->fitemcode ?? ''),
@@ -2791,11 +2900,18 @@ class ReturPenjualanController extends Controller
             $frefnoacaks
         );
 
-        if ($umValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
+        if ($umPriceValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => $umValidation], 422);
+                return response()->json(['message' => $umPriceValidation], 422);
             }
-            return back()->withInput()->with('error', $umValidation);
+            return back()->withInput()->with('error', $umPriceValidation);
+        }
+
+        if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $qtys, (string) $request->input('fcustno'), $returpenjualan->fsono)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $umQtyValidation], 422);
+            }
+            return back()->withInput()->with('error', $umQtyValidation);
         }
 
         $priceErrors = $this->validateSourcePriceForRows(

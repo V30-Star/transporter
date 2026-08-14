@@ -3301,9 +3301,9 @@
             },
 
             validateReferenceQty(row, showToast = true) {
-                if (String(row?.fitemcode || '').toUpperCase().trim() === 'UM') return true;
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
-                    String(row?.frefsrj ?? '').trim() !== '';
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
                 if (!hasRef) return true;
 
                 const limit = this.getRowReferenceQty(row);
@@ -3315,8 +3315,18 @@
                 const qty = this.parseQtyValue(row?.fqty ?? 0);
                 row.qtyInvalid = !Number.isFinite(qty) || qty <= 0 || qty > limit;
                 if (qty > limit) {
-                    if (showToast) window.toast?.error(
-                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
+                    const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
+                    const message = `Qty melebihi sisa ${refLabel}. Maksimal ${limit} ${row.fsatuan || ''}`.trim();
+                    if (showToast) {
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        } else {
+                            window.toast?.error(message);
+                        }
+                    }
                     return false;
                 }
 
@@ -3338,14 +3348,23 @@
 
                 // Enforce reference limit validation
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
-                    String(row?.frefsrj ?? '').trim() !== '';
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
                 if (hasRef) {
                     const limit = this.getRowReferenceQty(row);
                     if (limit > 0 && n > limit) {
                         row.fqty = limit;
                         row.qtyInvalid = false;
-                        window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`
-                        .trim());
+                        const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
+                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
+                        const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        } else {
+                            window.toast?.error(message);
+                        }
                     }
                 }
             },
@@ -3728,12 +3747,10 @@
                         return false;
                     }
 
-                    if (String(row?.fitemcode || '').toUpperCase().trim() === 'UM') continue;
-
                     const returnQty = this.parseQtyValue(row.fqty ?? row.qty ?? 0);
                     const refQty = this.getRowReferenceQty(row);
                     console.log({ returnQty, refQty, rowData: row });
-                    if (refQty <= 0) {
+                    if (refQty <= 0 && String(row?.fitemcode || '').toUpperCase().trim() !== 'UM') {
                         row.qtyInvalid = true;
                         this.focusRowQty(this.savedItems.indexOf(row));
                         Swal.fire({
@@ -3868,10 +3885,14 @@
                     this.historyTargetRow.frefdtno = row.frefdtno || row.fsono || '';
                     this.historyTargetRow.frefsrj = isUM ? (row.fsono || '') : '';
                     this.historyTargetRow.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak ?? '');
-                    this.historyTargetRow.ref_qty = this.parseQtyValue(row.faktur_qty ?? row.qty_faktur ?? row.qty_asal ?? row.fqty ?? 0);
-                    this.historyTargetRow.faktur_qty = this.historyTargetRow.ref_qty;
+                    const refQtyVal = Number(row.fqtyremain ?? row.maxqty ?? row.faktur_qty ?? row.qty_faktur ?? row.qty_asal ?? row.fqty ?? 0);
+                    this.historyTargetRow.ref_qty = refQtyVal;
+                    this.historyTargetRow.maxqty = refQtyVal;
+                    this.historyTargetRow.source_qty = refQtyVal;
+                    this.historyTargetRow.faktur_qty = refQtyVal;
+                    this.historyTargetRow.qty_asal = Number(row.qty_asal ?? refQtyVal);
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
-                        this.historyTargetRow.fqty = +row.fqty;
+                        this.historyTargetRow.fqty = Math.min(+row.fqty, refQtyVal > 0 ? refQtyVal : +row.fqty);
                     }
                     const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                     if (priceVal !== null && priceVal >= 0) {
