@@ -1900,9 +1900,10 @@ class InvoiceController extends Controller
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
         $frate = (float) $request->input('frate', 1);
+        $fcustno = trim((string) $request->input('fcustno', ''));
         $fkodefp = trim((string) $request->input('fkodefp', ''));
         if ($fkodefp === '') {
-            $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
+            $fkodefp = (string) ($this->getCustomerTaxCode($fcustno) ?? '');
         }
 
         // 3. PROSES DETAIL (ARRAY)
@@ -3210,9 +3211,10 @@ class InvoiceController extends Controller
         $defaultPpnTarif = $this->getDefaultPpnTarif();
         $rawPpnPersen = (float) $request->input('fppnpersen', $defaultPpnTarif);
         $ppnPersen = ($fapplyppn === '1') ? ($rawPpnPersen > 0 ? $rawPpnPersen : $defaultPpnTarif) : 0.0;
+        $fcustno = trim((string) $request->input('fcustno', ''));
         $fkodefp = trim((string) $request->input('fkodefp', ''));
         if ($fkodefp === '') {
-            $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
+            $fkodefp = (string) ($this->getCustomerTaxCode($fcustno) ?? '');
         }
 
         $itemCodes = $request->input('fitemcode', []);
