@@ -545,25 +545,17 @@
                                                 </template>
                                             </td>
                                             <td class="p-2">
-                                                <template x-if="String(it.fitemcode || '').toUpperCase().trim() === 'UM'">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
-                                                        :value="it.frefsrj || ''"
-                                                        placeholder="Auto No Ref UM" disabled>
-                                                </template>
-                                                <template x-if="String(it.fitemcode || '').toUpperCase().trim() !== 'UM'">
-                                                    <div class="flex w-full max-w-full">
-                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
-                                                        <button type="button" @click="openProductHistory(it)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                            :disabled="!canOpenHistory(it)"
-                                                            :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                            title="Riwayat produk">
-                                                            <x-heroicon-o-clock class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </template>
+                                                 <div class="flex w-full max-w-full">
+                                                     <input type="text"
+                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
+                                                         :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '')"
+                                                         placeholder="No Ref" disabled>
+                                                     <button type="button" @click="openProductHistory(it)"
+                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                         title="Riwayat produk / Uang Muka">
+                                                         <x-heroicon-o-clock class="w-4 h-4" />
+                                                     </button>
+                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number"
@@ -579,13 +571,13 @@
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                                    :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                    :disabled="true" @focus="focusPriceInput(it)"
-                                                    @input="onPriceInput(it); onRowUpdated(i)"
-                                                    @blur="blurPriceInput(it); onRowUpdated(i)"
-                                                    @keydown.enter.prevent="onRowUpdated(i)">
+                                                 <input type="text" inputmode="decimal"
+                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                     :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                     @focus="focusPriceInput(it); $event.target.select()"
+                                                     @input="onPriceInput(it); onRowUpdated(i)"
+                                                     @blur="blurPriceInput(it); onRowUpdated(i)"
+                                                     @keydown.enter.prevent="onRowUpdated(i)">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotal)"></div>
@@ -2152,23 +2144,36 @@
                 return this.fmt(value);
             },
 
-            sanitizePriceValue(value) {
-                let str = (value ?? '').toString().trim();
-                if (str === '') return '';
-                if (str.includes(',')) {
-                    str = str.replace(/\./g, '').replace(',', '.');
+            parseMoney(val) {
+                if (val === null || val === undefined || val === '') return 0;
+                let str = val.toString().trim();
+                if (str.includes('.') && str.includes(',')) {
+                    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                        str = str.replace(/,/g, '');
+                    } else {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                } else if (str.includes(',')) {
+                    str = str.replace(',', '.');
+                } else if (str.includes('.')) {
+                    const parts = str.split('.');
+                    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                        str = parts.join('');
+                    }
                 }
-                const raw = str.replace(/[^0-9.]/g, '');
-                const parts = raw.split('.');
-                if (parts.length <= 1) return raw;
-                return `${parts.shift()}.${parts.join('')}`;
+                const num = Number(str.replace(/[^0-9.-]+/g, ''));
+                return Number.isFinite(num) ? num : 0;
+            },
+
+            sanitizePriceValue(value) {
+                return this.parseMoney(value);
             },
 
             hasNonUMProducts() {
                 const activeRows = [...(this.savedItems || [])];
                 return activeRows.some(row => {
                     const code = (row?.fitemcode || '').toString().trim().toUpperCase();
-                    return code !== '' && code !== 'UM';
+                    return code !== '' && !code.startsWith('UM');
                 });
             },
 
@@ -2178,19 +2183,44 @@
             },
 
             onPriceInput(row) {
-                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                const absPrice = Math.abs(+(row.fpriceInput || 0));
-                const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput));
+                const isUM = (row.fitemcode || '').toString().trim().toUpperCase().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
+                this.recalc(row);
+                this.recalcTotals();
             },
 
             blurPriceInput(row) {
-                const absPrice = Math.abs(+(this.sanitizePriceValue(row.fpriceInput) || 0));
-                const isUM = (row.fitemcode || '').toString().trim().toUpperCase() === 'UM';
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice));
+                const isUM = (row.fitemcode || '').toString().trim().toUpperCase().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
+                this.recalc(row);
+                this.recalcTotals();
             },
 
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
@@ -2509,7 +2539,7 @@
 
             applyOutstandingDpRef(row) {
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                if (productCode !== 'UM') return;
+                if (!productCode.startsWith('UM')) return;
 
                 const customerCode = this.getSelectedCustomerCode();
                 if (!customerCode) return;
@@ -2517,8 +2547,17 @@
                 const documents = window.RP_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
                 const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
                 row.frefsrj = doc ? doc.fsono : '';
+                row.frefdtno = doc ? doc.fsono : '';
+                row.frefpr = doc ? doc.fsono : '';
+                row.frefso = doc ? doc.fsono : '';
+                row.frefcode = 'UM';
                 if (doc) {
-                    row.fprice = Math.abs(Number(doc.fsisadp || 0));
+                    const price = Math.abs(Number(doc.fsisadp || 0));
+                    row.ref_price = price;
+                    row.maxprice = price;
+                    row.source_price = price;
+                    row.fsisadp = price;
+                    row.fprice = price;
                     row.fpriceInput = this.fmt(row.fprice);
                     this.recalc(row);
                 }
@@ -2954,20 +2993,28 @@
             },
             selectHistory(row) {
                 if (this.historyTargetRow && row) {
+                    const isUM = (this.historyTargetRow?.fitemcode || '').toString().trim().toUpperCase().startsWith('UM');
                     this.historyTargetRow.frefpr = row.fsono || '';
                     this.historyTargetRow.frefso = row.fsono || '';
-                    this.historyTargetRow.frefcode = 'INV';
-                    this.historyTargetRow.frefdtno = row.frefdtno || '';
+                    this.historyTargetRow.frefcode = isUM ? 'UM' : 'INV';
+                    this.historyTargetRow.frefdtno = row.frefdtno || row.fsono || '';
+                    this.historyTargetRow.frefsrj = isUM ? (row.fsono || '') : '';
                     this.historyTargetRow.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak ?? '');
                     this.historyTargetRow.ref_qty = this.parseQtyValue(row.faktur_qty ?? row.qty_faktur ?? row.qty_asal ?? row.fqty ?? 0);
                     this.historyTargetRow.faktur_qty = this.historyTargetRow.ref_qty;
                     if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
                         this.historyTargetRow.fqty = +row.fqty;
                     }
-                    if (typeof row.fprice !== 'undefined' && +row.fprice >= 0) {
-                        this.historyTargetRow.fprice = +row.fprice;
+                    const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
+                    if (priceVal !== null && priceVal >= 0) {
+                        const absPrice = Math.abs(priceVal);
+                        this.historyTargetRow.ref_price = absPrice;
+                        this.historyTargetRow.maxprice = absPrice;
+                        this.historyTargetRow.source_price = absPrice;
+                        this.historyTargetRow.fsisadp = Number(row.fsisadp ?? absPrice);
+                        this.historyTargetRow.fprice = absPrice;
                         if (typeof this.historyTargetRow.fpriceInput !== 'undefined') {
-                            this.historyTargetRow.fpriceInput = this.fmt(+row.fprice);
+                            this.historyTargetRow.fpriceInput = this.fmt(absPrice);
                         }
                     }
                     if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
@@ -2977,6 +3024,8 @@
                     if (targetIndex !== -1) {
                         this.onRowUpdated(targetIndex);
                     }
+                    this.recalc?.(this.historyTargetRow);
+                    this.recalcTotals?.();
                 }
                 this.closeHistory();
             },
@@ -3054,7 +3103,7 @@
             async fetchProductPriceHistory(row, index = null) {
                 const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
                 const productCode = (row?.fitemcode || '').toString().trim();
-                if (!customerCode || !productCode) return;
+                if (!customerCode || !productCode || String(productCode).toUpperCase().startsWith('UM')) return;
                 if (row.frefsrj || row.frefso || row.frefcode === 'SRJ' || row.frefcode === 'INV') return;
 
                 try {
