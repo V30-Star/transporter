@@ -1623,34 +1623,70 @@
                 this.recalcTotals();
             },
 
-            sanitizePriceValue(value) {
-                let str = (value ?? '').toString().trim();
-                if (str === '') return '';
-                if (str.includes(',')) {
-                    str = str.replace(/\./g, '').replace(',', '.');
+            parseMoney(val) {
+                if (val === null || val === undefined || val === '') return 0;
+                let str = val.toString().trim();
+                if (str.includes('.') && str.includes(',')) {
+                    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                        str = str.replace(/,/g, '');
+                    } else {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                } else if (str.includes(',')) {
+                    str = str.replace(',', '.');
+                } else if (str.includes('.')) {
+                    const parts = str.split('.');
+                    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                        str = parts.join('');
+                    }
                 }
-                const raw = str.replace(/[^0-9.]/g, '');
-                const parts = raw.split('.');
-                if (parts.length <= 1) return raw;
-                return `${parts.shift()}.${parts.join('')}`;
+                const num = Number(str.replace(/[^0-9.-]+/g, ''));
+                return Number.isFinite(num) ? num : 0;
+            },
+
+            sanitizePriceValue(value) {
+                return this.parseMoney(value);
             },
 
             onPriceInput(row) {
-                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
-                const absPrice = Math.abs(+(row.fpriceInput || 0));
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput));
                 const isUM = this.isUMCode(row?.fitemcode);
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 this.recalc(row);
+                this.recalcTotals();
             },
 
             blurPriceInput(row) {
-                const absPrice = Math.abs(+(this.sanitizePriceValue(row.fpriceInput) || 0));
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice));
                 const isUM = this.isUMCode(row?.fitemcode);
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
                 const hasOther = this.hasNonUMProducts();
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
                 this.recalc(row);
+                this.recalcTotals();
             },
 
             recalcTotals() {
@@ -1752,7 +1788,12 @@
                 const doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
                 row.frefdtno = doc ? doc.fstockmtno : '';
                 if (doc) {
-                    row.fprice = Math.abs(Number(doc.fsisadp || 0));
+                    const price = Math.abs(Number(doc.fsisadp || 0));
+                    row.ref_price = price;
+                    row.maxprice = price;
+                    row.source_price = price;
+                    row.fsisadp = price;
+                    row.fprice = price;
                     row.fpriceInput = this.fmt(row.fprice);
                     this.recalc(row);
                 }
@@ -2011,9 +2052,14 @@
                     }
                     const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
                     if (priceVal !== null && priceVal >= 0) {
-                        this.historyTargetRow.fprice = priceVal;
+                        const absPrice = Math.abs(priceVal);
+                        this.historyTargetRow.ref_price = absPrice;
+                        this.historyTargetRow.maxprice = absPrice;
+                        this.historyTargetRow.source_price = absPrice;
+                        this.historyTargetRow.fsisadp = Number(row.fsisadp ?? absPrice);
+                        this.historyTargetRow.fprice = absPrice;
                         if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
-                            this.historyTargetRow.fpriceInput = this.fmt(priceVal);
+                            this.historyTargetRow.fpriceInput = this.fmt(absPrice);
                         }
                     }
                     if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {

@@ -606,6 +606,38 @@ class ReturPembelianController extends Controller
         return null;
     }
 
+    private function validateAdvancePaymentPriceAgainstReference(array $rowsDt, string $supplierCode): ?string
+    {
+        $supplierCode = trim($supplierCode);
+        foreach ($rowsDt as $row) {
+            $code = trim((string) ($row['fprdcode'] ?? ''));
+            if (! $this->isAdvancePaymentProductCode($code)) {
+                continue;
+            }
+
+            $refno = trim((string) ($row['frefdtno'] ?? ''));
+            $inputPrice = abs((float) ($row['fprice'] ?? 0));
+
+            if ($refno !== '') {
+                $dp = DB::table('trsisadp_pembelian')
+                    ->whereRaw('TRIM(fstockmtno) = ?', [$refno])
+                    ->when($supplierCode !== '', fn($q) => $q->whereRaw('TRIM(COALESCE(fsupplier, \'\')) = ?', [$supplierCode]))
+                    ->first();
+
+                if ($dp) {
+                    $maxAllowed = (float) ($dp->fsisadp ?? $dp->fsisadp_rp ?? $dp->famountmt ?? 0);
+                    if ($inputPrice - $maxAllowed > 0.0001) {
+                        $formattedInput = number_format($inputPrice, 2, ',', '.');
+                        $formattedMax = number_format($maxAllowed, 2, ',', '.');
+                        return "Harga Uang Muka (Rp {$formattedInput}) tidak boleh melebihi sisa Uang Muka pada referensi {$refno} (Rp {$formattedMax}).";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function productHistory(Request $request)
     {
         $supplierCode = trim((string) $request->input('fsupplier', ''));
@@ -1026,6 +1058,10 @@ class ReturPembelianController extends Controller
             }
 
             if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
+            if ($validationMessage = $this->validateAdvancePaymentPriceAgainstReference($rowsDt, (string) $fsupplier)) {
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
@@ -1669,6 +1705,10 @@ class ReturPembelianController extends Controller
             }
 
             if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
+            if ($validationMessage = $this->validateAdvancePaymentPriceAgainstReference($rowsDt, (string) $fsupplier)) {
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
