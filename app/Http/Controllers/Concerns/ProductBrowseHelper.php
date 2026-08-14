@@ -45,7 +45,6 @@ trait ProductBrowseHelper
                 'fminstock'
             )
                 ->whereRaw("COALESCE(TRIM(CAST(msprd.fnonactive AS TEXT)), '0') != '1'")
-                ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('', '0', '2')")
                 ->orderBy('fprdname')
                 ->get();
         });

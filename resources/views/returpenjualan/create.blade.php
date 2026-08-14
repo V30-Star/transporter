@@ -2067,7 +2067,7 @@
             },
 
             syncTransactionType() {
-                const selected = document.querySelector('select[name="ftypesales"]')?.value;
+                const selected = document.querySelector('select[name="ftypesales"]:not([disabled])')?.value ?? this.ftypesales;
                 if (selected !== undefined && selected !== null && selected !== '') {
                     this.ftypesales = Number(selected);
                 }
@@ -2639,7 +2639,7 @@
                 }
                 this.syncTransactionType();
                 const isUM = this.ftypesales !== 0;
-                if (isUM && typedCode !== '' && !typedCode.startsWith('UM')) {
+                if (isUM && typedCode !== '' && !typedCode.startsWith('UM') && !'UM'.startsWith(typedCode)) {
                     this.clearRow(row);
                     window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                     return;
@@ -2816,7 +2816,7 @@
                     this.enforceQtyRow(row);
                     const isUM = this.ftypesales !== 0;
                     const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                    if (isUM && code !== '' && !code.startsWith('UM')) {
+                    if (isUM && code !== '' && !code.startsWith('UM') && !'UM'.startsWith(code)) {
                         this.clearRow(row);
                     } else if (!isUM && code.startsWith('UM')) {
                         this.clearRow(row);

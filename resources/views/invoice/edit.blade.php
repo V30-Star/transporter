@@ -3192,7 +3192,7 @@
                     this.clearRow(row);
                     return;
                 }
-                if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM')) {
+                if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM') && !'UM'.startsWith(typedCode)) {
                     this.clearRow(row);
                     this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
                     return;

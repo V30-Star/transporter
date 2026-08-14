@@ -1395,7 +1395,7 @@
 
             onCodeTypedRow(row) {
                 const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
+                if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code) && !'UM'.startsWith(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
                     if (document.activeElement && document.activeElement.tagName === 'INPUT') {
                         document.activeElement.value = '';
                         document.activeElement.blur();

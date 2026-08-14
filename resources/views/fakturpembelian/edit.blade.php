@@ -1904,7 +1904,7 @@
                 selectedAccountCode: @json((string) $currentAccount),
                 selectedAccountId: @json((string) $currentAccountId),
                 isUangMuka() {
-                    const selectVal = (document.querySelector('select[name="ftypebuy"]')?.value || '').toString().trim();
+                    const selectVal = (document.querySelector('select[name="ftypebuy"]:not([disabled])')?.value || '').toString().trim();
                     const modelVal = (this.selectedType || '').toString().trim();
                     return selectVal === '2' || modelVal === '2';
                 },
@@ -2665,7 +2665,7 @@
                         this.clearRow(row);
                         return;
                     }
-                    if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM')) {
+                    if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM') && !'UM'.startsWith(typedCode)) {
                         this.clearRow(row);
                         const message = "Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.";
                         if (typeof window.showAppWarningAlert === 'function') {
@@ -2705,10 +2705,10 @@
                                 }
                                 return;
                             }
-                        } else {
+                        } else if (String(this.selectedType) !== '2') {
                             if (prodType === 'jasa') {
                                 this.clearRow(row);
-                                const typeName = String(this.selectedType) === '2' ? 'Uang Muka' : (String(this.selectedType) === '3' ? 'Lain-lain' : 'Stok');
+                                const typeName = String(this.selectedType) === '3' ? 'Lain-lain' : 'Stok';
                                 const message = `Tipe Pembelian: ${typeName}.\nProduk dengan tipe Jasa tidak boleh dipilih untuk tipe ini !!!`;
                                 if (typeof window.showAppWarningAlert === 'function') {
                                     window.showAppWarningAlert('Informasi', message);

@@ -391,7 +391,7 @@
                                 </div>
                                 <div class="w-1/2">
                                     <label class="block text-xs font-bold mb-1">Type</label>
-                                    <select disabled name="ftypesales" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                    <select disabled class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
                                         <option value="0" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 0 ? 'selected' : '' }}>Penjualan</option>
                                         <option value="1" {{ old('ftypesales', $returpenjualan->ftypesales ?? 0) == 1 ? 'selected' : '' }}>Uang Muka</option>
                                     </select>
@@ -2963,7 +2963,7 @@
             },
 
             syncTransactionType() {
-                const selected = document.querySelector('select[name="ftypesales"]')?.value;
+                const selected = document.querySelector('select[name="ftypesales"]:not([disabled])')?.value ?? this.ftypesales;
                 if (selected !== undefined && selected !== null && selected !== '') {
                     this.ftypesales = Number(selected);
                 }
@@ -3470,7 +3470,7 @@
                 }
                 this.syncTransactionType();
                 const isUM = this.ftypesales !== 0;
-                if (isUM && typedCode !== '' && !typedCode.startsWith('UM')) {
+                if (isUM && typedCode !== '' && !typedCode.startsWith('UM') && !'UM'.startsWith(typedCode)) {
                     this.clearRow(row);
                     window.showAppWarningAlert('WARNING', 'Tipe Uang Muka hanya boleh menginput Uang Muka (UM).');
                     return;
@@ -3670,7 +3670,7 @@
                     this.enforceQtyRow(row);
                     const isUM = this.ftypesales !== 0;
                     const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                    if (isUM && code !== '' && !code.startsWith('UM')) {
+                    if (isUM && code !== '' && !code.startsWith('UM') && !'UM'.startsWith(code)) {
                         this.clearRow(row);
                     } else if (!isUM && code.startsWith('UM')) {
                         this.clearRow(row);

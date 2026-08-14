@@ -1812,7 +1812,7 @@
 
             onCodeTypedRow(row) {
                 const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
+                if (code !== '' && ((this.ftypebuy !== 0 && !this.isUMCode(code) && !'UM'.startsWith(code)) || (this.ftypebuy === 0 && this.isUMCode(code)))) {
                     window.showAppWarningAlert('WARNING', this.ftypebuy !== 0 ? 'Tipe Uang Muka hanya boleh menginput produk UM!' : 'Produk UM hanya untuk tipe Uang Muka!');
                     row.fitemcode = '';
                     row.fitemname = '';
