@@ -522,22 +522,24 @@ class InvoiceController extends Controller
             ->values()
             ->all();
 
-        if (empty($customerCodes)) {
-            return 0.0;
-        }
-
         return (float) DB::table('trsisadp_penjualan')
-            ->whereIn('fcustno', $customerCodes)
+            ->where(function ($q) use ($docNos, $customerCodes) {
+                $q->whereIn('fsono', $docNos);
+                if (! empty($customerCodes)) {
+                    $q->orWhereIn('fcustno', $customerCodes);
+                }
+            })
             ->sum('fsisadp');
     }
 
     private function validateAdvanceReductionAmount(array $stockDocNos): ?string
     {
-        if (empty($stockDocNos)) {
+        $docNos = collect($stockDocNos)->map(fn($v) => trim((string) $v))->filter()->values()->all();
+        if (empty($docNos)) {
             return null;
         }
 
-        $advanceReductionAmount = $this->getAdvanceReductionAmountByStockDocs($stockDocNos);
+        $advanceReductionAmount = $this->getAdvanceReductionAmountByStockDocs($docNos);
 
         if ($advanceReductionAmount <= 0) {
             return 'Referensi Surat Jalan belum punya nilai pengurang uang muka.';
