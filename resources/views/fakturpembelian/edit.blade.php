@@ -1114,7 +1114,8 @@
                                                     {{-- @ Harga --}}
                                                     <td class="p-2 text-right">
                                                         <input type="text" inputmode="decimal"
-                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                            :disabled="isPriceDisabled(it) || '{{ $action }}' === 'view'"
                                                             x-model="it.fpriceInput" :id="'price_saved_' + i"
                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                             @blur="activeRow = null; blurPriceInput(it)" @input="onPriceInput(it)"
@@ -2051,6 +2052,13 @@
                     }
                     this.recalc(row);
                     this.recalcTotals();
+                },
+
+                isPriceDisabled(row) {
+                    const code = String(row?.fitemcode || '').toUpperCase().trim();
+                    if (!code || code.startsWith('UM')) return false;
+                    const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefpr || row?.fpono || row?.frefpo || row?.frefter || '').trim();
+                    return Boolean(ref);
                 },
 
                 blurPriceInput(row) {
