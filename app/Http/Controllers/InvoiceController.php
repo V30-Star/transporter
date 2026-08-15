@@ -1911,7 +1911,13 @@ class InvoiceController extends Controller
                     'min:1',
                     function ($attribute, $value, $fail) use ($request) {
                         $typeSales = (int) $request->input('ftypesales', 0);
-                        foreach ((array) $value as $code) {
+                        $refDtNos = (array) $request->input('frefdtno', []);
+                        $refCodes = (array) $request->input('frefcode', []);
+                        $refSos   = (array) $request->input('frefso', []);
+                        $refSrjs  = (array) $request->input('frefsrj', []);
+                        $refPrs   = (array) $request->input('frefpr', []);
+
+                        foreach ((array) $value as $idx => $code) {
                             $c = strtoupper(trim((string) $code));
                             if (empty($c)) continue;
 
@@ -1919,9 +1925,16 @@ class InvoiceController extends Controller
                                 $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
                                 return;
                             }
-                            if ($typeSales !== 1 && str_starts_with($c, 'UM')) {
-                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
-                                return;
+                            if ($typeSales === 0 && str_starts_with($c, 'UM')) {
+                                $refDtNo = trim((string) ($refDtNos[$idx] ?? ''));
+                                $refCode = trim((string) ($refCodes[$idx] ?? ''));
+                                $refSo   = trim((string) ($refSos[$idx] ?? ''));
+                                $refSrj  = trim((string) ($refSrjs[$idx] ?? ''));
+                                $refPr   = trim((string) ($refPrs[$idx] ?? ''));
+                                if ($refDtNo === '' && $refCode === '' && $refSo === '' && $refSrj === '' && $refPr === '') {
+                                    $fail('Item Uang Muka (UM) pada Tipe Penjualan wajib menyertakan No Referensi.');
+                                    return;
+                                }
                             }
                         }
                     },
@@ -2043,14 +2056,23 @@ class InvoiceController extends Controller
                     ->with('error', $msg);
             }
         } else {
-            $invalidUmCodes = collect($itemCodes)
-                ->map(fn($code) => trim((string) $code))
-                ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
-                ->unique()
-                ->values()
-                ->all();
-            if (! empty($invalidUmCodes)) {
-                $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
+            $missingRefUmCodes = [];
+            foreach ($itemCodes as $idx => $code) {
+                $c = strtoupper(trim((string) $code));
+                if ($c !== '' && str_starts_with($c, 'UM')) {
+                    $refDtNo = trim((string) ($frefdtno[$idx] ?? ''));
+                    $refCode = trim((string) ($request->input('frefcode')[$idx] ?? ''));
+                    $refSo   = trim((string) ($frefso[$idx] ?? ''));
+                    $refSrj  = trim((string) ($frefsrj[$idx] ?? ''));
+                    $refPr   = trim((string) ($request->input('frefpr')[$idx] ?? ''));
+
+                    if ($refDtNo === '' && $refCode === '' && $refSo === '' && $refSrj === '' && $refPr === '') {
+                        $missingRefUmCodes[] = $c;
+                    }
+                }
+            }
+            if (! empty($missingRefUmCodes)) {
+                $msg = 'Item Uang Muka (' . implode(', ', array_unique($missingRefUmCodes)) . ') pada Tipe Penjualan wajib menyertakan No Referensi.';
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $msg], 422);
                 }
@@ -3246,7 +3268,13 @@ class InvoiceController extends Controller
                 'min:1',
                 function ($attribute, $value, $fail) use ($request, $header) {
                     $typeSales = (int) $request->input('ftypesales', $header->ftypesales ?? 0);
-                    foreach ((array) $value as $code) {
+                    $refDtNos = (array) $request->input('frefdtno', []);
+                    $refCodes = (array) $request->input('frefcode', []);
+                    $refSos   = (array) $request->input('frefso', []);
+                    $refSrjs  = (array) $request->input('frefsrj', []);
+                    $refPrs   = (array) $request->input('frefpr', []);
+
+                    foreach ((array) $value as $idx => $code) {
                         $c = strtoupper(trim((string) $code));
                         if (empty($c)) continue;
 
@@ -3254,9 +3282,16 @@ class InvoiceController extends Controller
                             $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
                             return;
                         }
-                        if ($typeSales !== 1 && str_starts_with($c, 'UM')) {
-                            $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
-                            return;
+                        if ($typeSales === 0 && str_starts_with($c, 'UM')) {
+                            $refDtNo = trim((string) ($refDtNos[$idx] ?? ''));
+                            $refCode = trim((string) ($refCodes[$idx] ?? ''));
+                            $refSo   = trim((string) ($refSos[$idx] ?? ''));
+                            $refSrj  = trim((string) ($refSrjs[$idx] ?? ''));
+                            $refPr   = trim((string) ($refPrs[$idx] ?? ''));
+                            if ($refDtNo === '' && $refCode === '' && $refSo === '' && $refSrj === '' && $refPr === '') {
+                                $fail('Item Uang Muka (UM) pada Tipe Penjualan wajib menyertakan No Referensi.');
+                                return;
+                            }
                         }
                     }
                 },
@@ -3375,14 +3410,23 @@ class InvoiceController extends Controller
                     ->with('error', $msg);
             }
         } else {
-            $invalidUmCodes = collect($itemCodes)
-                ->map(fn($code) => trim((string) $code))
-                ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
-                ->unique()
-                ->values()
-                ->all();
-            if (! empty($invalidUmCodes)) {
-                $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
+            $missingRefUmCodes = [];
+            foreach ($itemCodes as $idx => $code) {
+                $c = strtoupper(trim((string) $code));
+                if ($c !== '' && str_starts_with($c, 'UM')) {
+                    $refDtNo = trim((string) ($frefdtno[$idx] ?? ''));
+                    $refCode = trim((string) ($request->input('frefcode')[$idx] ?? ''));
+                    $refSo   = trim((string) ($frefso[$idx] ?? ''));
+                    $refSrj  = trim((string) ($frefsrj[$idx] ?? ''));
+                    $refPr   = trim((string) ($request->input('frefpr')[$idx] ?? ''));
+
+                    if ($refDtNo === '' && $refCode === '' && $refSo === '' && $refSrj === '' && $refPr === '') {
+                        $missingRefUmCodes[] = $c;
+                    }
+                }
+            }
+            if (! empty($missingRefUmCodes)) {
+                $msg = 'Item Uang Muka (' . implode(', ', array_unique($missingRefUmCodes)) . ') pada Tipe Penjualan wajib menyertakan No Referensi.';
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $msg], 422);
                 }

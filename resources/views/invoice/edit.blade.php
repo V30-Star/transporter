@@ -971,44 +971,7 @@
                 method="POST" data-form-draft="true"
                 data-draft-key="invoice:edit:{{ $invoice->ftranmtid }}"
                 data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
-                @submit.prevent="
-        if ('{{ $action }}' === 'view') { return }
-        const isUM = String(document.querySelector('input[name=\'ftypesales\']')?.value || document.getElementById('ftypesales')?.value || '0') === '1';
-        if (isUM) {
-            const itemInputs = Array.from($el.querySelectorAll('input[name^=\'fitemcode\']'));
-            const invalidInput = itemInputs.find(inp => {
-                const val = (inp.value || '').trim().toUpperCase();
-                return val !== '' && !val.startsWith('UM');
-            });
-            if (invalidInput) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tipe Uang Muka Invalid',
-                    text: 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                    }
-                });
-                return;
-            }
-        }
-        const duplicateCode = window.getInvoiceDuplicateCode?.($el);
-        if (duplicateCode) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Produk Duplikat',
-                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Faktur Penjualan.`,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                }
-            });
-            return;
-        }
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else if (window.invoiceReferenceQtyGuard?.($el) !== false) { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) window.submitFormWithStockMinusConfirmation?.($el) }) }
-      ">
+                x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, '{{ $action }}' === 'view')">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
@@ -2413,6 +2376,72 @@
         window.syncInvoiceTaxNoFromInvoiceNo();
     });
 
+    window.validateAndSubmitInvoiceForm = function(form, isViewMode = false) {
+        if (isViewMode) return;
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const validRows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : [];
+        const isUM = String(document.getElementById('ftypesales')?.value || form.querySelector('[name="ftypesales"]')?.value || '0') === '1';
+
+        if (isUM) {
+            const invalidRow = validRows.find(row => {
+                const val = (row.fitemcode || '').toString().trim().toUpperCase();
+                return val !== '' && !val.startsWith('UM');
+            });
+            if (invalidRow) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tipe Uang Muka Invalid',
+                    text: 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+        } else {
+            const missingRefRow = validRows.find(row => {
+                const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (!code || !code.startsWith('UM')) return false;
+                const ref = String(row.frefdtno || row.frefno_display || row.frefcode || row.frefso || row.frefsrj || row.frefpr || '').trim();
+                return !ref;
+            });
+            if (missingRefRow) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Referensi Wajib',
+                    text: `Produk Uang Muka (${missingRefRow.fitemcode}) pada Tipe Penjualan wajib menyertakan No Referensi.`,
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+        }
+
+        const duplicateCode = window.getInvoiceDuplicateCode?.(form);
+        if (duplicateCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Produk Duplikat',
+                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Faktur Penjualan.`,
+                confirmButtonText: 'OK',
+                customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+            });
+            return;
+        }
+
+        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        if (n < 1) {
+            if (alpineData) alpineData.showNoItems = true;
+            return;
+        }
+
+        if (window.invoiceReferenceQtyGuard?.(form) !== false) {
+            window.invoiceCreditApprovalGuard?.(form).then(ok => {
+                if (ok) window.submitFormWithStockMinusConfirmation?.(form);
+            });
+        }
+    };
+
     window.getInvoiceDuplicateCode = function(form) {
         const seen = new Set();
         const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
@@ -2865,62 +2894,9 @@
                 const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (!productCode.startsWith('UM')) return;
 
-                const customerCode = this.getSelectedCustomerCode();
-                if (!customerCode) return;
-
-                const documents = window.INVOICE_CUSTOMER_ADVANCE_WARNINGS?.[customerCode]?.documents || [];
-                let doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fsono || '').trim() !== '');
-
-                if (!doc) {
-                    try {
-                        const params = new URLSearchParams({ fcustno: customerCode, fprdcode: 'UM' });
-                        const res = await fetch(`{{ route('invoice.product-history') }}?${params.toString()}`, {
-                            headers: { Accept: 'application/json' }
-                        });
-                        if (res.ok) {
-                            const payload = await res.json();
-                            if (Array.isArray(payload?.data) && payload.data.length > 0) {
-                                doc = payload.data[0];
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Gagal memuat history UM otomatis:', e);
-                    }
-                }
-
-                if (doc) {
-                    const docNo = doc.fsono || doc.fstockmtno || '';
-                    row.frefdtno = docNo;
-                    row.frefno_display = docNo;
-                    row.frefcode = 'UM';
-                    const refQty = Number(doc.fqtyremain ?? doc.maxqty ?? doc.ref_qty ?? doc.source_qty ?? doc.faktur_qty ?? doc.qty_asal ?? doc.fqty ?? 1);
-                    row.ref_qty = refQty;
-                    row.maxqty = refQty;
-                    row.source_qty = refQty;
-                    row.faktur_qty = refQty;
-                    row.qty_asal = Number(doc.qty_asal ?? refQty);
-                    row.fqty = refQty;
-                    if (doc.fsatuan && Array.isArray(row.units) && row.units.includes(doc.fsatuan)) {
-                        row.fsatuan = doc.fsatuan;
-                    } else if (doc.fsatuan) {
-                        row.fsatuan = doc.fsatuan;
-                    }
-                    const price = Math.abs(Number(doc.fprice ?? doc.fsisadp ?? doc.fsisadp_rp ?? doc.famountmt ?? 0));
-                    if (price > 0) {
-                        row.ref_price = price;
-                        row.maxprice = price;
-                        row.source_price = price;
-                        row.fsisadp = price;
-                        row.fprice = price;
-                        row.fpriceInput = this.fmt(price);
-                    }
-                    this.recalc?.(row);
-                    this.recalcTotals?.();
-                } else {
-                    row.frefdtno = '';
-                    row.frefno_display = '';
-                    row.frefcode = '';
-                }
+                row.frefdtno = '';
+                row.frefno_display = '';
+                row.frefcode = '';
             },
 
             recalc(row) {
@@ -3266,11 +3242,6 @@
                     this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
                     return;
                 }
-                if (!this.isUangMuka() && typedCode !== '' && typedCode.startsWith('UM')) {
-                    this.clearRow(row);
-                    this.showAlert("Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.");
-                    return;
-                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 await this.applyOutstandingDpRef(row);
@@ -3292,18 +3263,6 @@
                     });
                     if (hasInvalid) {
                         this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM. Item non-UM telah dihapus.");
-                    }
-                } else {
-                    let hasInvalid = false;
-                    (this.savedItems || []).forEach((row) => {
-                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                        if (code !== '' && code.startsWith('UM')) {
-                            hasInvalid = true;
-                            this.clearRow(row);
-                        }
-                    });
-                    if (hasInvalid) {
-                        this.showAlert("Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka. Item UM telah dihapus.");
                     }
                 }
             },
@@ -3637,10 +3596,6 @@
                     const prodCode = (product.fprdcode || '').toString().trim().toUpperCase();
                     if (this.isUangMuka() && !prodCode.startsWith('UM')) {
                         this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
-                        return;
-                    }
-                    if (!this.isUangMuka() && prodCode.startsWith('UM')) {
-                        this.showAlert("Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.");
                         return;
                     }
                     const index = Number.isInteger(this.browseTarget) ? this.browseTarget : -1;
