@@ -1151,7 +1151,7 @@
                                                             <input type="text" inputmode="decimal"
                                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                                 :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                                :disabled="!!(String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || ''))"
+                                                                :disabled="isPriceDisabled(it)"
                                                                 @focus="focusPriceInput(it); $event.target.select()"
                                                                 @input="onPriceInput(it); onRowUpdated(i)"
                                                                 @blur="blurPriceInput(it); onRowUpdated(i)"
@@ -3055,6 +3055,13 @@
                 row.fpriceInput = ((isUM && hasOther && absPrice > 0) ? '-' : '') + this.fmt(absPrice);
                 this.recalc(row);
                 this.recalcTotals();
+            },
+
+            isPriceDisabled(row) {
+                const code = String(row?.fitemcode || '').toUpperCase().trim();
+                if (!code || code.startsWith('UM')) return false;
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || row?.fnouref || '').trim();
+                return Boolean(ref);
             },
 
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
