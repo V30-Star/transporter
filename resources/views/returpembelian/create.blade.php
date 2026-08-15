@@ -688,7 +688,7 @@
                                                 <td class="p-2 text-right">
                                                     <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                         x-model="dr.fpriceInput"
-                                                        :disabled="!!dr.frefdtno"
+                                                        :disabled="isPriceDisabled(dr)"
                                                         @input="onPriceInput(dr)" @blur="blurPriceInput(dr)">
                                                 </td>
 
@@ -1299,6 +1299,13 @@
                 row.fprice = (isUM && hasOther) ? -absPrice : absPrice;
                 this.recalc(row);
                 this.recalcTotals();
+            },
+
+            isPriceDisabled(row) {
+                const code = String(row?.fitemcode || '').toUpperCase().trim();
+                if (!code || code.startsWith('UM')) return false;
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefpr || row?.fpono || row?.frefpo || row?.frefter || '').trim();
+                return Boolean(ref);
             },
 
             blurPriceInput(row) {
