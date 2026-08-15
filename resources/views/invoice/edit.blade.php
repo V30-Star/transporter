@@ -720,10 +720,11 @@
                                     <!-- @ Harga -->
                                     <td class="p-2 text-right">
                                         <input type="text" inputmode="decimal"
-                                            class="border rounded px-2 py-1 w-28 text-right" x-ref="editPrice"
+                                            class="border rounded px-2 py-1 w-28 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" x-ref="editPrice"
                                             x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
                                             @blur="blurPriceInput(editRow)"
-                                            @keydown.enter.prevent="$refs.editDisc?.focus()">
+                                            @keydown.enter.prevent="$refs.editDisc?.focus()"
+                                            :disabled="isPriceDisabled(editRow) || '{{ $action }}' === 'view'">
                                     </td>
 
                                     <!-- Disc.% -->
@@ -1413,15 +1414,15 @@
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-right">
-                                                        <input type="text" inputmode="decimal"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                            :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                            @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
-                                                            @blur="activeRow = null; blurPriceInput(it)"
-                                                            @input="onPriceInput(it); onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowDisc(i)"
-                                                            {{ $action === 'view' ? 'disabled' : '' }}>
-                                                    </td>
+                                                         <input type="text" inputmode="decimal"
+                                                             class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                             :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                                             @blur="activeRow = null; blurPriceInput(it)"
+                                                             @input="onPriceInput(it); onRowUpdated(i)"
+                                                             @keydown.enter.prevent="focusRowDisc(i)"
+                                                             :disabled="isPriceDisabled(it) || '{{ $action }}' === 'view'">
+                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
@@ -2959,6 +2960,13 @@
                 row.fprice = Math.max(0, parsed);
                 this.recalc(row);
                 this.recalcTotals();
+            },
+
+            isPriceDisabled(row) {
+                const code = String(row?.fitemcode || '').toUpperCase().trim();
+                if (!code || code.startsWith('UM')) return false;
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
+                return Boolean(ref);
             },
 
             blurPriceInput(row) {
