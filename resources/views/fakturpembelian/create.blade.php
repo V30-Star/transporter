@@ -1583,64 +1583,6 @@
                 }
             },
 
-            async applyOutstandingDpRef(row) {
-                const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
-                if (productCode !== 'UM') return;
-
-                const supplierCode = this.getSelectedSupplierCode();
-                if (!supplierCode) return;
-
-                const documents = window.FPB_SUPPLIER_ADVANCE_WARNINGS?.[supplierCode]?.documents || [];
-                let doc = documents.find(item => Number(item.fsisadp || 0) > 0 && String(item.fstockmtno || '').trim() !== '');
-
-                if (!doc) {
-                    try {
-                        const params = new URLSearchParams({ fsupplier: supplierCode, fprdcode: 'UM' });
-                        const res = await fetch(`{{ route('fakturpembelian.product-history') }}?${params.toString()}`, {
-                            headers: { Accept: 'application/json' }
-                        });
-                        if (res.ok) {
-                            const payload = await res.json();
-                            if (Array.isArray(payload?.data) && payload.data.length > 0) {
-                                doc = payload.data[0];
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Gagal memuat history UM otomatis:', e);
-                    }
-                }
-
-                if (doc) {
-                    row.frefdtno = doc.fstockmtno || '';
-                    const refQty = Number(doc.fqtyremain ?? doc.maxqty ?? doc.ref_qty ?? doc.source_qty ?? doc.faktur_qty ?? doc.fqty ?? 1);
-                    row.ref_qty = refQty;
-                    row.maxqty = refQty;
-                    row.source_qty = refQty;
-                    row.faktur_qty = refQty;
-                    row.qty_asal = Number(doc.qty_asal ?? refQty);
-                    row.fqty = refQty;
-                    if (doc.fsatuan && Array.isArray(row.units) && row.units.includes(doc.fsatuan)) {
-                        row.fsatuan = doc.fsatuan;
-                    } else if (doc.fsatuan) {
-                        row.fsatuan = doc.fsatuan;
-                    }
-                    const refPrice = Math.abs(Number(doc.fprice ?? doc.fsisadp ?? doc.fsisadp_rp ?? doc.famountmt ?? 0));
-                    if (refPrice > 0) {
-                        row.fprice = refPrice;
-                        row.ref_price = refPrice;
-                        row.maxprice = refPrice;
-                        row.source_price = refPrice;
-                        if (typeof row.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
-                            row.fpriceInput = this.fmt(refPrice);
-                        }
-                    }
-                    this.recalc?.(row);
-                    this.recalcTotals?.();
-                } else {
-                    row.frefdtno = '';
-                }
-            },
-
             canOpenHistory(row) {
                 const productCode = (row?.fitemcode || '').toString().trim();
                 return this.getSelectedSupplierCode() !== '' && productCode !== '';
@@ -2183,16 +2125,6 @@
                     }
                     return;
                 }
-                if (!this.isUangMuka() && typedCode !== '' && typedCode.startsWith('UM')) {
-                    this.clearRow(row);
-                    const message = "Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.";
-                    if (typeof window.showAppWarningAlert === 'function') {
-                        window.showAppWarningAlert('Informasi', message);
-                    } else if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
-                    }
-                    return;
-                }
                 row.fitemcode = typedCode;
                 let meta = this.productMeta(row.fitemcode);
                 if (typedCode !== '' && !meta.name) {
@@ -2230,7 +2162,6 @@
 
                 if (meta.code) row.fitemcode = meta.code;
                 this.hydrateRowFromMeta(row, meta, true);
-                await this.applyOutstandingDpRef(row);
                 if (row.fitemname && !(Number(row.fqty) > 0)) row.fqty = 1;
                 if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
                     this.applyPurchasePrice(row);
@@ -2535,7 +2466,9 @@
                         const input = document.createElement('input');
                         input.type = 'hidden';
                         input.name = `${field}[]`;
-                        input.value = row?.[field] ?? '';
+                        input.value = field === 'frefdtno'
+                            ? (row?.frefdtno || row?.frefpr || row?.fpono || row?.fnouref || '')
+                            : (row?.[field] ?? '');
                         container.appendChild(input);
                     });
                 });
@@ -2756,23 +2689,6 @@
                             Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
                         }
                     }
-                } else {
-                    let hasInvalid = false;
-                    (this.savedItems || []).forEach((row) => {
-                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                        if (code !== '' && code.startsWith('UM')) {
-                            hasInvalid = true;
-                            this.clearRow(row);
-                        }
-                    });
-                    if (hasInvalid) {
-                        const message = "Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka. Item UM telah dihapus.";
-                        if (typeof window.showAppWarningAlert === 'function') {
-                            window.showAppWarningAlert('Informasi', message);
-                        } else if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
-                        }
-                    }
                 }
             },
 
@@ -2829,16 +2745,6 @@
                             }
                             return;
                         }
-                    } else {
-                        if (prodCode.startsWith('UM')) {
-                            const message = "Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.";
-                            if (typeof window.showAppWarningAlert === 'function') {
-                                window.showAppWarningAlert('Informasi', message);
-                            } else if (typeof Swal !== 'undefined') {
-                                Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
-                            }
-                            return;
-                        }
                     }
                     const prodType = (product.ftype || meta?.ftype || '').toString().trim().toLowerCase();
                     if (String(this.selectedType) === '1') {
@@ -2876,7 +2782,6 @@
                         if (!String(row.fitemcode || '').toUpperCase().startsWith('UM')) {
                             this.applyPurchasePrice(row);
                         }
-                        await this.applyOutstandingDpRef(row);
                         if (!(Number(row.fqty) > 0)) row.fqty = 1;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);
@@ -2893,36 +2798,6 @@
             },
 
             submitForm(form) {
-                if (this.isUangMuka()) {
-                    const hasInvalid = (this.savedItems || []).some(row => {
-                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                        return code !== '' && !code.startsWith('UM');
-                    });
-                    if (hasInvalid) {
-                        const message = "Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.";
-                        if (typeof window.showAppWarningAlert === 'function') {
-                            window.showAppWarningAlert('Informasi', message);
-                        } else if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'warning', title: 'Peringatan', text: message });
-                        }
-                        return;
-                    }
-                } else {
-                    const hasInvalid = (this.savedItems || []).some(row => {
-                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
-                        return code !== '' && code.startsWith('UM');
-                    });
-                    if (hasInvalid) {
-                        const message = "Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.";
-                        if (typeof window.showAppWarningAlert === 'function') {
-                            window.showAppWarningAlert('Informasi', message);
-                        } else if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'warning', title: 'Peringatan', text: message });
-                        }
-                        return;
-                    }
-                }
-
                 const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
                 if (!warehouseCode) {
                     if (window.showTransactionErrorModal) {
@@ -2945,6 +2820,22 @@
                 const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                 const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
                 const seenCodes = new Set();
+
+                if (this.isUangMuka()) {
+                    const hasInvalid = validRows.some(row => {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        return code !== '' && !code.startsWith('UM');
+                    });
+                    if (hasInvalid) {
+                        const message = "Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.";
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('Informasi', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Peringatan', text: message });
+                        }
+                        return;
+                    }
+                }
 
                 for (const row of validRows) {
                     const code = (row.fitemcode || '').toString().trim().toUpperCase();

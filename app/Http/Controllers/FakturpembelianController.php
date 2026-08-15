@@ -1630,17 +1630,21 @@ class FakturpembelianController extends Controller
                     'required',
                     'array',
                     'min:1',
-                    function ($attribute, $value, $fail) use ($typeBuy) {
-                        foreach ((array) $value as $code) {
+                    function ($attribute, $value, $fail) use ($typeBuy, $request) {
+                        $refdtnos = $request->input('frefdtno', []);
+                        $refprs = $request->input('frefpr', []);
+                        $nourefs = $request->input('fnouref', []);
+                        foreach ((array) $value as $i => $code) {
                             $c = strtoupper(trim((string) $code));
                             if (empty($c)) continue;
+                            $rowRef = trim((string) ($refdtnos[$i] ?? '')) ?: trim((string) ($refprs[$i] ?? '')) ?: trim((string) ($nourefs[$i] ?? ''));
 
                             if ($typeBuy === 2 && ! str_starts_with($c, 'UM')) {
                                 $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
                                 return;
                             }
-                            if ($typeBuy !== 2 && str_starts_with($c, 'UM')) {
-                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                            if ($typeBuy !== 2 && str_starts_with($c, 'UM') && $rowRef === '') {
+                                $fail('No Referensi wajib diisi jika tipe faktur bukan Uang Muka.');
                                 return;
                             }
                         }
@@ -1706,6 +1710,8 @@ class FakturpembelianController extends Controller
             $codes = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtnos = $request->input('frefdtno', []);
+            $refprs = $request->input('frefpr', []);
+            $nourefs = $request->input('fnouref', []);
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
@@ -1738,13 +1744,13 @@ class FakturpembelianController extends Controller
             } else {
                 $invalidUmCodes = collect($codes)
                     ->map(fn($code) => trim((string) $code))
-                    ->filter(fn($code) => $code !== '' && str_starts_with(strtoupper($code), 'UM'))
+                    ->filter(fn($code, $i) => $code !== '' && str_starts_with(strtoupper($code), 'UM') && (trim((string) ($refdtnos[$i] ?? '')) ?: trim((string) ($refprs[$i] ?? '')) ?: trim((string) ($nourefs[$i] ?? ''))) === '')
                     ->unique()
                     ->values()
                     ->all();
 
                 if (! empty($invalidUmCodes)) {
-                    $msg = 'Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.';
+                    $msg = 'No Referensi wajib diisi jika tipe faktur bukan Uang Muka.';
                     if ($request->expectsJson()) {
                         return response()->json(['message' => $msg], 422);
                     }
@@ -2625,17 +2631,21 @@ class FakturpembelianController extends Controller
                     'required',
                     'array',
                     'min:1',
-                    function ($attribute, $value, $fail) use ($typeBuy) {
-                        foreach ((array) $value as $code) {
+                    function ($attribute, $value, $fail) use ($typeBuy, $request) {
+                        $refdtnos = $request->input('frefdtno', []);
+                        $refprs = $request->input('frefpr', []);
+                        $nourefs = $request->input('fnouref', []);
+                        foreach ((array) $value as $i => $code) {
                             $c = strtoupper(trim((string) $code));
                             if (empty($c)) continue;
+                            $rowRef = trim((string) ($refdtnos[$i] ?? '')) ?: trim((string) ($refprs[$i] ?? '')) ?: trim((string) ($nourefs[$i] ?? ''));
 
                             if ($typeBuy === 2 && ! str_starts_with($c, 'UM')) {
                                 $fail('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
                                 return;
                             }
-                            if ($typeBuy !== 2 && str_starts_with($c, 'UM')) {
-                                $fail('Produk kode UM hanya boleh digunakan untuk Tipe Faktur Uang Muka.');
+                            if ($typeBuy !== 2 && str_starts_with($c, 'UM') && $rowRef === '') {
+                                $fail('No Referensi wajib diisi jika tipe faktur bukan Uang Muka.');
                                 return;
                             }
                         }
@@ -2746,6 +2756,9 @@ class FakturpembelianController extends Controller
             $codes = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
+            $refdtnos = $refdtno;
+            $refprs = $request->input('frefpr', []);
+            $nourefs = $request->input('fnouref', []);
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
