@@ -2077,7 +2077,17 @@
             async openProductHistory(row) {
                 const supplierCode = this.getSelectedSupplierCode();
                 const productCode = (row?.fitemcode || '').toString().trim();
-                if (!supplierCode || !productCode) return;
+                if (!supplierCode) {
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Supplier wajib dipilih terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Supplier wajib dipilih terlebih dahulu.' });
+                    } else {
+                        window.toast?.warning('Supplier wajib dipilih terlebih dahulu.');
+                    }
+                    return;
+                }
+                if (!productCode) return;
 
                 this.showHistoryModal = true;
                 this.historyLoading = true;

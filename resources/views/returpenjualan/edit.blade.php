@@ -3906,7 +3906,13 @@
                 const productCode = (targetRow?.fitemcode || '').toString().trim();
 
                 if (customerCode === '') {
-                    this.showToast('Pilih customer terlebih dahulu.', 'warning');
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Customer wajib dipilih terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Customer wajib dipilih terlebih dahulu.' });
+                    } else {
+                        this.showToast('Customer wajib dipilih terlebih dahulu.', 'warning');
+                    }
                     return;
                 }
 
