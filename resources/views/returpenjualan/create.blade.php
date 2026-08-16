@@ -3128,6 +3128,16 @@
                     const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
                     if (targetIndex !== -1) {
                         this.onRowUpdated(targetIndex);
+                        this.savedItems.splice(targetIndex, 1, { ...this.historyTargetRow });
+                    }
+                    if (Array.isArray(this.draftRows)) {
+                        const draftIdx = this.draftRows.indexOf(this.historyTargetRow);
+                        if (draftIdx !== -1) {
+                            this.draftRows.splice(draftIdx, 1, { ...this.historyTargetRow });
+                        }
+                    }
+                    if (this.historyTargetRow === this.editRow) {
+                        this.editRow = { ...this.editRow };
                     }
                     this.recalc?.(this.historyTargetRow);
                     this.recalcTotals?.();

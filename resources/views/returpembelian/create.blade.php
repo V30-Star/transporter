@@ -1878,6 +1878,22 @@
                     }
                     this.recalc?.(this.historyTargetRow);
                     this.recalcTotals?.();
+
+                    if (Array.isArray(this.draftRows)) {
+                        const draftIdx = this.draftRows.indexOf(this.historyTargetRow);
+                        if (draftIdx !== -1) {
+                            this.draftRows.splice(draftIdx, 1, { ...this.historyTargetRow });
+                        }
+                    }
+                    if (Array.isArray(this.savedItems)) {
+                        const savedIdx = this.savedItems.indexOf(this.historyTargetRow);
+                        if (savedIdx !== -1) {
+                            this.savedItems.splice(savedIdx, 1, { ...this.historyTargetRow });
+                        }
+                    }
+                    if (this.historyTargetRow === this.editRow) {
+                        this.editRow = { ...this.editRow };
+                    }
                 }
                 this.closeHistory();
             },

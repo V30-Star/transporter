@@ -2246,6 +2246,24 @@
                         if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
                             this.historyTargetRow.fsatuan = row.fsatuan;
                         }
+                        if (Array.isArray(this.savedItems)) {
+                            const savedIdx = this.savedItems.indexOf(this.historyTargetRow);
+                            if (savedIdx !== -1) {
+                                if (typeof this.onRowUpdated === 'function') {
+                                    this.onRowUpdated(savedIdx);
+                                }
+                                this.savedItems.splice(savedIdx, 1, { ...this.historyTargetRow });
+                            }
+                        }
+                        if (Array.isArray(this.draftRows)) {
+                            const draftIdx = this.draftRows.indexOf(this.historyTargetRow);
+                            if (draftIdx !== -1) {
+                                this.draftRows.splice(draftIdx, 1, { ...this.historyTargetRow });
+                            }
+                        }
+                        if (this.historyTargetRow === this.editRow) {
+                            this.editRow = { ...this.editRow };
+                        }
                         this.recalc?.(this.historyTargetRow);
                         this.recalcTotals?.();
                     }

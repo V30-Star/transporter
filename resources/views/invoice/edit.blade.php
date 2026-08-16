@@ -3794,8 +3794,20 @@
                         this.historyTargetRow.fsatuan = row.fsatuan;
                     }
                     const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
-                    if (targetIndex !== -1 && typeof this.onRowUpdated === 'function') {
-                        this.onRowUpdated(targetIndex);
+                    if (targetIndex !== -1) {
+                        if (typeof this.onRowUpdated === 'function') {
+                            this.onRowUpdated(targetIndex);
+                        }
+                        this.savedItems.splice(targetIndex, 1, { ...this.historyTargetRow });
+                    }
+                    if (Array.isArray(this.draftRows)) {
+                        const draftIdx = this.draftRows.indexOf(this.historyTargetRow);
+                        if (draftIdx !== -1) {
+                            this.draftRows.splice(draftIdx, 1, { ...this.historyTargetRow });
+                        }
+                    }
+                    if (this.historyTargetRow === this.editRow) {
+                        this.editRow = { ...this.editRow };
                     }
                     this.recalc?.(this.historyTargetRow);
                     this.recalcTotals?.();
