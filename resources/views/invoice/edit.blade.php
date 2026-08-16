@@ -2900,12 +2900,25 @@
                 row.frefcode = '';
             },
 
+            hasRowRef(row) {
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
+                return Boolean(ref);
+            },
+
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
-                if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = this.fmt(row.fprice);
+                
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                let absPrice = Math.abs(+row.fprice || 0);
+                if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
+                    absPrice = Math.abs(this.parseMoney(row.fpriceInput));
                 }
+                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                }
+
                 const discPercent = this.parseDiscount(row.fdisc);
                 const subtotal = row.fqty * row.fprice;
                 const discAmount = subtotal * (discPercent / 100);
@@ -2939,16 +2952,22 @@
             },
 
             focusPriceInput(row) {
-                const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? this.fmt(price) : '';
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const absPrice = Math.abs(+row.fprice || 0);
+                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                if (shouldBeNegative) {
+                    row.fpriceInput = absPrice > 0 ? ('-' + this.fmt(absPrice)) : '';
+                } else {
+                    row.fpriceInput = absPrice > 0 ? this.fmt(absPrice) : '';
+                }
             },
 
             onPriceInput(row) {
-                let parsed = this.parseMoney(row.fpriceInput);
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput));
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
                 const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
-                if (refPrice > 0 && parsed > refPrice) {
-                    parsed = refPrice;
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
                     const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
                     const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
                     if (typeof window.showAppWarningAlert === 'function') {
@@ -2957,7 +2976,8 @@
                         Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                     }
                 }
-                row.fprice = Math.max(0, parsed);
+                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 this.recalc(row);
                 this.recalcTotals();
             },
@@ -2970,11 +2990,11 @@
             },
 
             blurPriceInput(row) {
-                let parsed = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
+                let absPrice = Math.abs(this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice));
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
                 const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
-                if (refPrice > 0 && parsed > refPrice) {
-                    parsed = refPrice;
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
                     const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
                     const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
                     if (typeof window.showAppWarningAlert === 'function') {
@@ -2983,13 +3003,31 @@
                         Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                     }
                 }
-                row.fprice = Math.max(0, parsed);
-                row.fpriceInput = this.fmt(row.fprice);
+                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
                 this.recalc(row);
                 this.recalcTotals();
             },
 
             recalcTotals() {
+                const isUMNotTypeUM = !this.isUangMuka();
+                (this.savedItems || []).forEach(row => {
+                    if (!row || !row.fitemcode) return;
+                    const isUM = String(row.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    if (isUM && isUMNotTypeUM) {
+                        let absPrice = Math.abs(+row.fprice || 0);
+                        const shouldBeNegative = this.hasRowRef(row);
+                        row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                        const discPercent = this.parseDiscount(row.fdisc);
+                        const subtotal = (row.fqty || 0) * row.fprice;
+                        const discAmount = subtotal * (discPercent / 100);
+                        row.ftotal = +(subtotal - discAmount).toFixed(2);
+                        if (typeof row.fpriceInput !== 'undefined') {
+                            row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                        }
+                    }
+                });
                 this.totalHarga = this.savedItems.reduce((sum, item) => {
                     if (!this.isRowSavable(item)) return sum;
                     return sum + item.ftotal;
