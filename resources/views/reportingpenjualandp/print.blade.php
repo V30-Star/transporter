@@ -514,8 +514,12 @@
                             <div class="truncate">{{ $detail->fsono }}</div>
                             <div>{{ date('d/m/y', strtotime($detail->fsodate)) }}</div>
                             <div class="truncate">{{ $detail->tipe_label ?? 'Pemakaian DP' }}</div>
-                            <div></div>
-                            <div>{{ number_format(abs((float) $detail->famount), 2, ',', '.') }}</div>
+                            @php
+                                $detailAmt = (float) $detail->famount;
+                                $isPemakaian = ($detail->tipe_label ?? 'Pemakaian DP') === 'Pemakaian DP';
+                                $val = $isPemakaian ? -abs($detailAmt) : abs($detailAmt);
+                            @endphp
+                            <div>{{ number_format($val, 2, ',', '.') }}</div>
                             <div></div>
                         </div>
                     @endforeach

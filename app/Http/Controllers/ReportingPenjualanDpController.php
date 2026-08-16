@@ -71,7 +71,9 @@ class ReportingPenjualanDpController extends Controller
 
             if ($filters['report_type'] === 'DETAIL') {
                 foreach ($detailsByDp->get(trim((string) $master->fsono), collect()) as $detail) {
-                    $writer->addRow($makeRow(['', 'Pemakaian', $detail->fsodate, $detail->fsono, '', (float) abs($detail->famount), ''], $detailStyle));
+                    $isPemakaian = ($detail->tipe_label ?? 'Pemakaian DP') === 'Pemakaian DP';
+                    $val = $isPemakaian ? -abs((float) $detail->famount) : abs((float) $detail->famount);
+                    $writer->addRow($makeRow(['', $detail->tipe_label ?? 'Pemakaian DP', $detail->fsodate, $detail->fsono, '', $val, ''], $detailStyle));
                 }
             }
         }
