@@ -212,13 +212,13 @@ class ListingJurnalController extends Controller
         // 2. Tambah placeholder fnote di Kas Header
         $kasHeader = DB::table('trkasmt as m')
             ->leftJoin('account as acc', 'm.faccountheader', '=', 'acc.faccount')
-            ->selectRaw("NULL::integer AS fjurnalmtid, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccname, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fkasmtid AS fjurnalmtid, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccname, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote, NULL::integer AS fkasdtid, m.fbranchcode, '' AS fnote"); // <--- Tambah ini
 
         // 3. Ambil fnote asli dari trkasdt (alias d) di Kas Detail
         $kasDetail = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("NULL::integer AS fjurnalmtid, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote, d.fkasdtid, m.fbranchcode, d.fnote AS fnote"); // <--- Tambah ini
+            ->selectRaw("m.fkasmtid AS fjurnalmtid, m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote, d.fkasdtid, m.fbranchcode, d.fnote AS fnote"); // <--- Tambah ini
 
         $union = $jurnalUmum->unionAll($kasHeader)->unionAll($kasDetail);
 
@@ -262,7 +262,8 @@ class ListingJurnalController extends Controller
             $query->orderBy('a.fjurnaldate', 'asc');
         }
 
-        $query->orderBy('a.fjurnalno', 'asc')
+        $query->orderBy('a.fjurnalmtid', 'asc')
+            ->orderBy('a.fjurnalno', 'asc')
             ->orderBy('a.fkasdtid', 'asc');
 
         return $query;
