@@ -1390,7 +1390,7 @@
                                                             <input type="text"
                                                                 class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
                                                                 :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || it.frefcode || '')"
-                                                                placeholder="No Ref" disabled>
+                                                                disabled>
                                                             @if ($action !== 'view')
                                                                 <button type="button" @click="openProductHistory(it)"
                                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
