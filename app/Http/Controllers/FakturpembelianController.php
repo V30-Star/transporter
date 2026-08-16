@@ -164,10 +164,12 @@ class FakturpembelianController extends Controller
     private function getSupplierAdvanceWarningMap(): array
     {
         $documentsBySupplier = DB::table('trsisadp_pembelian as s')
+            ->join('trstockmt as m', 'm.fstockmtno', '=', 's.fstockmtno')
             ->leftJoin('trstockdt as d', function ($j) {
                 $j->on('d.fstockmtno', '=', 's.fstockmtno')
                   ->where('d.fprdcode', '=', 'UM');
             })
+            ->where('m.fstockmtcode', '=', 'BUY')
             ->selectRaw('TRIM(COALESCE(s.fsupplier, \'\')) as fsupplier')
             ->addSelect([
                 's.fstockmtno',
@@ -200,13 +202,15 @@ class FakturpembelianController extends Controller
             ->filter(fn ($doc) => $doc['fsupplier'] !== '' && $doc['fstockmtno'] !== '')
             ->groupBy('fsupplier');
 
-        return DB::table('trsisadp_pembelian')
-            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
-            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
-            ->selectRaw('SUM(COALESCE(fsisadp_rp, 0)) as total_remain_rp')
+        return DB::table('trsisadp_pembelian as s')
+            ->join('trstockmt as m', 'm.fstockmtno', '=', 's.fstockmtno')
+            ->where('m.fstockmtcode', '=', 'BUY')
+            ->selectRaw('TRIM(COALESCE(s.fsupplier, \'\')) as fsupplier')
+            ->selectRaw('SUM(COALESCE(s.fsisadp, 0)) as total_remain')
+            ->selectRaw('SUM(COALESCE(s.fsisadp_rp, 0)) as total_remain_rp')
             ->where(function ($query) {
-                $query->where('fsisadp', '>', 0)
-                    ->orWhere('fsisadp_rp', '>', 0);
+                $query->where('s.fsisadp', '>', 0)
+                    ->orWhere('s.fsisadp_rp', '>', 0);
             })
             ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
             ->get()
@@ -1502,10 +1506,12 @@ class FakturpembelianController extends Controller
 
         if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
             $rows = DB::table('trsisadp_pembelian as s')
+                ->join('trstockmt as m', 'm.fstockmtno', '=', 's.fstockmtno')
                 ->leftJoin('trstockdt as d', function ($j) {
                     $j->on('d.fstockmtno', '=', 's.fstockmtno')
                       ->where('d.fprdcode', '=', 'UM');
                 })
+                ->where('m.fstockmtcode', '=', 'BUY')
                 ->whereRaw('TRIM(COALESCE(s.fsupplier, \'\')) = ?', [$supplierCode])
                 ->where(function ($q) {
                     $q->where('s.fsisadp', '>', 0)
