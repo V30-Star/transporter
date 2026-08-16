@@ -1473,8 +1473,9 @@
 
             focusPriceInput(row) {
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const isNegative = (row.fpriceInput || '').toString().trim().startsWith('-') || (+row.fprice < 0);
                 const absPrice = Math.abs(+row.fprice || 0);
-                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegative;
                 if (shouldBeNegative) {
                     row.fpriceInput = absPrice > 0 ? ('-' + this.fmt(absPrice)) : '';
                 } else {
@@ -1483,7 +1484,9 @@
             },
 
             onPriceInput(row) {
-                let absPrice = Math.abs(this.parseMoney(row.fpriceInput));
+                const isNegativeInput = (row.fpriceInput || '').toString().trim().startsWith('-');
+                let rawPrice = this.parseMoney(row.fpriceInput);
+                let absPrice = Math.abs(rawPrice);
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
                 const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
                 if (refPrice > 0 && absPrice > refPrice) {
@@ -1496,7 +1499,7 @@
                         Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                     }
                 }
-                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
                 row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 this.recalc(row);
                 this.recalcTotals();
@@ -1510,7 +1513,9 @@
             },
 
             blurPriceInput(row) {
-                let absPrice = Math.abs(this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice));
+                const isNegativeInput = (row.fpriceInput || '').toString().trim().startsWith('-');
+                let rawPrice = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
+                let absPrice = Math.abs(rawPrice);
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
                 const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
                 if (refPrice > 0 && absPrice > refPrice) {
@@ -1523,7 +1528,7 @@
                         Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                     }
                 }
-                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
                 row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
                 this.recalc(row);
@@ -1592,7 +1597,7 @@
                     const payload = await response.json();
                     row.fsatuan = payload.unit || row.fsatuan;
                     if (payload.price !== null && payload.price !== undefined) {
-                        row.fprice = Math.max(0, Number(payload.price || 0));
+                        row.fprice = Number(payload.price || 0);
                         row.fpriceInput = this.fmt(row.fprice);
                     }
                     if (payload.discount !== null && payload.discount !== undefined) {
@@ -1688,11 +1693,12 @@
                 row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
 
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const isNegative = (row.fpriceInput || '').toString().trim().startsWith('-') || (+row.fprice < 0);
                 let absPrice = Math.abs(+row.fprice || 0);
                 if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
                     absPrice = Math.abs(this.parseMoney(row.fpriceInput));
                 }
-                const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegative;
                 row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 if (typeof row.fpriceInput === 'undefined') {
                     row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
