@@ -2030,26 +2030,38 @@
                     return this.parseMoney(value);
                 },
 
+                hasRowRef(row) {
+                    const ref = String(row?.frefdtno || row?.frefdtid || row?.frefno_display || row?.frefcode || row?.frefpr || row?.fpono || row?.frefpo || row?.frefter || '').trim();
+                    return Boolean(ref);
+                },
+
                 focusPriceInput(row) {
-                    const price = Math.max(0, +row.fprice || 0);
-                    row.fpriceInput = price > 0 ? this.fmt(price) : '';
+                    const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    const absPrice = Math.abs(+row.fprice || 0);
+                    const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                    if (shouldBeNegative) {
+                        row.fpriceInput = absPrice > 0 ? ('-' + this.fmt(absPrice)) : '';
+                    } else {
+                        row.fpriceInput = absPrice > 0 ? this.fmt(absPrice) : '';
+                    }
                 },
 
                 onPriceInput(row) {
-                    const parsed = this.parseMoney(row.fpriceInput);
-                    const refPrice = Number(row.ref_price || row.maxprice || row.source_price || 0);
-                    if (refPrice > 0 && parsed > refPrice) {
-                        row.fprice = refPrice;
-                        row.fpriceInput = this.fmt(refPrice);
-                        const message = `Harga tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                    let absPrice = Math.abs(this.parseMoney(row.fpriceInput));
+                    const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                    if (refPrice > 0 && absPrice > refPrice) {
+                        absPrice = refPrice;
+                        const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                        const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
                         if (typeof window.showAppWarningAlert === 'function') {
                             window.showAppWarningAlert('WARNING', message);
                         } else if (typeof Swal !== 'undefined') {
                             Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                         }
-                    } else {
-                        row.fprice = parsed;
                     }
+                    const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                    row.fprice = shouldBeNegative ? -absPrice : absPrice;
                     this.recalc(row);
                     this.recalcTotals();
                 },
@@ -2062,21 +2074,22 @@
                 },
 
                 blurPriceInput(row) {
-                    const parsed = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
-                    const refPrice = Number(row.ref_price || row.maxprice || row.source_price || 0);
-                    if (refPrice > 0 && parsed > refPrice) {
-                        row.fprice = refPrice;
-                        row.fpriceInput = this.fmt(refPrice);
-                        const message = `Harga tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                    let absPrice = Math.abs(this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice));
+                    const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                    if (refPrice > 0 && absPrice > refPrice) {
+                        absPrice = refPrice;
+                        const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                        const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
                         if (typeof window.showAppWarningAlert === 'function') {
                             window.showAppWarningAlert('WARNING', message);
                         } else if (typeof Swal !== 'undefined') {
                             Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
                         }
-                    } else {
-                        row.fprice = parsed;
-                        row.fpriceInput = this.fmt(row.fprice);
                     }
+                    const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                    row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                    row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
                     this.recalc(row);
                     this.recalcTotals();
                 },
@@ -2213,13 +2226,16 @@
                             this.historyTargetRow.fqty = Math.min(+row.fqty, refQtyVal > 0 ? refQtyVal : +row.fqty);
                         }
                         const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
-                        if (priceVal !== null && priceVal >= 0) {
-                            this.historyTargetRow.fprice = priceVal;
-                            this.historyTargetRow.ref_price = priceVal;
-                            this.historyTargetRow.maxprice = priceVal;
-                            this.historyTargetRow.source_price = priceVal;
+                        if (priceVal !== null) {
+                            const absPrice = Math.abs(priceVal);
+                            const isUM = String(this.historyTargetRow?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                            const shouldBeNegative = isUM && !this.isUangMuka();
+                            this.historyTargetRow.fprice = shouldBeNegative ? -absPrice : absPrice;
+                            this.historyTargetRow.ref_price = absPrice;
+                            this.historyTargetRow.maxprice = absPrice;
+                            this.historyTargetRow.source_price = absPrice;
                             if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
-                                this.historyTargetRow.fpriceInput = this.fmt(priceVal);
+                                this.historyTargetRow.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
                             }
                         }
                         if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
@@ -2233,9 +2249,16 @@
 
                 recalc(row) {
                     row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
-                    row.fprice = Math.max(0, +row.fprice || 0);
+
+                    const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    let absPrice = Math.abs(+row.fprice || 0);
+                    if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
+                        absPrice = Math.abs(this.parseMoney(row.fpriceInput));
+                    }
+                    const shouldBeNegative = isUM && !this.isUangMuka() && this.hasRowRef(row);
+                    row.fprice = shouldBeNegative ? -absPrice : absPrice;
                     if (typeof row.fpriceInput === 'undefined') {
-                        row.fpriceInput = this.fmt(row.fprice);
+                        row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
                     }
                     row.fbiaya = Math.max(0, +row.fbiaya || 0);
                     row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
@@ -2257,6 +2280,23 @@
                 },
 
                 recalcTotals() {
+                    const isUMNotTypeUM = !this.isUangMuka();
+                    this.savedItems.forEach(row => {
+                        if (!row || !row.fitemcode) return;
+                        const isUM = String(row.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                        if (isUM && isUMNotTypeUM) {
+                            let absPrice = Math.abs(+row.fprice || 0);
+                            const shouldBeNegative = this.hasRowRef(row);
+                            row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                            const discPercent = this.parseDiscount(row.fdiscpersen);
+                            const discAmount = row.fprice * (discPercent / 100);
+                            row.fpricenet = +(row.fprice - discAmount + (row.fbiaya || 0)).toFixed(2);
+                            row.ftotprice = +(row.fqty * row.fpricenet).toFixed(2);
+                            if (typeof row.fpriceInput !== 'undefined') {
+                                row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                            }
+                        }
+                    });
                     this.totalHarga = this.savedItems.reduce((sum, item) => sum + (item.ftotprice || 0), 0);
                     this.totalBiayaHPP = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
                     window.syncFpbBiayaGlobalHeader?.();
@@ -2816,11 +2856,6 @@
                             const code = String(src.fprdcode || src.fitemcode || '').trim().toUpperCase();
                             return code.startsWith('UM');
                         });
-                    } else {
-                        items = (items || []).filter(src => {
-                            const code = String(src.fprdcode || src.fitemcode || '').trim().toUpperCase();
-                            return !code.startsWith('UM');
-                        });
                     }
 
                     const existing = new Set(this.getCurrentItemKeys());
@@ -2839,6 +2874,11 @@
                         const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
                             0);
                         const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
+
+                        const isUM = String(src.fitemcode || src.fprdcode || '').trim().toUpperCase().startsWith('UM');
+                        const absPrice = Math.abs(+(src.fprice || 0));
+                        const shouldBeNegative = isUM && !this.isUangMuka();
+                        const priceVal = shouldBeNegative ? -absPrice : absPrice;
 
                         const row = {
                             uid: cryptoRandom(),
@@ -2867,11 +2907,11 @@
                             lockQty: false,
 
                             // Financial
-                            fprice: +(src.fprice || 0),
-                            ref_price: +(src.fprice || 0),
-                            maxprice: +(src.fprice || 0),
-                            source_price: +(src.fprice || 0),
-                            fpriceInput: this.fmt(+(src.fprice || 0)),
+                            fprice: priceVal,
+                            ref_price: absPrice,
+                            maxprice: absPrice,
+                            source_price: absPrice,
+                            fpriceInput: (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice),
                             fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
                             fbiaya: sourceType === 'PB' ? +(src.fbiaya || 0) : 0,
                             ftotprice: +(src.fharga || 0),
@@ -3476,10 +3516,12 @@
                             }
                             return;
                         }
-                        const inputPrice = this.parseMoney(row.fprice);
-                        const refPrice = this.parseMoney(row.ref_price || row.maxprice || row.source_price || 0);
+                        const inputPrice = Math.abs(this.parseMoney(row.fprice));
+                        const refPrice = Math.abs(this.parseMoney(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
                         if (refPrice > 0 && inputPrice > refPrice) {
-                            const message = `Harga item ${code} tidak boleh melebihi Harga Referensi (${this.fmt(refPrice)}).`;
+                            const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                            const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                            const message = `Harga item ${code} tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
                             if (typeof window.showAppWarningAlert === 'function') {
                                 window.showAppWarningAlert('WARNING', message);
                             } else if (typeof Swal !== 'undefined') {
