@@ -995,12 +995,15 @@
                                     <div>
                                         <label class="block text-xs font-bold text-gray-600 mb-1">Hitung Biaya</label>
                                         <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 flex items-center gap-3">
-                                            <input type="text" :value="Number(biayaGlobal || 0).toFixed(2)" readonly
-                                                class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-right font-mono bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                                            <button type="button"
-                                                class="shrink-0 min-w-[120px] text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
-                                                style="background-color: #2563eb; color: #ffffff;" disabled
-                                                title="Isi biaya manual pada kolom @ Biaya detail item">
+                                            <input type="number" step="0.01" min="0" x-model.number="biayaGlobal" :disabled="hasTerSourceItems"
+                                                placeholder="0.00"
+                                                class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-right font-mono focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
+                                            <button type="button" @click="alokasiBiaya()"
+                                                :disabled="hasTerSourceItems"
+                                                :class="hasTerSourceItems ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-700'"
+                                                class="shrink-0 min-w-[120px] text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2"
+                                                style="background-color: #2563eb; color: #ffffff;"
+                                                :title="hasTerSourceItems ? 'Biaya dari Penerimaan Barang terkunci' : 'Hitung dan alokasikan biaya ke detail item'">
                                                 Hitung
                                             </button>
                                         </div>
