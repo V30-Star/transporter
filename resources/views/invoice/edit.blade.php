@@ -1401,11 +1401,12 @@
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-right">
-                                                        <input type="number"
+                                                        <input type="text" inputmode="decimal"
                                                             class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                            :id="'qty_row_' + i" x-model.number="it.fqty"
-                                                            @input="enforceQtyRow(it); onRowUpdated(i)"
-                                                            @change="enforceQtyRow(it); onRowUpdated(i)"
+                                                            :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                            @focus="activeRow = it.uid; focusQtyInput(it); $event.target.select()"
+                                                            @input="onQtyInput(it); onRowUpdated(i)"
+                                                            @blur="blurQtyInput(it); onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowPrice(i)"
                                                             {{ $action === 'view' ? 'disabled' : '' }}>
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
@@ -2905,8 +2906,33 @@
                 return Boolean(ref);
             },
 
+            focusQtyInput(row) {
+                const qty = +row.fqty || 0;
+                row.fqtyInput = this.fmt(qty);
+            },
+
+            onQtyInput(row) {
+                const parsed = Math.max(0, this.parseMoney(row.fqtyInput));
+                row.fqty = parsed;
+                this.enforceQtyRow(row);
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
+            blurQtyInput(row) {
+                const parsed = Math.max(0, this.parseMoney(row.fqtyInput !== undefined ? row.fqtyInput : row.fqty));
+                row.fqty = parsed;
+                this.enforceQtyRow(row);
+                row.fqtyInput = this.fmt(row.fqty);
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
+                if (typeof row.fqtyInput === 'undefined') {
+                    row.fqtyInput = this.fmt(row.fqty);
+                }
                 
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
                 let absPrice = Math.abs(+row.fprice || 0);
@@ -3209,6 +3235,7 @@
                     const limit = this.getRowQtyLimit(row);
                     if (limit > 0 && n > limit) {
                         row.fqty = limit;
+                        row.fqtyInput = this.fmt(limit);
                         const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
                         const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
                         const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
@@ -3538,6 +3565,7 @@
                     }
                 }
 
+                row.fqtyInput = this.fmt(+row.fqty || 0);
                 row.fprice = Math.max(0, Number(row.fprice ?? 0) || 0);
                 row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
@@ -3561,6 +3589,7 @@
                         null),
                     frefnoacak: this.normalizeRefNoAcak(overrides.frefnoacak),
                 };
+                row.fqtyInput = this.fmt(+row.fqty || 0);
                 row.fpriceInput = this.fmt(row.fprice);
                 return row;
             },
@@ -3808,6 +3837,7 @@
                 fnoacak: '',
                 frefnoacak: '',
                 fqty: 0,
+                fqtyInput: '0,00',
                 maxqty: 0,
                 fprice: 0,
                 fpriceInput: '0,00',
