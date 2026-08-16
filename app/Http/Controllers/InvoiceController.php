@@ -758,8 +758,8 @@ class InvoiceController extends Controller
             $referenceSummaryQuery = DB::table('trandt as d')
                 ->selectRaw("
                     d.fsono,
-                    STRING_AGG(DISTINCT CASE WHEN d.frefso LIKE 'SO.%' THEN NULLIF(TRIM(d.frefso), '') ELSE NULL END, ', ') as so_refs,
-                    STRING_AGG(DISTINCT CASE WHEN d.frefsrj LIKE 'SRJ.%' OR d.frefsrj LIKE 'SJ.%' THEN NULLIF(TRIM(d.frefsrj), '') ELSE NULL END, ', ') as srj_refs
+                    STRING_AGG(DISTINCT NULLIF(TRIM(d.frefso), ''), ', ') as so_refs,
+                    STRING_AGG(DISTINCT NULLIF(TRIM(d.frefsrj), ''), ', ') as srj_refs
                 ")
                 ->groupBy('d.fsono');
 
@@ -875,6 +875,11 @@ class InvoiceController extends Controller
             $data = $records->map(function ($row) {
                 $soRefs = trim((string) ($row->so_refs ?? ''));
                 $srjRefs = trim((string) ($row->srj_refs ?? ''));
+                $refs = collect([$soRefs, $srjRefs])
+                    ->flatMap(fn ($value) => array_map('trim', explode(',', $value)))
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -885,7 +890,7 @@ class InvoiceController extends Controller
                     'fsodate' => $row->fsodate
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
-                    'frefno' => $srjRefs !== '' ? $srjRefs : $soRefs,
+                    'frefno' => $refs,
                     'fso_refs' => $soRefs,
                     'fcustomername' => trim((string) ($row->fcustomername ?? '')),
                     'famountso' => (float) ($row->famountso ?? 0),

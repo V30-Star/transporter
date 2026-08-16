@@ -251,7 +251,7 @@
                     }
 
                     const json = await res.json();
-                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? src.fqty ?? src.ref_qty ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning(@js($warningText));
                         return;

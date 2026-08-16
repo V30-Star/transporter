@@ -3634,9 +3634,12 @@
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
                     const meta = this.productMeta(itemcode);
+                    const qtyAvail = (src.fqtyremain !== undefined && src.fqtyremain !== null && Number(src.fqtyremain) > 0)
+                        ? Number(src.fqtyremain)
+                        : Number(src.fqty ?? src.ref_qty ?? src.qty_asal ?? 0);
                     const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
                         Number(src.fqtyremain_dokumen) :
-                        this.qtyKecilToUnit(src.fqtyremain, satuan, meta);
+                        this.qtyKecilToUnit(qtyAvail, satuan, meta);
                     const refQty = this.parseQtyValue(src.faktur_qty ?? src.qty_faktur ?? src.srj_qty ?? src.qty_asal ?? src.fqty ?? displayQty);
 
                     if (!itemcode || !itemname || !satuan) {
@@ -3706,7 +3709,7 @@
                             (Array.isArray(src.units) ?
                                 src.units.map(u => (u ?? '').toString().trim()).filter(Boolean) :
                                 []),
-                        maxqty: Math.max(0, Number(src.fqtyremain ?? 0)),
+                        maxqty: Math.max(0, qtyAvail),
                         maxqty_unit: 'kecil',
                     };
 
@@ -4440,7 +4443,7 @@
 
                     const json = await res.json();
 
-                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? src.fqty ?? src.ref_qty ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
                         return;
