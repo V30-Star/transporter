@@ -2107,6 +2107,7 @@
                 } finally {
                     this.historyLoading = false;
                 }
+            },
             async fetchProductPriceHistory(row) {
                 const supplierCode = (document.getElementById('supplierCodeHidden')?.value || '').trim();
                 const productCode = (row?.fitemcode || '').toString().trim();
