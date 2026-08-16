@@ -131,8 +131,7 @@ class ListingPenjualanController extends Controller
         if ($request->has('belum_kirim')) {
             $query->where('d.fqtyremain', '>', 0);
         }
-        $query->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ', 'RUJ'] : ['INV']);
-        $query->orderBy('m.fsodate', 'asc')
+        return $query->orderBy('m.fsodate', 'asc')
             ->orderByRaw("CASE WHEN m.ftrcode IN ('REJ', 'RUJ') THEN 1 ELSE 0 END")
             ->orderBy('m.fsono')
             ->orderBy('d.fnou');
