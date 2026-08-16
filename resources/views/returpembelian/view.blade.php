@@ -254,6 +254,11 @@
                                     </select>
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <textarea name="fket" rows="2" disabled readonly
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">{{ old('fket', $returpembelian->fket) }}</textarea>
+                            </div>
                         </div>
                     </div>
 
@@ -268,12 +273,6 @@
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4 space-y-3">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
-                                <textarea name="fket" rows="2" disabled readonly
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">{{ old('fket', $returpembelian->fket) }}</textarea>
-                            </div>
-
                             <div class="overflow-auto border rounded">
                                 <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
                                     data-skip-auto-detail-style="true">
