@@ -212,7 +212,7 @@ class FakturpembelianController extends Controller
                 $query->where('s.fsisadp', '>', 0)
                     ->orWhere('s.fsisadp_rp', '>', 0);
             })
-            ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
+            ->groupBy(DB::raw('TRIM(COALESCE(s.fsupplier, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fsupplier ?? '')) !== '')
             ->mapWithKeys(function ($row) use ($documentsBySupplier) {

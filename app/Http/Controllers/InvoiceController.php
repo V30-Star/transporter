@@ -4320,7 +4320,7 @@ class InvoiceController extends Controller
             ->selectRaw('TRIM(COALESCE(s.fcustno, \'\')) as fcustno')
             ->selectRaw('SUM(COALESCE(s.fsisadp, 0)) as total_remain')
             ->where('s.fsisadp', '>', 0)
-            ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
+            ->groupBy(DB::raw('TRIM(COALESCE(s.fcustno, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fcustno ?? '')) !== '')
             ->mapWithKeys(function ($row) use ($documentsByCustomer) {
