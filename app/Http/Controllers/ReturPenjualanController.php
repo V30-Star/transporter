@@ -2627,10 +2627,6 @@ class ReturPenjualanController extends Controller
             'fsatuanbesar2',
             'fqtykecil',
             'fqtykecil2',
-            'fhargajual',
-            'fhargajual2',
-            'fhargajual3',
-            'fhargabeli',
             'fminstock'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
