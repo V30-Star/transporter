@@ -87,20 +87,29 @@ class ReportingPenjualanDpController extends Controller
     private function data(Request $request): array
     {
         $filters = $this->filters($request);
+
         $dpUsed = DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-            ->selectRaw('d.frefsrj, SUM(d.famount) AS ftotaldp')
+            ->selectRaw('d.frefsrj, SUM(COALESCE(d.fsalesnet * d.fqty, d.famount)) AS ftotaldp')
             ->where('d.fprdcode', 'UM')
             ->where('m.ftypesales', '<>', '1')
             ->groupBy('d.frefsrj');
 
+        $dpRej = DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->selectRaw('d.frefdtno, SUM(d.ftotprice) AS ftotaldprej')
+            ->where('d.fprdcode', 'UM')
+            ->where('m.fstockmtcode', 'REJ')
+            ->groupBy('d.frefdtno');
+
         $masters = DB::table('tranmt as m')
             ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoinSub($dpUsed, 'dp', 'm.fsono', '=', 'dp.frefsrj')
+            ->leftJoinSub($dpRej, 'rej', 'm.fsono', '=', 'rej.frefdtno')
             ->select('m.fbranchcode', 'm.fsono', 'm.fsodate', 'm.fcustno')
             ->selectRaw('c.fcustomername AS fcustname, m.famountsonet')
-            ->selectRaw('COALESCE(ABS(dp.ftotaldp), 0) AS ftotaldp')
-            ->selectRaw('m.famountsonet + COALESCE(dp.ftotaldp, 0) AS fsisadp')
+            ->selectRaw('COALESCE(ABS(dp.ftotaldp), 0) + COALESCE(rej.ftotaldprej, 0) AS ftotaldp')
+            ->selectRaw('ROUND(m.famountsonet + COALESCE(dp.ftotaldp, 0) - COALESCE(rej.ftotaldprej, 0)) AS fsisadp')
             ->where('m.ftypesales', '1')
             ->where('m.fsodate', '>=', $filters['date_from'])
             ->where('m.fsodate', '<=', $filters['date_to'].' 23:59:59');
@@ -116,22 +125,31 @@ class ReportingPenjualanDpController extends Controller
             $masters->where('m.fcustno', '<=', $filters['customer_to']);
         }
         if ($filters['sisa_dp_filter'] === 'SISA_DP_GT_0') {
-            $masters->whereRaw('m.famountsonet + COALESCE(dp.ftotaldp, 0) > 0');
+            $masters->whereRaw('m.famountsonet + COALESCE(dp.ftotaldp, 0) - COALESCE(rej.ftotaldprej, 0) > 0');
         }
 
         $masterRows = $masters->orderBy('m.fcustno')->orderBy('m.fsodate')->orderBy('m.fsono')->orderBy('m.fbranchcode')->get();
         $refs = $masterRows->pluck('fsono')->map(fn ($value) => trim((string) $value))->filter()->values();
         $detailRows = collect();
         if ($refs->isNotEmpty()) {
-            $detailRows = DB::table('tranmt as m')
+            $usedDetails = DB::table('tranmt as m')
                 ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-                ->select('d.frefsrj', 'm.fsono', 'm.fsodate', 'm.fcustno', 'd.famount')
+                ->selectRaw("d.frefsrj, m.fsono, m.fsodate, m.fcustno, d.famount, 'Pemakaian DP' as tipe_label")
                 ->where('d.fprdcode', 'UM')
                 ->where('m.ftypesales', '<>', '1')
-                ->whereIn('d.frefsrj', $refs->all())
-                ->orderBy('d.frefsrj')
-                ->orderBy('m.fsodate')
-                ->orderBy('m.fsono')
+                ->whereIn('d.frefsrj', $refs->all());
+
+            $rejDetails = DB::table('trstockmt as m')
+                ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+                ->selectRaw("d.frefdtno as frefsrj, m.fstockmtno as fsono, m.fstockmtdate as fsodate, COALESCE(m.fsupplier, '') as fcustno, (d.ftotprice * -1) as famount, 'Retur Penjualan DP' as tipe_label")
+                ->where('d.fprdcode', 'UM')
+                ->where('m.fstockmtcode', 'REJ')
+                ->whereIn('d.frefdtno', $refs->all());
+
+            $detailRows = $usedDetails->unionAll($rejDetails)
+                ->orderBy('frefsrj')
+                ->orderBy('fsodate')
+                ->orderBy('fsono')
                 ->get();
         }
 

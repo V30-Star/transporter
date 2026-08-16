@@ -17,7 +17,7 @@
         th, td { padding: 4px 6px; border-bottom: 1px solid #e5e7eb; }
         th { border-top: 1px solid #111827; border-bottom: 1px solid #111827; text-align: left; }
         .num { text-align: right; font-variant-numeric: tabular-nums; }
-        .detail { background: #f9fafb; color: #4b5563; }
+        .detail { background: #f9fafb; color: #dc2626; }
         .grand { font-weight: bold; background: #111827; color: white; }
         .end { text-align: center; margin-top: 18px; font-weight: bold; }
         @media print { body { background: white; } .page { width: auto; margin: 0; padding: 0; box-shadow: none; } .actions { display: none; } }
@@ -75,7 +75,7 @@
                         @foreach ($detailsByDp->get(trim((string) $row->fsono), collect()) as $detail)
                             <tr class="detail">
                                 <td></td>
-                                <td>Pemakaian DP</td>
+                                <td>{{ $detail->tipe_label ?? 'Pemakaian DP' }}</td>
                                 <td>{{ $detail->fsodate }}</td>
                                 <td>{{ $detail->fsono }}</td>
                                 <td></td>
