@@ -503,7 +503,7 @@
                             </div>
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="col-span-2">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
                                     <textarea name="fket" rows="2"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
@@ -513,12 +513,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Hitung Biaya</label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Hitung Biaya</label>
                                     <div class="bg-gray-55 p-3 rounded-lg border border-gray-200 flex items-center gap-3">
                                         <input type="text" :value="Number(biayaGlobal || 0).toFixed(2)" readonly
                                             class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-right font-mono bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
                                         <button type="button"
-                                            class="shrink-0 min-w-[120px] text-white font-medium py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
+                                            class="shrink-0 min-w-[120px] text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
                                             style="background-color: #2563eb; color: #ffffff;" disabled
                                             title="Isi biaya manual pada kolom @ Biaya detail item">
                                             Hitung
