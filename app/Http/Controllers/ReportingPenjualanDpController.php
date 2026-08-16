@@ -106,7 +106,7 @@ class ReportingPenjualanDpController extends Controller
             ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoinSub($dpUsed, 'dp', 'm.fsono', '=', 'dp.frefsrj')
             ->leftJoinSub($dpRej, 'rej', 'm.fsono', '=', 'rej.frefdtno')
-            ->select('m.fbranchcode', 'm.fsono', 'm.fsodate', 'm.fcustno')
+            ->select('m.ftranmtid', 'm.fbranchcode', 'm.fsono', 'm.fsodate', 'm.fcustno')
             ->selectRaw('c.fcustomername AS fcustname, m.famountsonet')
             ->selectRaw('COALESCE(ABS(dp.ftotaldp), 0) + COALESCE(rej.ftotaldprej, 0) AS ftotaldp')
             ->selectRaw('ROUND(m.famountsonet + COALESCE(dp.ftotaldp, 0) - COALESCE(rej.ftotaldprej, 0)) AS fsisadp')
