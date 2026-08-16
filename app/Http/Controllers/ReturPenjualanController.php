@@ -509,10 +509,12 @@ class ReturPenjualanController extends Controller
 
         if ($productCode === '' || str_starts_with(strtoupper($productCode), 'UM')) {
             $rows = DB::table('trsisadp_penjualan as s')
+                ->join('tranmt as m', 'm.fsono', '=', 's.fsono')
                 ->leftJoin('trandt as d', function ($j) {
                     $j->on('d.fsono', '=', 's.fsono')
                       ->where('d.fprdcode', '=', 'UM');
                 })
+                ->where('m.ftrcode', '=', 'INV')
                 ->whereRaw('TRIM(COALESCE(s.fcustno, \'\')) = ?', [$customerCode])
                 ->where('s.fsisadp', '>', 0)
                 ->orderByDesc('s.fsodate')
@@ -822,10 +824,12 @@ class ReturPenjualanController extends Controller
     private function getCustomerAdvanceWarningMap(): array
     {
         $documentsByCustomer = DB::table('trsisadp_penjualan as s')
+            ->join('tranmt as m', 'm.fsono', '=', 's.fsono')
             ->leftJoin('trandt as d', function ($j) {
                 $j->on('d.fsono', '=', 's.fsono')
                   ->where('d.fprdcode', '=', 'UM');
             })
+            ->where('m.ftrcode', '=', 'INV')
             ->selectRaw('TRIM(COALESCE(s.fcustno, \'\')) as fcustno')
             ->addSelect([
                 's.fsono',
@@ -851,11 +855,13 @@ class ReturPenjualanController extends Controller
             ->filter(fn ($doc) => $doc['fcustno'] !== '' && $doc['fsono'] !== '')
             ->groupBy('fcustno');
 
-        return DB::table('trsisadp_penjualan')
-            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
-            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
-            ->where('fsisadp', '>', 0)
-            ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
+        return DB::table('trsisadp_penjualan as s')
+            ->join('tranmt as m', 'm.fsono', '=', 's.fsono')
+            ->where('m.ftrcode', '=', 'INV')
+            ->selectRaw('TRIM(COALESCE(s.fcustno, \'\')) as fcustno')
+            ->selectRaw('SUM(COALESCE(s.fsisadp, 0)) as total_remain')
+            ->where('s.fsisadp', '>', 0)
+            ->groupBy(DB::raw('TRIM(COALESCE(s.fcustno, \'\'))'))
             ->get()
             ->filter(fn($row) => trim((string) ($row->fcustno ?? '')) !== '')
             ->mapWithKeys(function ($row) use ($documentsByCustomer) {
@@ -882,10 +888,12 @@ class ReturPenjualanController extends Controller
         }
 
         return DB::table('trsisadp_penjualan as s')
+            ->join('tranmt as m', 'm.fsono', '=', 's.fsono')
             ->leftJoin('trandt as d', function ($j) {
                 $j->on('d.fsono', '=', 's.fsono')
                   ->where('d.fprdcode', '=', 'UM');
             })
+            ->where('m.ftrcode', '=', 'INV')
             ->whereRaw('TRIM(COALESCE(s.fcustno, \'\')) = ?', [$customerCode])
             ->where('s.fsisadp', '>', 0)
             ->orderBy('s.fsodate')
