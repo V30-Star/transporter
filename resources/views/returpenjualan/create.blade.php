@@ -552,7 +552,7 @@
                                                  <div class="flex w-full max-w-full">
                                                      <input type="text"
                                                          class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
-                                                         :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '')"
+                                                         :value="getItemNoRef(it)"
                                                          placeholder="No Ref" disabled>
                                                      <button type="button" @click="openProductHistory(it)"
                                                          class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
@@ -2030,6 +2030,24 @@
 
     function itemsTable() {
         return {
+            getItemNoRef(it) {
+                if (!it) return '';
+                let val = '';
+                const isUM = String(it.fitemcode || '').toUpperCase().trim() === 'UM';
+                if (isUM) {
+                    val = it.frefsrj || it.frefdtno || it.frefpr || it.fnouref || '';
+                } else {
+                    val = it.frefsrj || it.frefso || it.frefpr || it.fnouref || '';
+                    if (!val && ['INV', 'SRJ', 'SO', 'UM'].includes(it.frefcode)) {
+                        val = it.frefcode;
+                    }
+                }
+                val = String(val || '').trim();
+                if (/^(RUJ|REJ)[\/\.]/i.test(val) || val === 'RUJ' || val === 'REJ' || val === '-') {
+                    return '';
+                }
+                return val;
+            },
             showNoItems: false,
             savedItems: @json($initialReturPenjualanItems),
             nextFormIndex: @json($nextReturPenjualanItemIndex),

@@ -560,7 +560,7 @@
                                                     <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="getItemNoRef(it) || '-'"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatQtyValue(it.fqty)"></div>
@@ -1112,13 +1112,13 @@
                                                     </td>
                                                     <td class="p-2">
                                                         <template x-if="action === 'view'">
-                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefsrj || it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '-'"></div>
+                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="getItemNoRef(it) || '-'"></div>
                                                         </template>
                                                         <template x-if="action !== 'view'">
                                                             <div class="flex w-full max-w-full">
                                                                 <input type="text"
                                                                     class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
-                                                                    :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefsrj || it.frefdtno || it.frefpr || '') : (it.frefpr || it.fnouref || (['INV','SRJ','SO','UM','REJ','RUJ'].includes(it.frefcode) ? it.frefcode : '') || '')"
+                                                                    :value="getItemNoRef(it)"
                                                                     placeholder="No Ref" disabled>
                                                                 <button type="button" @click="openProductHistory(it)"
                                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
@@ -2859,6 +2859,24 @@
 
     function itemsTable() {
         return {
+            getItemNoRef(it) {
+                if (!it) return '';
+                let val = '';
+                const isUM = String(it.fitemcode || '').toUpperCase().trim() === 'UM';
+                if (isUM) {
+                    val = it.frefsrj || it.frefdtno || it.frefpr || it.fnouref || '';
+                } else {
+                    val = it.frefsrj || it.frefso || it.frefpr || it.fnouref || '';
+                    if (!val && ['INV', 'SRJ', 'SO', 'UM'].includes(it.frefcode)) {
+                        val = it.frefcode;
+                    }
+                }
+                val = String(val || '').trim();
+                if (/^(RUJ|REJ)[\/\.]/i.test(val) || val === 'RUJ' || val === 'REJ' || val === '-') {
+                    return '';
+                }
+                return val;
+            },
             showNoItems: false,
             savedItems: @json(count($initialEditReturPenjualanItems) ? $initialEditReturPenjualanItems : $savedItems ?? []),
             nextFormIndex: @json($nextReturPenjualanItemIndex),
