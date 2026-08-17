@@ -43,7 +43,7 @@
         }
 
         .comp-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             font-style: italic;
         }
@@ -253,8 +253,6 @@
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
-                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
             </div>
             <div>
                 <div class="title-so">Faktur Penjualan</div>

@@ -43,7 +43,7 @@
         }
 
         .comp-name {
-            font-size: 16px;
+            font-size: 20px;
             font-weight: bold;
             text-transform: uppercase;
         }

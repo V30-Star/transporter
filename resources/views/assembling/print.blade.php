@@ -44,7 +44,7 @@
         }
 
         .comp-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             font-style: italic;
         }
