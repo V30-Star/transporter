@@ -333,6 +333,7 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
+                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                 Cabang: {{ $filters['branch_label'] }}
                 <br>Salesman: {{ $filters['salesman_label'] }}
                 <br>Customer: {{ $filters['customer_label'] }}
@@ -408,6 +409,7 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri">
+                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                         Cabang: {{ $filters['branch_label'] }}
                         <br>Salesman: {{ $filters['salesman_label'] }}
                         <br>Customer: {{ $filters['customer_label'] }}

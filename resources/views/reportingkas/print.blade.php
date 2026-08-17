@@ -377,6 +377,7 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
+                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                 Dari {{ $filterDateFrom ?: '-' }} sampai {{ $filterDateTo ?: '-' }}
                 <br>Account: {{ $filterAccount ? ($filterAccount.' - '.($filterAccountName ?: '-')) : 'Semua Account' }}
                 <br>Giro Mundur: {{ $onlyGiroMundur ? 'Ya' : 'Tidak' }}
@@ -458,6 +459,7 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
+                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                         Dari {{ $filterDateFrom ?: '-' }} sampai {{ $filterDateTo ?: '-' }}
                         <br>Account: {{ $filterAccount ? ($filterAccount.' - '.($filterAccountName ?: '-')) : 'Semua Account' }}
                         <br>Giro Mundur: {{ $onlyGiroMundur ? 'Ya' : 'Tidak' }}

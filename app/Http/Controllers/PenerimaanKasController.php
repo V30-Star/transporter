@@ -566,7 +566,7 @@ class PenerimaanKasController extends Controller
             'dt' => $details,
             'fmt' => $fmt,
             'totalAmount' => $totalAmount,
-            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

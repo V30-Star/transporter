@@ -498,6 +498,7 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
+                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                 Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                 No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                 Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
@@ -650,6 +651,7 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
+                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                         Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                         No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                         Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>

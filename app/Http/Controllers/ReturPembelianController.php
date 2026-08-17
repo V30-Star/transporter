@@ -580,7 +580,7 @@ class ReturPembelianController extends Controller
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
-            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

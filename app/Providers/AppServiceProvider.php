@@ -20,9 +20,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Gunakan config() daripada env()
         if (config('app.url')) {
             \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
         }
+
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            $view->with('company_name', \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION');
+        });
     }
 }

@@ -341,6 +341,7 @@
             <div class="a4-container">
                 <div class="header-section">
                     <div class="supplier-info-kiri">
+                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
                     </div>
                     <h2>Listing Penerimaan Barang</h2>
@@ -372,6 +373,7 @@
                 <div class="a4-container">
                     <div class="header-section">
                         <div class="supplier-info-kiri">
+                            <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                             @if ($activeSupplierName)
                                 Supplier: {{ $activeSupplierName }}
                             @else

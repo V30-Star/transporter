@@ -431,6 +431,7 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
+                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                 Sub Account: {{ request('subaccount_from') || request('subaccount_to') ? (request('subaccount_from') ?: 'Awal') . ' s/d ' . (request('subaccount_to') ?: 'Akhir') : 'Semua' }}
             </div>
             <h2>Master Sub Account Report</h2>
@@ -490,6 +491,7 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
+                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
                         Sub Account: {{ request('subaccount_from') || request('subaccount_to') ? (request('subaccount_from') ?: 'Awal') . ' s/d ' . (request('subaccount_to') ?: 'Akhir') : 'Semua' }}
                     </div>
                     <h2>Master Sub Account Report</h2>

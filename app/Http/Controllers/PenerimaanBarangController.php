@@ -835,7 +835,7 @@ class PenerimaanBarangController extends Controller
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, str_contains((string) ($hdr->fstockmtno ?? ''), '/')),
             'fmt' => $fmt,
-            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }
