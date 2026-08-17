@@ -286,7 +286,8 @@
         <div class="header-row">
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 <div class="customer-container">
                     <span class="customer-label">Customer</span>
                     <div style="font-weight: bold;">
