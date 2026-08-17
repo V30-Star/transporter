@@ -433,8 +433,8 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 Supplier: {{ request('supplier_from') || request('supplier_to') ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir') : 'Semua' }}
             </div>
             <h2>List of Master Supplier</h2>
@@ -497,8 +497,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                         Supplier: {{ request('supplier_from') || request('supplier_to') ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir') : 'Semua' }}
                     </div>
                     <h2>List of Master Supplier</h2>

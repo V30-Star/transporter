@@ -547,18 +547,13 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
                 <br>Produk: {{ $productText }}
                 <br>Group Produk: {{ $groupText }}
                 <br>Merek: {{ $merekText }}
-                <br>Salesman: {{ $salesmanText }}
-                <br>Tipe: {{ $salesTypeText }}
-                <br>Faktur: {{ $fakturText }}
-                <br>Display: {{ $displayText }}
-                <br>Retur Penjualan: {{ $returText }}
             </div>
             <h2>Listing Penjualan</h2>
             <div class="filter-info">
@@ -568,6 +563,11 @@
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                 <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                 <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+                Salesman: {{ $salesmanText }}
+                <br>Tipe: {{ $salesTypeText }}
+                <br>Faktur: {{ $fakturText }}
+                <br>Display: {{ $displayText }}
+                <br>Retur Penjualan: {{ $returText }}
             </div>
         </div>
 
@@ -707,18 +707,13 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
                         <br>Produk: {{ $productText }}
                         <br>Group Produk: {{ $groupText }}
                         <br>Merek: {{ $merekText }}
-                        <br>Salesman: {{ $salesmanText }}
-                        <br>Tipe: {{ $salesTypeText }}
-                        <br>Faktur: {{ $fakturText }}
-                        <br>Display: {{ $displayText }}
-                        <br>Retur Penjualan: {{ $returText }}
                     </div>
                     <h2>Listing Penjualan</h2>
                     <div class="info-tambahan">
@@ -726,6 +721,11 @@
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+                        Salesman: {{ $salesmanText }}
+                        <br>Tipe: {{ $salesTypeText }}
+                        <br>Faktur: {{ $fakturText }}
+                        <br>Display: {{ $displayText }}
+                        <br>Retur Penjualan: {{ $returText }}
                     </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
                         ditemukan.</div>

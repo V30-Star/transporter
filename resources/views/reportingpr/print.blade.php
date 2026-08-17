@@ -342,8 +342,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
                         <br>
                         Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
@@ -378,8 +378,8 @@
                     <div class="header-section">
                         <div class="supplier-info-kiri">
                             <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                            @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                            @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                            @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                            @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                             Supplier: {{ $activeSupplierName ?? 'Semua' }}
                             <br>
                             Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}

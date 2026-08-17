@@ -352,8 +352,8 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 Cabang: {{ $filters['branch_label'] }}
                 <br>Salesman: {{ $filters['salesman_label'] }}
                 <br>Grouping: {{ $filters['grouping_by'] === 'BY_MEREK' ? 'By Merek' : 'By Group Produk' }}
@@ -467,8 +467,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
+                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                         Cabang: {{ $filters['branch_label'] }}
                         <br>Salesman: {{ $filters['salesman_label'] }}
                         <br>Grouping: {{ $filters['grouping_by'] === 'BY_MEREK' ? 'By Merek' : 'By Group Produk' }}
