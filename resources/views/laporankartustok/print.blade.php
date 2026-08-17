@@ -98,18 +98,18 @@
             color: #475569; /* Slate 600 */
         }
 
-        /* --- TABLE HEADERS & ROWS (REKAP: 10 Kolom) --- */
+        /* --- TABLE HEADERS & ROWS (REKAP) --- */
         .rekap-header-labels,
         .rekap-row {
             display: grid;
-            grid-template-columns: 8mm 24mm 1fr 15mm 20mm 24mm 22mm 22mm 24mm 18mm;
+            grid-template-columns: 8mm 24mm 1fr 20mm 24mm 22mm 22mm 24mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
             align-items: center;
         }
 
-        /* --- TABLE HEADERS & ROWS (DETAIL: 10 Kolom) --- */
+        /* --- TABLE HEADERS & ROWS (DETAIL) --- */
         .detail-header-labels,
         .detail-row {
             display: grid;
@@ -132,6 +132,42 @@
             letter-spacing: 0.5px;
         }
 
+        .rekap-header-labels,
+        .detail-header-labels {
+            grid-template-rows: auto auto;
+        }
+
+        .header-span-rows {
+            grid-row: 1 / span 2;
+        }
+
+        .header-mutasi {
+            grid-column: span 2;
+            grid-row: 1;
+            text-align: center;
+        }
+
+        .rekap-mutasi { grid-column: 6 / 8; grid-row: 1; }
+        .rekap-saldo-akhir { grid-column: 8; grid-row: 1 / span 2; }
+        .rekap-masuk { grid-column: 6; grid-row: 2; }
+        .rekap-keluar { grid-column: 7; grid-row: 2; }
+        .rekap-col-1 { grid-column: 1; }
+        .rekap-col-2 { grid-column: 2; }
+        .rekap-col-3 { grid-column: 3; }
+        .rekap-col-4 { grid-column: 4; }
+        .rekap-col-5 { grid-column: 5; }
+        .detail-mutasi { grid-column: 8 / 10; grid-row: 1; }
+        .detail-saldo-akhir { grid-column: 10; grid-row: 1 / span 2; }
+        .detail-masuk { grid-column: 8; grid-row: 2; }
+        .detail-keluar { grid-column: 9; grid-row: 2; }
+        .detail-col-1 { grid-column: 1; }
+        .detail-col-2 { grid-column: 2; }
+        .detail-col-3 { grid-column: 3; }
+        .detail-col-4 { grid-column: 4; }
+        .detail-col-5 { grid-column: 5; }
+        .detail-col-6 { grid-column: 6; }
+        .detail-col-7 { grid-column: 7; }
+
         .rekap-row,
         .detail-row {
             background-color: transparent;
@@ -141,16 +177,8 @@
         }
 
         /* Alignment for Rekap */
-        .rekap-header-labels > div:nth-child(4),
-        .rekap-header-labels > div:nth-child(6),
-        .rekap-header-labels > div:nth-child(7),
-        .rekap-header-labels > div:nth-child(8),
-        .rekap-header-labels > div:nth-child(9),
-        .rekap-row > div:nth-child(4),
-        .rekap-row > div:nth-child(6),
-        .rekap-row > div:nth-child(7),
-        .rekap-row > div:nth-child(8),
-        .rekap-row > div:nth-child(9) {
+        .rekap-header-labels > div:nth-child(n+5),
+        .rekap-row > div:nth-child(n+5) {
             text-align: right;
         }
 
@@ -171,14 +199,37 @@
             text-align: right;
         }
 
-        /* Fonts for Numbers & System Codes */
-        .rekap-row > div:nth-child(2),
-        .rekap-row > div:nth-child(4),
+        .header-mutasi {
+            align-self: center;
+            justify-self: stretch;
+            text-align: center;
+        }
+
+        .rekap-header-labels > .header-mutasi,
+        .detail-header-labels > .header-mutasi {
+            text-align: center !important;
+        }
+
+        .rekap-masuk,
+        .rekap-keluar,
+        .detail-masuk,
+        .detail-keluar {
+            text-align: center !important;
+        }
+
         .rekap-row > div:nth-child(6),
         .rekap-row > div:nth-child(7),
-        .rekap-row > div:nth-child(8),
-        .rekap-row > div:nth-child(9),
-        .rekap-row > div:nth-child(10) {
+        .detail-row > div:nth-child(8),
+        .detail-row > div:nth-child(9) {
+            text-align: center;
+        }
+
+        /* Fonts for Numbers & System Codes */
+        .rekap-row > div:nth-child(2),
+        .rekap-row > div:nth-child(5),
+        .rekap-row > div:nth-child(6),
+        .rekap-row > div:nth-child(7),
+        .rekap-row > div:nth-child(8) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -525,28 +576,29 @@
 
         @if ($mode === 'rekap')
             <div class="rekap-header-labels">
-                <div>No.</div>
-                <div>Kode Prd</div>
-                <div>Nama Produk</div>
-                <div>Isi</div>
-                <div>Satuan</div>
-                <div>Saldo Awal</div>
-                <div>Masuk</div>
-                <div>Keluar</div>
-                <div>Saldo Akhir</div>
+                <div class="header-span-rows rekap-col-1">No.</div>
+                <div class="header-span-rows rekap-col-2">Kode Prd</div>
+                <div class="header-span-rows rekap-col-3">Nama Produk</div>
+                <div class="header-span-rows rekap-col-4">Satuan</div>
+                <div class="header-span-rows rekap-col-5">Saldo Awal</div>
+                <div class="header-mutasi rekap-mutasi">Mutasi</div>
+                <div class="header-span-rows rekap-saldo-akhir">Saldo Akhir</div>
+                <div class="rekap-masuk">Masuk</div>
+                <div class="rekap-keluar">Keluar</div>
             </div>
         @else
             <div class="detail-header-labels">
-                <div>Transaksi</div>
-                <div>Kode Trans</div>
-                <div>Tanggal</div>
-                <div>No.Ref</div>
-                <div>Supplier/Customer</div>
-                <div>Satuan</div>
-                <div>Saldo Awal</div>
-                <div>Masuk</div>
-                <div>Keluar</div>
-                <div>Saldo Akhir</div>
+                <div class="header-span-rows detail-col-1">Transaksi</div>
+                <div class="header-span-rows detail-col-2">Kode Trans</div>
+                <div class="header-span-rows detail-col-3">Tanggal</div>
+                <div class="header-span-rows detail-col-4">No.Ref</div>
+                <div class="header-span-rows detail-col-5">Supplier/Customer</div>
+                <div class="header-span-rows detail-col-6">Satuan</div>
+                <div class="header-span-rows detail-col-7">Saldo Awal</div>
+                <div class="header-mutasi detail-mutasi">Mutasi</div>
+                <div class="header-span-rows detail-saldo-akhir">Saldo Akhir</div>
+                <div class="detail-masuk">Masuk</div>
+                <div class="detail-keluar">Keluar</div>
             </div>
         @endif
 
@@ -569,12 +621,11 @@
                                 <div>{{ $loop->iteration }}</div>
                                 <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
                                 <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
-                                <div>{{ number_format((float) $row->qtykecil, 2, ',', '.') }}</div>
                                 <div>{{ $row->fsatuan }}</div>
                                 <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
+                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan }}</div>
                             </div>
                         </div>
                     @endforeach
@@ -630,7 +681,7 @@
                                 <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
+                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan ?? '' }}</div>
                             </div>
                         </div>
                     @endforeach

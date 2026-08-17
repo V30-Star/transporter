@@ -55,22 +55,12 @@ class LaporanKartuStokController extends Controller
             // cursor() -> baris diambil satu-satu dari DB, tidak sekaligus
             // load semua ke Collection besar sebelum diproses.
             foreach ($this->rekapAggregatedQuery($wh->fwhcode, $request, $dateFrom, $dateTo)->cursor() as $row) {
-                $ratio = 1.0;
-                $defaultMode = trim((string) ($row->fsatuandefaultlaporan ?? '1'));
-                if ($defaultMode === '2') {
-                    $ratio = (float) ($row->qtykecil ?? 1);
-                    if ($ratio <= 0) { $ratio = 1.0; }
-                } elseif ($defaultMode === '3') {
-                    $ratio = (float) ($row->qtykecil2 ?? 1);
-                    if ($ratio <= 0) { $ratio = 1.0; }
-                }
-
-                $row->qtyawalkecil = ((float) $row->qtyawalkecil) / $ratio;
-                $row->qtymasukkecil = ((float) $row->qtymasukkecil) / $ratio;
-                $row->qtykeluarkecil = ((float) $row->qtykeluarkecil) / $ratio;
                 $row->qtysaldokecil = (float) $row->qtyawalkecil + (float) $row->qtymasukkecil - (float) $row->qtykeluarkecil;
-                if ($this->matchStatus($row, $request)) {
-                    $rows->push($row);
+
+                foreach ($this->rowsByUnit($row) as $unitRow) {
+                    if ($this->matchStatus($unitRow, $request)) {
+                        $rows->push($unitRow);
+                    }
                 }
             }
         }
@@ -79,6 +69,7 @@ class LaporanKartuStokController extends Controller
             ['fwhcode', 'asc'],
             ['fgroupname', 'asc'],
             ['fprdcode', 'asc'],
+            ['unit_order', 'asc'],
         ])
             ->values();
     }
@@ -121,11 +112,7 @@ class LaporanKartuStokController extends Controller
                     + COALESCE(oi.qty, 0) - COALESCE(oo.qty, 0) as qtyawalkecil,
                 COALESCE(pi.qty, 0) as qtymasukkecil,
                 COALESCE(po.qty, 0) as qtykeluarkecil,
-                CASE 
-                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '2' THEN p.fsatuanbesar
-                    WHEN COALESCE(NULLIF(TRIM(p.fsatuandefaultlaporan), ''), '1') = '3' THEN p.fsatuanbesar2
-                    ELSE p.fsatuankecil
-                END as fsatuan
+                COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan
             ", [$whcode]);
     }
 
@@ -188,13 +175,18 @@ class LaporanKartuStokController extends Controller
                             'fstockdate' => null,
                             'frefno' => '',
                             'fsuppliername' => '',
+                            'fsatuankecil' => $row->fsatuankecil,
+                            'fsatuanbesar' => $row->fsatuanbesar,
+                            'fsatuanbesar2' => $row->fsatuanbesar2,
+                            'qtykecil' => $row->qtykecil,
+                            'qtykecil2' => $row->qtykecil2,
                             'fsatuan' => $row->fsatuan,
                             'qtyawalkecil' => $running,
                             'qtymasukkecil' => 0.0,
                             'qtykeluarkecil' => 0.0,
                             'qtysaldokecil' => $running,
                             'fminstock' => $opening->fminstock ?? 0.0,
-                        ]);
+                        ])->each(fn($unitRow) => $rows->push($unitRow));
                     }
                 }
 
@@ -202,7 +194,7 @@ class LaporanKartuStokController extends Controller
                 $keluar = (float) $row->qtykeluarkecil;
                 $running += $masuk - $keluar;
 
-                $rows->push((object) [
+                $this->rowsByUnit((object) [
                     'fwhcode' => $wh->fwhcode,
                     'fprdcode' => $prdKey,
                     'fprdname' => trim((string) $row->fprdname),
@@ -211,13 +203,18 @@ class LaporanKartuStokController extends Controller
                     'fstockdate' => $row->fstockdate,
                     'frefno' => $row->frefno,
                     'fsuppliername' => $row->fsuppliername,
+                    'fsatuankecil' => $row->fsatuankecil,
+                    'fsatuanbesar' => $row->fsatuanbesar,
+                    'fsatuanbesar2' => $row->fsatuanbesar2,
+                    'qtykecil' => $row->qtykecil,
+                    'qtykecil2' => $row->qtykecil2,
                     'fsatuan' => $row->fsatuan,
                     'qtyawalkecil' => 0.0,
                     'qtymasukkecil' => $masuk,
                     'qtykeluarkecil' => $keluar,
                     'qtysaldokecil' => $running,
                     'fminstock' => 0.0,
-                ]);
+                ])->each(fn($unitRow) => $rows->push($unitRow));
             }
         }
 
@@ -232,10 +229,10 @@ class LaporanKartuStokController extends Controller
     private function detailUnionQuery(string $whcode, Request $request, string $dateFrom, string $dateTo)
     {
         $in = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'in')
-            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
 
         $out = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'out')
-            ->selectRaw("d.fprdcode, p.fprdname, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(p.fsatuankecil,p.fsatuanbesar,p.fsatuanbesar2) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
 
         $inSql = $in->toSql();
         $outSql = $out->toSql();
@@ -322,6 +319,32 @@ class LaporanKartuStokController extends Controller
         }
     }
 
+    private function rowsByUnit($row)
+    {
+        $units = [
+            [trim((string) ($row->fsatuanbesar2 ?? '')), (float) ($row->qtykecil2 ?? 0), 1],
+            [trim((string) ($row->fsatuanbesar ?? '')), (float) ($row->qtykecil ?? 0), 2],
+            [trim((string) ($row->fsatuankecil ?? '')), 1.0, 3],
+        ];
+
+        return collect($units)
+            ->filter(fn($unit) => $unit[0] !== '')
+            ->map(function ($unit) use ($row) {
+                [$name, $ratio, $order] = $unit;
+                $ratio = $ratio > 0 ? $ratio : 1.0;
+                $copy = clone $row;
+                $copy->fsatuan = $name;
+                $copy->unit_order = $order;
+                $copy->qtyawalkecil = (float) ($row->qtyawalkecil ?? 0) / $ratio;
+                $copy->qtymasukkecil = (float) ($row->qtymasukkecil ?? 0) / $ratio;
+                $copy->qtykeluarkecil = (float) ($row->qtykeluarkecil ?? 0) / $ratio;
+                $copy->qtysaldokecil = (float) ($row->qtysaldokecil ?? 0) / $ratio;
+                $copy->fminstock = (float) ($row->fminstock ?? 0) / $ratio;
+                return $copy;
+            })
+            ->values();
+    }
+
     private function matchStatus($row, Request $request): bool
     {
         $status = (string) $request->input('stock_status', 'all');
@@ -374,11 +397,10 @@ class LaporanKartuStokController extends Controller
                 'No.',
                 'Kode Prd',
                 'Nama Produk',
-                'Isi',
                 'Satuan',
                 'Saldo Awal',
-                'Masuk',
-                'Keluar',
+                'Mutasi (Masuk)',
+                'Mutasi (Keluar)',
                 'Saldo Akhir',
                 'Gudang'
             ], $styleHeader));
@@ -418,12 +440,11 @@ class LaporanKartuStokController extends Controller
                             $index + 1,
                             $row->fprdcode,
                             $row->fprdname,
-                            (float) $row->qtykecil,
                             $row->fsatuan,
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            (float) $row->qtysaldokecil,
+                            (float) $row->qtysaldokecil . ' ' . $row->fsatuan,
                             $row->fwhcode
                         ]));
                     }
@@ -438,8 +459,8 @@ class LaporanKartuStokController extends Controller
                 'Supplier/Customer',
                 'Satuan',
                 'Saldo Awal',
-                'Masuk',
-                'Keluar',
+                'Mutasi (Masuk)',
+                'Mutasi (Keluar)',
                 'Saldo Akhir',
                 'Gudang'
             ], $styleHeader));
@@ -487,7 +508,7 @@ class LaporanKartuStokController extends Controller
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            (float) $row->qtysaldokecil,
+                            (float) $row->qtysaldokecil . ' ' . $row->fsatuan,
                             $row->fwhcode
                         ]));
                     }

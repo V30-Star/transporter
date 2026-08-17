@@ -59,7 +59,7 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
         }
 
@@ -83,9 +83,9 @@
         }
 
         .info-table {
-            float: right;
             font-size: 12px;
-            margin-top: -68px;
+            margin-top: 4px;
+            margin-left: auto;
         }
 
         .info-table td {
@@ -222,47 +222,40 @@
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                <div class="customer-container">
+                    <span class="customer-label">Supplier</span>
+                    <div style="font-weight: bold;">
+                        {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->supplier_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        Keterangan : {{ $hdr->fket ?: '-' }}
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="title-so">Permintaan Pembelian</div>
                 <div class="so-no">No. {{ $hdr->fprno ?? '-' }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fprdate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Dibutuhkan</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fneeddate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Paling Lambat</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fduedate) }}</td>
+                    </tr>
+                </table>
             </div>
-        </div>
-
-        <div style="overflow: hidden; margin-top: 10px;">
-            <div class="customer-container">
-                <span class="customer-label">Supplier</span>
-                <div style="font-weight: bold;">
-                    {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->supplier_name ?? ''), ' -') ?: '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
-                </div>
-                <div style="font-size: 11px;">
-                    Keterangan : {{ $hdr->fket ?: '-' }}
-                </div>
-            </div>
-
-            <table class="info-table">
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fprdate) }}</td>
-                </tr>
-                <tr>
-                    <td>Tgl. Dibutuhkan</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fneeddate) }}</td>
-                </tr>
-                <tr>
-                    <td>Tgl. Paling Lambat</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fduedate) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
-                </tr>
-            </table>
         </div>
 
         <table class="tb">
@@ -297,28 +290,22 @@
             </tbody>
         </table>
 
-        <div class="note-block">
-            <div class="note-title">Catatan</div>
-            <div>{{ $hdr->fket ?: '-' }}</div>
-        </div>
-
         <div class="footer-line"></div>
 
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td style="width: 50%;">Dibuat Oleh</td>
+                    <td style="width: 50%;">Hormat Kami</td>
                     <td style="width: 50%;">Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '-') }}</td>
+                    <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
                     <td class="box-content">{{ strtoupper($hdr->fuserapproved ?? '-') }}</td>
                 </tr>
             </table>
 
             <div class="meta-right">
-                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
-                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}</div>
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>
