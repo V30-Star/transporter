@@ -162,22 +162,23 @@
 
         /* Signature */
         .sign-container {
-            margin-top: 30px;
+            margin-top: 18px;
             clear: both;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            gap: 16px;
         }
 
         .sign-table {
             border-collapse: collapse;
-            width: 420px;
+            width: 350px;
         }
 
         .sign-table td {
             border: 1px solid #000;
-            width: 33.33%;
-            height: 20px;
+            width: 50%;
+            height: 25px;
             text-align: center;
             font-size: 9px;
             font-weight: bold;
@@ -185,17 +186,17 @@
         }
 
         .sign-table .box-content {
-            height: 60px;
+            height: 70px;
             vertical-align: bottom;
             padding-bottom: 5px;
             font-weight: normal;
             background-color: #fff;
         }
 
-        .timestamp {
-            font-size: 9px;
-            color: #555;
-            font-style: italic;
+        .meta-right {
+            font-size: 10px;
+            text-align: right;
+            white-space: nowrap;
         }
 
         .no-print {
@@ -358,8 +359,8 @@
                         <td class="box-content"></td>
                     </tr>
                 </table>
-                <div class="timestamp">
-                    Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1
+                <div class="meta-right">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
                 </div>
             </div>
         </div>

@@ -163,10 +163,12 @@
 
         /* Signature */
         .sign-container {
-            margin-top: 30px;
+            margin-top: 18px;
             clear: both;
             display: flex;
+            justify-content: space-between;
             align-items: flex-end;
+            gap: 16px;
         }
 
         .sign-table {
@@ -187,9 +189,10 @@
             padding-bottom: 5px;
         }
 
-        .timestamp {
+        .meta-right {
             font-size: 10px;
-            margin-left: 10px;
+            text-align: right;
+            white-space: nowrap;
         }
 
         @media print {
@@ -333,8 +336,8 @@
                     <td class="box-content"></td>
                 </tr>
             </table>
-            <div class="timestamp">
-                Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1
+            <div class="meta-right">
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>
