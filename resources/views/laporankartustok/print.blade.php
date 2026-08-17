@@ -553,7 +553,6 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 Cabang: {{ $branchText }}
-                <br>Periode: {{ $period }}
                 <br>Gudang: {{ $whText }}
                 <br>Group Produk: {{ $groupText }}
                 <br>Merek: {{ $merekText }}
@@ -562,6 +561,7 @@
                 <br>Mode: {{ strtoupper($mode) }}
             </div>
             <h2>{{ $title }}</h2>
+            <div class="filter-info">Periode: {{ $period }}</div>
             <div class="filter-info">
                 Grouping: {{ $groupBy }}
                 <br>Status Stok: {{ $stockStatusText }}
@@ -708,7 +708,6 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
                         Cabang: {{ $branchText }}
-                        <br>Periode: {{ $period }}
                         <br>Gudang: {{ $whText }}
                         <br>Group Produk: {{ $groupText }}
                         <br>Merek: {{ $merekText }}
@@ -719,6 +718,7 @@
                         <br>Tampilan: {{ $reportModeText }}
                     </div>
                     <h2>{{ $title }}</h2>
+                    <div class="filter-info">Periode: {{ $period }}</div>
                     <div class="filter-info">
                         Grouping: {{ $groupBy }}
                     </div>
