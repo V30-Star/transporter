@@ -334,62 +334,72 @@
 
         <div class="footer-line"></div>
 
-        <div style="overflow: hidden;">
-            @php
-                $famountso = (float) ($hdr->famountso ?? 0);
-            @endphp
-            <div class="terbilang-box">
-                Terbilang : <br>
-                # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+        @php
+            $famountso = (float) ($hdr->famountso ?? 0);
+            $famountgross = (float) ($hdr->famountgross ?? 0);
+            if ($famountgross <= 0) {
+                $famountgross = (float) ($hdr->famountsonet ?? 0);
+            }
+            $fdiscount = (float) ($hdr->fdiscount ?? 0);
+            $totalSetelahDisc = $famountgross - $fdiscount;
+            $famountpajak = (float) ($hdr->famountpajak ?? 0);
+            $fongkosangkut = (float) ($hdr->fongkosangkut ?? 0);
+        @endphp
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
+            {{-- Kolom Kiri & Tengah: Terbilang di atas, Hormat Kami & Rekening sejajar di bawahnya --}}
+            <div style="width: 70%; display: flex; flex-direction: column;">
+                <div>
+                    <div style="font-style: italic; font-size: 11px;">Terbilang :</div>
+                    <div style="font-weight: bold; font-style: italic; text-decoration: underline; font-size: 11px; margin-top: 2px;">
+                        # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
+                    <div style="width: 160px; min-width: 140px;">
+                        <div style="font-size: 11px;">Hormat Kami,</div>
+                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                            ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #000; padding: 5px 8px; font-size: 10px; line-height: 1.35; width: fit-content; min-width: 240px; max-width: 320px; box-sizing: border-box;">
+                        <div style="margin-bottom: 2px;">Mohon Pembayaran dapat ditransfer ke :</div>
+                        <div style="white-space: pre-line;">{{ $hdr->frekeningname ?? '-' }}</div>
+                    </div>
+                </div>
             </div>
 
-            @php
-                $famountgross = (float) ($hdr->famountgross ?? 0);
-                if ($famountgross <= 0) {
-                    $famountgross = (float) ($hdr->famountsonet ?? 0);
-                }
-                $fdiscount = (float) ($hdr->fdiscount ?? 0);
-                $totalSetelahDisc = $famountgross - $fdiscount;
-                $famountpajak = (float) ($hdr->famountpajak ?? 0);
-            @endphp
-            <div class="summary-box">
+            {{-- Kolom Kanan: Summary Total & Metadata --}}
+            <div style="width: 28%;">
                 <div class="summary-row">
                     <span>Total Harga :</span>
                     <span>{{ number_format($famountgross, 2, ',', '.') }}</span>
                 </div>
                 <div class="summary-row">
-                    <span>Discount :</span>
+                    <span>Potongan Harga :</span>
                     <span>{{ number_format($fdiscount, 2, ',', '.') }}</span>
                 </div>
                 <div class="summary-row">
-                    <span>Total Setelah Disc :</span>
+                    <span>Ttl.Setelah Pot. :</span>
                     <span>{{ number_format($totalSetelahDisc, 2, ',', '.') }}</span>
                 </div>
                 <div class="summary-row">
                     <span>PPN :</span>
                     <span>{{ number_format($famountpajak, 2, ',', '.') }}</span>
                 </div>
+                <div class="summary-row">
+                    <span>Ongkos Angkut :</span>
+                    <span>{{ number_format($fongkosangkut, 2, ',', '.') }}</span>
+                </div>
                 <div class="summary-row grand-total">
                     <span>Grand Total :</span>
                     <span>{{ number_format($famountso, 2, ',', '.') }}</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="sign-container">
-            <table class="sign-table">
-                <tr>
-                    <td style="width: 50%;">Hormat Kami</td>
-                    <td style="width: 50%;">Disetujui</td>
-                </tr>
-                <tr>
-                    <td class="box-content">{{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }}</td>
-                    <td class="box-content">{{ strtoupper($hdr->fuseracc ?? '-') }}</td>
-                </tr>
-            </table>
-
-            <div class="meta-right">
-                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
+                <div class="meta-right" style="margin-top: 6px;">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
+                </div>
             </div>
         </div>
     </div>

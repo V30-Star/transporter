@@ -1235,6 +1235,10 @@ class InvoiceController extends Controller
         // Header: find by SO code (string)
         $hdr = DB::table('tranmt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
+            ->leftJoin('msrekening as r', function ($join) {
+                $join->on('r.frekeningcode', '=', 'c.frekening')
+                    ->orOn(DB::raw('CAST(r.frekeningid AS VARCHAR)'), '=', 'c.frekening');
+            })
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
             ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
             ->where(function ($q) use ($fsono) {
@@ -1251,6 +1255,7 @@ class InvoiceController extends Controller
                 'tranmt.*',
                 'c.fcustomername as customer_name',
                 'c.faddress as customer_address',
+                'r.frekeningname as frekeningname',
                 'b.fcabangname as cabang_name',
                 's.fsalesmanname as salesman_name',
             ]);
