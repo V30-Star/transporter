@@ -59,7 +59,7 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
         }
 
@@ -83,9 +83,9 @@
         }
 
         .info-table {
-            float: right;
             font-size: 12px;
-            margin-top: -65px;
+            margin-top: 4px;
+            margin-left: auto;
         }
 
         .info-table td {
@@ -258,42 +258,35 @@
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                <div class="customer-container">
+                    <span class="customer-label">Customer</span>
+                    <div style="font-weight: bold;">
+                        {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        Alamat : {{ $hdr->customer_address ?? '-' }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        Keterangan : {{ $hdr->fket ?: '-' }}
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="title-so">Retur Penjualan</div>
                 <div class="so-no">No. {{ $displayFsono ?? ($hdr->fsono ?? '-') }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fsodate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sales</td>
+                        <td>:</td>
+                        <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
+                    </tr>
+                </table>
             </div>
-        </div>
-
-        <div style="overflow: hidden; margin-top: 10px;">
-            <div class="customer-container">
-                <span class="customer-label">Customer</span>
-                <div style="font-weight: bold;">
-                    {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    Alamat : {{ $hdr->customer_address ?? '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    Keterangan : {{ $hdr->fket ?: '-' }}
-                </div>
-            </div>
-
-            <table class="info-table">
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) }}</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td>:</td>
-                    <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
-                </tr>
-            </table>
         </div>
 
         <table class="tb">
@@ -371,18 +364,17 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td style="width: 50%;">Dibuat Oleh</td>
+                    <td style="width: 50%;">Hormat Kami</td>
                     <td style="width: 50%;">Mengetahui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? ($hdr->fuserid ?? '-')) }}</td>
+                    <td class="box-content">{{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }}</td>
                     <td class="box-content">{{ strtoupper($hdr->fuseracc ?? '-') }}</td>
                 </tr>
             </table>
 
             <div class="meta-right">
-                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
-                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}</div>
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>

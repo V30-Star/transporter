@@ -83,9 +83,9 @@
         }
 
         .info-table {
-            float: right;
             font-size: 12px;
-            margin-top: -68px;
+            margin-top: 4px;
+            margin-left: auto;
         }
 
         .info-table td {
@@ -253,49 +253,45 @@
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                <div class="customer-container">
+                    <span class="customer-label">Customer</span>
+                    <div style="font-weight: bold;">
+                        {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        {{ $hdr->customer_address ?? '-' }}
+                    </div>
+                    <div style="font-size: 11px;">
+                        Keterangan : {{ $hdr->fket ?: '-' }}
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="title-so">Faktur Penjualan</div>
                 <div class="so-no">No. {{ $displayFsono ?? ($hdr->fsono ?? '-') }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fsodate) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tempo</td>
+                        <td>:</td>
+                        <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                    </tr>
+                    <tr>
+                        <td>No. Ref / PO</td>
+                        <td>:</td>
+                        <td>{{ $hdr->frefno ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sales</td>
+                        <td>:</td>
+                        <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
+                    </tr>
+                </table>
             </div>
-        </div>
-
-        <div style="overflow: hidden; margin-top: 0px;">
-            <div class="customer-container">
-                <span class="customer-label">Customer</span>
-                <div style="font-weight: bold;">
-                    {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    {{ $hdr->customer_address ?? '-' }}
-                </div>
-                <div style="font-size: 11px;">
-                    Keterangan : {{ $hdr->fket ?: '-' }}
-                </div>
-            </div>
-
-            <table class="info-table">
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) }}</td>
-                </tr>
-                <tr>
-                    <td>Tempo</td>
-                    <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                </tr>
-                <tr>
-                    <td>No. Ref / PO</td>
-                    <td>:</td>
-                    <td>{{ $hdr->frefno ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td>:</td>
-                    <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
-                </tr>
-            </table>
         </div>
 
         <table class="tb">
@@ -383,11 +379,11 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td style="width: 50%;">Dibuat Oleh</td>
+                    <td style="width: 50%;">Hormat Kami</td>
                     <td style="width: 50%;">Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? ($hdr->fuserid ?? '-')) }}</td>
+                    <td class="box-content">{{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }}</td>
                     <td class="box-content">{{ strtoupper($hdr->fuseracc ?? '-') }}</td>
                 </tr>
             </table>

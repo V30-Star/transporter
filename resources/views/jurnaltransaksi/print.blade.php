@@ -59,8 +59,19 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
+        }
+
+        .info-table {
+            font-size: 12px;
+            margin-top: 4px;
+            margin-left: auto;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 1px 2px;
         }
 
         /* Table Journal */
@@ -208,17 +219,15 @@
             <div>
                 <div class="title-so">Voucher Jurnal</div>
                 <div class="so-no">No. {{ $hdr->fjurnalno ?? '-' }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fjurnaldate) }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
-
-        {{-- Info --}}
-        <table style="width:auto; margin-top:12px; font-size:12px; border-collapse:collapse;">
-            <tr>
-                <td style="width:90px; padding:2px 4px;">Tanggal</td>
-                <td style="padding:2px 4px;">:</td>
-                <td style="padding:2px 4px;">{{ $fmt($hdr->fjurnaldate) }}</td>
-            </tr>
-        </table>
 
         {{-- Detail Table --}}
         @php
@@ -285,19 +294,18 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
-                    <td>Diperiksa</td>
+                    <td>Hormat Kami</td>
                     <td>Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fuserid ?? '') }}</td>
-                    <td class="box-content"></td>
+                    <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
                     <td class="box-content"></td>
                 </tr>
             </table>
-            {{-- Caption = fjurnalnote --}}
-            <div class="caption-note">
-                Ket : {{ $hdr->fjurnalnote ?? '' }}
+
+            <div class="meta-right">
+                @if(!empty($hdr->fjurnalnote))<div style="margin-bottom: 2px;">Ket : {{ $hdr->fjurnalnote }}</div>@endif
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>

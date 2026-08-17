@@ -321,28 +321,38 @@ class LaporanKartuStokController extends Controller
 
     private function rowsByUnit($row)
     {
-        $units = [
-            [trim((string) ($row->fsatuanbesar2 ?? '')), (float) ($row->qtykecil2 ?? 0), 1],
-            [trim((string) ($row->fsatuanbesar ?? '')), (float) ($row->qtykecil ?? 0), 2],
-            [trim((string) ($row->fsatuankecil ?? '')), 1.0, 3],
-        ];
+        $smallUnit = trim((string) ($row->fsatuankecil ?? ''));
+        $unit = [trim((string) ($row->fsatuanbesar2 ?? '')), (float) ($row->qtykecil2 ?? 0), 1];
+        if ($unit[0] === '') {
+            $unit = [trim((string) ($row->fsatuanbesar ?? '')), (float) ($row->qtykecil ?? 0), 2];
+        }
+        if ($unit[0] === '') {
+            $unit = [$smallUnit, 1.0, 3];
+        }
 
-        return collect($units)
-            ->filter(fn($unit) => $unit[0] !== '')
-            ->map(function ($unit) use ($row) {
-                [$name, $ratio, $order] = $unit;
-                $ratio = $ratio > 0 ? $ratio : 1.0;
-                $copy = clone $row;
-                $copy->fsatuan = $name;
-                $copy->unit_order = $order;
-                $copy->qtyawalkecil = (float) ($row->qtyawalkecil ?? 0) / $ratio;
-                $copy->qtymasukkecil = (float) ($row->qtymasukkecil ?? 0) / $ratio;
-                $copy->qtykeluarkecil = (float) ($row->qtykeluarkecil ?? 0) / $ratio;
-                $copy->qtysaldokecil = (float) ($row->qtysaldokecil ?? 0) / $ratio;
-                $copy->fminstock = (float) ($row->fminstock ?? 0) / $ratio;
-                return $copy;
-            })
-            ->values();
+        [$name, $ratio, $order] = $unit;
+        $ratio = $ratio > 0 ? $ratio : 1.0;
+        $values = [
+            (float) ($row->qtyawalkecil ?? 0),
+            (float) ($row->qtymasukkecil ?? 0),
+            (float) ($row->qtykeluarkecil ?? 0),
+            (float) ($row->qtysaldokecil ?? 0),
+        ];
+        $isWhole = fn($value) => abs(($value / $ratio) - round($value / $ratio)) < 0.00001;
+        if ($ratio !== 1.0 && ! collect($values)->every($isWhole)) {
+            [$name, $ratio, $order] = [$smallUnit, 1.0, 3];
+        }
+
+        $copy = clone $row;
+        $copy->fsatuan = $name;
+        $copy->unit_order = $order;
+        $copy->qtyawalkecil = (float) ($row->qtyawalkecil ?? 0) / $ratio;
+        $copy->qtymasukkecil = (float) ($row->qtymasukkecil ?? 0) / $ratio;
+        $copy->qtykeluarkecil = (float) ($row->qtykeluarkecil ?? 0) / $ratio;
+        $copy->qtysaldokecil = (float) ($row->qtysaldokecil ?? 0) / $ratio;
+        $copy->fminstock = (float) ($row->fminstock ?? 0) / $ratio;
+
+        return collect([$copy]);
     }
 
     private function matchStatus($row, Request $request): bool

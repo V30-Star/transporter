@@ -71,7 +71,7 @@
         .doc-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
         }
 
@@ -86,9 +86,10 @@
             border: 1px solid #000;
             border-radius: 10px;
             padding: 8px 12px;
-            width: 58%;
-            min-height: 92px;
+            width: 450px;
+            min-height: 78px;
             position: relative;
+            margin-top: 10px;
         }
 
         .party-label {
@@ -101,13 +102,14 @@
         }
 
         .info-table {
-            width: 38%;
             font-size: 12px;
+            margin-top: 4px;
+            margin-left: auto;
             border-collapse: collapse;
         }
 
         .info-table td {
-            padding: 2px 0;
+            padding: 1px 2px;
             vertical-align: top;
         }
 
@@ -242,37 +244,36 @@
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                <div class="party-box">
+                    <span class="party-label">{{ 'Informasi' }}</span>
+                    <div><strong>{{ 'Penerima' }}:</strong> {{ $hdr->fwhom ?: '-' }}</div>
+                    <div style="margin-top: 4px;"><strong>{{ 'Cash / Bank' }}:</strong>
+                        {{ trim(($hdr->faccountheader ?? '') . ' - ' . ($hdr->header_account_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="margin-top: 4px;"><strong>{{ 'Keterangan' }}:</strong> {{ $hdr->fket ?: '-' }}</div>
+                </div>
             </div>
             <div>
                 <div class="doc-title">{{ 'Penerimaan Kas/Bank' }}</div>
                 <div class="doc-no">{{ 'No' }}. {{ $hdr->fkasmtno ?? '-' }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td><strong>{{ 'Tanggal' }}</strong></td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fkasmtdate ?? null) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{{ 'No.Giro/Cek' }}</strong></td>
+                        <td>:</td>
+                        <td>{{ $hdr->fnogiro ?: '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>{{ 'Kode Transaksi' }}</strong></td>
+                        <td>:</td>
+                        <td>{{ $hdr->ftrancode ?: '-' }}</td>
+                    </tr>
+                </table>
             </div>
-        </div>
-
-        <div class="info-wrap">
-            <div class="party-box">
-                <span class="party-label">{{ 'Informasi' }}</span>
-                <div><strong>{{ 'Penerima' }}:</strong> {{ $hdr->fwhom ?: '-' }}</div>
-                <div style="margin-top: 4px;"><strong>{{ 'Cash / Bank' }}:</strong>
-                    {{ trim(($hdr->faccountheader ?? '') . ' - ' . ($hdr->header_account_name ?? ''), ' -') ?: '-' }}
-                </div>
-                <div style="margin-top: 4px;"><strong>{{ 'Keterangan' }}:</strong> {{ $hdr->fket ?: '-' }}</div>
-            </div>
-
-            <table class="info-table">
-                <tr>
-                    <td style="width: 40%;"><strong>{{ 'Tanggal' }}</strong></td>
-                    <td>: {{ $fmt($hdr->fkasmtdate ?? null) }}</td>
-                </tr>
-                <tr>
-                    <td><strong>{{ 'No.Giro/Cek' }}</strong></td>
-                    <td>: {{ $hdr->fnogiro ?: '-' }}</td>
-                </tr>
-                <tr>
-                    <td><strong>{{ 'Kode Transaksi' }}</strong></td>
-                    <td>: {{ $hdr->ftrancode ?: '-' }}</td>
-                </tr>
-            </table>
         </div>
 
         <table class="tb">
@@ -324,18 +325,17 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>{{ 'Dibuat' }}</td>
+                    <td>{{ 'Hormat Kami' }}</td>
                     <td>{{ 'Mengetahui' }}</td>
                 </tr>
                 <tr>
-                    <td class="box-content"></td>
+                    <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
                     <td class="box-content"></td>
                 </tr>
             </table>
 
             <div class="meta-right">
-                <div>{{ 'Dicetak' }}: {{ now()->format('d/m/Y H:i:s') }}</div>
-                <div>{{ 'User' }}: {{ auth()->user()->fname ?? (auth()->user()->name ?? '-') }}</div>
+                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
             </div>
         </div>
     </div>

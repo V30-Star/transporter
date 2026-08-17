@@ -65,8 +65,9 @@
         }
 
         .so-no {
+            color: #c00;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             margin-top: 2px;
         }
 
@@ -79,7 +80,6 @@
             min-height: 60px;
             position: relative;
             margin-top: 10px;
-            float: left;
         }
 
         .customer-label {
@@ -93,9 +93,9 @@
         }
 
         .info-table {
-            float: right;
-            font-size: 10px;
-            margin-top: 10px;
+            font-size: 12px;
+            margin-top: 4px;
+            margin-left: auto;
             border-collapse: collapse;
         }
 
@@ -291,34 +291,25 @@
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
                     @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                     @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                    <div class="customer-container">
+                        <span class="customer-label">Supplier</span>
+                        <div style="font-weight: bold; font-size: 11px;">{{ $hdr->supplier_name ?? '-' }}</div>
+                        <div style="font-size: 10px; margin-top: 4px; color: #333;">
+                            Gudang : {{ $hdr->fwhnamen ?? '-' }}
+                        </div>
+                    </div>
                 </div>
                 <div class="title-section">
                     <div class="title-so">Pemakaian Barang</div>
-                    <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                    <div class="so-no" style="font-size: 14px;">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                    <table class="info-table">
+                        <tr>
+                            <td class="info-label">Tanggal</td>
+                            <td>:</td>
+                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
+                        </tr>
+                    </table>
                 </div>
-            </div>
-
-            <div style="overflow: hidden; margin-top: 10px;">
-                <div class="customer-container">
-                    <span class="customer-label">Supplier</span>
-                    <div style="font-weight: bold; font-size: 11px;">{{ $hdr->supplier_name ?? '-' }}</div>
-                    <div style="font-size: 10px; margin-top: 4px; color: #333;">
-                        Gudang : {{ $hdr->fwhnamen ?? '-' }}
-                    </div>
-                </div>
-
-                <table class="info-table">
-                    <tr>
-                        <td class="info-label">Tanggal</td>
-                        <td>:</td>
-                        <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">Hal</td>
-                        <td>:</td>
-                        <td>1 / 1</td>
-                    </tr>
-                </table>
             </div>
 
             <table class="tb">
@@ -359,18 +350,16 @@
             <div class="sign-container">
                 <table class="sign-table">
                     <tr>
-                        <td>Dibuat</td>
-                        <td>User</td>
-                        <td>Plant Manager</td>
+                        <td>Hormat Kami</td>
+                        <td>Disetujui</td>
                     </tr>
                     <tr>
-                        <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
-                        <td class="box-content"></td>
+                        <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
                         <td class="box-content"></td>
                     </tr>
                 </table>
                 <div class="timestamp">
-                    Dicetak: {{ date('d/m/Y g:i:s A') }}
+                    Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1
                 </div>
             </div>
         </div>
