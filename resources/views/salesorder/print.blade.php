@@ -214,9 +214,30 @@
         }
 
         .print-hide button {
-            padding: 10px 20px;
+            background: #fff;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .print-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-right: 6px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .print-button:hover {
+            background: #0056b3;
         }
 
         @media print {
@@ -230,8 +251,8 @@
                 box-shadow: none;
             }
 
-            .print-hide {
-                display: none;
+            .no-print, .print-hide {
+                display: none !important;
             }
 
             @page {
@@ -243,6 +264,27 @@
 </head>
 
 <body>
+    <div class="no-print">
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Dokumen</button>
+
+        {{-- Zoom Out --}}
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; line-height: 1;">
+            −
+        </button>
+
+        {{-- Zoom Level --}}
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
+            100%
+        </span>
+
+        {{-- Zoom In --}}
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; line-height: 1;">
+            +
+        </button>
+    </div>
     @php
         $fmtQty = function ($value) {
             $num = (float) $value;
@@ -250,9 +292,6 @@
         };
     @endphp
 
-    <div class="print-hide">
-        <button onclick="window.print()">PRINT</button>
-        <button onclick="window.close()">CLOSE</button>
     </div>
 
     <div class="sheet">
@@ -404,6 +443,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+        let currentZoom = 1.0;
+        function adjustZoom(delta) {
+            currentZoom = Math.min(Math.max(currentZoom + delta, 0.5), 2.0);
+            const target = document.querySelector('.sheet') || document.body;
+            target.style.transform = `scale(${currentZoom})`;
+            target.style.transformOrigin = "top center";
+            document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
+        }
+    </script>
 </body>
 
 </html>
