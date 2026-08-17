@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
             $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($setini->falamat1 ?? ''));
             $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($setini->falamat2 ?? ''));
             $view->with([
-                'company_name' => $setini->fproject ?? 'PT. DEMO VERSION',
+                'company_name' => $setini->fproject ?? 'PT. M-Trade',
                 'company_city' => $setini->fcity ?? '',
                 'company_address1' => $addr1,
                 'company_address2' => $addr2,
