@@ -436,7 +436,10 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
+                <div style="font-weight: bold; text-transform: uppercase;">{{ $company_name }}</div>
+                @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                 Customer: {{ request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua' }}
                 <br>Salesman: {{ request('salesman') ?: 'Semua' }}
                 <br>Limit: {{ request('limit') ? number_format((float) request('limit'), 0, ',', '.') : '0' }}
@@ -509,7 +512,10 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
+                        <div style="font-weight: bold; text-transform: uppercase;">{{ $company_name }}</div>
+                        @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                         Customer: {{ request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua' }}
                         <br>Salesman: {{ request('salesman') ?: 'Semua' }}
                         <br>Limit: {{ request('limit') ? number_format((float) request('limit'), 0, ',', '.') : '0' }}

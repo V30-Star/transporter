@@ -515,7 +515,10 @@
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
+                <div style="font-weight: bold; text-transform: uppercase;">{{ $company_name }}</div>
+                @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                 Gudang: {{ $warehouseName }}
                 <br>Produk: {{ request('prd_from') || request('prd_to') ? (request('prd_from') ?: 'Awal') . ' s/d ' . (request('prd_to') ?: 'Akhir') : 'Semua' }}
                 <br>Group: {{ request('group') ?: 'Semua' }}
@@ -603,7 +606,10 @@
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <div class="supplier-info-kiri" style="top: 15px;">
-                        <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">{{ $company_name }}</div>
+                        <div style="font-weight: bold; text-transform: uppercase;">{{ $company_name }}</div>
+                        @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                        @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
+                        @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                         Gudang: {{ $warehouseName }}
                         <br>Produk: {{ request('prd_from') || request('prd_to') ? (request('prd_from') ?: 'Awal') . ' s/d ' . (request('prd_to') ?: 'Akhir') : 'Semua' }}
                         <br>Group: {{ request('group') ?: 'Semua' }}

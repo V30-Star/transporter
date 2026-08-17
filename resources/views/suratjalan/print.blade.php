@@ -219,8 +219,10 @@
     <div class="sheet">
         <div class="header-row">
             <div>
-                <div class="comp-name">{{ strtoupper($company_name ?? 'PT. DEMO VERSION') }}</div>
-                <div>{{ $company_city ?? 'Tangerang' }}</div>
+                <div class="comp-name">{{ strtoupper($company_name) }}</div>
+                @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
+                @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
+                @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
             </div>
             <div>
                 <div class="title-so">Surat Jalan</div>
