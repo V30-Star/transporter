@@ -332,27 +332,42 @@ class LaporanKartuStokController extends Controller
 
         [$name, $ratio, $order] = $unit;
         $ratio = $ratio > 0 ? $ratio : 1.0;
-        $values = [
-            (float) ($row->qtyawalkecil ?? 0),
-            (float) ($row->qtymasukkecil ?? 0),
-            (float) ($row->qtykeluarkecil ?? 0),
-            (float) ($row->qtysaldokecil ?? 0),
-        ];
-        $isWhole = fn($value) => abs(($value / $ratio) - round($value / $ratio)) < 0.00001;
-        if ($ratio !== 1.0 && ! collect($values)->every($isWhole)) {
-            [$name, $ratio, $order] = [$smallUnit, 1.0, 3];
-        }
-
         $copy = clone $row;
         $copy->fsatuan = $name;
+        $copy->fsatuankecil = $smallUnit;
+        $copy->unit_ratio = $ratio;
         $copy->unit_order = $order;
         $copy->qtyawalkecil = (float) ($row->qtyawalkecil ?? 0) / $ratio;
         $copy->qtymasukkecil = (float) ($row->qtymasukkecil ?? 0) / $ratio;
         $copy->qtykeluarkecil = (float) ($row->qtykeluarkecil ?? 0) / $ratio;
         $copy->qtysaldokecil = (float) ($row->qtysaldokecil ?? 0) / $ratio;
         $copy->fminstock = (float) ($row->fminstock ?? 0) / $ratio;
+        $copy->qtysaldotext = $this->formatQtyUnit($copy->qtysaldokecil, $copy);
 
         return collect([$copy]);
+    }
+
+    private function formatQtyUnit($qty, $row): string
+    {
+        $qty = (float) $qty;
+        $ratio = (float) ($row->unit_ratio ?? 1);
+        $unit = trim((string) ($row->fsatuan ?? ''));
+        $smallUnit = trim((string) ($row->fsatuankecil ?? ''));
+
+        if ($ratio <= 1 || $smallUnit === '' || $unit === $smallUnit) {
+            return number_format($qty, 2, '.', '') . ' ' . $unit;
+        }
+
+        $sign = $qty < 0 ? '-' : '';
+        $qty = abs($qty);
+        $besar = (int) $qty;
+        $sisa = (int) round(($qty - $besar) * $ratio);
+
+        if ($sisa === 0) {
+            return $sign . $besar . ' ' . $unit;
+        }
+
+        return $sign . $besar . ' ' . $unit . ' ' . $sisa . ' ' . $smallUnit;
     }
 
     private function matchStatus($row, Request $request): bool
@@ -454,7 +469,7 @@ class LaporanKartuStokController extends Controller
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            (float) $row->qtysaldokecil . ' ' . $row->fsatuan,
+                            $this->formatQtyUnit($row->qtysaldokecil, $row),
                             $row->fwhcode
                         ]));
                     }
@@ -518,7 +533,7 @@ class LaporanKartuStokController extends Controller
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            (float) $row->qtysaldokecil . ' ' . $row->fsatuan,
+                            $this->formatQtyUnit($row->qtysaldokecil, $row),
                             $row->fwhcode
                         ]));
                     }

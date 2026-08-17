@@ -625,7 +625,7 @@
                                 <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan }}</div>
+                                <div>{{ $row->qtysaldotext ?? (number_format((float) $row->qtysaldokecil, 2, ',', '.') . ' ' . $row->fsatuan) }}</div>
                             </div>
                         </div>
                     @endforeach
@@ -681,7 +681,7 @@
                                 <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan ?? '' }}</div>
+                                <div>{{ $row->qtysaldotext ?? (number_format((float) $row->qtysaldokecil, 2, ',', '.') . ' ' . ($row->fsatuan ?? '')) }}</div>
                             </div>
                         </div>
                     @endforeach

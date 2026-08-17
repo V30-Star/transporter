@@ -802,7 +802,12 @@ class PenerimaanBarangController extends Controller
             ->leftJoinSub($supplierSub, 's', fn($j) => $j->on('s.fsuppliercode', '=', 'trstockmt.fsupplier'))
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
+            ->where(function ($q) use ($fstockmtno) {
+                $q->where('trstockmt.fstockmtno', $fstockmtno);
+                if (is_numeric($fstockmtno)) {
+                    $q->orWhere('trstockmt.fstockmtid', (int) $fstockmtno);
+                }
+            })
             ->first([
                 'trstockmt.*',
                 's.fsuppliername as supplier_name',
@@ -811,14 +816,14 @@ class PenerimaanBarangController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ada.');
+            return redirect()->back()->with('error', 'Penerimaan Barang tidak ada.');
         }
 
-        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+        DB::table('trstockmt')->where('fstockmtid', $hdr->fstockmtid)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode') // join by varchar code
-            ->where('trstockdt.fstockmtno', $fstockmtno)
+            ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
                 'trstockdt.*',
