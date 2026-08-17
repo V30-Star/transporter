@@ -352,7 +352,6 @@
         <div class="header-section">
             <div class="supplier-info-kiri">
                 <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
                 @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                 Cabang: {{ $filters['branch_label'] }}
@@ -468,7 +467,6 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_city))<div>{{ $company_city }}</div>@endif
                         @if(!empty($company_address1))<div>{{ $company_address1 }}</div>@endif
                         @if(!empty($company_address2))<div>{{ $company_address2 }}</div>@endif
                         Cabang: {{ $filters['branch_label'] }}
