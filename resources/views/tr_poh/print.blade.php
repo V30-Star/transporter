@@ -60,7 +60,7 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 15px;
             text-align: right;
         }
 
@@ -85,9 +85,9 @@
         }
 
         .info-table {
-            float: right;
             font-size: 12px;
-            margin-top: -60px;
+            margin-top: 4px;
+            margin-left: auto;
         }
 
         .info-table td {
@@ -226,47 +226,40 @@
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                <div class="customer-container">
+                    <span class="customer-label">Supplier</span>
+                    <div style="font-weight: bold;">{{ $hdr->supplier_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
+                    <div style="font-size: 11px; width: 350px;">
+                        {{ $hdr->supplier_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="title-so">Order Pembelian</div>
                 <div class="so-no">No. {{ $displayFpono ?? ($hdr->fpono ?? '-') }}</div>
+                <table class="info-table">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>:</td>
+                        <td>{{ $fmt($hdr->fpodate) ?? '21 Januari 2026' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tempo</td>
+                        <td>:</td>
+                        <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                    </tr>
+                    <tr>
+                        <td>Ref.PO</td>
+                        <td>:</td>
+                        <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sales</td>
+                        <td>:</td>
+                        <td>{{ $hdr->fsalesname ?? '' }}</td>
+                    </tr>
+                </table>
             </div>
-        </div>
-
-        <div style="overflow: hidden; margin-top: 10px;">
-            <div class="customer-container">
-                <span class="customer-label">Supplier</span>
-                <div style="font-weight: bold;">{{ $hdr->supplier_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
-                <div style="font-size: 11px; width: 350px;">
-                    {{ $hdr->supplier_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
-                </div>
-            </div>
-
-            <table class="info-table">
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fpodate) ?? '21 Januari 2026' }}</td>
-                </tr>
-                <tr>
-                    <td>Tempo</td>
-                    <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                </tr>
-                <tr>
-                    <td>Ref.PO</td>
-                    <td>:</td>
-                    <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td>:</td>
-                    <td>{{ $hdr->fsalesname ?? '' }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px;">Hal : 1 / 1</td>
-                </tr>
-            </table>
         </div>
 
         <table class="tb">
@@ -332,16 +325,16 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
+                    <td>Hormat Kami</td>
                     <td>Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? 'STEPHANUS') }}</td>
+                    <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
                     <td class="box-content"></td>
                 </tr>
             </table>
             <div class="timestamp">
-                {{ date('d/m/Y g:i:s A') }}
+                Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1
             </div>
         </div>
     </div>
