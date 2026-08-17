@@ -293,16 +293,20 @@
         <div class="footer-line"></div>
 
         <div class="sign-container">
-            <table class="sign-table">
-                <tr>
-                    <td style="width: 50%;">Hormat Kami</td>
-                    <td style="width: 50%;">Disetujui</td>
-                </tr>
-                <tr>
-                    <td class="box-content">{{ strtoupper($namattdpo ?: '-') }}</td>
-                    <td class="box-content">{{ strtoupper($hdr->fuserapproved ?? '-') }}</td>
-                </tr>
-            </table>
+            <div style="display: flex; align-items: flex-start; gap: 40px;">
+                <div style="width: 160px; min-width: 140px;">
+                    <div style="font-size: 11px;">Hormat Kami,</div>
+                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                        ( {{ strtoupper($namattdpo ?: '-') }} )
+                    </div>
+                </div>
+                <div style="width: 160px; min-width: 140px;">
+                    <div style="font-size: 11px;">Disetujui,</div>
+                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                        ( {{ strtoupper($hdr->fuserapproved ?? '-') }} )
+                    </div>
+                </div>
+            </div>
 
             <div class="meta-right">
                 <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
