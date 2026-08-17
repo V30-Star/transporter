@@ -305,24 +305,30 @@
         </div>
 
         <div class="summary-box">
-            <div class="summary-row">
-                <span style="font-weight: bold;">Total Harga :</span>
-                <span style="font-weight: bold;">{{ number_format($subtotal, 2, ',', '.') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>Discount :</span>
-                <span>0,00</span>
-            </div>
-            @if ($hdr->fincludeppn == '1')
-                <div class="summary-row">
-                    <span>PPN {{ $ppnPersen }}% :</span>
-                    <span>{{ number_format($ppnAmount, 2, ',', '.') }}</span>
-                </div>
-            @endif
-            <div class="summary-row grand-total">
-                <span>Grand Total :</span>
-                <span>{{ number_format($grandTotal, 2, ',', '.') }}</span>
-            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                <tr style="font-weight: bold;">
+                    <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
+                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                    <td style="text-align: right; padding: 1px 0;">{{ number_format($subtotal, 2, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
+                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                    <td style="text-align: right; padding: 1px 0;">0,00</td>
+                </tr>
+                @if ($hdr->fincludeppn == '1')
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">PPN {{ $ppnPersen }}%</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 2, ',', '.') }}</td>
+                    </tr>
+                @endif
+                <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
+                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
+                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
+                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($grandTotal, 2, ',', '.') }}</td>
+                </tr>
+            </table>
         </div>
 
         <div class="sign-container">

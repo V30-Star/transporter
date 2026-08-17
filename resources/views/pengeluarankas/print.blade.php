@@ -316,14 +316,18 @@
 
         <div class="summary">
             <div class="summary-box">
-                <div class="summary-row">
-                    <span>{{ 'Total Payment' }}</span>
-                    <span>{{ number_format($totalAmount, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row grand-total">
-                    <span>{{ 'Grand Total' }}</span>
-                    <span>{{ number_format($totalAmount, 2, ',', '.') }}</span>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Total Payment</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($totalAmount, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($totalAmount, 2, ',', '.') }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
 

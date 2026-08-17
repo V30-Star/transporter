@@ -373,30 +373,38 @@
 
             {{-- Kolom Kanan: Summary Total & Metadata --}}
             <div style="width: 28%;">
-                <div class="summary-row">
-                    <span>Total Harga :</span>
-                    <span>{{ number_format($famountgross, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Potongan Harga :</span>
-                    <span>{{ number_format($fdiscount, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Ttl.Setelah Pot. :</span>
-                    <span>{{ number_format($totalSetelahDisc, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>PPN :</span>
-                    <span>{{ number_format($famountpajak, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Ongkos Angkut :</span>
-                    <span>{{ number_format($fongkosangkut, 2, ',', '.') }}</span>
-                </div>
-                <div class="summary-row grand-total">
-                    <span>Grand Total :</span>
-                    <span>{{ number_format($famountso, 2, ',', '.') }}</span>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Potongan Harga</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Ttl.Setelah Pot.</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($totalSetelahDisc, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">PPN</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($famountpajak, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Ongkos Angkut</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                    </tr>
+                </table>
                 <div class="meta-right" style="margin-top: 6px;">
                     <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
                 </div>
