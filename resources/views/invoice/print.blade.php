@@ -26,9 +26,9 @@
 
         .sheet {
             width: 8.27in;
-            min-height: 11.69in;
-            margin: 0.4in auto;
-            padding: 0.4in 0.5in;
+            min-height: 5.83in;
+            margin: 0.2in auto;
+            padding: 0.25in 0.4in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -65,12 +65,12 @@
 
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
-            padding: 5px 12px;
-            width: 450px;
-            min-height: 78px;
+            border-radius: 8px;
+            padding: 4px 10px;
+            width: 420px;
+            min-height: 60px;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -137,7 +137,7 @@
 
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 28px;
+            margin-top: 12px;
         }
 
         .terbilang-box {
@@ -245,6 +245,9 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
+                width: 100%;
+                min-height: auto;
+                padding: 0.2in 0.35in;
             }
 
             .no-print, .print-hide {
@@ -252,7 +255,7 @@
             }
 
             @page {
-                size: A4;
+                size: 8.27in 5.83in;
                 margin: 0;
             }
         }
@@ -394,7 +397,7 @@
                 <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
                     <div style="width: 160px; min-width: 140px;">
                         <div style="font-size: 11px;">Hormat Kami,</div>
-                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                        <div style="margin-top: 36px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                             ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
                         </div>
                     </div>
