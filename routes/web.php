@@ -79,6 +79,7 @@ use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\SysUserController;
+use App\Http\Controllers\SystemSettingController;
 use App\Http\Controllers\Tr_pohController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\WhController;
@@ -102,6 +103,8 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
     })->name('settings');
     Route::get('/settings/edit-periode', [EditPeriodeController::class, 'edit'])->name('editperiode.edit');
     Route::patch('/settings/edit-periode', [EditPeriodeController::class, 'update'])->name('editperiode.update');
+    Route::get('/settings/system-setting', [SystemSettingController::class, 'edit'])->name('systemsetting.edit');
+    Route::patch('/settings/system-setting', [SystemSettingController::class, 'update'])->name('systemsetting.update');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');

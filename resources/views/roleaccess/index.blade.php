@@ -378,6 +378,10 @@
                                 <td class="px-3 py-2 font-semibold">Edit Periode Accounting</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="editPeriode" {{ in_array('editPeriode', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">System Setting</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="systemSetting" {{ (in_array('systemSetting', $selectedPermissions) || in_array('editSystemSetting', $selectedPermissions)) ? 'checked' : '' }}></td>
+                            </tr>
 
                             <!-- 7. PERSETUJUAN (APPROVAL) -->
                             <tr class="bg-gray-700 text-blue-400 font-bold">

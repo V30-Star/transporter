@@ -1213,6 +1213,16 @@
                             </a>
                         </li>
                     @endif
+
+                    @if ($hasSidebarPermission('systemSetting', 'editSystemSetting', 'roleaccess'))
+                        <li>
+                            <a href="{{ route('systemsetting.edit') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-sliders w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'System Setting' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
