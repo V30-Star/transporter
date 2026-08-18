@@ -12,26 +12,30 @@ class PenamaanPerusahaanController extends Controller
     private function checkPasswordMatch(?string $input, ?string $stored): bool
     {
         if (empty($stored)) {
-            // Default password jika belum pernah diset di database
             return $input === 'admin1234';
         }
 
-        // Cek Hash
-        if (Hash::check($input, $stored)) {
+        // 1. Cek Crypt Decrypt (AES-256)
+        $decrypted = decrypt_value($stored);
+        if ($decrypted !== '' && $decrypted === $input) {
             return true;
         }
 
-        // Cek Crypt Decrypt
+        // 2. Cek Plain Text
+        if ($stored === $input) {
+            return true;
+        }
+
+        // 3. Cek Bcrypt Hash (dengan try-catch agar aman jika bukan hash)
         try {
-            if (Crypt::decryptString($stored) === $input) {
+            if (Hash::check($input, $stored)) {
                 return true;
             }
         } catch (\Throwable $e) {
-            // fallback plain text
+            // Bukan format bcrypt
         }
 
-        // Cek Plain Text
-        return $stored === $input;
+        return false;
     }
 
     public function index(Request $request)
