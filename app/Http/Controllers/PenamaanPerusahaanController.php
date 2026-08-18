@@ -13,7 +13,7 @@ class PenamaanPerusahaanController extends Controller
     {
         if (empty($stored)) {
             // Default password jika belum pernah diset di database
-            return in_array($input, ['admin', '123456', 'transporter', ''], true);
+            return $input === 'admin1234';
         }
 
         // Cek Hash
