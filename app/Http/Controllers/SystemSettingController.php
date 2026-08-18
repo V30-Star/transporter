@@ -11,9 +11,6 @@ class SystemSettingController extends Controller
     public function edit()
     {
         $setini = DB::table('setini')->first();
-        if ($setini) {
-            $setini->fproject = decrypt_value($setini->fproject ?? '');
-        }
 
         return view('systemsetting.edit', [
             'pageTitle' => 'System Setting',
@@ -24,7 +21,6 @@ class SystemSettingController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'fproject' => 'nullable|string|max:200',
             'fcity' => 'nullable|string|max:100',
             'falamat1' => 'nullable|string|max:200',
             'falamat2' => 'nullable|string|max:200',
@@ -40,10 +36,7 @@ class SystemSettingController extends Controller
             'fppntarif' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        $projectRaw = trim($validated['fproject'] ?? '');
-
         $updateData = [
-            'fproject' => $projectRaw !== '' ? Crypt::encryptString($projectRaw) : '',
             'fcity' => $validated['fcity'] ?? '',
             'falamat1' => $validated['falamat1'] ?? '',
             'falamat2' => $validated['falamat2'] ?? '',

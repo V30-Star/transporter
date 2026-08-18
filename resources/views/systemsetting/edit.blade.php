@@ -41,21 +41,14 @@
                 @csrf
                 @method('PATCH')
 
-                {{-- 1. HEADER FAKTUR & ALAMAT PERUSAHAAN --}}
+                {{-- 1. ALAMAT & KONTAK PERUSAHAAN --}}
                 <div class="border rounded-xl p-5 bg-white shadow-sm space-y-4">
                     <div class="border-b pb-3 flex items-center gap-2 text-blue-900 font-semibold text-base">
                         <i class="fa-solid fa-building text-blue-600"></i>
-                        <span>Header Faktur & Alamat Perusahaan</span>
+                        <span>Alamat & Kontak Perusahaan</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2">
-                            <label for="fproject" class="block text-sm font-medium text-gray-700 mb-1">Header Faktur / Nama Perusahaan</label>
-                            <input type="text" id="fproject" name="fproject" value="{{ old('fproject', $setting->fproject ?? '') }}"
-                                class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Contoh: PT. TRANS LOGISTIK NUSANTARA">
-                            @error('fproject') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                        </div>
 
                         <div>
                             <label for="falamat1" class="block text-sm font-medium text-gray-700 mb-1">Alamat 1</label>
