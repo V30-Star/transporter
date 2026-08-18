@@ -11,6 +11,13 @@ class SystemSettingController extends Controller
     public function edit()
     {
         $setini = DB::table('setini')->first();
+        if ($setini) {
+            $setini->falamat1 = decrypt_value($setini->falamat1 ?? '');
+            $setini->falamat2 = decrypt_value($setini->falamat2 ?? '');
+            $setini->fnpwp = decrypt_value($setini->fnpwp ?? '');
+            $setini->falamat1npwp = decrypt_value($setini->falamat1npwp ?? '');
+            $setini->falamat2npwp = decrypt_value($setini->falamat2npwp ?? '');
+        }
 
         return view('systemsetting.edit', [
             'pageTitle' => 'System Setting',
@@ -36,15 +43,21 @@ class SystemSettingController extends Controller
             'fppntarif' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $alamat1 = trim($validated['falamat1'] ?? '');
+        $alamat2 = trim($validated['falamat2'] ?? '');
+        $npwp = trim($validated['fnpwp'] ?? '');
+        $alamat1npwp = trim($validated['falamat1npwp'] ?? '');
+        $alamat2npwp = trim($validated['falamat2npwp'] ?? '');
+
         $updateData = [
             'fcity' => $validated['fcity'] ?? '',
-            'falamat1' => $validated['falamat1'] ?? '',
-            'falamat2' => $validated['falamat2'] ?? '',
+            'falamat1' => $alamat1 !== '' ? Crypt::encryptString($alamat1) : '',
+            'falamat2' => $alamat2 !== '' ? Crypt::encryptString($alamat2) : '',
             'ftelp' => $validated['ftelp'] ?? null,
             'ffax' => $validated['ffax'] ?? null,
-            'fnpwp' => $validated['fnpwp'] ?? null,
-            'falamat1npwp' => $validated['falamat1npwp'] ?? null,
-            'falamat2npwp' => $validated['falamat2npwp'] ?? null,
+            'fnpwp' => $npwp !== '' ? Crypt::encryptString($npwp) : null,
+            'falamat1npwp' => $alamat1npwp !== '' ? Crypt::encryptString($alamat1npwp) : null,
+            'falamat2npwp' => $alamat2npwp !== '' ? Crypt::encryptString($alamat2npwp) : null,
             'fnamattdfakturpenjualan' => $validated['fnamattdfakturpenjualan'] ?? '',
             'fnamattdfakturpenjualan2' => $validated['fnamattdfakturpenjualan2'] ?? null,
             'fnamattdpo' => $validated['fnamattdpo'] ?? '',
