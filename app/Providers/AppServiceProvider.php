@@ -28,8 +28,10 @@ class AppServiceProvider extends ServiceProvider
             $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
             $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($setini->falamat1 ?? ''));
             $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($setini->falamat2 ?? ''));
+            $projectName = decrypt_value($setini->fproject ?? '');
+
             $view->with([
-                'company_name' => $setini->fproject ?? 'PT. M-Trade',
+                'company_name' => $projectName !== '' ? $projectName : 'PT. M-Trade',
                 'company_city' => $setini->fcity ?? '',
                 'company_address1' => $addr1,
                 'company_address2' => $addr2,

@@ -564,7 +564,7 @@ class PengeluaranKasController extends Controller
             'dt' => $details,
             'fmt' => $fmt,
             'totalAmount' => $totalAmount,
-            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
+            'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

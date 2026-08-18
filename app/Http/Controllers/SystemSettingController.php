@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class SystemSettingController extends Controller
@@ -10,6 +11,9 @@ class SystemSettingController extends Controller
     public function edit()
     {
         $setini = DB::table('setini')->first();
+        if ($setini) {
+            $setini->fproject = decrypt_value($setini->fproject ?? '');
+        }
 
         return view('systemsetting.edit', [
             'pageTitle' => 'System Setting',
@@ -36,8 +40,10 @@ class SystemSettingController extends Controller
             'fppntarif' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $projectRaw = trim($validated['fproject'] ?? '');
+
         $updateData = [
-            'fproject' => $validated['fproject'] ?? '',
+            'fproject' => $projectRaw !== '' ? Crypt::encryptString($projectRaw) : '',
             'fcity' => $validated['fcity'] ?? '',
             'falamat1' => $validated['falamat1'] ?? '',
             'falamat2' => $validated['falamat2'] ?? '',
