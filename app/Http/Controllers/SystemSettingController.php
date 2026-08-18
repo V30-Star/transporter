@@ -34,7 +34,6 @@ class SystemSettingController extends Controller
             'fnamattdpo' => 'nullable|string|max:100',
             'fnamattdpo2' => 'nullable|string|max:100',
             'fppntarif' => 'nullable|numeric|min:0|max:100',
-            'fstokbolehminus' => 'nullable|in:0,1',
         ]);
 
         $updateData = [
@@ -55,9 +54,6 @@ class SystemSettingController extends Controller
 
         if (isset($validated['fppntarif'])) {
             $updateData['fppntarif'] = $validated['fppntarif'];
-        }
-        if (isset($validated['fstokbolehminus'])) {
-            $updateData['fstokbolehminus'] = $validated['fstokbolehminus'];
         }
 
         DB::table('setini')->update($updateData);
