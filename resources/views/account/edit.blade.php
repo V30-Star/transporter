@@ -81,18 +81,22 @@
                                 <label class="block text-xs font-bold text-gray-600 mb-1">
                                     Kode Account <span class="text-red-500">*</span>
                                 </label>
+                                @php
+                                    $isAccountCodeDisabled = !empty($isUsedInTransaction) || !empty($isReferencedAsHeader);
+                                @endphp
                                 <input type="text" name="faccount" id="faccount"
                                     value="{{ old('faccount', $account->faccount) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-100 @error('faccount') border-red-400 @enderror {{ !empty($isUsedInTransaction) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'focus:border-blue-500' }}"
-                                    {{ !empty($isUsedInTransaction) ? 'readonly' : '' }} maxlength="10"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-100 @error('faccount') border-red-400 @enderror {{ $isAccountCodeDisabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'focus:border-blue-500' }}"
+                                    {{ $isAccountCodeDisabled ? 'readonly' : '' }} maxlength="10"
                                     placeholder="cth. 1-100-001" autofocus>
                                 <p id="faccount-hint" class="text-xs text-gray-400 italic mt-1"></p>
                                 @error('faccount')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
-                                @if (!empty($isUsedInTransaction))
-                                    <p class="text-amber-600 text-xs mt-1 font-medium">Kode account tidak bisa diubah karena
-                                        account sudah dipakai transaksi.</p>
+                                @if (!empty($isReferencedAsHeader))
+                                    <p class="text-amber-600 text-xs mt-1 font-medium">Kode account tidak bisa diubah karena sudah direferensikan sebagai Account Header.</p>
+                                @elseif (!empty($isUsedInTransaction))
+                                    <p class="text-amber-600 text-xs mt-1 font-medium">Kode account tidak bisa diubah karena account sudah dipakai transaksi.</p>
                                 @endif
                             </div>
                             <div>
@@ -165,11 +169,14 @@
                         <div class="mt-4">
                             <label class="block text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">Type
                                 Account</label>
+                            @php
+                                $isTypeAccountDisabled = !empty($isUsedInTransaction) || !empty($isReferencedAsHeader);
+                            @endphp
                             <div class="flex gap-2" x-data="{ val: '{{ old('fend', $account->fend) }}' }">
                                 <input type="hidden" name="fend" :value="val">
 
-                                @if (!empty($isUsedInTransaction))
-                                    {{-- State TERKUNCI (Ada Transaksi) --}}
+                                @if ($isTypeAccountDisabled)
+                                    {{-- State TERKUNCI --}}
                                     <button type="button" disabled
                                         :class="val === '1' ?
                                             'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
@@ -196,6 +203,11 @@
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Header</button>
                                 @endif
                             </div>
+                            @if (!empty($isReferencedAsHeader))
+                                <p class="text-amber-600 text-xs mt-1 font-medium">Type account tidak bisa diubah karena sudah direferensikan sebagai Account Header.</p>
+                            @elseif (!empty($isUsedInTransaction))
+                                <p class="text-amber-600 text-xs mt-1 font-medium">Type account tidak bisa diubah karena account sudah dipakai transaksi.</p>
+                            @endif
                         </div>
                         
                         <hr class="border-gray-100">

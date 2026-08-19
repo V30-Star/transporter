@@ -142,6 +142,7 @@ class AccountController extends Controller
     {
         $account = Account::findOrFail($faccid);
         $isUsedInTransaction = $this->hasTransactionUsage($account);
+        $isReferencedAsHeader = $this->isReferencedAsHeader($account);
 
         // preload 50 header untuk dropdown view
         $headers = Account::where('fend', 0)
@@ -160,6 +161,7 @@ class AccountController extends Controller
             'headers' => $headers,
             'selectedHeader' => $selectedHeader,
             'isUsedInTransaction' => $isUsedInTransaction,
+            'isReferencedAsHeader' => $isReferencedAsHeader,
             'action' => 'edit', // Tambahkan ini
         ]);
     }
@@ -169,6 +171,20 @@ class AccountController extends Controller
         try {
             $account = Account::findOrFail($faccid);
             $isUsedInTransaction = $this->hasTransactionUsage($account);
+            $isReferencedAsHeader = $this->isReferencedAsHeader($account);
+
+            if ($isReferencedAsHeader) {
+                if ($request->filled('faccount') && strtoupper(trim((string) $request->input('faccount'))) !== strtoupper((string) $account->faccount)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'faccount' => 'Kode account tidak bisa diubah karena sudah direferensikan sebagai Account Header.',
+                    ]);
+                }
+                if ($request->has('fend') && (string) $request->input('fend') !== (string) $account->fend) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'fend' => 'Type account tidak bisa diubah karena sudah direferensikan sebagai Account Header.',
+                    ]);
+                }
+            }
 
             $isSetAccount = DB::table('set_account')
                 ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
@@ -208,8 +224,9 @@ class AccountController extends Controller
             $validated['faccount'] = strtoupper($validated['faccount']);
             $validated['faccname'] = strtoupper($validated['faccname']);
 
-            if ($isUsedInTransaction) {
+            if ($isUsedInTransaction || $isReferencedAsHeader) {
                 $validated['faccount'] = (string) $account->faccount;
+                $validated['fend'] = (string) $account->fend;
             }
 
             // Checkbox & metadata
@@ -228,7 +245,7 @@ class AccountController extends Controller
 
             // Map select lain
             $validated['fnormal'] = $request->input('fnormal');
-            $validated['fend'] = $request->input('fend');
+            $validated['fend'] = ($isUsedInTransaction || $isReferencedAsHeader) ? (string) $account->fend : $request->input('fend');
             $validated['fuserlevel'] = $request->input('fuserlevel');
             $validated['fcurrency'] = 'IDR';
 
@@ -458,5 +475,12 @@ class AccountController extends Controller
     private function hasTransactionUsage(Account $account): bool
     {
         return DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
+    }
+
+    private function isReferencedAsHeader(Account $account): bool
+    {
+        return Account::where('faccupline', $account->faccount)
+            ->orWhere('faccupline', (string) $account->faccid)
+            ->exists();
     }
 }
