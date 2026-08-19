@@ -1649,14 +1649,32 @@ class PelunasanCustomerController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
+        $refNos = $details->pluck('frefno')->filter()->unique()->values();
+        $invoices = DB::table('tranmt')
+            ->whereIn('ftranno', $refNos)
+            ->orWhereIn('frefno', $refNos)
+            ->get()
+            ->keyBy('ftranno');
+
+        $details = $details->map(function ($row) use ($invoices) {
+            $inv = $invoices->get($row->frefno) ?? $invoices->firstWhere('frefno', $row->frefno);
+            $invDate = $inv?->ftrandate ?: $row->fdatetime;
+            $row->tgl_faktur = $invDate ? Carbon::parse($invDate)->format('d/m/Y') : '-';
+            $row->sisa_piutang = (float) ($inv?->famountremain ?? 0);
+            $row->nilai_nota = (float) ($inv?->famountso ?? 0);
+            return $row;
+        });
+
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $totalDiscount = (float) $details->sum(fn($detail) => (float) ($detail->fdiscount ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
-        return view('penerimaankas.print', [
+        return view('pelunasancustomer.print', [
             'hdr' => $header,
             'dt' => $details,
             'fmt' => $fmt,
             'totalAmount' => $totalAmount,
+            'totalDiscount' => $totalDiscount,
             'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
