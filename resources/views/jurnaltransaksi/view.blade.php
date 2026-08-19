@@ -158,11 +158,20 @@
         <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
             <div class="flex justify-end gap-3">
                 @php $isPrinted = (int) ($jurnaltransaksi->fprint ?? 0) === 1; @endphp
-                <a href="{{ route('jurnaltransaksi.print', ['fjurnalno' => $jurnaltransaksi->fjurnalno]) }}" target="_blank"
-                    class="inline-flex items-center {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-5 py-2 rounded-lg transition-colors">
-                    <x-heroicon-o-printer class="w-6 h-6 mr-2" />
-                    Print
-                </a>
+                @if ($isPrinted)
+                    <button type="button"
+                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Jurnal Transaksi Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                        class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors">
+                        <x-heroicon-o-printer class="w-6 h-6 mr-2" />
+                        Print
+                    </button>
+                @else
+                    <a href="{{ route('jurnaltransaksi.print', ['fjurnalno' => $jurnaltransaksi->fjurnalno]) }}" target="_blank"
+                        class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors">
+                        <x-heroicon-o-printer class="w-6 h-6 mr-2" />
+                        Print
+                    </a>
+                @endif
                 <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                     class="inline-flex items-center bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 transition-colors">
                     <x-heroicon-o-arrow-left class="w-6 h-6 mr-2" />

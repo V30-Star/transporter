@@ -535,6 +535,10 @@ class PenerimaanKasController extends Controller
             return redirect()->back()->with('error', 'Penerimaan kas tidak ada.');
         }
 
+        if ((int) ($header->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Penerimaan Kas/Bank Sudah Pernah diPrint.');
+        }
+
         DB::table('trkasmt')->where('fkasmtno', $header->fkasmtno)->update(['fprint' => 1]);
 
         $details = DB::table('trkasdt as dt')

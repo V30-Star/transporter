@@ -555,6 +555,10 @@ class JurnalTransaksiController extends Controller
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Jurnal Transaksi Sudah Pernah diPrint.');
+        }
+
         DB::table('jurnalmt')->where('fjurnalno', $hdr->fjurnalno)->update(['fprint' => 1]);
 
         $dt = DB::table('jurnaldt')

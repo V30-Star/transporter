@@ -486,13 +486,23 @@
             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                 @php
                     $printVoucherNo = $voucherNo ?: ($header?->fkasmtno ?? ($headerData?->fkasmtno ?? null));
+                    $isPrinted = (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
                 @endphp
                 @if ($isReadOnly && !$isDeleteMode && !empty($printVoucherNo))
-                    <a href="{{ route('bayarsupplier.print', $printVoucherNo) }}" target="_blank"
-                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
-                        <x-heroicon-o-printer class="w-4 h-4" />
-                        {{ 'Print' }}
-                    </a>
+                    @if ($isPrinted)
+                        <button type="button"
+                            onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Bayar Supplier Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                            class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                            <x-heroicon-o-printer class="w-4 h-4" />
+                            {{ 'Print' }}
+                        </button>
+                    @else
+                        <a href="{{ route('bayarsupplier.print', $printVoucherNo) }}" target="_blank"
+                            class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                            <x-heroicon-o-printer class="w-4 h-4" />
+                            {{ 'Print' }}
+                        </a>
+                    @endif
                 @endif
                 <a href="{{ $backRoute }}"
                     class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
