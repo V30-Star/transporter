@@ -328,8 +328,8 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                         <input type="hidden" :name="`details[${index}][fnilai_nota]`" x-model="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.fsisa_piutang)"></div>
-                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(getRowSisa(row))"></div>
+                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="getRowSisa(row)">
                                         <input type="hidden" :name="`details[${index}][original_sisa]`" :value="row.originalSisa">
                                     </td>
                                     <td class="p-2">
@@ -940,7 +940,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             fcustomername: String(row.fcustomername || '').trim(),
                             ftempo: Number(row.ftempo || 0),
                             fnilai_nota: this.toNumber(row.fnilai_nota),
-                            fsisa_piutang: this.toNumber(row.fsisa_piutang),
+                            fsisa_piutang: this.getRowSisa(row),
                             fdiscpersen: this.toNumber(row.fdiscpersen),
                             fdiscount: this.toNumber(row.fdiscount),
                             fkasdtvalue: this.toNumber(row.fkasdtvalue),
@@ -1531,14 +1531,9 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     // Discount (Rp) is always 0 when Disc% is used
                     row.fdiscount = 0;
 
-                    if (validPercent > 0) {
-                        const discAmount = parseFloat((original * validPercent / 100).toFixed(2));
-                        row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
-                        row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - discAmount, 0).toFixed(2));
-                    } else {
-                        row.fkasdtvalue = parseFloat(Math.max(original, 0).toFixed(2));
-                        row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue, 0).toFixed(2));
-                    }
+                    const discAmount = validPercent > 0 ? parseFloat((original * validPercent / 100).toFixed(2)) : 0;
+                    row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
+                    row.fsisa_piutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
 
@@ -1565,7 +1560,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     row.fdiscpersen = 0;
 
                     row.fkasdtvalue = parseFloat(Math.max(original - row.fdiscount, 0).toFixed(2));
-                    row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - row.fdiscount, 0).toFixed(2));
+                    row.fsisa_piutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
 
@@ -1591,7 +1586,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             return;
                         }
                         row.fkasdtvalue = -pay;
-                        row.fsisa_piutang = parseFloat(Math.max(original - pay, 0).toFixed(2));
+                        row.fsisa_piutang = this.getRowSisa(row);
                         this.recalcTotals();
                         return;
                     }
@@ -1604,13 +1599,11 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     if (pay > maxPay) {
                         this.showValidationError('Total Bayar melebihi tagihan yang tersisa');
                         row.fkasdtvalue = maxPay;
-                        row.fsisa_piutang = 0;
-                        this.recalcTotals();
-                        return;
+                    } else {
+                        row.fkasdtvalue = parseFloat(Math.max(pay, 0).toFixed(2));
                     }
 
-                    row.fkasdtvalue = parseFloat(Math.max(pay, 0).toFixed(2));
-                    row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - effectiveDiscount, 0).toFixed(2));
+                    row.fsisa_piutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
 
@@ -1621,6 +1614,17 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                         return parseFloat((this.toNumber(row.originalSisa) * this.toNumber(row.fdiscpersen) / 100).toFixed(2));
                     }
                     return this.toNumber(row.fdiscount);
+                },
+
+                getRowSisa(row) {
+                    if (!this.rowHasContent(row)) return 0;
+                    const original = this.toNumber(row.originalSisa);
+                    if (this.isRejRow(row)) {
+                        return parseFloat(Math.max(original - Math.abs(this.toNumber(row.fkasdtvalue)), 0).toFixed(2));
+                    }
+                    const pay = this.toNumber(row.fkasdtvalue);
+                    const disc = this.getRowDiscount(row);
+                    return parseFloat(Math.max(original - pay - disc, 0).toFixed(2));
                 },
 
                 recalcTotals() {
