@@ -557,6 +557,10 @@ class ReturPembelianController extends Controller
             return redirect()->back()->with('error', 'Retur pembelian tidak ada.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Retur Pembelian Sudah Pernah diPrint.');
+        }
+
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()

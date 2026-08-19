@@ -558,16 +558,30 @@
                             </button>
                             @if ($canPrint)
                                 @php $isPrinted = (int) ($tr_poh->fprint ?? 0) === 1; @endphp
-                                <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
-                                    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 {{ $isPrinted ? 'bg-gray-400 text-white pointer-events-none cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400' }} text-sm font-medium rounded-lg transition-colors">
-                                    <svg class="w-6 h-6 {{ $isPrinted ? 'text-white' : 'text-gray-500' }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                        </path>
-                                    </svg>
-                                    Print
-                                </a>
+                                @if ($isPrinted)
+                                    <button type="button"
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Order Pembelian Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 text-sm font-medium rounded-lg transition-colors">
+                                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </button>
+                                @else
+                                    <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 text-sm font-medium rounded-lg transition-colors">
+                                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </a>
+                                @endif
                             @endif
                         </div>
                         @if ($isDelete)
@@ -1289,16 +1303,30 @@
                             </button>
                             @if ($canPrint)
                                 @php $isPrinted = (int) ($tr_poh->fprint ?? 0) === 1; @endphp
-                                <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
-                                    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 {{ $isPrinted ? 'bg-gray-400 text-white pointer-events-none cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400' }} text-sm font-medium rounded-lg transition-colors">
-                                    <svg class="w-6 h-6 {{ $isPrinted ? 'text-white' : 'text-gray-500' }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                        </path>
-                                    </svg>
-                                    Print
-                                </a>
+                                @if ($isPrinted)
+                                    <button type="button"
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Order Pembelian Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 text-sm font-medium rounded-lg transition-colors">
+                                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </button>
+                                @else
+                                    <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-400 text-sm font-medium rounded-lg transition-colors">
+                                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </a>
+                                @endif
                             @endif
                             @if ($canClosePo)
                                 <button type="button" onclick="showClosePoModal()"
