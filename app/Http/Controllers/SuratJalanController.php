@@ -632,6 +632,10 @@ class SuratJalanController extends Controller
             return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Surat Jalan Sudah Pernah diPrint.');
+        }
+
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         // Bagian detail (sudah benar, tidak ada duplikasi alias)

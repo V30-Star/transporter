@@ -493,6 +493,10 @@ class LembarPenagihanController extends Controller
             return redirect()->back()->with('error', 'Lembar penagihan tidak ditemukan.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Lembar Penagihan Sudah Pernah diPrint.');
+        }
+
         DB::table('trtagihanmt')->where('ftagihanno', $hdr->ftagihanno)->update(['fprint' => 1]);
 
         if (empty($hdr->cabang_name)) {

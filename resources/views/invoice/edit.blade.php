@@ -2043,10 +2043,18 @@
                                 @endif
                             @elseif ($action === 'view')
                                 @php $isPrinted = (int) ($invoice->fprint ?? 0) === 1; @endphp
-                                <a href="{{ route('invoice.print', $invoice->fsono) }}" target="_blank"
-                                    class="inline-flex h-9 items-center justify-center gap-2 rounded-lg {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                </a>
+                                @if ($isPrinted)
+                                    <button type="button"
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                    </button>
+                                @else
+                                    <a href="{{ route('invoice.print', $invoice->fsono) }}" target="_blank"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                    </a>
+                                @endif
                             @endif
                             <button type="button" @click="window.location.href='{{ route('invoice.index') }}'"
                                 class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">

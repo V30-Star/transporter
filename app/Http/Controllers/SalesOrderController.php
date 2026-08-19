@@ -910,6 +910,10 @@ class SalesOrderController extends Controller
             return redirect()->back()->with('error', 'Sales Order tidak ada.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Sales Order Sudah Pernah diPrint.');
+        }
+
         DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
 
         // Detail: join dengan product

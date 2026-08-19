@@ -1264,6 +1264,10 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
 
+        if ((int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Faktur Penjualan Sudah Pernah diPrint.');
+        }
+
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
 
         // Use header ID (integer) for detail FK
