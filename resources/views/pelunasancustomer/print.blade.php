@@ -328,15 +328,13 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 4%; text-align: center;" class="text-center">No</th>
-                    <th style="width: 14%;">No. Faktur</th>
-                    <th style="width: 11%; text-align: center;" class="text-center">Tgl. Faktur</th>
-                    <th style="width: 18%;">Customer</th>
-                    <th style="width: 15%;">Keterangan</th>
-                    <th style="width: 7%; text-align: right;" class="text-right">Disc(%)</th>
-                    <th style="width: 9%; text-align: right;" class="text-right">Discount</th>
-                    <th style="width: 11%; text-align: right;" class="text-right">Nilai Bayar</th>
-                    <th style="width: 11%; text-align: right;" class="text-right">Sisa Piutang</th>
+                    <th style="width: 4%; text-align: center;" class="text-center">No.</th>
+                    <th style="width: 16%;">No. Faktur</th>
+                    <th style="width: 12%; text-align: center;" class="text-center">Tgl. Faktur</th>
+                    <th style="width: 17%; text-align: right;" class="text-right">Nilai Faktur</th>
+                    <th style="width: 17%; text-align: right;" class="text-right">Sisa Piutang</th>
+                    <th style="width: 17%; text-align: right;" class="text-right">Discount</th>
+                    <th style="width: 17%; text-align: right;" class="text-right">Nilai Bayar</th>
                 </tr>
             </thead>
             <tbody>
@@ -345,18 +343,14 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $row->frefno ?: '-' }}</td>
                         <td class="text-center">{{ $row->tgl_faktur ?? '-' }}</td>
-                        <td>
-                            {{ trim(($row->fsubaccount ?? '') . ' - ' . ($row->subaccount_name ?? ''), ' -') ?: '-' }}
-                        </td>
-                        <td>{{ $row->fnote ?: '-' }}</td>
-                        <td class="text-right">{{ !empty($row->fdiscpersen) ? number_format((float)$row->fdiscpersen, 2, ',', '.') . '%' : '-' }}</td>
-                        <td class="text-right">{{ !empty($row->fdiscount) ? number_format((float)$row->fdiscount, 2, ',', '.') : '-' }}</td>
-                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->nilai_nota ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format((float) ($row->sisa_piutang ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->fdiscount ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center muted">Tidak ada detail transaksi.</td>
+                        <td colspan="7" class="text-center muted">Tidak ada detail transaksi.</td>
                     </tr>
                 @endforelse
             </tbody>
