@@ -1651,15 +1651,15 @@ class PelunasanCustomerController extends Controller
 
         $refNos = $details->pluck('frefno')->map(fn($v) => trim((string)$v))->filter()->unique()->values()->all();
         $invoices = !empty($refNos) ? DB::table('tranmt')
-            ->whereIn('ftranno', $refNos)
-            ->orWhereIn('frefno', $refNos)
-            ->orWhereIn('fsono', $refNos)
-            ->get() : collect();
+            ->whereIn('fsono', $refNos)
+            ->whereIn('ftrcode', ['INV', 'REJ', 'RUJ'])
+            ->get()
+            ->keyBy('fsono') : collect();
 
         $details = $details->map(function ($row) use ($invoices) {
             $ref = trim((string) $row->frefno);
-            $inv = $invoices->first(fn($i) => trim((string)($i->ftranno ?? '')) === $ref || trim((string)($i->frefno ?? '')) === $ref || trim((string)($i->fsono ?? '')) === $ref);
-            $invDate = $inv?->ftrandate ?: $row->fdatetime;
+            $inv = $invoices->get($ref);
+            $invDate = $inv?->fsodate ?: $row->fdatetime;
             $row->tgl_faktur = $invDate ? Carbon::parse($invDate)->format('d/m/Y') : '-';
             $row->sisa_piutang = (float) ($inv?->famountremain ?? 0);
             $row->nilai_nota = (float) ($inv?->famountso ?? abs((float) ($row->fvalue_rp ?? $row->fjurnal_rp ?? $row->fkasdtvalue ?? 0)));
