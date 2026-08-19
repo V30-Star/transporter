@@ -234,18 +234,18 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     @enderror
                 </div>
 
-                <div></div>
+                <!-- Row 4: Description -->
+                <div>
+                    <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
+                    <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fket') border-red-500 @enderror">
+                    @error('fket')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <!-- <div></div> -->
             </div>
 
-            <!-- Row 4: Description -->
-            <div>
-                <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
-                <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
-                    class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fket') border-red-500 @enderror">
-                @error('fket')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
         </fieldset>
     </div>
 
@@ -328,7 +328,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                         <input type="hidden" :name="`details[${index}][fnilai_nota]`" x-model="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.fsisa_piutang)"></div>
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.originalSisa || row.fsisa_piutang)"></div>
                                         <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
                                         <input type="hidden" :name="`details[${index}][original_sisa]`" :value="row.originalSisa">
                                     </td>

@@ -924,7 +924,7 @@ class PelunasanCustomerController extends Controller
             ->where('ftrancode', self::TRAN_CODE)
             ->whereIn('frefno', $refNos)
             ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
-            ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_paid")
+            ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0)) + ABS(COALESCE(fdiscount, 0))) as total_paid")
             ->groupByRaw("TRIM(COALESCE(frefno, ''))")
             ->pluck('total_paid', 'frefno')
             ->mapWithKeys(fn($paid, $ref) => [trim((string) $ref) => (float) $paid]);
@@ -1087,7 +1087,7 @@ class PelunasanCustomerController extends Controller
                 ->where('fkasmtid', $exceptHeader->fkasmtid)
                 ->whereIn('frefno', $refNos)
                 ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
-                ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_payment")
+                ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0)) + ABS(COALESCE(fdiscount, 0))) as total_payment")
                 ->groupByRaw("TRIM(COALESCE(frefno, ''))")
                 ->pluck('total_payment', 'frefno')
                 ->mapWithKeys(fn($payment, $refNo) => [trim((string) $refNo) => (float) $payment]);
@@ -1095,7 +1095,7 @@ class PelunasanCustomerController extends Controller
 
         foreach ($detailRows as $index => $row) {
             $refNo = trim((string) ($row['frefno'] ?? ''));
-            $payment = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
+            $payment = round(abs((float) ($row['fkasdtvalue'] ?? 0)) + abs((float) ($row['fdiscount'] ?? 0)), 2);
             $allowed = round(($remainingByRef->get($refNo, 0) + $existingPaymentByRef->get($refNo, 0)), 2);
 
             if ($payment > $allowed) {
