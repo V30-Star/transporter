@@ -328,7 +328,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                         <input type="hidden" :name="`details[${index}][fnilai_nota]`" x-model="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.originalSisa || row.fsisa_piutang)"></div>
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.fsisa_piutang)"></div>
                                         <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
                                         <input type="hidden" :name="`details[${index}][original_sisa]`" :value="row.originalSisa">
                                     </td>
@@ -733,8 +733,10 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             if (isEdit) {
                                 normalized.originalSisa = normalized.fsisa_piutang + Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount);
                             } else {
-                                normalized.originalSisa = normalized.fsisa_piutang;
+                                normalized.originalSisa = normalized.originalSisa || normalized.fsisa_piutang || normalized.fnilai_nota;
                             }
+                            const disc = this.getRowDiscount(normalized);
+                            normalized.fsisa_piutang = parseFloat(Math.max(normalized.originalSisa - Math.abs(normalized.fkasdtvalue) - disc, 0).toFixed(2));
                             return normalized;
                         });
 
@@ -1076,7 +1078,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
                     targetRow.fnilai_nota = Math.abs(amount);
                     if (trCode !== 'RUJ') {
-                        targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
+                        targetRow.fsisa_piutang = 0;
                     }
 
                     this.recalcTotals();
@@ -1456,7 +1458,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                 targetRow.ftrcode = trCode;
 
                                 if (!isRetur) {
-                                    targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
+                                    targetRow.fsisa_piutang = 0;
                                 }
                             }
                         });
@@ -1532,10 +1534,10 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     if (validPercent > 0) {
                         const discAmount = parseFloat((original * validPercent / 100).toFixed(2));
                         row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
-                        row.fsisa_piutang = 0;
+                        row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - discAmount, 0).toFixed(2));
                     } else {
                         row.fkasdtvalue = parseFloat(Math.max(original, 0).toFixed(2));
-                        row.fsisa_piutang = 0;
+                        row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue, 0).toFixed(2));
                     }
                     this.recalcTotals();
                 },
@@ -1543,8 +1545,8 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 /**
                  * When user inputs Discount (Rp):
                  *   Total Bayar  = originalSisa - Discount(Rp)
-                 *   Disc%        = 0 and DISABLED (mutually exclusive)
                  *   Sisa Piutang = 0
+                 *   Disc%        = 0 and DISABLED (mutually exclusive)
                  */
                 syncDiscountFromRp(row, inputValue) {
                     if (this.isRejRow(row)) { row.fdiscount = 0; return; }
@@ -1563,7 +1565,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     row.fdiscpersen = 0;
 
                     row.fkasdtvalue = parseFloat(Math.max(original - row.fdiscount, 0).toFixed(2));
-                    row.fsisa_piutang = 0;
+                    row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - row.fdiscount, 0).toFixed(2));
                     this.recalcTotals();
                 },
 
@@ -1595,15 +1597,10 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     }
 
                     const pay = this.toNumber(inputValue);
-
-                    // Determine the active discount source
-                    const effectiveDiscount = row.fdiscpersen > 0
-                        ? parseFloat((original * row.fdiscpersen / 100).toFixed(2))
-                        : parseFloat(Math.max(this.toNumber(row.fdiscount), 0).toFixed(2));
-
+                    const effectiveDiscount = this.getRowDiscount(row);
                     const maxPay = parseFloat(Math.max(original - effectiveDiscount, 0).toFixed(2));
 
-                    // VALIDATION: Total Bayar tidak boleh melebihi sisa piutang
+                    // VALIDATION: Total Bayar tidak boleh melebihi sisa piutang setelah diskon
                     if (pay > maxPay) {
                         this.showValidationError('Total Bayar melebihi tagihan yang tersisa');
                         row.fkasdtvalue = maxPay;
