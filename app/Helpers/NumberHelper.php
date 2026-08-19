@@ -178,3 +178,25 @@ if (!function_exists('company_name')) {
   }
 }
 
+if (!function_exists('log_print_transaction')) {
+  function log_print_transaction(?string $trxNo): void
+  {
+    if (empty($trxNo)) {
+      return;
+    }
+
+    try {
+      $user = auth('sysuser')->user() ?? auth()->user();
+      $userId = $user->fsysuserid ?? $user->fuserid ?? session('user_session')->fsysuserid ?? session('user_id') ?? 'ADMIN';
+
+      \Illuminate\Support\Facades\DB::table('trprintlog')->insert([
+        'ftrxno' => $trxNo,
+        'fdatetime' => now(),
+        'fuserid' => $userId,
+      ]);
+    } catch (\Throwable $e) {
+      // Avoid breaking print flow if logging fails
+    }
+  }
+}
+

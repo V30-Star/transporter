@@ -781,6 +781,8 @@ class Tr_pohController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
+        log_print_transaction($hdr->fpono);
+
         return view('tr_poh.print', [
             'hdr' => $hdr,
             'dt' => $dt,

@@ -653,6 +653,8 @@ class SuratJalanController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
+        log_print_transaction($hdr->fstockmtno);
+
         return view('suratjalan.print', [
             'hdr' => $hdr,
             'dt' => $dt,

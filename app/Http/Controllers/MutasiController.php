@@ -516,6 +516,8 @@ class MutasiController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
+        log_print_transaction($hdr->fstockmtno);
+
         return view('mutasi.print', [
             'hdr' => $hdr,
             'dt' => $dt,

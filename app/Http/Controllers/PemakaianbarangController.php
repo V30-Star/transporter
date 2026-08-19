@@ -373,6 +373,8 @@ class PemakaianbarangController extends Controller
           ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
           : '-';
 
+        log_print_transaction($hdr->fstockmtno);
+
         return view('pemakaianbarang.print', [
             'hdr' => $hdr,
             'dt' => $dt,

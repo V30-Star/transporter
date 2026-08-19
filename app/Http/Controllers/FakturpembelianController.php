@@ -1387,6 +1387,7 @@ class FakturpembelianController extends Controller
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+        log_print_transaction($hdr->fstockmtno);
 
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')

@@ -585,6 +585,8 @@ class JurnalTransaksiController extends Controller
           ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
           : '-';
 
+        log_print_transaction($hdr->fjurnalno);
+
         return view('jurnaltransaksi.print', [
             'hdr'          => $hdr,
             'dt'           => $dt,

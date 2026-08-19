@@ -421,6 +421,8 @@ class AssemblingController extends Controller
           ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
           : '-';
 
+        log_print_transaction($hdr->fstockmtno);
+
         return view('assembling.print', [
             'hdr' => $hdr,
             'dt' => $dt,

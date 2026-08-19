@@ -326,6 +326,8 @@ class Tr_prhController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
+        log_print_transaction($hdr->fprno);
+
         return view('tr_prh.print', [
             'hdr' => $hdr,
             'dt' => $dt,

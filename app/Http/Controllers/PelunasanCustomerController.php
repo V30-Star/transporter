@@ -1674,6 +1674,8 @@ class PelunasanCustomerController extends Controller
         $totalDiscount = (float) $details->sum(fn($detail) => (float) ($detail->fdiscount ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
+        log_print_transaction($header->fkasmtno);
+
         return view('pelunasancustomer.print', [
             'hdr' => $header,
             'dt' => $details,
