@@ -162,6 +162,17 @@
             $num = (float) ($value ?? 0);
             return number_format($num, 2, ',', '.');
         };
+        $currentSupplierCode = trim((string) old('fsupplier', $tr_poh->fsupplier ?? ''));
+        $currentSupplierName = trim((string) old('fsuppliername', $tr_poh->supplier->fsuppliername ?? $tr_poh->fsuppliername ?? ''));
+        if ($currentSupplierName === '' && $currentSupplierCode !== '') {
+            $currentSupplierName = trim((string) ($suppliers->firstWhere('fsuppliercode', $currentSupplierCode)->fsuppliername ?? ''));
+        }
+        $hasCurrentSupplier = $currentSupplierCode !== '' && $suppliers->contains(function ($s) use ($currentSupplierCode) {
+            return trim((string) $s->fsuppliercode) === $currentSupplierCode;
+        });
+        $currentSupplierDisplay = $currentSupplierCode !== ''
+            ? ($currentSupplierName !== '' ? "{$currentSupplierName} ({$currentSupplierCode})" : $currentSupplierCode)
+            : '';
     @endphp
 
     @if ($isEdit && ((!empty($blockedByTerima) && $blockedByTerima) || session('blocked_by_terima')))
@@ -292,7 +303,7 @@
                                 <label class="block text-xs font-bold mb-1">Supplier</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ $tr_poh->fsupplier }} - {{ $tr_poh->fsuppliername }}" disabled>
+                                    value="{{ $currentSupplierDisplay }}" disabled>
                             </div>
                         </div>
 
@@ -661,6 +672,11 @@
                                             class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                             disabled>
                                             <option value=""></option>
+                                            @if ($currentSupplierCode !== '' && !$hasCurrentSupplier)
+                                                <option value="{{ $currentSupplierCode }}" selected>
+                                                    {{ $currentSupplierDisplay }}
+                                                </option>
+                                            @endif
                                             @foreach ($suppliers as $supplier)
                                                 <option value="{{ $supplier->fsuppliercode }}"
                                                     data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
@@ -2529,7 +2545,7 @@
                                 data: 'fsuppliername',
                                 name: 'fsuppliername',
                                 className: 'text-sm',
-                                render: d => d || '-'
+                                render: (d, t, r) => (r && r.fsuppliername && r.fsuppliercode) ? `${r.fsuppliername} (${r.fsuppliercode})` : (d || '-')
                             },
                             {
                                 data: 'fprdate',

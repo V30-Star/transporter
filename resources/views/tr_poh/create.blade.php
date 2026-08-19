@@ -221,6 +221,15 @@
 
                         {{-- Supplier --}}
                         <div>
+                            @php
+                                $selectedSupplierCode = trim((string) old('fsupplier', $filterSupplierId ?? ''));
+                                $selectedSupplier = $suppliers->firstWhere('fsuppliercode', $selectedSupplierCode);
+                                $selectedSupplierName = trim((string) ($selectedSupplier->fsuppliername ?? ''));
+                                $hasSelectedSupplier = $selectedSupplierCode !== '' && $selectedSupplier !== null;
+                                $selectedSupplierDisplay = $selectedSupplierCode !== ''
+                                    ? ($selectedSupplierName !== '' ? "{$selectedSupplierName} ({$selectedSupplierCode})" : $selectedSupplierCode)
+                                    : '';
+                            @endphp
                             <label class="block text-xs font-bold mb-1">Supplier <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1">
@@ -228,6 +237,11 @@
                                         class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
+                                        @if ($selectedSupplierCode !== '' && !$hasSelectedSupplier)
+                                            <option value="{{ $selectedSupplierCode }}" selected>
+                                                {{ $selectedSupplierDisplay }}
+                                            </option>
+                                        @endif
                                         @foreach ($suppliers as $supplier)
                                             <option value="{{ $supplier->fsuppliercode }}"
                                                 data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
@@ -1910,7 +1924,7 @@
                             data: 'fsuppliername',
                             name: 'fsuppliername',
                             className: 'text-sm',
-                            render: d => d || '-'
+                            render: (d, t, r) => (r && r.fsuppliername && r.fsuppliercode) ? `${r.fsuppliername} (${r.fsuppliercode})` : (d || '-')
                         },
                         {
                             data: 'fprdate',

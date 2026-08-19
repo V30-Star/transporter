@@ -1259,7 +1259,7 @@ class Tr_pohController extends Controller
             ->orderBy('fcurrname')
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $tr_poh = Tr_poh::with(['details' => function ($q) {
+        $tr_poh = Tr_poh::with(['supplier', 'details' => function ($q) {
             $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
                 ->leftJoin(DB::raw('(
             SELECT 
@@ -1448,7 +1448,7 @@ class Tr_pohController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo', 'fcurr']);
 
-        $tr_poh = Tr_poh::with(['details' => function ($q) {
+        $tr_poh = Tr_poh::with(['supplier', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
             })
@@ -2043,7 +2043,7 @@ class Tr_pohController extends Controller
         $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-        $tr_poh = Tr_poh::with(['details' => function ($q) {
+        $tr_poh = Tr_poh::with(['supplier', 'details' => function ($q) {
             $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
                 ->leftJoin(DB::raw('(
         SELECT
