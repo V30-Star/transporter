@@ -359,17 +359,25 @@
         <div class="summary">
             <div class="summary-box">
                 <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                    @if(!empty($totalDiscount) && $totalDiscount > 0)
-                        <tr>
-                            <td style="padding: 2px 0; white-space: nowrap;">Total Discount</td>
-                            <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
-                            <td style="text-align: right; padding: 2px 0;">{{ number_format($totalDiscount, 2, ',', '.') }}</td>
-                        </tr>
-                    @endif
+                    @php
+                        $adminBank = (float) ($hdr->fadminbank ?? 0);
+                        $adjustment = ((float) ($hdr->fadjustment ?? 0)) + ((float) ($hdr->fadjustment2 ?? 0));
+                        $totalTerima = (float) ($hdr->famountpay ?? ($totalAmount - $adminBank - $adjustment));
+                    @endphp
+                    <tr>
+                        <td style="padding: 2px 0; white-space: nowrap;">By.Admin Bank +/-</td>
+                        <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
+                        <td style="text-align: right; padding: 2px 0;">{{ number_format($adminBank, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0; white-space: nowrap;">Selisih/Adjust +/-</td>
+                        <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
+                        <td style="text-align: right; padding: 2px 0;">{{ number_format($adjustment, 2, ',', '.') }}</td>
+                    </tr>
                     <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
-                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Total Bayar</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Total Terima</td>
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($totalAmount, 2, ',', '.') }}</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($totalTerima, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </div>

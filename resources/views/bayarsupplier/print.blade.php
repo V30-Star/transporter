@@ -327,15 +327,14 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 4%; text-align: center;" class="text-center">No</th>
-                    <th style="width: 14%;">No. Faktur</th>
+                    <th style="width: 4%; text-align: center;" class="text-center">No.</th>
+                    <th style="width: 15%;">No. Faktur</th>
                     <th style="width: 11%; text-align: center;" class="text-center">Tgl. Faktur</th>
-                    <th style="width: 18%;">Supplier</th>
-                    <th style="width: 15%;">Keterangan</th>
-                    <th style="width: 7%; text-align: right;" class="text-right">Disc(%)</th>
-                    <th style="width: 9%; text-align: right;" class="text-right">Discount</th>
-                    <th style="width: 11%; text-align: right;" class="text-right">Nilai Bayar</th>
-                    <th style="width: 11%; text-align: right;" class="text-right">Sisa Hutang</th>
+                    <th style="width: 14%; text-align: right;" class="text-right">Nilai Order</th>
+                    <th style="width: 14%; text-align: right;" class="text-right">Sisa Hutang</th>
+                    <th style="width: 10%; text-align: right;" class="text-right">Disc.%</th>
+                    <th style="width: 14%; text-align: right;" class="text-right">Discount</th>
+                    <th style="width: 18%; text-align: right;" class="text-right">Nilai Bayar</th>
                 </tr>
             </thead>
             <tbody>
@@ -344,18 +343,15 @@
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $row->frefno ?: '-' }}</td>
                         <td class="text-center">{{ $row->tgl_faktur ?? '-' }}</td>
-                        <td>
-                            {{ trim(($row->fsubaccount ?? '') . ' - ' . ($row->subaccount_name ?? ''), ' -') ?: '-' }}
-                        </td>
-                        <td>{{ $row->fnote ?: '-' }}</td>
-                        <td class="text-right">{{ !empty($row->fdiscpersen) ? number_format((float)$row->fdiscpersen, 2, ',', '.') . '%' : '-' }}</td>
-                        <td class="text-right">{{ !empty($row->fdiscount) ? number_format((float)$row->fdiscount, 2, ',', '.') : '-' }}</td>
-                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->nilai_order ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format((float) ($row->sisa_hutang ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ !empty($row->fdiscpersen) ? number_format((float)$row->fdiscpersen, 2, ',', '.') . '%' : '-' }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->fdiscount ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center">{{ 'Tidak ada detail item.' }}</td>
+                        <td colspan="8" class="text-center">{{ 'Tidak ada detail item.' }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -364,17 +360,25 @@
         <div class="summary">
             <div class="summary-box">
                 <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                    @if(!empty($totalDiscount) && $totalDiscount > 0)
-                        <tr>
-                            <td style="padding: 2px 0; white-space: nowrap;">Total Discount</td>
-                            <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
-                            <td style="text-align: right; padding: 2px 0;">{{ number_format($totalDiscount, 2, ',', '.') }}</td>
-                        </tr>
-                    @endif
+                    @php
+                        $adminBank = (float) ($hdr->fadminbank ?? 0);
+                        $adjustment = ((float) ($hdr->fadjustment ?? 0)) + ((float) ($hdr->fadjustment2 ?? 0));
+                        $totalBayarAkhir = (float) ($hdr->famountpay ?? ($totalAmount + $adminBank + $adjustment));
+                    @endphp
+                    <tr>
+                        <td style="padding: 2px 0; white-space: nowrap;">By.Admin Bank +/-</td>
+                        <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
+                        <td style="text-align: right; padding: 2px 0;">{{ number_format($adminBank, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2px 0; white-space: nowrap;">Selisih/Adjust +/-</td>
+                        <td style="width: 10px; text-align: center; padding: 2px 0;">:</td>
+                        <td style="text-align: right; padding: 2px 0;">{{ number_format($adjustment, 2, ',', '.') }}</td>
+                    </tr>
                     <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Total Bayar</td>
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($totalAmount, 2, ',', '.') }}</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($totalBayarAkhir, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </div>

@@ -281,6 +281,8 @@ class BayarSupplierController extends Controller
             ? Account::query()->where('faccount', $returnPayableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
             : null;
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
+        $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
+        $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $adminAccount = null;
 
         if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
@@ -291,10 +293,10 @@ class BayarSupplierController extends Controller
 
         $voucherNo = strtoupper(trim((string) ($validated['fkasmtno'] ?? ''))) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $validated['fbranchcode'], $headerAccount);
         $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
-        $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
+        $totalKasKeluar = round($totalBayar + $bankAdminFee + $hargaAdmin + $hargaAdmin2, 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $references) {
+        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $hargaAdmin, $hargaAdmin2, $voucherNo, $totalKasKeluar, $now, $references) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
 
@@ -323,6 +325,11 @@ class BayarSupplierController extends Controller
                 'faccountnoid' => $headerAccount->faccid,
                 'fstatusgiro' => '0',
                 'fbranchcode' => $validated['fbranchcode'],
+                'faccadj' => $validated['faccountadmin'] ?? null,
+                'fadjustment' => $hargaAdmin,
+                'faccadj2' => $validated['faccountadmin2'] ?? null,
+                'fadjustment2' => $hargaAdmin2,
+                'fadminbank' => $bankAdminFee,
                 'fprint' => 0,
             ]);
 
@@ -528,6 +535,8 @@ class BayarSupplierController extends Controller
             ? Account::query()->where('faccount', $returnPayableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
             : null;
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
+        $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
+        $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $adminAccount = null;
 
         if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
@@ -538,12 +547,12 @@ class BayarSupplierController extends Controller
 
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
         $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
-        $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
+        $totalKasKeluar = round($totalBayar + $bankAdminFee + $hargaAdmin + $hargaAdmin2, 2);
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
         $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? $this->currentUserId();
 
-        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $header, $references, $userIdLog) {
+        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $returnPayableAccount, $adminAccount, $bankAdminFee, $hargaAdmin, $hargaAdmin2, $voucherNo, $totalKasKeluar, $header, $references, $userIdLog) {
             $now = now();
             $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
@@ -569,6 +578,11 @@ class BayarSupplierController extends Controller
                 'faccountno'       => $headerAccount->faccount,
                 'faccountnoid'     => $headerAccount->faccid,
                 'fbranchcode'      => $validated['fbranchcode'],
+                'faccadj'          => $validated['faccountadmin'] ?? null,
+                'fadjustment'      => $hargaAdmin,
+                'faccadj2'         => $validated['faccountadmin2'] ?? null,
+                'fadjustment2'     => $hargaAdmin2,
+                'fadminbank'       => $bankAdminFee,
             ]);
 
             $updatedHeader = $this->findHeader($header->fkasmtno);
@@ -1532,19 +1546,20 @@ class BayarSupplierController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
-        $refNos = $details->pluck('frefno')->filter()->unique()->values();
-        $invoices = DB::table('trstockmt')
+        $refNos = $details->pluck('frefno')->map(fn($v) => trim((string)$v))->filter()->unique()->values()->all();
+        $invoices = !empty($refNos) ? DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
             ->whereIn('fstockmtcode', ['BUY', 'REB', 'RUB'])
             ->get()
-            ->keyBy('fstockmtno');
+            ->keyBy('fstockmtno') : collect();
 
         $details = $details->map(function ($row) use ($invoices) {
-            $inv = $invoices->get($row->frefno);
+            $ref = trim((string) $row->frefno);
+            $inv = $invoices->get($ref);
             $invDate = $inv?->fstockmtdate ?: $row->fdatetime;
             $row->tgl_faktur = $invDate ? Carbon::parse($invDate)->format('d/m/Y') : '-';
             $row->sisa_hutang = (float) ($inv?->famountremain ?? 0);
-            $row->nilai_order = (float) ($inv?->famountmt ?? 0);
+            $row->nilai_order = (float) ($inv?->famountmt ?? abs((float) ($row->fvalue_rp ?? $row->fjurnal_rp ?? $row->fkasdtvalue ?? 0)));
             return $row;
         });
 
