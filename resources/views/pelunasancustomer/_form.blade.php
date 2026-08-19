@@ -498,6 +498,13 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     {{ $submitLabel }}
                 </button>
             @endif
+            @if (!empty($header?->fkasmtno) && !$isDeleteMode)
+                <a href="{{ route('pelunasancustomer.print', $header->fkasmtno) }}" target="_blank"
+                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                    <x-heroicon-o-printer class="w-4 h-4" />
+                    {{ 'Print' }}
+                </a>
+            @endif
             <a href="{{ $backRoute }}"
                 class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
                 {{ 'Keluar' }}
