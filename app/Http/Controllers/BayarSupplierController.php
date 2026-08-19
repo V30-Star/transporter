@@ -1455,6 +1455,7 @@ class BayarSupplierController extends Controller
             'selectedAdminAccount' => $selectedAdminAccountModel,
             'selectedAdminAccount2' => $selectedAdminAccount2Model,
             'detailRows' => $detailRows,
+            'header' => $header,
             'headerData' => $header,
             'bankAdminFee' => old('fbiayaadminbank', $bankAdminFee),
             'hargaAdminValue' => old('fhargaadmin', $hargaAdminValue),

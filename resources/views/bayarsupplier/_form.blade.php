@@ -484,8 +484,11 @@
         {{-- ─── CARD 3: Approval & Aksi ────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
-                @if (!empty($header?->fkasmtno) && !$isDeleteMode)
-                    <a href="{{ route('bayarsupplier.print', $header->fkasmtno) }}" target="_blank"
+                @php
+                    $printVoucherNo = $voucherNo ?: ($header?->fkasmtno ?? ($headerData?->fkasmtno ?? null));
+                @endphp
+                @if ($isReadOnly && !$isDeleteMode && !empty($printVoucherNo))
+                    <a href="{{ route('bayarsupplier.print', $printVoucherNo) }}" target="_blank"
                         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
                         <x-heroicon-o-printer class="w-4 h-4" />
                         {{ 'Print' }}
