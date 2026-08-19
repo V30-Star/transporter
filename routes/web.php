@@ -41,11 +41,12 @@ use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\ListingSuratJalanController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\MutasiController;
-use App\Http\Controllers\PemakaianbarangController;
-use App\Http\Controllers\PengeluaranKasController;
 use App\Http\Controllers\PelunasanCustomerController;
-use App\Http\Controllers\PenerimaanKasController;
+use App\Http\Controllers\PemakaianbarangController;
+use App\Http\Controllers\PenamaanPerusahaanController;
 use App\Http\Controllers\PenerimaanBarangController;
+use App\Http\Controllers\PenerimaanKasController;
+use App\Http\Controllers\PengeluaranKasController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RekeningController;
@@ -79,6 +80,7 @@ use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\SysUserController;
+use App\Http\Controllers\SystemSettingController;
 use App\Http\Controllers\Tr_pohController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\WhController;
@@ -102,6 +104,14 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
     })->name('settings');
     Route::get('/settings/edit-periode', [EditPeriodeController::class, 'edit'])->name('editperiode.edit');
     Route::patch('/settings/edit-periode', [EditPeriodeController::class, 'update'])->name('editperiode.update');
+    Route::get('/settings/system-setting', [SystemSettingController::class, 'edit'])->name('systemsetting.edit');
+    Route::patch('/settings/system-setting', [SystemSettingController::class, 'update'])->name('systemsetting.update');
+
+    // Penamaan Perusahaan routes
+    Route::get('/settings/penamaan-perusahaan', [PenamaanPerusahaanController::class, 'index'])->name('penamaanperusahaan.index');
+    Route::post('/settings/penamaan-perusahaan/verify', [PenamaanPerusahaanController::class, 'verify'])->name('penamaanperusahaan.verify');
+    Route::patch('/settings/penamaan-perusahaan', [PenamaanPerusahaanController::class, 'update'])->name('penamaanperusahaan.update');
+    Route::post('/settings/penamaan-perusahaan/lock', [PenamaanPerusahaanController::class, 'lock'])->name('penamaanperusahaan.lock');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');

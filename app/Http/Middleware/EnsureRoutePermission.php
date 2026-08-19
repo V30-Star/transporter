@@ -135,6 +135,14 @@ class EnsureRoutePermission
             return ['editPeriode'];
         }
 
+        if ($module === 'systemsetting') {
+            return ['systemSetting', 'editSystemSetting'];
+        }
+
+        if ($module === 'penamaanperusahaan') {
+            return ['penamaanPerusahaan', 'editPenamaanPerusahaan'];
+        }
+
         if ($module === 'roleaccess') {
             return ['roleaccess'];
         }

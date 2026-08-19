@@ -786,7 +786,7 @@ class Tr_pohController extends Controller
             'ppnPersen' => $ppnPersen,
             'ppnAmount' => $ppnAmount,
             'grandTotal' => $grandTotal,
-            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
+            'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

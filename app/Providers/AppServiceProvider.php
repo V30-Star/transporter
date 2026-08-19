@@ -25,16 +25,27 @@ class AppServiceProvider extends ServiceProvider
         }
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $setini = \Illuminate\Support\Facades\DB::table('setini')->first(['fproject', 'fcity', 'falamat1', 'falamat2', 'fnamattdpo', 'fnamattdfakturpenjualan']);
-            $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($setini->falamat1 ?? ''));
-            $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($setini->falamat2 ?? ''));
+            $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
+            $rawAddr1 = decrypt_value($setini->falamat1 ?? '');
+            $rawAddr2 = decrypt_value($setini->falamat2 ?? '');
+            $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($rawAddr1));
+            $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($rawAddr2));
+            $projectName = decrypt_value($setini->fproject ?? '');
+
             $view->with([
-                'company_name' => $setini->fproject ?? 'PT. M-Trade',
+                'company_name' => $projectName !== '' ? $projectName : 'PT. M-Trade',
                 'company_city' => $setini->fcity ?? '',
                 'company_address1' => $addr1,
                 'company_address2' => $addr2,
+                'company_telp' => $setini->ftelp ?? '',
+                'company_fax' => $setini->ffax ?? '',
+                'company_npwp' => decrypt_value($setini->fnpwp ?? ''),
+                'company_alamat1npwp' => decrypt_value($setini->falamat1npwp ?? ''),
+                'company_alamat2npwp' => decrypt_value($setini->falamat2npwp ?? ''),
                 'namattdpo' => $setini->fnamattdpo ?? '',
+                'namattdpo2' => $setini->fnamattdpo2 ?? '',
                 'namattdfakturpenjualan' => $setini->fnamattdfakturpenjualan ?? '',
+                'namattdfakturpenjualan2' => $setini->fnamattdfakturpenjualan2 ?? '',
             ]);
         });
     }

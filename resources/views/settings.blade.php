@@ -49,6 +49,28 @@
                         {{ "Atur batas periode posting untuk create, edit, dan delete transaksi." }}
                     </p>
                 </a>
+
+                <a href="{{ route('systemsetting.edit') }}"
+                    class="text-left rounded-xl border border-gray-200 bg-white p-5 transition hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-semibold text-gray-800">{{ "System Setting" }}</span>
+                        <span class="text-sm font-semibold text-gray-500">SETINI</span>
+                    </div>
+                    <p class="mt-3 text-sm text-gray-600">
+                        {{ "Atur identitas perusahaan, NPWP, penandatangan Invoice & PO, dan parameter sistem." }}
+                    </p>
+                </a>
+
+                <a href="{{ route('penamaanperusahaan.index') }}"
+                    class="text-left rounded-xl border border-gray-200 bg-white p-5 transition hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-semibold text-gray-800">{{ "Penamaan Perusahaan" }}</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">TERKUNCI</span>
+                    </div>
+                    <p class="mt-3 text-sm text-gray-600">
+                        {{ "Ubah nama perusahaan / header faktur yang terenkripsi dengan proteksi password." }}
+                    </p>
+                </a>
             </div>
 
         </div>

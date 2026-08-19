@@ -1362,7 +1362,7 @@ class ReturPenjualanController extends Controller
             'dt' => $dt,
             'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
-            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
+            'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

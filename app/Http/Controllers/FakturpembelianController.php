@@ -1405,7 +1405,7 @@ class FakturpembelianController extends Controller
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
-            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
+            'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }

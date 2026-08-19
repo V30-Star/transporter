@@ -93,3 +93,37 @@ if (!function_exists('terbilang')) {
     return "";
   }
 }
+
+if (!function_exists('decrypt_value')) {
+  function decrypt_value(?string $value): string
+  {
+    if ($value === null || $value === '') {
+      return '';
+    }
+
+    try {
+      return \Illuminate\Support\Facades\Crypt::decryptString($value);
+    } catch (\Throwable $e) {
+      return $value;
+    }
+  }
+}
+
+if (!function_exists('company_name')) {
+  function company_name(): string
+  {
+    static $companyName = null;
+
+    if ($companyName !== null) {
+      return $companyName;
+    }
+
+    $raw = \Illuminate\Support\Facades\DB::table('setini')->value('fproject');
+    $decrypted = decrypt_value($raw);
+
+    $companyName = $decrypted !== '' ? $decrypted : 'PT. M-Trade';
+
+    return $companyName;
+  }
+}
+

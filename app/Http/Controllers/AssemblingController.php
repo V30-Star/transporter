@@ -421,7 +421,7 @@ class AssemblingController extends Controller
             'hdr' => $hdr,
             'dt' => $dt,
             'fmt' => $fmt,
-            'company_name' => \Illuminate\Support\Facades\DB::table('setini')->value('fproject') ?: 'PT. DEMO VERSION',
+            'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }
