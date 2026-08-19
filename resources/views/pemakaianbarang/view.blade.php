@@ -335,11 +335,20 @@
                         Kembali
                     </button>
                     @if ($canPrint)
-                        <a href="{{ route('pemakaianbarang.print', $pemakaianbarang->fstockmtno) }}" target="_blank"
-                            class="inline-flex items-center gap-2 px-5 py-2 {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white text-sm font-medium rounded-lg transition-colors">
-                            <x-heroicon-o-printer class="w-6 h-6" />
-                            Print
-                        </a>
+                        @if ($isPrinted)
+                            <button type="button"
+                                onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Pemakaian Barang Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <x-heroicon-o-printer class="w-6 h-6" />
+                                Print
+                            </button>
+                        @else
+                            <a href="{{ route('pemakaianbarang.print', $pemakaianbarang->fstockmtno) }}" target="_blank"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <x-heroicon-o-printer class="w-6 h-6" />
+                                Print
+                            </a>
+                        @endif
                     @endif
                 </div>
                 </div>
