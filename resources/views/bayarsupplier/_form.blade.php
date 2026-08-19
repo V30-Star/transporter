@@ -327,8 +327,9 @@
                                         <input type="hidden" :name="`details[${index}][fnilai_order]`" :value="row.fnilai_order">
                                     </td>
                                     <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.fsisa_hutang)"></div>
-                                        <input type="hidden" :name="`details[${index}][fsisa_hutang]`" :value="row.fsisa_hutang">
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(getRowSisa(row))"></div>
+                                        <input type="hidden" :name="`details[${index}][fsisa_hutang]`" :value="getRowSisa(row)">
+                                        <input type="hidden" :name="`details[${index}][original_sisa]`" :value="row.originalSisa">
                                     </td>
                                     <td class="p-2">
                                         @if ($isReadOnly)
@@ -338,11 +339,9 @@
                                             <input type="number" min="0" max="100" step="0.01"
                                                 :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                                 @input="syncDiscountFromPercent(row, $event)"
-                                                :disabled="isDiscPercentDisabled(row)"
+                                                :disabled="isRebRow(row)"
                                                 :class="referenceTextClass(row)"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                            <input type="hidden" x-show="isDiscPercentDisabled(row)"
-                                                :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                         @endif
                                     </td>
                                     <td class="p-2">
@@ -355,10 +354,10 @@
                                                 @focus="showRawNumber($event, row, 'fdiscount')"
                                                 @input="syncDiscountFromRp(row, $event.target.value)"
                                                 @blur="formatNumericField($event, row, 'fdiscount')"
-                                                :disabled="isDiscountDisabled(row)"
+                                                :disabled="isRebRow(row)"
                                                 :class="referenceTextClass(row)"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                            <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
+                                            <input type="hidden" :name="`details[${index}][fdiscount]`" x-model="row.fdiscount">
                                         @endif
                                     </td>
                                     <td class="p-2">
@@ -485,9 +484,16 @@
         {{-- ─── CARD 3: Approval & Aksi ────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
+                @if (!empty($header?->fkasmtno) && !$isDeleteMode)
+                    <a href="{{ route('bayarsupplier.print', $header->fkasmtno) }}" target="_blank"
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                        <x-heroicon-o-printer class="w-4 h-4" />
+                        {{ 'Print' }}
+                    </a>
+                @endif
                 <a href="{{ $backRoute }}"
                     class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
-                    <x-heroicon-o-arrow-left/>
+                    <x-heroicon-o-arrow-left class="w-4 h-4 mr-1" />
                     {{ 'Keluar' }}
                 </a>
                 @if ($isDeleteMode)
@@ -711,8 +717,9 @@
                             if (isEdit) {
                                 normalized.originalSisa = Math.abs(normalized.fsisa_hutang) + Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount);
                             } else {
-                                normalized.originalSisa = normalized.fsisa_hutang;
+                                normalized.originalSisa = normalized.originalSisa || normalized.fsisa_hutang || normalized.fnilai_order;
                             }
+                            normalized.fsisa_hutang = this.getRowSisa(normalized);
                             return normalized;
                         });
 
@@ -833,18 +840,6 @@
                     return ['REB', 'RUB'].includes(code) || refNo.startsWith('REB.') || refNo.startsWith('RUB.');
                 },
 
-                isDiscPercentDisabled(row) {
-                    if (this.isRebRow(row)) return true;
-                    // Disc% disabled when Discount (Rp) has been manually filled
-                    return this.toNumber(row?.fdiscount) > 0;
-                },
-
-                isDiscountDisabled(row) {
-                    if (this.isRebRow(row)) return true;
-                    // Discount (Rp) disabled when Disc% has been manually filled
-                    return this.toNumber(row?.fdiscpersen) > 0;
-                },
-
                 referenceTextClass(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
                     return ['REJ', 'RUJ', 'REB', 'RUB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
@@ -948,11 +943,11 @@
                     targetRow.fnilai_order = invoiceAmount;
                     
                     const isReb = this.isRebRow(targetRow);
-                    targetRow.fsisa_hutang = isReb ? 0 : remain;
                     targetRow.originalSisa = remain;
                     targetRow.fdiscpersen = 0;
                     targetRow.fdiscount = 0;
                     targetRow.fkasdtvalue = isReb ? -remain : remain;
+                    targetRow.fsisa_hutang = isReb ? 0 : this.getRowSisa(targetRow);
                     
                     this.recalcTotals();
                     this.ensureTrailingRow();
@@ -1202,57 +1197,79 @@
                     }
                 },
 
+                rowHasContent(row) {
+                    return Boolean(row && String(row.frefno || '').trim() !== '');
+                },
+
+                getRowDiscount(row) {
+                    if (!this.rowHasContent(row) || this.isRebRow(row)) return 0;
+                    return this.toNumber(row.fdiscount);
+                },
+
+                getRowSisa(row) {
+                    if (!this.rowHasContent(row)) return 0;
+                    const original = this.toNumber(row.originalSisa);
+                    if (this.isRebRow(row)) {
+                        return parseFloat(Math.max(original - Math.abs(this.toNumber(row.fkasdtvalue)), 0).toFixed(2));
+                    }
+                    const pay = this.toNumber(row.fkasdtvalue);
+                    const disc = this.getRowDiscount(row);
+                    return parseFloat(Math.max(original - pay - disc, 0).toFixed(2));
+                },
+
                 /**
                  * When user inputs Disc%:
-                 *   Total Bayar  = originalSisa - (originalSisa × Disc% / 100)
-                 *   Discount(Rp) = 0 and DISABLED (mutually exclusive)
+                 *   Discount(Rp) = originalSisa * Disc% / 100
+                 *   Total Bayar  = originalSisa - Discount(Rp)
                  *   Sisa Hutang  = 0
                  */
                 syncDiscountFromPercent(row, event) {
-                    const percent = this.toNumber(row.fdiscpersen);
+                    if (this.isRebRow(row)) { row.fdiscpersen = 0; row.fdiscount = 0; if (event?.target) event.target.value = 0; return; }
+                    let percent = this.toNumber(row.fdiscpersen);
                     const original = this.toNumber(row.originalSisa);
 
                     if (percent > 100) {
                         this.showValidationError('Disc% tidak boleh melebihi 100%');
+                        percent = 100;
                         row.fdiscpersen = 100;
                         if (event && event.target) event.target.value = 100;
                     }
-
-                    const validPercent = Math.min(Math.max(this.toNumber(row.fdiscpersen), 0), 100);
-                    row.fdiscpersen = validPercent;
-                    row.fdiscount = 0;
-
-                    if (validPercent > 0) {
-                        const discAmount = parseFloat((original * validPercent / 100).toFixed(2));
-                        row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
-                        row.fsisa_hutang = 0;
-                    } else {
-                        row.fkasdtvalue = parseFloat(Math.max(original, 0).toFixed(2));
-                        row.fsisa_hutang = 0;
+                    if (percent < 0) {
+                        percent = 0;
+                        row.fdiscpersen = 0;
+                        if (event && event.target) event.target.value = 0;
                     }
+
+                    const discAmount = original > 0 ? parseFloat((original * percent / 100).toFixed(2)) : 0;
+                    row.fdiscount = discAmount;
+                    row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
+                    row.fsisa_hutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
 
                 /**
                  * When user inputs Discount (Rp):
+                 *   Disc%        = (Discount / originalSisa) * 100
                  *   Total Bayar  = originalSisa - Discount(Rp)
-                 *   Disc%        = 0 and DISABLED (mutually exclusive)
                  *   Sisa Hutang  = 0
                  */
                 syncDiscountFromRp(row, inputValue) {
-                    const discount = this.toNumber(inputValue);
+                    if (this.isRebRow(row)) { row.fdiscpersen = 0; row.fdiscount = 0; return; }
+                    let discount = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
 
                     if (discount > original) {
                         this.showValidationError('Discount tidak boleh melebihi Sisa Hutang awal');
-                        row.fdiscount = original;
-                    } else {
-                        row.fdiscount = parseFloat(Math.max(discount, 0).toFixed(2));
+                        discount = original;
+                    }
+                    if (discount < 0) {
+                        discount = 0;
                     }
 
-                    row.fdiscpersen = 0;
+                    row.fdiscount = parseFloat(discount.toFixed(2));
+                    row.fdiscpersen = original > 0 ? parseFloat(((discount / original) * 100).toFixed(2)) : 0;
                     row.fkasdtvalue = parseFloat(Math.max(original - row.fdiscount, 0).toFixed(2));
-                    row.fsisa_hutang = 0;
+                    row.fsisa_hutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
 
@@ -1279,28 +1296,23 @@
                             return;
                         }
                         row.fkasdtvalue = -pay;
-                        row.fsisa_hutang = parseFloat(Math.max(original - pay, 0).toFixed(2));
+                        row.fsisa_hutang = this.getRowSisa(row);
                         this.recalcTotals();
                         return;
                     }
 
                     const pay = this.toNumber(inputValue);
-                    const effectiveDiscount = row.fdiscpersen > 0
-                        ? parseFloat((original * row.fdiscpersen / 100).toFixed(2))
-                        : parseFloat(Math.max(this.toNumber(row.fdiscount), 0).toFixed(2));
-
+                    const effectiveDiscount = this.getRowDiscount(row);
                     const maxPay = parseFloat(Math.max(original - effectiveDiscount, 0).toFixed(2));
 
                     if (pay > maxPay) {
                         this.showValidationError('Total Bayar melebihi tagihan yang tersisa');
                         row.fkasdtvalue = maxPay;
-                        row.fsisa_hutang = 0;
-                        this.recalcTotals();
-                        return;
+                    } else {
+                        row.fkasdtvalue = parseFloat(Math.max(pay, 0).toFixed(2));
                     }
 
-                    row.fkasdtvalue = parseFloat(Math.max(pay, 0).toFixed(2));
-                    row.fsisa_hutang = parseFloat(Math.max(original - row.fkasdtvalue - effectiveDiscount, 0).toFixed(2));
+                    row.fsisa_hutang = this.getRowSisa(row);
                     this.recalcTotals();
                 },
                 recalcTotals() {

@@ -397,6 +397,16 @@ class BayarSupplierController extends Controller
                     'freftype' => 'ADM',
                 ]);
             }
+
+            $refNos = $detailRows
+                ->pluck('frefno')
+                ->map(fn($value) => trim((string) $value))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $this->syncPayableAmountRemain($refNos);
         });
 
         if ($request->expectsJson()) {
@@ -730,6 +740,24 @@ class BayarSupplierController extends Controller
                     'fdatetimelog' => $now,
                 ]);
             }
+
+            $oldRefNos = $header->details
+                ->pluck('frefno')
+                ->map(fn($value) => trim((string) $value))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $newRefNos = $detailRows
+                ->pluck('frefno')
+                ->map(fn($value) => trim((string) $value))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $this->syncPayableAmountRemain(array_unique(array_merge($oldRefNos, $newRefNos)));
         });
 
         if ($request->expectsJson()) {
@@ -850,6 +878,16 @@ class BayarSupplierController extends Controller
             // Hapus detail & header utama
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
+
+            $refNos = $details
+                ->pluck('frefno')
+                ->map(fn($value) => trim((string) $value))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $this->syncPayableAmountRemain($refNos);
         });
 
         if (request()->expectsJson()) {
@@ -1009,6 +1047,39 @@ class BayarSupplierController extends Controller
             ->firstOrFail();
     }
 
+    private function syncPayableAmountRemain(array $refNos): void
+    {
+        if (empty($refNos)) {
+            return;
+        }
+
+        $invoices = DB::table('trstockmt')
+            ->whereIn('fstockmtno', $refNos)
+            ->whereIn('fstockmtcode', ['BUY', 'REB', 'RUB'])
+            ->get(['fstockmtno', 'famountmt', 'fstockmtcode']);
+
+        // Sum all payments (fkasdtvalue + fdiscount) per reference from trkasdt
+        $totalPaidByRef = DB::table('trkasdt')
+            ->where('ftrancode', self::TRAN_CODE)
+            ->whereIn('frefno', $refNos)
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0)) + ABS(COALESCE(fdiscount, 0))) as total_paid")
+            ->groupByRaw("TRIM(COALESCE(frefno, ''))")
+            ->pluck('total_paid', 'frefno')
+            ->mapWithKeys(fn($paid, $ref) => [trim((string) $ref) => (float) $paid]);
+
+        foreach ($invoices as $invoice) {
+            $fstockmtno = trim((string) ($invoice->fstockmtno ?? ''));
+            $famountmt = abs((float) ($invoice->famountmt ?? 0));
+            $totalPaid = $totalPaidByRef->get($fstockmtno, 0.0);
+            $newRemain = round(max($famountmt - $totalPaid, 0), 2);
+
+            DB::table('trstockmt')
+                ->where('fstockmtno', $fstockmtno)
+                ->update(['famountremain' => $newRemain]);
+        }
+    }
+
     private function validatePaymentDoesNotExceedRemainingPayable(Collection $detailRows, ?Trkasmt $exceptHeader = null): void
     {
         $refNos = $detailRows
@@ -1034,7 +1105,7 @@ class BayarSupplierController extends Controller
                 ->where('fkasmtid', $exceptHeader->fkasmtid)
                 ->whereIn('frefno', $refNos)
                 ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
-                ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_payment")
+                ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0)) + ABS(COALESCE(fdiscount, 0))) as total_payment")
                 ->groupByRaw("TRIM(COALESCE(frefno, ''))")
                 ->pluck('total_payment', 'frefno')
                 ->mapWithKeys(fn($payment, $refNo) => [trim((string) $refNo) => (float) $payment]);
@@ -1043,11 +1114,12 @@ class BayarSupplierController extends Controller
         foreach ($detailRows as $index => $row) {
             $refNo = trim((string) ($row['frefno'] ?? ''));
             $payment = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
+            $discount = round(abs((float) ($row['fdiscount'] ?? 0)), 2);
             $allowed = round(($remainingByRef->get($refNo, 0) + $existingPaymentByRef->get($refNo, 0)), 2);
 
-            if ($payment > $allowed) {
+            if (($payment + $discount) > ($allowed + 0.01)) {
                 throw ValidationException::withMessages([
-                    "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa hutang.',
+                    "details.{$index}.fkasdtvalue" => 'Total bayar dan diskon tidak boleh melebihi sisa hutang.',
                 ]);
             }
         }
@@ -1460,7 +1532,24 @@ class BayarSupplierController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
+        $refNos = $details->pluck('frefno')->filter()->unique()->values();
+        $invoices = DB::table('trstockmt')
+            ->whereIn('fstockmtno', $refNos)
+            ->whereIn('fstockmtcode', ['BUY', 'REB', 'RUB'])
+            ->get()
+            ->keyBy('fstockmtno');
+
+        $details = $details->map(function ($row) use ($invoices) {
+            $inv = $invoices->get($row->frefno);
+            $invDate = $inv?->fstockmtdate ?: $row->fdatetime;
+            $row->tgl_faktur = $invDate ? Carbon::parse($invDate)->format('d/m/Y') : '-';
+            $row->sisa_hutang = (float) ($inv?->famountremain ?? 0);
+            $row->nilai_order = (float) ($inv?->famountmt ?? 0);
+            return $row;
+        });
+
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $totalDiscount = (float) $details->sum(fn($detail) => (float) ($detail->fdiscount ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
         return view('bayarsupplier.print', [
@@ -1468,6 +1557,7 @@ class BayarSupplierController extends Controller
             'dt' => $details,
             'fmt' => $fmt,
             'totalAmount' => $totalAmount,
+            'totalDiscount' => $totalDiscount,
             'company_name' => company_name(),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
