@@ -109,21 +109,72 @@ if (!function_exists('decrypt_value')) {
   }
 }
 
+if (!function_exists('company_setting')) {
+  function company_setting(): object
+  {
+    static $cached = null;
+
+    if ($cached !== null) {
+      return $cached;
+    }
+
+    try {
+      $s = \Illuminate\Support\Facades\DB::table('setini')->first();
+    } catch (\Throwable $e) {
+      $s = null;
+    }
+
+    if (!$s) {
+      $cached = (object)[
+        'fproject' => 'PT. M-Trade',
+        'fcity' => '',
+        'falamat1' => '',
+        'falamat2' => '',
+        'ftelp' => '',
+        'ffax' => '',
+        'fnpwp' => '',
+        'falamat1npwp' => '',
+        'falamat2npwp' => '',
+        'fnamattdpo' => '',
+        'fnamattdpo2' => '',
+        'fnamattdfakturpenjualan' => '',
+        'fnamattdfakturpenjualan2' => '',
+        'fppntarif' => 11.0,
+      ];
+      return $cached;
+    }
+
+    $rawAddr1 = decrypt_value($s->falamat1 ?? '');
+    $rawAddr2 = decrypt_value($s->falamat2 ?? '');
+    $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($rawAddr1));
+    $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($rawAddr2));
+    $projectName = decrypt_value($s->fproject ?? '');
+
+    $cached = (object)[
+      'fproject' => $projectName !== '' ? $projectName : 'PT. M-Trade',
+      'fcity' => $s->fcity ?? '',
+      'falamat1' => $addr1,
+      'falamat2' => $addr2,
+      'ftelp' => $s->ftelp ?? '',
+      'ffax' => $s->ffax ?? '',
+      'fnpwp' => decrypt_value($s->fnpwp ?? ''),
+      'falamat1npwp' => decrypt_value($s->falamat1npwp ?? ''),
+      'falamat2npwp' => decrypt_value($s->falamat2npwp ?? ''),
+      'fnamattdpo' => $s->fnamattdpo ?? '',
+      'fnamattdpo2' => $s->fnamattdpo2 ?? '',
+      'fnamattdfakturpenjualan' => $s->fnamattdfakturpenjualan ?? '',
+      'fnamattdfakturpenjualan2' => $s->fnamattdfakturpenjualan2 ?? '',
+      'fppntarif' => $s->fppntarif ?? 11.0,
+    ];
+
+    return $cached;
+  }
+}
+
 if (!function_exists('company_name')) {
   function company_name(): string
   {
-    static $companyName = null;
-
-    if ($companyName !== null) {
-      return $companyName;
-    }
-
-    $raw = \Illuminate\Support\Facades\DB::table('setini')->value('fproject');
-    $decrypted = decrypt_value($raw);
-
-    $companyName = $decrypted !== '' ? $decrypted : 'PT. M-Trade';
-
-    return $companyName;
+    return company_setting()->fproject;
   }
 }
 

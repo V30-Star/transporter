@@ -25,27 +25,25 @@ class AppServiceProvider extends ServiceProvider
         }
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
-            $rawAddr1 = decrypt_value($setini->falamat1 ?? '');
-            $rawAddr2 = decrypt_value($setini->falamat2 ?? '');
-            $addr1 = preg_replace('/^alamat\s*1?\s*:\s*/i', '', trim($rawAddr1));
-            $addr2 = preg_replace('/^alamat\s*2?\s*:\s*/i', '', trim($rawAddr2));
-            $projectName = decrypt_value($setini->fproject ?? '');
+            $setting = company_setting();
 
             $view->with([
-                'company_name' => $projectName !== '' ? $projectName : 'PT. M-Trade',
-                'company_city' => $setini->fcity ?? '',
-                'company_address1' => $addr1,
-                'company_address2' => $addr2,
-                'company_telp' => $setini->ftelp ?? '',
-                'company_fax' => $setini->ffax ?? '',
-                'company_npwp' => decrypt_value($setini->fnpwp ?? ''),
-                'company_alamat1npwp' => decrypt_value($setini->falamat1npwp ?? ''),
-                'company_alamat2npwp' => decrypt_value($setini->falamat2npwp ?? ''),
-                'namattdpo' => $setini->fnamattdpo ?? '',
-                'namattdpo2' => $setini->fnamattdpo2 ?? '',
-                'namattdfakturpenjualan' => $setini->fnamattdfakturpenjualan ?? '',
-                'namattdfakturpenjualan2' => $setini->fnamattdfakturpenjualan2 ?? '',
+                'company_name' => $setting->fproject,
+                'company_city' => $setting->fcity,
+                'company_address1' => $setting->falamat1,
+                'company_address2' => $setting->falamat2,
+                'company_alamat1' => $setting->falamat1,
+                'company_alamat2' => $setting->falamat2,
+                'company_telp' => $setting->ftelp,
+                'company_fax' => $setting->ffax,
+                'company_npwp' => $setting->fnpwp,
+                'company_alamat1npwp' => $setting->falamat1npwp,
+                'company_alamat2npwp' => $setting->falamat2npwp,
+                'namattdpo' => $setting->fnamattdpo,
+                'namattdpo2' => $setting->fnamattdpo2,
+                'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan,
+                'namattdfakturpenjualan2' => $setting->fnamattdfakturpenjualan2,
+                'company_setting' => $setting,
             ]);
         });
     }
