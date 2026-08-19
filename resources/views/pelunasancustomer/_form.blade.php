@@ -340,24 +340,22 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                             <input type="number" min="0" max="100" step="0.01"
                                                 :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                                 @input="syncDiscountFromPercent(row, $event)"
-                                                :disabled="isDiscPercentDisabled(row) || isRejRow(row)"
+                                                :disabled="isRejRow(row)"
                                                 :class="referenceTextClass(row)"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                            <input type="hidden" x-show="isDiscPercentDisabled(row) || isRejRow(row)"
-                                                :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                         @endif
                                     </td>
                                     <td class="p-2">
                                         @if ($isReadOnly)
-                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="formatNumber(getRowDiscount(row))"></div>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="formatNumber(row.fdiscount)"></div>
                                             <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                         @else
-                                            <input type="text" x-init="$el.value = formatNumber(getRowDiscount(row))"
-                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(getRowDiscount(row))"
+                                            <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
+                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
                                                 @focus="showRawNumber($event, row, 'fdiscount')"
                                                 @input="syncDiscountFromRp(row, $event.target.value)"
                                                 @blur="formatNumericField($event, row, 'fdiscount')"
-                                                :disabled="isDiscountDisabled(row) || isRejRow(row)"
+                                                :disabled="isRejRow(row)"
                                                 :class="referenceTextClass(row)"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <input type="hidden"
@@ -1476,16 +1474,6 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     this.recalcTotals();
                 },
 
-                isDiscPercentDisabled(row) {
-                    // Disc% disabled when Discount (Rp) has been manually filled
-                    return this.toNumber(row?.fdiscount) > 0;
-                },
-
-                isDiscountDisabled(row) {
-                    // Discount (Rp) disabled when Disc% has been manually filled
-                    return this.toNumber(row?.fdiscpersen) > 0;
-                },
-
                 isRejRow(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
                     const refNo = String(row?.frefno || '').trim().toUpperCase();
@@ -1509,29 +1497,30 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
                 /**
                  * When user inputs Disc%:
-                 *   Total Bayar  = originalSisa - (originalSisa × Disc% / 100)
-                 *   Discount(Rp) = calculated for display and disabled (mutually exclusive)
+                 *   Discount(Rp) = originalSisa * Disc% / 100
+                 *   Total Bayar  = originalSisa - Discount(Rp)
                  *   Sisa Piutang = 0
                  */
                 syncDiscountFromPercent(row, event) {
-                    if (this.isRejRow(row)) { row.fdiscpersen = 0; if (event?.target) event.target.value = 0; return; }
-                    const percent = this.toNumber(row.fdiscpersen);
+                    if (this.isRejRow(row)) { row.fdiscpersen = 0; row.fdiscount = 0; if (event?.target) event.target.value = 0; return; }
+                    let percent = this.toNumber(row.fdiscpersen);
                     const original = this.toNumber(row.originalSisa);
 
                     // VALIDATION: Disc% must be between 0 and 100
                     if (percent > 100) {
                         this.showValidationError('Disc% tidak boleh melebihi 100%');
+                        percent = 100;
                         row.fdiscpersen = 100;
                         if (event && event.target) event.target.value = 100;
                     }
+                    if (percent < 0) {
+                        percent = 0;
+                        row.fdiscpersen = 0;
+                        if (event && event.target) event.target.value = 0;
+                    }
 
-                    const validPercent = Math.min(Math.max(this.toNumber(row.fdiscpersen), 0), 100);
-                    row.fdiscpersen = validPercent;
-
-                    // Discount (Rp) is always 0 when Disc% is used
-                    row.fdiscount = 0;
-
-                    const discAmount = validPercent > 0 ? parseFloat((original * validPercent / 100).toFixed(2)) : 0;
+                    const discAmount = original > 0 ? parseFloat((original * percent / 100).toFixed(2)) : 0;
+                    row.fdiscount = discAmount;
                     row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
                     row.fsisa_piutang = this.getRowSisa(row);
                     this.recalcTotals();
@@ -1539,26 +1528,26 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
                 /**
                  * When user inputs Discount (Rp):
+                 *   Disc%        = (Discount / originalSisa) * 100
                  *   Total Bayar  = originalSisa - Discount(Rp)
                  *   Sisa Piutang = 0
-                 *   Disc%        = 0 and DISABLED (mutually exclusive)
                  */
                 syncDiscountFromRp(row, inputValue) {
-                    if (this.isRejRow(row)) { row.fdiscount = 0; return; }
-                    const discount = this.toNumber(inputValue);
+                    if (this.isRejRow(row)) { row.fdiscpersen = 0; row.fdiscount = 0; return; }
+                    let discount = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
 
                     // VALIDATION: Discount must not exceed originalSisa
                     if (discount > original) {
                         this.showValidationError('Discount tidak boleh melebihi Sisa Piutang awal');
-                        row.fdiscount = original;
-                    } else {
-                        row.fdiscount = parseFloat(Math.max(discount, 0).toFixed(2));
+                        discount = original;
+                    }
+                    if (discount < 0) {
+                        discount = 0;
                     }
 
-                    // Disc% is always 0 when Discount (Rp) is used
-                    row.fdiscpersen = 0;
-
+                    row.fdiscount = parseFloat(discount.toFixed(2));
+                    row.fdiscpersen = original > 0 ? parseFloat(((discount / original) * 100).toFixed(2)) : 0;
                     row.fkasdtvalue = parseFloat(Math.max(original - row.fdiscount, 0).toFixed(2));
                     row.fsisa_piutang = this.getRowSisa(row);
                     this.recalcTotals();
