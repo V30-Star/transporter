@@ -137,6 +137,12 @@
             font-weight: bold;
         }
 
+        .text-rej,
+        .text-rej div,
+        .text-rej span {
+            color: #cc0000 !important;
+        }
+
         .truncate {
             white-space: nowrap;
             overflow: hidden;
@@ -465,15 +471,15 @@
             @if ($mode === 'detail')
                 @foreach ($items as $index => $row)
                     @php
-                        $isReturn = in_array($row->fstockmtcode ?? '', ['REJ', 'RUJ'], true);
+                        $isReturn = in_array($row->fstockmtcode ?? '', ['REJ', 'RUJ'], true) || str_starts_with($row->fsono ?? '', 'REJ') || str_starts_with($row->fsono ?? '', 'RUJ');
                         $viewUrl = $isReturn ? route('returpenjualan.view', $row->ftranmtid) : route('invoice.view', $row->ftranmtid);
                         $editUrl = $isReturn ? route('returpenjualan.edit', $row->ftranmtid) : route('invoice.edit', $row->ftranmtid);
                     @endphp
                     <div class="journal-block">
-                        <div class="item-row">
+                        <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
                             <div class="text-center">{{ $index + 1 }}</div>
                             <div>{{ $row->fbranchcode }}</div>
-                            <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $row->fsono }}">
+                            <div class="truncate" title="{{ $row->fsono }}">
                                 <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fsono }}</span>
                             </div>
                             <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
