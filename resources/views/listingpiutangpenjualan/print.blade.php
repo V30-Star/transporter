@@ -64,12 +64,12 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 15px; /* Shifted one line up inline with right side metadata */
+            top: 0;
             left: 0mm;
             font-size: 10px;
             color: #334155; /* Slate 700 */
             text-align: left;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .info-tambahan {
@@ -85,7 +85,7 @@
         .info-label {
             font-weight: 600;
             display: inline-block;
-            width: 50px;
+            width: 55px;
             color: #475569; /* Slate 600 */
         }
 
@@ -418,11 +418,8 @@
                 @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                 @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 Cabang: {{ $branchText }}<br>
-                Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
-                Salesman: {{ $salesmanText }}<br>
-                Wilayah: {{ $wilayahText }}<br>
                 Customer: {{ $customerText }}<br>
-                Retur Penjualan: {{ $returText }}
+                Wilayah: {{ $wilayahText }}
             </div>
             <h2>Listing Piutang Penjualan</h2>
             <div class="filter-info">
@@ -440,6 +437,9 @@
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                 <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                 <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                <div><span class="info-label">Salesman</span>: {{ $salesmanText }}</div>
+                <div><span class="info-label">Mode</span>: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</div>
+                <div><span class="info-label">Retur</span>: {{ $returText }}</div>
             </div>
         </div>
 
@@ -526,16 +526,13 @@
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15mm;">
+                    <div class="supplier-info-kiri" style="top: 0;">
                         <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
                         @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                         @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                         Cabang: {{ $branchText }}<br>
-                        Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}<br>
-                        Salesman: {{ $salesmanText }}<br>
-                        Wilayah: {{ $wilayahText }}<br>
                         Customer: {{ $customerText }}<br>
-                        Retur Penjualan: {{ $returText }}
+                        Wilayah: {{ $wilayahText }}
                     </div>
                     <h2>Listing Piutang Penjualan</h2>
                     <div class="info-tambahan">
@@ -543,6 +540,9 @@
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                        <div><span class="info-label">Salesman</span>: {{ $salesmanText }}</div>
+                        <div><span class="info-label">Mode</span>: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</div>
+                        <div><span class="info-label">Retur</span>: {{ $returText }}</div>
                     </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
                         ditemukan.</div>
