@@ -1283,7 +1283,7 @@
 
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button"
-                                        @click="showCustomerRequired = false; document.getElementById('modal_filter_customer_id')?.focus()"
+                                        @click="showCustomerRequired = false; window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                         class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                         {{ 'OK' }}
                                     </button>
