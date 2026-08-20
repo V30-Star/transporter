@@ -104,6 +104,18 @@ if (!function_exists('decrypt_value')) {
     try {
       return \Illuminate\Support\Facades\Crypt::decryptString($value);
     } catch (\Throwable $e) {
+      $knownKeys = [
+        'base64:Zc/6jQQwdTPeQcGRz4fbq1JkFGhbSoMB5FZ3LNNQGoo=',
+      ];
+      foreach ($knownKeys as $k) {
+        try {
+          $keyBytes = str_starts_with($k, 'base64:') ? base64_decode(substr($k, 7)) : $k;
+          $encrypter = new \Illuminate\Encryption\Encrypter($keyBytes, config('app.cipher', 'AES-256-CBC'));
+          return $encrypter->decryptString($value);
+        } catch (\Throwable $t) {
+          // continue
+        }
+      }
       return $value;
     }
   }
