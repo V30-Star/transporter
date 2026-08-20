@@ -1264,6 +1264,10 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
 
+        if (isset($hdr->frekeningname)) {
+            $hdr->frekeningname = decrypt_value($hdr->frekeningname);
+        }
+
         if ((int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Faktur Penjualan Sudah Pernah diPrint.');
         }

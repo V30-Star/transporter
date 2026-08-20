@@ -404,7 +404,7 @@
 
                     <div style="border: 1px solid #000; padding: 5px 8px; font-size: 10px; line-height: 1.35; width: fit-content; min-width: 240px; max-width: 320px; box-sizing: border-box;">
                         <div style="margin-bottom: 2px;">Mohon Pembayaran dapat ditransfer ke :</div>
-                        <div style="white-space: pre-line;">{{ $hdr->frekeningname ?? '-' }}</div>
+                        <div style="white-space: pre-line;">{{ decrypt_value($hdr->frekeningname ?? '-') }}</div>
                     </div>
                 </div>
             </div>

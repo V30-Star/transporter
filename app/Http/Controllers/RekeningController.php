@@ -25,8 +25,9 @@ class RekeningController extends Controller
             return $guard;
         }
 
-        $rekenings = Rekening::orderBy('frekeningname', 'asc')
-            ->get(['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive']);
+        $rekenings = Rekening::all(['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive'])
+            ->sortBy('frekeningname')
+            ->values();
 
         $canCreate = in_array('createRekening', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
@@ -51,18 +52,25 @@ class RekeningController extends Controller
         }
 
         $request->merge([
-            'frekeningname' => strtoupper($request->frekeningname),
+            'frekeningname' => strtoupper(trim((string) $request->frekeningname)),
         ]);
 
         $validated = $request->validate(
             [
-                'frekeningname' => 'required|string|unique:msrekening,frekeningname',
+                'frekeningname' => 'required|string',
             ],
             [
                 'frekeningname.required' => 'Nama rekening wajib diisi.',
-                'frekeningname.unique' => 'Nama rekening sudah ada.',
             ]
         );
+
+        $exists = Rekening::all()->contains(function ($item) use ($validated) {
+            return strtoupper(trim((string) $item->frekeningname)) === $validated['frekeningname'];
+        });
+
+        if ($exists) {
+            return redirect()->back()->withInput()->withErrors(['frekeningname' => 'Nama rekening sudah ada.']);
+        }
 
         $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
@@ -115,18 +123,25 @@ class RekeningController extends Controller
 
         try {
             $request->merge([
-                'frekeningname' => strtoupper($request->frekeningname),
+                'frekeningname' => strtoupper(trim((string) $request->frekeningname)),
             ]);
 
             $validated = $request->validate(
                 [
-                    'frekeningname' => "required|string|unique:msrekening,frekeningname,{$frekeningid},frekeningid",
+                    'frekeningname' => 'required|string',
                 ],
                 [
                     'frekeningname.required' => 'Nama rekening wajib diisi.',
-                    'frekeningname.unique' => 'Nama rekening sudah ada.',
                 ]
             );
+
+            $exists = Rekening::where('frekeningid', '!=', $frekeningid)->get()->contains(function ($item) use ($validated) {
+                return strtoupper(trim((string) $item->frekeningname)) === $validated['frekeningname'];
+            });
+
+            if ($exists) {
+                return redirect()->back()->withInput()->withErrors(['frekeningname' => 'Nama rekening sudah ada.']);
+            }
 
             $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
@@ -146,7 +161,7 @@ class RekeningController extends Controller
             DB::table('logrekening')->insert([
                 'frekeningid'   => $rekening->frekeningid,
                 'frekeningcode' => $rekening->frekeningcode,
-                'frekeningname' => $rekening->frekeningname,
+                'frekeningname' => $rekening->getRawOriginal('frekeningname'),
                 'fcreatedat'    => $rekening->fcreatedat,
                 'fupdatedat'    => $rekening->fupdatedat,
                 'fcreatedby'    => $rekening->fcreatedby,
@@ -228,7 +243,7 @@ class RekeningController extends Controller
             DB::table('logrekening')->insert([
                 'frekeningid'   => $rekening->frekeningid,
                 'frekeningcode' => $rekening->frekeningcode,
-                'frekeningname' => $rekening->frekeningname,
+                'frekeningname' => $rekening->getRawOriginal('frekeningname'),
                 'fcreatedat'    => $rekening->fcreatedat,
                 'fupdatedat'    => $rekening->fupdatedat,
                 'fcreatedby'    => $rekening->fcreatedby,
