@@ -7,7 +7,7 @@ $client->setScopes([Google\Service\Drive::DRIVE]);
 $client->setAccessType('offline');
 $client->setPrompt('consent');
 
-$httpClient = new \GuzzleHttp\Client(['verify' => false]);
+$httpClient = new \GuzzleHttp\Client();
 $client->setHttpClient($httpClient);
 
 $authUrl = $client->createAuthUrl();
