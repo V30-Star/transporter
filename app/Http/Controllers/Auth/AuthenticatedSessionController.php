@@ -28,45 +28,36 @@ class AuthenticatedSessionController extends Controller
     // In the AuthenticatedSessionController, after login
     public function store(LoginRequest $request)
     {
-        $credentials = [
-            'fsysuserid' => $request->fsysuserid,
-            'password' => $request->password,
-        ];
+        $request->authenticate();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            $user = Auth::user();
-            if ($user && method_exists($user, 'touch')) {
-                $user->touch();
-            }
-
-            $restrictedPermissions = RoleAccess::where('fusercreate', $user->fuid)
-                ->pluck('fpermission')
-                ->implode(',');
-
-            session(['user_restricted_permissions' => $restrictedPermissions]);
-
-            session([
-                'fsysuserid' => $user->fsysuserid,
-                'fname' => $user->fname,
-                'fuserlevel' => $user->fuserlevel,
-                'fcabang' => $user->fcabang,
-            ]);
-
-            LogUser::create([
-                'ip' => $request->ip(),
-                'akun' => $user->fsysuserid,
-                'komp' => gethostname(),
-                'login_date' => now(),
-                'log_out_date' => null,
-            ]);
-
-            return redirect()->intended(RouteServiceProvider::HOME);
+        $request->session()->regenerate();
+        $user = Auth::user();
+        if ($user && method_exists($user, 'touch')) {
+            $user->touch();
         }
 
-        return back()
-            ->withErrors(['password' => 'Username atau password salah.'])
-            ->onlyInput('fsysuserid');
+        $restrictedPermissions = RoleAccess::where('fusercreate', $user->fuid)
+            ->pluck('fpermission')
+            ->implode(',');
+
+        session(['user_restricted_permissions' => $restrictedPermissions]);
+
+        session([
+            'fsysuserid' => $user->fsysuserid,
+            'fname' => $user->fname,
+            'fuserlevel' => $user->fuserlevel,
+            'fcabang' => $user->fcabang,
+        ]);
+
+        LogUser::create([
+            'ip' => $request->ip(),
+            'akun' => $user->fsysuserid,
+            'komp' => gethostname(),
+            'login_date' => now(),
+            'log_out_date' => null,
+        ]);
+
+        return redirect()->intended(RouteServiceProvider::HOME);
     }
 
     /**
