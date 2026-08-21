@@ -158,21 +158,29 @@
                         <hr class="border-gray-100">
 
                         {{-- Initial Jurnal --}}
-                        <div>
+                        <div x-data="{ isKasBank: {{ $isKasBankHeader ? 'true' : 'false' }} }"
+                            @header-changed.window="isKasBank = $event.detail.isKasBank">
                             <label class="block text-xs font-bold text-gray-800 mb-1">
                                 Initial Jurnal
-                                <span class="font-normal text-gray-400">(opsional)</span>
+                                <span class="font-normal text-gray-400" x-text="isKasBank ? '(wajib untuk Kas / Bank)' : '(khusus Kas / Bank - baca saja)'"></span>
                             </label>
 
                             <div class="flex flex-col items-start gap-1.5">
                                 <input type="text" name="finitjurnal" value="{{ old('finitjurnal') }}"
-                                    class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('finitjurnal') border-red-400 @enderror"
+                                    :readonly="!isKasBank"
+                                    :tabindex="isKasBank ? '0' : '-1'"
+                                    :class="!isKasBank
+                                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed shadow-inner'
+                                        : 'bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-800'"
+                                    class="w-24 border rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest focus:outline-none @error('finitjurnal') border-red-400 @enderror"
                                     maxlength="2" placeholder="KS">
 
-                                <div
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors"
+                                    :class="!isKasBank
+                                        ? 'bg-gray-50 border border-gray-200 text-gray-400'
+                                        : 'bg-amber-50 border border-amber-200 text-amber-700'">
                                     <x-heroicon-o-exclamation-triangle class="w-3.5 h-3.5" />
-                                    Khusus untuk akun Kas / Bank
+                                    <span x-text="isKasBank ? 'Khusus untuk akun Kas / Bank (Aktif)' : 'Hanya aktif jika header adalah Kas / Bank (Baca saja)'"></span>
                                 </div>
 
                                 @error('finitjurnal')
@@ -346,7 +354,19 @@
             document.getElementById('headerDisplay').value = '';
             document.getElementById('accountCodeHidden').value = '';
             document.getElementById('accountIdHidden').value = '';
-            document.getElementById('selectedHeaderBadge').classList.add('hidden');
+            const badge = document.getElementById('selectedHeaderBadge');
+            if (badge) badge.classList.add('hidden');
+            window.dispatchEvent(new CustomEvent('header-changed', { detail: { isKasBank: false } }));
+            const inputInit = document.querySelector('input[name=finitjurnal]');
+            if (inputInit) inputInit.value = '';
+        }
+
+        // ── Kas Bank helper ───────────────────────────────────────────────
+        function checkIsKasBank(code, name) {
+            const kbCode = @json($kasBankHeaderCode ?? '11110');
+            if (code && String(code).trim() === String(kbCode).trim()) return true;
+            if (name && /(kas|bank)/i.test(name)) return true;
+            return false;
         }
 
         // ── account-picked event ──────────────────────────────────────────
@@ -363,12 +383,17 @@
                 document.getElementById('accountIdHidden').value = faccid || '';
 
                 const badge = document.getElementById('selectedHeaderBadge');
-                document.getElementById('selectedHeaderLabel').textContent = faccount + ' — ' + (faccname ||
-                    '');
-                badge.classList.remove('hidden');
+                if (badge) {
+                    document.getElementById('selectedHeaderLabel').textContent = faccount + ' — ' + (faccname || '');
+                    badge.classList.remove('hidden');
+                }
 
+                const isKB = checkIsKasBank(faccount, faccname);
+                window.dispatchEvent(new CustomEvent('header-changed', { detail: { isKasBank: isKB } }));
                 const inputInit = document.querySelector('input[name=finitjurnal]');
-                if (inputInit) inputInit.placeholder = 'Cek initial jika header Kas/Bank...';
+                if (inputInit && !isKB) {
+                    inputInit.value = '';
+                }
             });
         });
 

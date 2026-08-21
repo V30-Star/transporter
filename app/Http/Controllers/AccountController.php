@@ -44,14 +44,21 @@ class AccountController extends Controller
             ->limit(50)
             ->get();
 
-        return view('account.create', compact('accounts'));
+        $kasBankHeaderCode = DB::table('set_account')
+            ->where('faccount_name', 'KASBANKHEADER')
+            ->value('faccount');
+
+        $isKasBankHeader = false;
+        if (old('faccupline')) {
+            $isKasBankHeader = $this->isKasBankHeader(old('faccupline'), old('faccid'));
+        }
+
+        return view('account.create', compact('accounts', 'kasBankHeaderCode', 'isKasBankHeader'));
     }
 
     public function store(Request $request)
     {
-        $isSetAccount = DB::table('set_account')
-            ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
-            ->exists();
+        $isKasBank = $this->isKasBankHeader($request->input('faccupline'), $request->input('faccid'));
 
         $request->merge([
             'faccount' => strtoupper($request->faccount),
@@ -63,7 +70,7 @@ class AccountController extends Controller
                 'faccname' => 'required|string',
                 'faccupline' => 'nullable|string',
                 'finitjurnal' => [
-                    $isSetAccount ? 'required' : 'nullable',
+                    $isKasBank ? 'required' : 'nullable',
                     'string',
                     'max:2',
                     'unique:account,finitjurnal',
@@ -82,13 +89,16 @@ class AccountController extends Controller
                 'faccname.max' => 'Nama account max 50 karakter.',
                 'finitjurnal.max' => 'Inisial jurnal max 2 karakter.',
                 'finitjurnal.unique' => 'Inisial jurnal sudah dipakai.',
-                'finitjurnal.required' => 'Inisial jurnal wajib diisi.',
+                'finitjurnal.required' => 'Inisial jurnal wajib diisi untuk header Kas / Bank.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
 
         $validated['faccount'] = strtoupper($validated['faccount']);
         $validated['faccname'] = strtoupper($validated['faccname']);
+        $validated['finitjurnal'] = $isKasBank && $request->filled('finitjurnal')
+            ? strtoupper(trim((string) $request->input('finitjurnal')))
+            : null;
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
@@ -156,12 +166,21 @@ class AccountController extends Controller
             $selectedHeader = Account::where('faccount', $account->faccupline)->first();
         }
 
+        $kasBankHeaderCode = DB::table('set_account')
+            ->where('faccount_name', 'KASBANKHEADER')
+            ->value('faccount');
+
+        $headerCode = old('faccupline', $account->faccupline);
+        $isKasBankHeader = $this->isKasBankHeader($headerCode, $selectedHeader ? $selectedHeader->faccid : null);
+
         return view('account.edit', [
             'account' => $account,
             'headers' => $headers,
             'selectedHeader' => $selectedHeader,
             'isUsedInTransaction' => $isUsedInTransaction,
             'isReferencedAsHeader' => $isReferencedAsHeader,
+            'kasBankHeaderCode' => $kasBankHeaderCode,
+            'isKasBankHeader' => $isKasBankHeader,
             'action' => 'edit', // Tambahkan ini
         ]);
     }
@@ -186,9 +205,19 @@ class AccountController extends Controller
                 }
             }
 
-            $isSetAccount = DB::table('set_account')
-                ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
-                ->exists();
+            if ($isUsedInTransaction) {
+                if ($request->has('fnormal') && (string) $request->input('fnormal') !== (string) $account->fnormal) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'fnormal' => 'Saldo normal tidak bisa diubah karena account sudah dipakai transaksi.',
+                    ]);
+                }
+            }
+
+            $effectiveHeaderCode = $isUsedInTransaction
+                ? $account->faccupline
+                : ($request->filled('faccupline') ? trim((string) $request->input('faccupline')) : null);
+
+            $isKasBank = $this->isKasBankHeader($effectiveHeaderCode, $request->input('faccid'));
 
             $validated = $request->validate(
                 [
@@ -196,7 +225,7 @@ class AccountController extends Controller
                     'faccname' => 'required|string|max:50',
                     'fnormal' => 'required|in:D,K',
                     'finitjurnal' => [
-                        $isSetAccount ? 'required' : 'nullable',
+                        $isKasBank ? 'required' : 'nullable',
                         'string',
                         'max:2',
                         "unique:account,finitjurnal,{$faccid},faccid",
@@ -214,7 +243,7 @@ class AccountController extends Controller
                     'faccount.max' => 'Kode account max 10 karakter.',
                     'faccname.required' => 'Nama account wajib diisi.',
                     'faccname.max' => 'Nama account max 50 karakter.',
-                    'finitjurnal.required' => 'Inisial jurnal wajib diisi.',
+                    'finitjurnal.required' => 'Inisial jurnal wajib diisi untuk header Kas / Bank.',
                     'finitjurnal.unique' => 'Inisial jurnal sudah dipakai.',
                     'finitjurnal.max' => 'Inisial jurnal max 2 karakter.',
                     'faccupline.exists' => 'Account header tidak valid.',
@@ -244,17 +273,23 @@ class AccountController extends Controller
                 : '0';
 
             // Map select lain
-            $validated['fnormal'] = $request->input('fnormal');
+            $validated['fnormal'] = $isUsedInTransaction ? (string) $account->fnormal : $request->input('fnormal');
             $validated['fend'] = ($isUsedInTransaction || $isReferencedAsHeader) ? (string) $account->fend : $request->input('fend');
             $validated['fuserlevel'] = $request->input('fuserlevel');
             $validated['fcurrency'] = 'IDR';
 
+            if ($isUsedInTransaction) {
+                $validated['finitjurnal'] = $account->finitjurnal;
+            } elseif (! $isKasBank) {
+                $validated['finitjurnal'] = null;
+            } else {
+                $validated['finitjurnal'] = $request->filled('finitjurnal')
+                    ? strtoupper(trim((string) $request->input('finitjurnal')))
+                    : null;
+            }
+
             // PENTING: simpan faccupline (boleh null)
-            $validated['faccupline'] = $isUsedInTransaction
-                ? $account->faccupline
-                : ($request->filled('faccupline')
-                    ? trim((string) $request->input('faccupline'))
-                    : null);
+            $validated['faccupline'] = $effectiveHeaderCode;
 
             // 1. Jalankan update ke tabel utama
             $account->update($validated);
@@ -474,7 +509,9 @@ class AccountController extends Controller
 
     private function hasTransactionUsage(Account $account): bool
     {
-        return DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
+        return DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()
+            || DB::table('trkasdt')->where('faccount', $account->faccount)->exists()
+            || DB::table('trkasmt')->where('faccountheader', $account->faccount)->exists();
     }
 
     private function isReferencedAsHeader(Account $account): bool
@@ -482,5 +519,43 @@ class AccountController extends Controller
         return Account::where('faccupline', $account->faccount)
             ->orWhere('faccupline', (string) $account->faccid)
             ->exists();
+    }
+
+    private function isKasBankHeader(?string $headerCode, $headerId = null): bool
+    {
+        if (empty($headerCode) && empty($headerId)) {
+            return false;
+        }
+
+        $kasBankHeader = DB::table('set_account')
+            ->where('faccount_name', 'KASBANKHEADER')
+            ->first();
+
+        if ($kasBankHeader) {
+            if (! empty($headerCode) && ! empty($kasBankHeader->faccount) && trim((string) $headerCode) === trim((string) $kasBankHeader->faccount)) {
+                return true;
+            }
+            if (! empty($headerId) && ! empty($kasBankHeader->faccount_id) && (int) $headerId === (int) $kasBankHeader->faccount_id) {
+                return true;
+            }
+        }
+
+        $headerAccount = Account::where(function ($q) use ($headerCode, $headerId) {
+            if (! empty($headerCode)) {
+                $q->where('faccount', $headerCode);
+            }
+            if (! empty($headerId)) {
+                $q->orWhere('faccid', $headerId);
+            }
+        })->first();
+
+        if ($headerAccount) {
+            $name = strtoupper((string) $headerAccount->faccname);
+            if (str_contains($name, 'KAS') || str_contains($name, 'BANK')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

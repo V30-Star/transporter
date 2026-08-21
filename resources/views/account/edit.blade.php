@@ -151,6 +151,12 @@
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
                                 @endif
                             </div>
+                            @if (!empty($isUsedInTransaction))
+                                <p class="text-amber-600 text-xs mt-1 font-medium">Saldo normal tidak bisa diubah karena account sudah dipakai transaksi.</p>
+                            @endif
+                            @error('fnormal')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         {{-- Type Account --}}
@@ -258,31 +264,32 @@
                         <hr class="border-gray-100">
 
                         {{-- Initial Jurnal --}}
-                        <div>
+                        <div x-data="{ isKasBank: {{ $isKasBankHeader ? 'true' : 'false' }}, isLocked: {{ !empty($isUsedInTransaction) ? 'true' : 'false' }} }"
+                            @header-changed.window="if (!isLocked) isKasBank = $event.detail.isKasBank">
                             <label class="block text-xs font-bold text-gray-800 mb-1">
                                 Initial Jurnal
-                                <span class="font-normal text-gray-400 lowercase">(opsional)</span>
+                                <span class="font-normal text-gray-400"
+                                    x-text="isLocked ? '(terkunci)' : (isKasBank ? '(wajib untuk Kas / Bank)' : '(khusus Kas / Bank - baca saja)')"></span>
                             </label>
 
                             <div class="flex flex-col items-start gap-1.5">
                                 <input type="text" name="finitjurnal"
-                                    value="{{ old('finitjurnal', $account->finitjurnal) }}" {{-- Kunci input jika sedang digunakan dalam transaksi --}}
-                                    @if (!empty($isUsedInTransaction)) readonly @endif
-                                    class="w-24 border rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest focus:outline-none text-gray-800
-            {{ !empty($isUsedInTransaction)
-                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed shadow-inner'
-                : 'bg-white border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100' }} 
-            @error('finitjurnal') border-red-400 @enderror"
+                                    value="{{ old('finitjurnal', $account->finitjurnal) }}"
+                                    :readonly="isLocked || !isKasBank"
+                                    :tabindex="(isLocked || !isKasBank) ? '-1' : '0'"
+                                    :class="(isLocked || !isKasBank)
+                                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed shadow-inner'
+                                        : 'bg-white border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-gray-800'"
+                                    class="w-24 border rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest focus:outline-none @error('finitjurnal') border-red-400 @enderror"
                                     maxlength="2" placeholder="KS">
 
-                                {{-- Info Alert - ikut meredup jika sudah ada transaksi --}}
-                                <div
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs transition-colors
-            {{ !empty($isUsedInTransaction)
-                ? 'bg-gray-50 border-gray-200 text-gray-400 opacity-60'
-                : 'bg-amber-50 border-amber-200 text-amber-700' }}">
+                                {{-- Info Alert --}}
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors"
+                                    :class="(isLocked || !isKasBank)
+                                        ? 'bg-gray-50 border border-gray-200 text-gray-400'
+                                        : 'bg-amber-50 border border-amber-200 text-amber-700'">
                                     <x-heroicon-o-exclamation-triangle class="w-3.5 h-3.5" />
-                                    Khusus untuk akun Kas / Bank {{ !empty($isUsedInTransaction) ? '(Terkunci)' : '' }}
+                                    <span x-text="isLocked ? 'Khusus untuk akun Kas / Bank (Terkunci karena ada transaksi)' : (isKasBank ? 'Khusus untuk akun Kas / Bank (Aktif)' : 'Hanya aktif jika header adalah Kas / Bank (Baca saja)')"></span>
                                 </div>
 
                                 @error('finitjurnal')
@@ -467,7 +474,21 @@
             document.getElementById('headerDisplay').value = '';
             document.getElementById('accountCodeHidden').value = '';
             document.getElementById('accountIdHidden').value = '';
-            document.getElementById('selectedHeaderBadge').classList.add('hidden');
+            const badge = document.getElementById('selectedHeaderBadge');
+            if (badge) badge.classList.add('hidden');
+            window.dispatchEvent(new CustomEvent('header-changed', { detail: { isKasBank: false } }));
+            @if (empty($isUsedInTransaction))
+                const inputInit = document.querySelector('input[name=finitjurnal]');
+                if (inputInit) inputInit.value = '';
+            @endif
+        }
+
+        // ── Kas Bank helper ───────────────────────────────────────────────
+        function checkIsKasBank(code, name) {
+            const kbCode = @json($kasBankHeaderCode ?? '11110');
+            if (code && String(code).trim() === String(kbCode).trim()) return true;
+            if (name && /(kas|bank)/i.test(name)) return true;
+            return false;
         }
 
         // ── account-picked event ──────────────────────────────────────────
@@ -484,12 +505,19 @@
                 document.getElementById('accountIdHidden').value = faccid || '';
 
                 const badge = document.getElementById('selectedHeaderBadge');
-                document.getElementById('selectedHeaderLabel').textContent = faccount + ' — ' + (faccname ||
-                    '');
-                badge.classList.remove('hidden');
+                if (badge) {
+                    document.getElementById('selectedHeaderLabel').textContent = faccount + ' — ' + (faccname || '');
+                    badge.classList.remove('hidden');
+                }
 
-                const inputInit = document.querySelector('input[name=finitjurnal]');
-                if (inputInit) inputInit.placeholder = 'Cek initial jika header Kas/Bank...';
+                const isKB = checkIsKasBank(faccount, faccname);
+                window.dispatchEvent(new CustomEvent('header-changed', { detail: { isKasBank: isKB } }));
+                @if (empty($isUsedInTransaction))
+                    const inputInit = document.querySelector('input[name=finitjurnal]');
+                    if (inputInit && !isKB) {
+                        inputInit.value = '';
+                    }
+                @endif
             });
         });
 
