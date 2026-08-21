@@ -2013,42 +2013,7 @@ class ReturPenjualanController extends Controller
     // ✅ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
     private function parseDiscount($discInput)
     {
-        if ($discInput === null || $discInput === '') {
-            return 0;
-        }
-
-        // Jika sudah berupa angka
-        if (is_numeric($discInput)) {
-            return (float) $discInput;
-        }
-
-        // Jika string, parse ekspresi matematika
-        $str = trim((string) $discInput);
-
-        if ($str === '') {
-            return 0;
-        }
-
-        // Jika angka biasa
-        if (is_numeric($str)) {
-            return (float) $str;
-        }
-
-        // Parse ekspresi seperti "10+2"
-        try {
-            // Hapus spasi
-            $cleaned = preg_replace('/\s+/', '', $str);
-
-            // Evaluasi ekspresi
-            $result = eval("return {$cleaned};");
-
-            // Batasi 0-100%
-            $final = max(0, min(100, (float) $result));
-
-            return $final;
-        } catch (\Throwable $e) {
-            return 0;
-        }
+        return $this->parseDiscountExpression($discInput);
     }
 
     private function getSoRemainByIds(array $soDetailIds): array

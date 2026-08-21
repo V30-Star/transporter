@@ -454,4 +454,56 @@ abstract class Controller
 
         return $lines;
     }
+
+    protected function parseDiscountExpression($value): float
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        if (is_numeric($value)) {
+            return max(0, min(100, (float) $value));
+        }
+
+        $expression = preg_replace('/\s+/', '', (string) $value);
+        if (! preg_match('/^\d+(?:\.\d+)?(?:[+\-*\/]\d+(?:\.\d+)?)*$/', $expression)) {
+            return 0;
+        }
+
+        preg_match_all('/\d+(?:\.\d+)?|[+\-*\/]/', $expression, $matches);
+        $tokens = $matches[0];
+        $current = (float) array_shift($tokens);
+        $values = [];
+        $operators = [];
+
+        while ($tokens !== []) {
+            $operator = array_shift($tokens);
+            $number = (float) array_shift($tokens);
+
+            if ($operator === '*') {
+                $current *= $number;
+                continue;
+            }
+
+            if ($operator === '/') {
+                if ($number == 0.0) {
+                    return 0;
+                }
+                $current /= $number;
+                continue;
+            }
+
+            $values[] = $current;
+            $operators[] = $operator;
+            $current = $number;
+        }
+
+        $result = array_shift($values) ?? $current;
+        foreach ($operators as $operator) {
+            $number = array_shift($values) ?? $current;
+            $result = $operator === '+' ? $result + $number : $result - $number;
+        }
+
+        return max(0, min(100, (float) $result));
+    }
 }
