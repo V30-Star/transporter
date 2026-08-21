@@ -18,7 +18,7 @@ class GoogleDriveService
 {
     $this->client = new Client;
 
-    $httpClient = new \GuzzleHttp\Client(['verify' => false]);
+    $httpClient = new \GuzzleHttp\Client();
     $this->client->setHttpClient($httpClient);
 
     // Ganti ke OAuth credentials
