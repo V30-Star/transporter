@@ -603,7 +603,7 @@
                     <div class="flex flex-col items-end gap-1">
                         @auth
                             <div class="text-sm text-gray-600 font-medium mr-4">
-                                <span>PT.ABC123 | {{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
+                                <span>{{ company_name() }} | {{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
                             </div>
                         @endauth
 
