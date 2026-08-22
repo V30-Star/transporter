@@ -2343,12 +2343,12 @@ class SuratJalanController extends Controller
             $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item ' . $product . ' sudah habis atau sudah dipakai.';
+                return 'Produk ' . $product . ' melebihi Qty SO';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item ' . $product . ' melebihi sisa qty yang tersedia.';
+                return 'Produk ' . $product . ' melebihi Qty yang tersedia';
             }
         }
 

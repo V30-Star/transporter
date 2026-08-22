@@ -317,25 +317,18 @@
             <thead>
                 <tr>
                     <th style="width: 5%; text-align: center;" class="text-center">No.</th>
-                    <th style="width: 15%;">Kode Produk</th>
-                    <th style="width: 40%;">Nama Produk</th>
+                    <th style="width: 50%;">Nama Produk</th>
                     <th style="width: 15%; text-align: right;" class="text-right">Qty</th>
-                    <th style="width: 25%;">No. Ref</th>
+                    <th style="width: 30%;">Keterangan</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
-                        <td>
-                            <div>{{ $r->product_name ?? '-' }}</div>
-                            @if (!empty($r->fdesc))
-                                <div class="muted">{{ $r->fdesc }}</div>
-                            @endif
-                        </td>
+                        <td>{{ $r->product_name ?? '-' }}</td>
                         <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
-                        <td>{{ $r->frefso ?? '-' }}</td>
+                        <td>{{ $r->fdesc ?: ($r->fket ?: '-') }}</td>
                     </tr>
                 @endforeach
             </tbody>
