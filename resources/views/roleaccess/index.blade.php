@@ -272,7 +272,7 @@
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="deleteReturPembelian" {{ in_array('deleteReturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Pelunasan Supplier (Bayar Supplier)</td>
+                                <td class="px-3 py-2 font-semibold">Bayar Supplier</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewBayarSupplier" {{ in_array('viewBayarSupplier', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createBayarSupplier" {{ in_array('createBayarSupplier', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="updateBayarSupplier" {{ in_array('updateBayarSupplier', $selectedPermissions) ? 'checked' : '' }}></td>

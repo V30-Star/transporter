@@ -507,7 +507,7 @@
                 Supplier: {{ $filters['customer_from'] !== '' || $filters['customer_to'] !== '' ? (($filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal') . ' s/d ' . ($filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir')) : 'Semua' }}<br>
                 Giro Mundur: {{ $filters['only_giro_mundur'] ? 'Ya' : 'Tidak' }}
             </div>
-            <h2>Listing Pelunasan Supplier</h2>
+            <h2>Listing Bayar Supplier</h2>
             <div class="filter-info">
                 Periode:
                 {{ $filters['date_from'] ? \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') : '...' }}
@@ -662,7 +662,7 @@
                         Supplier: {{ $filters['customer_from'] !== '' || $filters['customer_to'] !== '' ? (($filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal') . ' s/d ' . ($filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir')) : 'Semua' }}<br>
                         Giro Mundur: {{ $filters['only_giro_mundur'] ? 'Ya' : 'Tidak' }}
                     </div>
-                    <h2>Listing Pelunasan Supplier</h2>
+                    <h2>Listing Bayar Supplier</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
