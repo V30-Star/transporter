@@ -309,7 +309,7 @@
                 <tr>
                     
                     <td class="text-center">{{ $i + 1 }}</td>
-                    <td>{{ $r->product_name ?? '-' }}</td>
+                    <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</td>
                     <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
                     <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
                     <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, ',', '.') }}</td>

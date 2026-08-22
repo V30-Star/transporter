@@ -355,10 +355,7 @@
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>
-                            <div>{{ $r->product_name ?? '-' }}</div>
-                            @if (!empty($r->fdesc))
-                                <div class="muted">{{ $r->fdesc }}</div>
-                            @endif
+                            <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
                         </td>
                         <td class="text-right">{{ $fmtQty($r->fqty ?? 0) }} {{ $r->funit ?? ($r->fsatuan ?? '') }}</td>
                         <td class="text-right">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>

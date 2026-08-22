@@ -1395,6 +1395,9 @@
                 if (this._descTarget) {
                     this._descTarget.fdesc = this.descValue;
                     const index = this.rows.findIndex((row) => row.uid === this._descTarget.uid);
+                    if (index >= 0) {
+                        this.rows[index].fdesc = this.descValue;
+                    }
                     this.onRowUpdated(index >= 0 ? index : null);
                 }
                 this.closeDesc();

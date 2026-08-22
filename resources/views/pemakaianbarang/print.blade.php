@@ -329,10 +329,7 @@
                             <td class="text-center">{{ $i + 1 }}</td>
                             <td>{{ $r->product_code ?? '-' }}</td>
                             <td>
-                                <div style="font-weight: bold;">{{ $r->product_name ?? '-' }}</div>
-                                @if (!empty($r->fdesc))
-                                    <div style="font-size: 8px; color: #555; margin-top: 2px;">({{ $r->fdesc }})</div>
-                                @endif
+                                <div style="font-weight: bold;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
                             </td>
                             <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                             <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>

@@ -176,12 +176,7 @@
                 @forelse ($dt as $item)
                     <tr>
                         <td>{{ $item->fprdcode }}</td>
-                        <td>
-                            {{ $item->product_name ?? '-' }}
-                            @if (!empty($item->fdesc))
-                                <div class="muted">({{ $item->fdesc }})</div>
-                            @endif
-                        </td>
+                        <td>{{ !empty(trim((string) ($item->fdesc ?? ''))) ? $item->fdesc : ($item->product_name ?? '-') }}</td>
                         <td>{{ number_format((float) ($item->fqty ?? 0), 2, ',', '.') }}</td>
                         <td>{{ isset($item->fprice) ? format_number($item->fprice) : '-' }}</td>
                         <td>{{ isset($item->fdisc) ? format_number($item->fdisc) : '-' }}</td>
