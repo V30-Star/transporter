@@ -249,7 +249,7 @@ class SalesOrderController extends Controller
 
     private function canContinueToSuratJalan(): bool
     {
-        return in_array('BolehLanjutKeSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
+        return $this->canCreateSuratJalan();
     }
 
     private function canCreateSuratJalan(): bool
