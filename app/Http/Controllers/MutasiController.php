@@ -494,7 +494,7 @@ class MutasiController extends Controller
             return redirect()->back()->with('error', 'Mutasi stock tidak ada.');
         }
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Mutasi Sudah Pernah diPrint.');
         }
 

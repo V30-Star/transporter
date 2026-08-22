@@ -1534,7 +1534,7 @@ class BayarSupplierController extends Controller
             return redirect()->back()->with('error', 'Bayar supplier tidak ada.');
         }
 
-        if ((int) ($header->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Bayar Supplier Sudah Pernah diPrint.');
         }
 

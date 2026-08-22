@@ -31,6 +31,12 @@ abstract class Controller
         return $this->hasRestrictedPermission('semuacabang');
     }
 
+    protected function canPrintAgain(): bool
+    {
+        return $this->hasRestrictedPermission('BOLEHPRINTLAGI')
+            || $this->hasRestrictedPermission('bolehprintlagi');
+    }
+
     protected function getCurrentBranchCode(): ?string
     {
         $rawBranch = Auth::guard('sysuser')->user()?->fcabang

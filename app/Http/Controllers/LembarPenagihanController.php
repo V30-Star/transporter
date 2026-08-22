@@ -493,7 +493,7 @@ class LembarPenagihanController extends Controller
             return redirect()->back()->with('error', 'Lembar penagihan tidak ditemukan.');
         }
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Lembar Penagihan Sudah Pernah diPrint.');
         }
 

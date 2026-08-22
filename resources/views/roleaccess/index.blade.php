@@ -358,6 +358,10 @@
                                 <td class="px-3 py-2 font-semibold">Boleh Access Semua Cabang</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="semuacabang" {{ in_array('semuacabang', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Boleh Print Lagi</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BOLEHPRINTLAGI" {{ (in_array('BOLEHPRINTLAGI', $selectedPermissions) || in_array('bolehprintlagi', $selectedPermissions)) ? 'checked' : '' }}></td>
+                            </tr>
                             <tr>
                                 <td class="px-3 py-2 font-semibold">Boleh Ganti Tanggal Transaksi</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BolehGantiTanggal" {{ in_array('BolehGantiTanggal', $selectedPermissions) ? 'checked' : '' }}></td>

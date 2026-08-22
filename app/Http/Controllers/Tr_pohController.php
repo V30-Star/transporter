@@ -753,8 +753,8 @@ class Tr_pohController extends Controller
             return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
-            return redirect()->back()->with('error', 'Order Pembelian Sudah Pernah diPrint.');
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Purchase Order Sudah Pernah diPrint.');
         }
 
         DB::table('tr_poh')->where('fpono', $hdr->fpono)->update(['fprint' => 1]);

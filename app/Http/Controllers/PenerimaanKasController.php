@@ -535,7 +535,7 @@ class PenerimaanKasController extends Controller
             return redirect()->back()->with('error', 'Penerimaan kas tidak ada.');
         }
 
-        if ((int) ($header->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Penerimaan Kas/Bank Sudah Pernah diPrint.');
         }
 

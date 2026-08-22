@@ -1636,7 +1636,7 @@ class PelunasanCustomerController extends Controller
             return redirect()->back()->with('error', 'Pelunasan customer tidak ada.');
         }
 
-        if ((int) ($header->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Pelunasan Customer Sudah Pernah diPrint.');
         }
 

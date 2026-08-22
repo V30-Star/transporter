@@ -1268,7 +1268,7 @@ class InvoiceController extends Controller
             $hdr->frekeningname = decrypt_value($hdr->frekeningname);
         }
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Faktur Penjualan Sudah Pernah diPrint.');
         }
 

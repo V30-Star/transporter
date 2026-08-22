@@ -555,7 +555,7 @@ class JurnalTransaksiController extends Controller
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Jurnal Transaksi Sudah Pernah diPrint.');
         }
 

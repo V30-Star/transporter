@@ -533,8 +533,8 @@ class PengeluaranKasController extends Controller
             return redirect()->back()->with('error', 'Pengeluaran kas tidak ada.');
         }
 
-        if ((int) ($header->fprint ?? 0) === 1) {
-            return redirect()->back()->with('error', 'Pengeluaran Kas/Bank Sudah Pernah diPrint.');
+        if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
+            return redirect()->back()->with('error', 'Transaksi Kas/Bank ini sudah pernah di-print.');
         }
 
         DB::table('trkasmt')->where('fkasmtno', $header->fkasmtno)->update(['fprint' => 1]);

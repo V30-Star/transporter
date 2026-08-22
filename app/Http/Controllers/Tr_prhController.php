@@ -305,7 +305,7 @@ class Tr_prhController extends Controller
 
         abort_if(! $hdr, 404);
 
-        if ((int) ($hdr->fprint ?? 0) === 1) {
+        if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Permintaan Pembelian Sudah Pernah diPrint.');
         }
 
