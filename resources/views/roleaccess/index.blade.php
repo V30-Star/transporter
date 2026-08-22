@@ -514,6 +514,10 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printLaporanKartuStok" {{ in_array('printLaporanKartuStok', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Stok Dalam Rupiah</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printStokDalamRupiah" {{ in_array('printStokDalamRupiah', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Listing Pemakaian Barang</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPemakaianBarang" {{ in_array('printListingPemakaianBarang', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>

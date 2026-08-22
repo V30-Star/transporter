@@ -9,6 +9,7 @@ use App\Http\Controllers\BukuPiutangController;
 use App\Http\Controllers\BukuHutangController;
 use App\Http\Controllers\BukuBesarController;
 use App\Http\Controllers\TrialBalanceController;
+use App\Http\Controllers\StokDalamRupiahController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\BayarSupplierController;
@@ -666,6 +667,10 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/laporankartustok', [LaporanKartuStokController::class, 'index'])->name('laporankartustok.index');
         Route::get('/laporankartustok/print', [LaporanKartuStokController::class, 'print'])->name('laporankartustok.print');
         Route::get('/laporankartustok/excel', [LaporanKartuStokController::class, 'exportExcel'])->name('laporankartustok.excel');
+
+        Route::get('/stokdalamrupiah', [StokDalamRupiahController::class, 'index'])->name('stokdalamrupiah.index');
+        Route::get('/stokdalamrupiah/print', [StokDalamRupiahController::class, 'print'])->name('stokdalamrupiah.print');
+        Route::get('/stokdalamrupiah/excel', [StokDalamRupiahController::class, 'exportExcel'])->name('stokdalamrupiah.excel');
 
         Route::get('/listingpenerimaankasbank', [ListingPenerimaanKasBankController::class, 'index'])->name('listingpenerimaankasbank.index');
         Route::get('/listingpenerimaankasbank/print', [ListingPenerimaanKasBankController::class, 'print'])->name('listingpenerimaankasbank.print');

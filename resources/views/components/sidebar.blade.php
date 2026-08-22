@@ -1051,6 +1051,16 @@
                         </li>
                     @endif
 
+                    @if ($hasSidebarPermission('printStokDalamRupiah'))
+                        <li>
+                            <a href="{{ route('stokdalamrupiah.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-coins w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Stok Dalam Rupiah' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
                     @if ($hasSidebarPermission('printListingPemakaianBarang'))
                         <li>
                             <a href="{{ route('reportingpemakaianbarang.index') }}"

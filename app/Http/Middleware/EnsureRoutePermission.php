@@ -71,6 +71,7 @@ class EnsureRoutePermission
         'reportingadjstock' => 'printListingAdjustmentStok',
         'listingmutasistok' => 'printListingMutasiStok',
         'laporankartustok' => 'printLaporanKartuStok',
+        'stokdalamrupiah' => 'printStokDalamRupiah',
         'reportingpemakaianbarang' => 'printListingPemakaianBarang',
         'reportingassembling' => 'printListingAssembling',
         'listingsuratjalan' => 'printListingSuratJalan',
