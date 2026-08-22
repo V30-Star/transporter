@@ -534,6 +534,10 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printBukuBesar" {{ in_array('printBukuBesar', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
+                                <td class="px-3 py-2 font-semibold">Trial Balance</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printTrialBalance" {{ in_array('printTrialBalance', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Chart of Account</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printChartOfAccount" {{ in_array('printChartOfAccount', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>

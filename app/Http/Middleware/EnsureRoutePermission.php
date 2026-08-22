@@ -80,6 +80,7 @@ class EnsureRoutePermission
         'reportingpelunasansupplier' => 'printLaporanBayarSupplier',
         'listingjurnal' => 'printListingJurnalTransaksi',
         'bukubesar' => 'printBukuBesar',
+        'trialbalance' => 'printTrialBalance',
         'reportingaccount' => 'printChartOfAccount',
         'reportingsubaccount' => 'printSubAccount',
         'reportingcustomer' => 'printLaporanCustomer',

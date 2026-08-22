@@ -3650,7 +3650,7 @@ class FakturpembelianController extends Controller
         return $value === '' ? '0' : mb_substr($value, 0, 50);
     }
 
-    private function parseDiscountExpression($discInput): float
+    protected function parseDiscountExpression($discInput): float
     {
         $normalized = $this->normalizeDiscountInput($discInput);
 

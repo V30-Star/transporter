@@ -8,6 +8,7 @@ use App\Http\Controllers\AnalisaUmurPiutangController;
 use App\Http\Controllers\BukuPiutangController;
 use App\Http\Controllers\BukuHutangController;
 use App\Http\Controllers\BukuBesarController;
+use App\Http\Controllers\TrialBalanceController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\BayarSupplierController;
@@ -733,6 +734,10 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/bukubesar', [BukuBesarController::class, 'index'])->name('bukubesar.index');
         Route::get('/bukubesar/print', [BukuBesarController::class, 'print'])->name('bukubesar.print');
         Route::get('/bukubesar/excel', [BukuBesarController::class, 'exportExcel'])->name('bukubesar.excel');
+
+        Route::get('/trialbalance', [TrialBalanceController::class, 'index'])->name('trialbalance.index');
+        Route::get('/trialbalance/print', [TrialBalanceController::class, 'print'])->name('trialbalance.print');
+        Route::get('/trialbalance/excel', [TrialBalanceController::class, 'exportExcel'])->name('trialbalance.excel');
 
         Route::get('/listingsuratjalan', [ListingSuratJalanController::class, 'index'])->name('listingsuratjalan.index');
         Route::get('/listingsuratjalan/print', [ListingSuratJalanController::class, 'print'])->name('listingsuratjalan.print');

@@ -1182,6 +1182,16 @@
                             </a>
                         </li>
                     @endif
+
+                    @if ($hasSidebarPermission('printTrialBalance'))
+                        <li>
+                            <a href="{{ route('trialbalance.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-scale-unbalanced-flip w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Trial Balance' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
