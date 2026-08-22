@@ -157,7 +157,7 @@
         {{-- ── FOOTER ACTION BUTTONS ── --}}
         <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
             <div class="flex justify-end gap-3">
-                @php $isPrinted = (int) ($jurnaltransaksi->fprint ?? 0) === 1; @endphp
+                @php $isPrinted = ! can_print_again() && (int) ($jurnaltransaksi->fprint ?? 0) === 1; @endphp
                 @if ($isPrinted)
                     <button type="button"
                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Jurnal Transaksi Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

@@ -486,7 +486,7 @@
             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                 @php
                     $printVoucherNo = $voucherNo ?: ($header?->fkasmtno ?? ($headerData?->fkasmtno ?? null));
-                    $isPrinted = (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
+                    $isPrinted = ! can_print_again() && (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
                 @endphp
                 @if ($isReadOnly && !$isDeleteMode && !empty($printVoucherNo))
                     @if ($isPrinted)

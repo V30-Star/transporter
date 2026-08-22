@@ -735,7 +735,7 @@
                             </div>
                             <div class="flex items-center gap-3">
                                 @if ($isView && $canPrint)
-                                    @php $isPrinted = (int) ($salesorder->fprint ?? 0) === 1; @endphp
+                                    @php $isPrinted = ! can_print_again() && (int) ($salesorder->fprint ?? 0) === 1; @endphp
                                     @if ($isPrinted)
                                         <button type="button"
                                             onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Sales Order Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

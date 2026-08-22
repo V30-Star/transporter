@@ -500,7 +500,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
             @endif
             @php
                 $printVoucherNo = $voucherNo ?: ($header?->fkasmtno ?? ($headerData?->fkasmtno ?? null));
-                $isPrinted = (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
+                $isPrinted = ! can_print_again() && (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
             @endphp
             @if ($isReadOnly && !$isDeleteMode && !empty($printVoucherNo))
                 @if ($isPrinted)

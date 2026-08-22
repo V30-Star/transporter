@@ -13,12 +13,21 @@ abstract class Controller
 {
     protected function getRestrictedPermissions(): array
     {
-        return array_filter(array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))));
+        $user = Auth::guard('sysuser')->user() ?? Auth::user();
+        if ($user && isset($user->fuid)) {
+            $dbPerm = \App\Models\RoleAccess::where('fusercreate', $user->fuid)->value('fpermission');
+            if ($dbPerm !== null) {
+                session(['user_restricted_permissions' => $dbPerm]);
+            }
+        }
+
+        $raw = session('user_restricted_permissions', '');
+        return array_map('strtolower', array_filter(array_map('trim', explode(',', (string) $raw))));
     }
 
     protected function hasRestrictedPermission(string $permission): bool
     {
-        return in_array($permission, $this->getRestrictedPermissions(), true);
+        return in_array(strtolower(trim($permission)), $this->getRestrictedPermissions(), true);
     }
 
     protected function canChangeTransactionDate(): bool
@@ -33,8 +42,7 @@ abstract class Controller
 
     protected function canPrintAgain(): bool
     {
-        return $this->hasRestrictedPermission('BOLEHPRINTLAGI')
-            || $this->hasRestrictedPermission('bolehprintlagi');
+        return $this->hasRestrictedPermission('BOLEHPRINTLAGI');
     }
 
     protected function getCurrentBranchCode(): ?string

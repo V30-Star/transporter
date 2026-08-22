@@ -318,7 +318,7 @@
                             </button>
                         @endif
                         @if ($action === 'view')
-                            @php $isPrinted = (int) ($header->fprint ?? 0) === 1; @endphp
+                            @php $isPrinted = ! can_print_again() && (int) ($header->fprint ?? 0) === 1; @endphp
                             @if ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Lembar Penagihan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

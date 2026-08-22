@@ -399,7 +399,7 @@
                                 Kembali
                             </button>
                             @if ($canPrint)
-                                @php $isPrinted = (int) ($returpembelian->fprint ?? 0) === 1; @endphp
+                                @php $isPrinted = ! can_print_again() && (int) ($returpembelian->fprint ?? 0) === 1; @endphp
                                 @if ($isPrinted)
                                     <button type="button"
                                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Retur Pembelian Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

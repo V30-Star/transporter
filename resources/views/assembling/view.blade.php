@@ -720,7 +720,7 @@
                         </div>
                     </div>
                 </div>
-                @php $isPrinted = (int) ($assembling->fprint ?? 0) === 1; @endphp
+                @php $isPrinted = ! can_print_again() && (int) ($assembling->fprint ?? 0) === 1; @endphp
                 <div class="mt-6 flex justify-end gap-3 space-x-4">
                     @if ($canPrint)
                         @if ($isPrinted)

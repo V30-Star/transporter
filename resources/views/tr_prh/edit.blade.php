@@ -493,7 +493,7 @@
                                     @endif
                                 @endif
                                 @if ($isView && $canPrint)
-                                    @php $isPrinted = (int) ($tr_prh->fprint ?? 0) === 1; @endphp
+                                    @php $isPrinted = ! can_print_again() && (int) ($tr_prh->fprint ?? 0) === 1; @endphp
                                     @if ($isPrinted)
                                         <button type="button"
                                             onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Permintaan Pembelian Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

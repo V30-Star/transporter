@@ -2042,7 +2042,7 @@
                                     </button>
                                 @endif
                             @elseif ($action === 'view')
-                                @php $isPrinted = (int) ($invoice->fprint ?? 0) === 1; @endphp
+                                @php $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1; @endphp
                                 @if ($isPrinted)
                                     <button type="button"
                                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

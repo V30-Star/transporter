@@ -55,6 +55,11 @@ class RoleAccessController extends Controller
             }
         }
 
+        $currentUser = auth('sysuser')->user() ?? auth()->user();
+        if ($currentUser && (int) $currentUser->fuid === (int) $user->fuid) {
+            session(['user_restricted_permissions' => $restrictedPermissions ?? '']);
+        }
+
         return redirect()->route('roleaccess.index', ['fuid' => $request->fuid])
             ->with('success', 'Set menu berhasil disimpan.');
     }

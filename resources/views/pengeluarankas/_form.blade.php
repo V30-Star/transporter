@@ -610,7 +610,7 @@
             <div class="p-6">
                 <div class="flex justify-end gap-3">
                     @if ($isReadOnly && !$isDeleteMode && !empty($printRoute))
-                        @php $isPrinted = (int) ($header->fprint ?? 0) === 1; @endphp
+                        @php $isPrinted = ! can_print_again() && (int) ($header->fprint ?? 0) === 1; @endphp
                         @if ($isPrinted)
                             <button type="button"
                                 onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: '{{ $transactionLabel }} Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

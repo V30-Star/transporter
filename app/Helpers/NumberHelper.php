@@ -212,3 +212,21 @@ if (!function_exists('log_print_transaction')) {
   }
 }
 
+if (!function_exists('can_print_again')) {
+  function can_print_again(): bool
+  {
+    $user = auth('sysuser')->user() ?? auth()->user();
+    if ($user && isset($user->fuid)) {
+      $dbPerm = \App\Models\RoleAccess::where('fusercreate', $user->fuid)->value('fpermission');
+      if ($dbPerm !== null) {
+        session(['user_restricted_permissions' => $dbPerm]);
+      }
+    }
+
+    $raw = (string) session('user_restricted_permissions', '');
+    $permissions = array_map('strtolower', array_filter(array_map('trim', explode(',', $raw))));
+    return in_array('bolehprintlagi', $permissions, true);
+  }
+}
+
+

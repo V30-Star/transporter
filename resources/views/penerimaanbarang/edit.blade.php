@@ -455,7 +455,7 @@
                                 </button>
                             @endif
                         @elseif ($action === 'view' && $canPrint)
-                            @php $isPrinted = (int) ($penerimaanbarang->fprint ?? 0) === 1; @endphp
+                            @php $isPrinted = ! can_print_again() && (int) ($penerimaanbarang->fprint ?? 0) === 1; @endphp
                             @if ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penerimaan Barang Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"

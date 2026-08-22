@@ -1423,7 +1423,7 @@
                                 <x-heroicon-o-check class="w-6 h-6" /> Simpan
                             </button>
                         @elseif ($action === 'view')
-                            @php $isPrinted = (int) ($adjstock->fprint ?? 0) === 1; @endphp
+                            @php $isPrinted = ! can_print_again() && (int) ($adjstock->fprint ?? 0) === 1; @endphp
                             @if ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Adjustment Stok Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
