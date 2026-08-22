@@ -1302,7 +1302,7 @@
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                                 <i class="fa-solid fa-spinner w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3" x-show="openSidebar"
-                                    x-transition.opacity.duration.150>{{ 'Edit Periode' }}</span>
+                                    x-transition.opacity.duration.150>{{ 'Edit Periode Posting' }}</span>
                             </a>
                         </li>
                     @endif

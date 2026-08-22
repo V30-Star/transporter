@@ -10,7 +10,7 @@ class EditPeriodeController extends Controller
     public function edit()
     {
         return view('editperiode.edit', [
-            'pageTitle' => 'Edit Periode',
+            'pageTitle' => 'Edit Periode Posting',
             'fyrmth' => $this->getEditPeriodYm(),
         ]);
     }
