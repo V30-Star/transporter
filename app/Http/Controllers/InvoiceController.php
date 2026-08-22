@@ -1027,7 +1027,16 @@ class InvoiceController extends Controller
     {
         $header = DB::table('tranmt')
             ->leftJoin('mscustomer', 'mscustomer.fcustomercode', '=', 'tranmt.fcustno')
-            ->where('tranmt.ftranmtid', $id)
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('tranmt.ftranmtid', (int) $id);
+                }
+                $slash = str_replace('.', '/', $id);
+                $dot = str_replace('/', '.', $id);
+                $q->orWhere('tranmt.fsono', $id)
+                  ->orWhere('tranmt.fsono', $slash)
+                  ->orWhere('tranmt.fsono', $dot);
+            })
             ->where('tranmt.ftrcode', 'INV')
             ->select('tranmt.*', 'mscustomer.fcustomername')
             ->firstOrFail();
@@ -1058,6 +1067,8 @@ class InvoiceController extends Controller
                 'fcustomername' => trim((string) ($header->fcustomername ?? '')),
                 'fsodate' => ! empty($header->fsodate) ? Carbon::parse($header->fsodate)->format('Y-m-d H:i:s') : null,
                 'ftrcode' => trim((string) ($header->ftrcode ?? 'INV')),
+                'fketinternal' => trim((string) ($header->fketinternal ?? '')),
+                'falamatkirim' => trim((string) ($header->falamatkirim ?? '')),
             ],
             'items' => $items,
         ]);

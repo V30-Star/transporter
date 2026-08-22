@@ -331,7 +331,16 @@ class Tr_pohController extends Controller
 
     public function items($id)
     {
-        $header = Tr_prh::where('fprhid', $id)
+        $header = Tr_prh::where(function ($q) use ($id) {
+            if (is_numeric($id)) {
+                $q->where('fprhid', (int) $id);
+            }
+            $slash = str_replace('.', '/', $id);
+            $dot = str_replace('/', '.', $id);
+            $q->orWhere('fprno', $id)
+              ->orWhere('fprno', $slash)
+              ->orWhere('fprno', $dot);
+        })
             ->where('fapproval', 1)
             ->firstOrFail();
 

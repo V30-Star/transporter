@@ -496,8 +496,7 @@ class SuratJalanController extends Controller
                 'trstockdt.fstockmtno as frefdtno',
                 'trstockdt.fstockdtid as frefdtid',
                 DB::raw("COALESCE(trstockdt.fnoacak::text, '') as frefnoacak"),
-                // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string)
-                // atau pastikan kolom ini memang yang berisi kode produk
+
                 'msprd.fprdcode as fitemcode',
                 'msprd.fprdname as fitemname',
                 'trstockdt.fqty',
@@ -506,6 +505,7 @@ class SuratJalanController extends Controller
                 'trstockdt.frefso',
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
+                'trstockdt.fdesc',
                 'trstockdt.fnoacak',
                 'trstockdt.ftotprice as ftotal'
             )
