@@ -350,19 +350,11 @@
                                 <td class="px-3 py-2 font-semibold">Boleh Edit TOP, Max JT Tempo & Limit Customer (Customereditadmin)</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="Customereditadmin" {{ (in_array('Customereditadmin', $selectedPermissions) || in_array('customereditadmin', $selectedPermissions)) ? 'checked' : '' }}></td>
                             </tr>
-                            <tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Lihat HPP Produk</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="viewProductHpp" {{ in_array('viewProductHpp', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
-                            <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Print Faktur Pembelian</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printFakturPembelian" {{ in_array('printFakturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
-                            </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Print Retur Pembelian</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printReturPembelian" {{ in_array('printReturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
-                            </tr>
-                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Access Semua Cabang</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="semuacabang" {{ in_array('semuacabang', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
@@ -411,11 +403,6 @@
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Produk</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveProduct" {{ in_array('approveProduct', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
-                            <tr>
-                                <td class="px-3 py-2 font-semibold">Boleh Approve Adjustment Stock</td>
-                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveadjustmentstock" {{ in_array('approveadjustmentstock', $selectedPermissions) || in_array('approveadjstock', $selectedPermissions) ? 'checked' : '' }}></td>
-                            </tr>
-
                             <!-- 8. LAPORAN & LISTING -->
                             <tr class="bg-gray-700 text-blue-400 font-bold">
                                 <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Laporan & Listing</td>

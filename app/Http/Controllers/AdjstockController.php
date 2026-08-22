@@ -33,16 +33,6 @@ class AdjstockController extends Controller
         return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
     }
 
-    private function canApproveAdjustmentStock(): bool
-    {
-        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
-
-        return in_array('approveadjustmentstock', $permissions, true)
-            || in_array('approveadjstock', $permissions, true)
-            || in_array('approvetrstockmt', $permissions, true)
-            || in_array('approvepenerimaanbarang', $permissions, true);
-    }
-
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];

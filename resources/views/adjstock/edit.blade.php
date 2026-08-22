@@ -258,10 +258,6 @@
                     return;
                 }
 
-                if ($event.target.dataset.approveSubmit === '1') {
-                    return window.submitFormWithStockMinusConfirmation?.($event);
-                }
-
                 const itemInputs = $event.target.elements['fitemcode[]'];
                 const itemCount = Array.from(itemInputs ? (itemInputs.length === undefined ? [itemInputs] : itemInputs) : [])
                     .filter(input => String(input.value || '').trim() !== '').length;

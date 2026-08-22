@@ -1244,15 +1244,6 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('penamaanPerusahaan', 'editPenamaanPerusahaan', 'roleaccess'))
-                        <li>
-                            <a href="{{ route('penamaanperusahaan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-building-shield w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Penamaan Perusahaan' }}</span>
-                            </a>
-                        </li>
-                    @endif
                 </ul>
             </li>
 

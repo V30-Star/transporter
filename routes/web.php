@@ -110,7 +110,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
     Route::patch('/settings/system-setting', [SystemSettingController::class, 'update'])->name('systemsetting.update');
 
     // Penamaan Perusahaan routes
-    Route::get('/settings/penamaan-perusahaan', [PenamaanPerusahaanController::class, 'index'])->name('penamaanperusahaan.index');
+    Route::get('/378295', [PenamaanPerusahaanController::class, 'index'])->name('penamaanperusahaan.index');
     Route::post('/settings/penamaan-perusahaan/verify', [PenamaanPerusahaanController::class, 'verify'])->name('penamaanperusahaan.verify');
     Route::patch('/settings/penamaan-perusahaan', [PenamaanPerusahaanController::class, 'update'])->name('penamaanperusahaan.update');
     Route::post('/settings/penamaan-perusahaan/lock', [PenamaanPerusahaanController::class, 'lock'])->name('penamaanperusahaan.lock');
