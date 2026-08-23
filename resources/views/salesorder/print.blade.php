@@ -395,9 +395,9 @@
                         <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
-                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                        <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
+                        <td style="padding: 1px 0; white-space: nowrap; border-bottom: 1px solid #000;">Discount</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0; border-bottom: 1px solid #000;">:</td>
+                        <td style="text-align: right; padding: 1px 0; border-bottom: 1px solid #000;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td style="padding: 1px 0; white-space: nowrap;">Total Setelah Disc</td>

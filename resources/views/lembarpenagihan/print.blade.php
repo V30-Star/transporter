@@ -65,12 +65,11 @@
 
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 12px;
-            width: 450px;
-            min-height: 78px;
+            width: 100%;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -299,31 +298,34 @@
         <div class="header-row">
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                <div class="customer-container">
-                    <span class="customer-label">Customer</span>
-                    <div style="font-weight: bold;">
-                        {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
-                    </div>
-                    <div style="font-size: 11px;">
-                        Alamat : {{ $hdr->customer_address ?? '-' }}
-                    </div>
-                    <div style="font-size: 11px;">
-                        Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
-                    </div>
-                </div>
+                @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
             </div>
             <div>
                 <div class="title-so">Lembar Penagihan</div>
                 <div class="so-no">No. {{ $hdr->ftagihanno }}</div>
-                <table class="info-table">
-                    <tr>
-                        <td>Tanggal</td>
-                        <td>:</td>
-                        <td>{{ $fmt($hdr->ftagihandate) }}</td>
-                    </tr>
-                </table>
+            </div>
+        </div>
+
+        <div class="customer-container">
+            <span class="customer-label">Customer</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold;">
+                        {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="font-size: 11px; margin-top: 2px;">
+                        {{ $hdr->customer_address ?? '-' }}
+                    </div>
+                </div>
+                <div style="width: 250px;">
+                    <table class="info-table" style="margin-top: 0;">
+                        <tr>
+                            <td style="width: 60px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
+                            <td>{{ $fmt($hdr->ftagihandate) }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 
