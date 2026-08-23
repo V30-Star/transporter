@@ -724,16 +724,8 @@ class SalesOrderController extends Controller
     public function items($id)
     {
         $allowPending = request()->boolean('allow_pending', true);
-        $header = SalesOrderHeader::where(function ($q) use ($id) {
-            if (is_numeric($id)) {
-                $q->where('ftrsomtid', (int) $id);
-            }
-            $slash = str_replace('.', '/', $id);
-            $dot = str_replace('/', '.', $id);
-            $q->orWhere('fsono', $id)
-              ->orWhere('fsono', $slash)
-              ->orWhere('fsono', $dot);
-        })->firstOrFail();
+        $header = $this->resolveSalesOrderHeader($id);
+        abort_if(! $header, 404);
         abort_if(! $allowPending && trim((string) ($header->fneedacc ?? '0')) === '1', 404);
         abort_if(! $allowPending && ! ApprovalState::isApprovedRecord($header), 404);
         $remainMap = $this->getSoRemainByIds(
@@ -884,29 +876,49 @@ class SalesOrderController extends Controller
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
+    private function resolveSalesOrderHeader(string|int $key): ?SalesOrderHeader
+    {
+        if (is_numeric($key)) {
+            $record = SalesOrderHeader::where('ftrsomtid', (int) $key)->first();
+            if ($record) {
+                return $record;
+            }
+        }
+
+        $record = SalesOrderHeader::where('fsono', (string) $key)->first();
+        if ($record) {
+            return $record;
+        }
+
+        $keyStr = (string) $key;
+        $alt = str_contains($keyStr, '.') ? str_replace('.', '/', $keyStr) : str_replace('/', '.', $keyStr);
+        return SalesOrderHeader::where('fsono', $alt)->orderByDesc('ftrsomtid')->first();
+    }
+
     public function print(string $fsono)
     {
-        // Header: find by SO code (string)
-        $hdr = DB::table('trsomt')
+        // Header: find by SO code (string) prioritizing exact match
+        $base = DB::table('trsomt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'trsomt.fcustno')
             ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'trsomt.fbranchcode')
-            ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'trsomt.fsalesman')
-            ->where(function ($q) use ($fsono) {
-                if (is_numeric($fsono)) {
-                    $q->where('trsomt.ftrsomtid', (int) $fsono);
-                }
-                $slash = str_replace('.', '/', $fsono);
-                $dot = str_replace('/', '.', $fsono);
-                $q->orWhere('trsomt.fsono', $fsono)
-                  ->orWhere('trsomt.fsono', $slash)
-                  ->orWhere('trsomt.fsono', $dot);
-            })
-            ->first([
-                'trsomt.*',
-                'c.fcustomername as customer_name',
-                'b.fcabangname as cabang_name',
-                's.fsalesmanname as salesman_name',
-            ]);
+            ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'trsomt.fsalesman');
+
+        $cols = [
+            'trsomt.*',
+            'c.fcustomername as customer_name',
+            'b.fcabangname as cabang_name',
+            's.fsalesmanname as salesman_name',
+        ];
+
+        if (is_numeric($fsono)) {
+            $hdr = (clone $base)->where('trsomt.ftrsomtid', (int) $fsono)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('trsomt.fsono', $fsono)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fsono, '.') ? str_replace('.', '/', $fsono) : str_replace('/', '.', $fsono);
+                $hdr = (clone $base)->where('trsomt.fsono', $alt)->orderByDesc('trsomt.ftrsomtid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'Sales Order tidak ada.');
@@ -1516,16 +1528,18 @@ class SalesOrderController extends Controller
                     'msprd.fqtykecil  as fprd_qtykonversi',
                     'msprd.fqtykecil2 as fprd_qtykonversi2'
                 );
-        }])->where(function ($q) use ($ftrsomtid) {
-            if (is_numeric($ftrsomtid)) {
-                $q->where('ftrsomtid', (int) $ftrsomtid);
+        }]);
+
+        if (is_numeric($ftrsomtid)) {
+            $salesorder = (clone $soQuery)->where('ftrsomtid', (int) $ftrsomtid)->first();
+        } else {
+            $salesorder = (clone $soQuery)->where('fsono', $ftrsomtid)->first();
+            if (! $salesorder) {
+                $alt = str_contains($ftrsomtid, '.') ? str_replace('.', '/', $ftrsomtid) : str_replace('/', '.', $ftrsomtid);
+                $salesorder = (clone $soQuery)->where('fsono', $alt)->orderByDesc('ftrsomtid')->first();
             }
-            $slash = str_replace('.', '/', $ftrsomtid);
-            $dot = str_replace('/', '.', $ftrsomtid);
-            $q->orWhere('fsono', $ftrsomtid)
-              ->orWhere('fsono', $slash)
-              ->orWhere('fsono', $dot);
-        })->firstOrFail();
+        }
+        abort_if(! $salesorder, 404);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
@@ -1627,16 +1641,18 @@ class SalesOrderController extends Controller
                     'msprd.fqtykecil2    as fprd_qtykonversi2',
                     'msprd.fqtykecil     as fprd_qtykonversi'  // alias jelas, tidak konflik
                 );
-        }])->where(function ($q) use ($ftrsomtid) {
-            if (is_numeric($ftrsomtid)) {
-                $q->where('ftrsomtid', (int) $ftrsomtid);
+        }]);
+
+        if (is_numeric($ftrsomtid)) {
+            $salesorder = (clone $soQuery)->where('ftrsomtid', (int) $ftrsomtid)->first();
+        } else {
+            $salesorder = (clone $soQuery)->where('fsono', $ftrsomtid)->first();
+            if (! $salesorder) {
+                $alt = str_contains($ftrsomtid, '.') ? str_replace('.', '/', $ftrsomtid) : str_replace('/', '.', $ftrsomtid);
+                $salesorder = (clone $soQuery)->where('fsono', $alt)->orderByDesc('ftrsomtid')->first();
             }
-            $slash = str_replace('.', '/', $ftrsomtid);
-            $dot = str_replace('/', '.', $ftrsomtid);
-            $q->orWhere('fsono', $ftrsomtid)
-              ->orWhere('fsono', $slash)
-              ->orWhere('fsono', $dot);
-        })->firstOrFail();
+        }
+        abort_if(! $salesorder, 404);
 
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
