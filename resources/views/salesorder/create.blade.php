@@ -1600,16 +1600,18 @@
                 if (!this.requireCustomer()) return;
                 const validRows = this.rows.filter((row) => this.isRowSavable(row));
                 const warningRows = this.rows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
-                const seenCodes = new Set();
+                const seenKeys = new Set();
 
                 for (const row of validRows) {
                     const code = (row.fprdcode || '').toString().trim().toUpperCase();
                     if (!code) continue;
-                    if (seenCodes.has(code)) {
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                    const key = `${code}::${row.fnoacak}`;
+                    if (seenKeys.has(key)) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Produk Duplikat',
-                            text: `Kode produk ${code} tidak boleh sama dalam satu Sales Order.`,
+                            text: `Kode produk ${code} dengan nomor acak yang sama tidak boleh dobel dalam satu Sales Order.`,
                             confirmButtonText: 'OK',
                             customClass: {
                                 confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -1617,7 +1619,7 @@
                         });
                         return;
                     }
-                    seenCodes.add(code);
+                    seenKeys.add(key);
                 }
 
                 if (warningRows.length > 0) {

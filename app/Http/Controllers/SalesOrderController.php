@@ -207,23 +207,25 @@ class SalesOrderController extends Controller
             ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
             ->first();
     }
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '::' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -232,7 +234,7 @@ class SalesOrderController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fprdcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Sales Order.";
+            $messages["fprdcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Sales Order.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -1124,8 +1126,6 @@ class SalesOrderController extends Controller
             throw $e;
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
-
         // HEADER VALUES
         $userLogin = auth('sysuser')->user() ?? auth()->user();
         $userName = $userLogin->fname ?? 'admin';
@@ -1224,6 +1224,8 @@ class SalesOrderController extends Controller
                 'fqtyremain' => $qtyKecil,
             ];
         }
+
+        $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
 
         if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
             return $stockResponse;
@@ -1771,8 +1773,6 @@ class SalesOrderController extends Controller
             'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
-
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
@@ -1895,6 +1895,8 @@ class SalesOrderController extends Controller
                 'fqtyremain' => $qtyKecil,
             ];
         }
+
+        $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
 
         if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
             return $stockResponse;
