@@ -293,15 +293,25 @@ class Tr_prhController extends Controller
     {
         $supplierSub = (new Supplier)->getTable();
 
-        $hdr = Tr_prh::query()
+        $base = Tr_prh::query()
             ->leftJoin("{$supplierSub} as s", 's.fsuppliercode', '=', 'tr_prh.fsupplier')
-            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
-            ->where('tr_prh.fprno', $fprno)
-            ->first([
-                'tr_prh.*',
-                's.fsuppliername as supplier_name',
-                'c.fcabangname as cabang_name',
-            ]);
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode');
+
+        $cols = [
+            'tr_prh.*',
+            's.fsuppliername as supplier_name',
+            'c.fcabangname as cabang_name',
+        ];
+
+        if (is_numeric($fprno)) {
+            $hdr = (clone $base)->where('tr_prh.fprhid', (int) $fprno)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('tr_prh.fprno', $fprno)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fprno, '.') ? str_replace('.', '/', $fprno) : str_replace('/', '.', $fprno);
+                $hdr = (clone $base)->where('tr_prh.fprno', $alt)->orderByDesc('tr_prh.fprhid')->first($cols);
+            }
+        }
 
         abort_if(! $hdr, 404);
 
@@ -312,9 +322,11 @@ class Tr_prhController extends Controller
         DB::table('tr_prh')->where('fprno', $hdr->fprno)->update(['fprint' => 1]);
 
         $dt = Tr_prd::query()
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
+            ->leftJoin('msprd as p', function ($j) {
+                $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(tr_prd.fprdcode)'));
+            })
             ->where('tr_prd.fprno', $hdr->fprno)
-            ->orderBy('p.fprdname')
+            ->orderBy('tr_prd.fprdid')
             ->get([
                 'tr_prd.*',
                 'p.fprdname as product_name',

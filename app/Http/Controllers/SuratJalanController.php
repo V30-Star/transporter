@@ -602,34 +602,35 @@ class SuratJalanController extends Controller
         // 1. Ambil query sub untuk customer
         $customerSub = Customer::select('fcustomerid', 'fcustomercode', 'fcustomername', 'faddress');
 
-        $hdr = PenerimaanPembelianHeader::query()
+        $base = PenerimaanPembelianHeader::query()
             // Gunakan alias 'cust' untuk customer
             ->leftJoinSub($customerSub, 'cust', function ($join) {
                 $join->on('cust.fcustomercode', '=', 'trstockmt.fsupplier');
             })
             // Gunakan alias 'cb' untuk cabang
             ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where(function ($q) use ($fstockmtno) {
-                if (is_numeric($fstockmtno)) {
-                    $q->where('trstockmt.fstockmtid', (int) $fstockmtno);
-                }
-                $slash = str_replace('.', '/', $fstockmtno);
-                $dot = str_replace('/', '.', $fstockmtno);
-                $q->orWhere('trstockmt.fstockmtno', $fstockmtno)
-                  ->orWhere('trstockmt.fstockmtno', $slash)
-                  ->orWhere('trstockmt.fstockmtno', $dot);
-            })
-            ->first([
-                'trstockmt.*',
-                'cust.fcustomername as customer_name', // Ambil dari alias cust
-                'cust.faddress as customer_address',   // Ambil alamat customer
-                'cb.fcabangname as cabang_name',      // Ambil dari alias cb
-                'w.fwhname as fwhnamen',
-            ]);
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom');
+
+        $cols = [
+            'trstockmt.*',
+            'cust.fcustomername as customer_name', // Ambil dari alias cust
+            'cust.faddress as customer_address',   // Ambil alamat customer
+            'cb.fcabangname as cabang_name',      // Ambil dari alias cb
+            'w.fwhname as fwhnamen',
+        ];
+
+        if (is_numeric($fstockmtno)) {
+            $hdr = (clone $base)->where('trstockmt.fstockmtid', (int) $fstockmtno)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('trstockmt.fstockmtno', $fstockmtno)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fstockmtno, '.') ? str_replace('.', '/', $fstockmtno) : str_replace('/', '.', $fstockmtno);
+                $hdr = (clone $base)->where('trstockmt.fstockmtno', $alt)->orderByDesc('trstockmt.fstockmtid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ada.');
+            return redirect()->back()->with('error', 'Surat Jalan tidak ada.');
         }
 
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
@@ -638,11 +639,13 @@ class SuratJalanController extends Controller
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
-        // Bagian detail (sudah benar, tidak ada duplikasi alias)
+        // Bagian detail
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
-            ->where('trstockdt.fstockmtno', $fstockmtno)
-            ->orderBy('trstockdt.fprdcode')
+            ->leftJoin('msprd as p', function ($j) {
+                $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(trstockdt.fprdcode)'));
+            })
+            ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
+            ->orderBy('trstockdt.fstockdtid')
             ->get([
                 'trstockdt.*',
                 'p.fprdname as product_name',

@@ -543,13 +543,23 @@ class JurnalTransaksiController extends Controller
 
     public function print(string $fjurnalno)
     {
-        $hdr = DB::table('jurnalmt')
-            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'jurnalmt.fbranchcode')
-            ->where('jurnalmt.fjurnalno', $fjurnalno)
-            ->first([
-                'jurnalmt.*',
-                'c.fcabangname as cabang_name',
-            ]);
+        $base = DB::table('jurnalmt')
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'jurnalmt.fbranchcode');
+
+        $cols = [
+            'jurnalmt.*',
+            'c.fcabangname as cabang_name',
+        ];
+
+        if (is_numeric($fjurnalno)) {
+            $hdr = (clone $base)->where('jurnalmt.fjurnalmtid', (int) $fjurnalno)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('jurnalmt.fjurnalno', $fjurnalno)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fjurnalno, '.') ? str_replace('.', '/', $fjurnalno) : str_replace('/', '.', $fjurnalno);
+                $hdr = (clone $base)->where('jurnalmt.fjurnalno', $alt)->orderByDesc('jurnalmt.fjurnalmtid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
@@ -566,7 +576,7 @@ class JurnalTransaksiController extends Controller
             ->leftJoin('mssubaccount as sa', 'sa.fsubaccountcode', '=', 'jurnaldt.fsubaccount')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'jurnaldt.fsubaccount')
             ->leftJoin('mssupplier as p', 'p.fsuppliercode', '=', 'jurnaldt.fsubaccount')
-            ->where('jurnaldt.fjurnalno', $fjurnalno)
+            ->where('jurnaldt.fjurnalno', $hdr->fjurnalno)
             ->orderBy('jurnaldt.flineno')
             ->get([
                 'jurnaldt.*',

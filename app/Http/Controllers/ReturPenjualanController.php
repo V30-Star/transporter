@@ -1308,28 +1308,28 @@ class ReturPenjualanController extends Controller
     {
         $fsono = trim($fsono);
 
-        // Header: find by SO code (string)
-        $hdr = DB::table('tranmt')
+        $base = DB::table('tranmt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
-            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
-            ->where(function ($q) use ($fsono) {
-                if (is_numeric($fsono)) {
-                    $q->where('tranmt.ftranmtid', (int) $fsono);
-                }
-                $slash = str_replace('.', '/', $fsono);
-                $dot = str_replace('/', '.', $fsono);
-                $q->orWhere('tranmt.fsono', $fsono)
-                  ->orWhere('tranmt.fsono', $slash)
-                  ->orWhere('tranmt.fsono', $dot);
-            })
-            ->first([
-                'tranmt.*',
-                'c.fcustomername as customer_name',
-                'c.faddress as customer_address',
-                'b.fcabangname as cabang_name',
-                's.fsalesmanname as salesman_name',
-            ]);
+            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode');
+
+        $cols = [
+            'tranmt.*',
+            'c.fcustomername as customer_name',
+            'c.faddress as customer_address',
+            'b.fcabangname as cabang_name',
+            's.fsalesmanname as salesman_name',
+        ];
+
+        if (is_numeric($fsono)) {
+            $hdr = (clone $base)->where('tranmt.ftranmtid', (int) $fsono)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('tranmt.fsono', $fsono)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fsono, '.') ? str_replace('.', '/', $fsono) : str_replace('/', '.', $fsono);
+                $hdr = (clone $base)->where('tranmt.fsono', $alt)->orderByDesc('tranmt.ftranmtid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'Retur penjualan tidak ada.');
@@ -1346,7 +1346,9 @@ class ReturPenjualanController extends Controller
 
         // Detail: join dengan product
         $dt = DB::table('trandt')
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trandt.fprdcode')
+            ->leftJoin('msprd as p', function ($j) {
+                $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(trandt.fprdcode)'));
+            })
             ->where('trandt.fsono', $hdr->fsono)
             ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
             ->get([

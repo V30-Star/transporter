@@ -747,16 +747,26 @@ class Tr_pohController extends Controller
     {
         $supplierTable = (new Supplier)->getTable();
 
-        $hdr = Tr_poh::query()
+        $base = Tr_poh::query()
             ->leftJoin("{$supplierTable} as s", 's.fsuppliercode', '=', 'tr_poh.fsupplier')
-            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-            ->where('tr_poh.fpono', $fpono)
-            ->first([
-                'tr_poh.*',
-                's.fsuppliername as supplier_name',
-                's.faddress as supplier_address',
-                'c.fcabangname as cabang_name',
-            ]);
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode');
+
+        $cols = [
+            'tr_poh.*',
+            's.fsuppliername as supplier_name',
+            's.faddress as supplier_address',
+            'c.fcabangname as cabang_name',
+        ];
+
+        if (is_numeric($fpono)) {
+            $hdr = (clone $base)->where('tr_poh.fpohid', (int) $fpono)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('tr_poh.fpono', $fpono)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fpono, '.') ? str_replace('.', '/', $fpono) : str_replace('/', '.', $fpono);
+                $hdr = (clone $base)->where('tr_poh.fpono', $alt)->orderByDesc('tr_poh.fpohid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'PO tidak ada.');

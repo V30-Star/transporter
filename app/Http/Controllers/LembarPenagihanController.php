@@ -478,16 +478,26 @@ class LembarPenagihanController extends Controller
 
     public function print(string $ftagihanno)
     {
-        $hdr = DB::table('trtagihanmt as h')
+        $base = DB::table('trtagihanmt as h')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
-            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'h.fbranchcode')
-            ->where('h.ftagihanno', $ftagihanno)
-            ->first([
-                'h.*',
-                'c.fcustomername as customer_name',
-                'c.faddress as customer_address',
-                'b.fcabangname as cabang_name',
-            ]);
+            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'h.fbranchcode');
+
+        $cols = [
+            'h.*',
+            'c.fcustomername as customer_name',
+            'c.faddress as customer_address',
+            'b.fcabangname as cabang_name',
+        ];
+
+        if (is_numeric($ftagihanno)) {
+            $hdr = (clone $base)->where('h.ftagihanid', (int) $ftagihanno)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('h.ftagihanno', $ftagihanno)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($ftagihanno, '.') ? str_replace('.', '/', $ftagihanno) : str_replace('/', '.', $ftagihanno);
+                $hdr = (clone $base)->where('h.ftagihanno', $alt)->orderByDesc('h.ftagihanid')->first($cols);
+            }
+        }
 
         if (!$hdr) {
             return redirect()->back()->with('error', 'Lembar penagihan tidak ditemukan.');
@@ -503,7 +513,7 @@ class LembarPenagihanController extends Controller
             $firstRef = DB::table('trtagihandt as d')
                 ->leftJoin('tranmt as i', 'i.fsono', '=', 'd.frefsono')
                 ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'i.fbranchcode')
-                ->where('d.ftagihanno', $ftagihanno)
+                ->where('d.ftagihanno', $hdr->ftagihanno)
                 ->whereNotNull('i.fbranchcode')
                 ->first(['i.fbranchcode', 'cb.fcabangname as cabang_name']);
 
@@ -515,7 +525,7 @@ class LembarPenagihanController extends Controller
 
         $dt = DB::table('trtagihandt as d')
             ->leftJoin('tranmt as i', 'i.fsono', '=', 'd.frefsono')
-            ->where('d.ftagihanno', $ftagihanno)
+            ->where('d.ftagihanno', $hdr->ftagihanno)
             ->orderBy('d.ftrtagihanid', 'asc')
             ->get([
                 'd.*',

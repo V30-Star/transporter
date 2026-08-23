@@ -1624,13 +1624,23 @@ class PelunasanCustomerController extends Controller
 
     public function print(string $fkasmtno)
     {
-        $header = Trkasmt::query()
-            ->leftJoin('account as acc', 'acc.faccount', '=', 'trkasmt.faccountheader')
-            ->where('trkasmt.fkasmtno', $fkasmtno)
-            ->first([
-                'trkasmt.*',
-                'acc.faccname as header_account_name',
-            ]);
+        $base = Trkasmt::query()
+            ->leftJoin('account as acc', 'acc.faccount', '=', 'trkasmt.faccountheader');
+
+        $cols = [
+            'trkasmt.*',
+            'acc.faccname as header_account_name',
+        ];
+
+        if (is_numeric($fkasmtno)) {
+            $header = (clone $base)->where('trkasmt.fkasmtid', (int) $fkasmtno)->first($cols);
+        } else {
+            $header = (clone $base)->where('trkasmt.fkasmtno', $fkasmtno)->first($cols);
+            if (! $header) {
+                $alt = str_contains($fkasmtno, '.') ? str_replace('.', '/', $fkasmtno) : str_replace('/', '.', $fkasmtno);
+                $header = (clone $base)->where('trkasmt.fkasmtno', $alt)->orderByDesc('trkasmt.fkasmtid')->first($cols);
+            }
+        }
 
         if (! $header) {
             return redirect()->back()->with('error', 'Pelunasan customer tidak ada.');

@@ -333,19 +333,29 @@ class PemakaianbarangController extends Controller
     {
         $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
-        $hdr = PenerimaanPembelianHeader::query()
+        $base = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
                 $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
-            ->first([
-                'trstockmt.*',
-                's.fsuppliername as supplier_name',
-                'c.fcabangname as cabang_name',
-                'w.fwhname as fwhnamen',
-            ]);
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom');
+
+        $cols = [
+            'trstockmt.*',
+            's.fsuppliername as supplier_name',
+            'c.fcabangname as cabang_name',
+            'w.fwhname as fwhnamen',
+        ];
+
+        if (is_numeric($fstockmtno)) {
+            $hdr = (clone $base)->where('trstockmt.fstockmtid', (int) $fstockmtno)->first($cols);
+        } else {
+            $hdr = (clone $base)->where('trstockmt.fstockmtno', $fstockmtno)->first($cols);
+            if (! $hdr) {
+                $alt = str_contains($fstockmtno, '.') ? str_replace('.', '/', $fstockmtno) : str_replace('/', '.', $fstockmtno);
+                $hdr = (clone $base)->where('trstockmt.fstockmtno', $alt)->orderByDesc('trstockmt.fstockmtid')->first($cols);
+            }
+        }
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'Pemakaian barang tidak ada.');
@@ -358,8 +368,10 @@ class PemakaianbarangController extends Controller
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
-            ->where('trstockdt.fstockmtno', $fstockmtno)
+            ->leftJoin('msprd as p', function ($j) {
+                $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(trstockdt.fprdcode)'));
+            })
+            ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fstockdtid')
             ->get([
                 'trstockdt.*',
