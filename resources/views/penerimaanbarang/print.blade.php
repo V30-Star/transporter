@@ -26,9 +26,9 @@
 
         .sheet {
             width: 8.27in;
-            min-height: 11.69in;
-            margin: 0.4in auto;
-            padding: 0.4in 0.5in;
+            min-height: 5.83in;
+            margin: 0.2in auto;
+            padding: 0.25in 0.4in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -223,7 +223,7 @@
             body { background: #fff; }
             .sheet { margin: 0; border: none; box-shadow: none; }
             .no-print, .print-hide { display: none !important; }
-            @page { size: A4; margin: 0; }
+            @page { size: 8.27in 5.83in; margin: 0; }
         }
     </style>
 </head>

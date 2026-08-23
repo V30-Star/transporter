@@ -23,10 +23,10 @@
         /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            min-height: 297mm;
+            min-height: 148.5mm;
             margin: 20px auto;
             background: white;
-            padding: 15mm;
+            padding: 8mm 10mm;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
             position: relative;
             box-sizing: border-box;
@@ -239,9 +239,9 @@
 
             .page-a4 {
                 width: 210mm;
-                height: 297mm;
+                height: 148.5mm;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 6mm 8mm !important;
                 box-shadow: none !important;
                 box-sizing: border-box;
             }
@@ -251,7 +251,7 @@
             }
 
             @page {
-                size: A4 portrait;
+                size: 210mm 148.5mm;
                 margin: 0;
             }
 
