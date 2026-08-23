@@ -1124,7 +1124,7 @@
             prepareRowsForSubmit() {
                 const validRows = [];
                 const zeroQtyRows = [];
-                const seenCodes = new Set();
+                const seenKeys = new Set();
 
                 for (const row of this.rows) {
                     const code = String(row.fitemcode || '').trim();
@@ -1163,15 +1163,17 @@
                     }
 
                     const normalizedCode = code.toUpperCase();
-                    if (seenCodes.has(normalizedCode)) {
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                    const key = `${normalizedCode}|${row.fnoacak}`;
+                    if (seenKeys.has(key)) {
                         return {
-                            invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`,
+                            invalidMessage: `Produk ${name || code} dengan nomor acak yang sama tidak boleh dobel.`,
                             validRows: [],
                             zeroQtyRows: []
                         };
                     }
 
-                    seenCodes.add(normalizedCode);
+                    seenKeys.add(key);
 
                     const allowNegative = @json(stock_boleh_minus());
                     if (allowNegative ? qty === 0 : !(qty > 0)) {

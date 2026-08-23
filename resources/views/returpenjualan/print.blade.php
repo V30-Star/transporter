@@ -344,8 +344,8 @@
                             {{ $hdr->customer_address ?? '-' }}
                         </div>
                     </div>
-                    <div style="width: 250px;">
-                        <table class="info-table" style="margin-top: 0;">
+                    <div style="width: 290px;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
                                 <td style="width: 60px;">Tanggal</td>
                                 <td style="width: 10px;">:</td>

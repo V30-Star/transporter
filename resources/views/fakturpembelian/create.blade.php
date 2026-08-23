@@ -2893,7 +2893,7 @@
 
                 const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                 const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
-                const seenCodes = new Set();
+                const seenKeys = new Set();
 
                 if (this.isUangMuka()) {
                     const hasInvalid = validRows.some(row => {
@@ -2940,19 +2940,20 @@
                         }
                         return;
                     }
-                    if (seenCodes.has(code)) {
+                    const key = `${code}|${(row.frefnoacak || '').toString().trim()}`;
+                    if (seenKeys.has(key)) {
                         if (window.showTransactionErrorModal) {
                             window.showTransactionErrorModal(
-                                `Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
+                                `Kode produk ${code} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Pembelian.`, {
                                     title: 'Produk Duplikat'
                                 });
                         } else {
                             window.showAppWarningAlert('WARNING',
-                                `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
+                                `KODE PRODUK ${code} DENGAN NOMOR ACAK YANG SAMA TIDAK BOLEH DOBEL DALAM SATU FAKTUR PEMBELIAN.`);
                         }
                         return;
                     }
-                    seenCodes.add(code);
+                    seenKeys.add(key);
                 }
 
                 if (this.hasMixedOpeningBalanceAndSourceRows(validRows)) {

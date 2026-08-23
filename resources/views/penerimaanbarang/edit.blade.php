@@ -1764,13 +1764,15 @@
                 },
 
                 submitForm(form) {
-                    const seenCodes = new Set();
+                    const seenKeys = new Set();
                     for (const row of this.savedItems) {
                         const code = (row.fitemcode || '').trim().toUpperCase();
                         if (!code) continue;
-                        if (seenCodes.has(code)) {
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                        const key = `${code}|${row.fnoacak}`;
+                        if (seenKeys.has(key)) {
                             this.warningTitle = 'Produk Duplikat';
-                            this.warningMessage = `Kode produk ${code} tidak boleh sama dalam satu Penerimaan Barang.`;
+                            this.warningMessage = `Kode produk ${code} dengan nomor acak yang sama tidak boleh dobel dalam satu Penerimaan Barang.`;
                             this.warningItems = [];
                             this.warningCanProceed = false;
                             this.pendingSubmitForm = null;
@@ -1778,7 +1780,7 @@
                             this.showWarningModal = true;
                             return;
                         }
-                        seenCodes.add(code);
+                        seenKeys.add(key);
                     }
 
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));

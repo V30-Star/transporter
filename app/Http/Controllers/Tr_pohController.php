@@ -529,23 +529,25 @@ class Tr_pohController extends Controller
         return $agg;
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '|' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -554,7 +556,7 @@ class Tr_pohController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Order Pembelian.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Order Pembelian.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -969,7 +971,7 @@ class Tr_pohController extends Controller
                 ->withInput();
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('fnoacak', []));
 
         // HEADER VALUES
         $fpodate = Carbon::parse($request->fpodate)->startOfDay();
@@ -1705,7 +1707,7 @@ class Tr_pohController extends Controller
                 ->withInput();
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('fnoacak', []));
 
         $fponoId = (int) $header->fpohid;
 

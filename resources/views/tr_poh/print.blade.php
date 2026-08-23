@@ -297,13 +297,13 @@
                         </div>
                     </div>
                 </div>
-                <div>
+                <div style="min-width: 260px;">
                     <div class="title-so">Order Pembelian</div>
                     <div class="so-no">No. {{ $displayFpono ?? ($hdr->fpono ?? '-') }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td>Tanggal</td>
-                            <td>:</td>
+                            <td style="width: 75px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fpodate) ?? '21 Januari 2026' }}</td>
                         </tr>
                         <tr>

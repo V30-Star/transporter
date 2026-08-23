@@ -314,13 +314,13 @@
                         <div style="margin-top: 4px;"><strong>{{ 'Keterangan' }}:</strong> {{ $hdr->fket ?: '-' }}</div>
                     </div>
                 </div>
-                <div>
+                <div style="min-width: 260px;">
                     <div class="doc-title">{{ 'Pelunasan Customer' }}</div>
                     <div class="doc-no">{{ 'No' }}. {{ $hdr->fkasmtno ?? '-' }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td><strong>{{ 'Tanggal' }}</strong></td>
-                            <td>:</td>
+                            <td style="width: 105px;"><strong>{{ 'Tanggal' }}</strong></td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fkasmtdate ?? null) }}</td>
                         </tr>
                         <tr>

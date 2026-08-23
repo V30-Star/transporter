@@ -288,13 +288,13 @@
                         </div>
                     </div>
                 </div>
-                <div>
+                <div style="min-width: 260px;">
                     <div class="title-so">Penerimaan Barang</div>
                     <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td>Tanggal</td>
-                            <td>:</td>
+                            <td style="width: 75px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
                         </tr>
                         <tr>

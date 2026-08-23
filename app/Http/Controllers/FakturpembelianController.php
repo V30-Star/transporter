@@ -791,23 +791,25 @@ class FakturpembelianController extends Controller
         return false;
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '|' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -816,7 +818,7 @@ class FakturpembelianController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Faktur Pembelian.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Pembelian.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -1688,7 +1690,7 @@ class FakturpembelianController extends Controller
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
 
-            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
 
             // 2) HEADER FIELDS
             $fstockmtnoRaw = strtoupper(trim((string) $request->input('fstockmtno')));
@@ -2715,7 +2717,7 @@ class FakturpembelianController extends Controller
                 'fdiscpersen.*.regex' => 'Format diskon harus angka atau 10+2.',
             ]);
 
-            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
 
             // 2. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);

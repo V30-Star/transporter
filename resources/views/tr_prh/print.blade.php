@@ -281,13 +281,13 @@
                         </div>
                     </div>
                 </div>
-                <div>
+                <div style="min-width: 260px;">
                     <div class="title-so">Permintaan Pembelian</div>
                     <div class="so-no">No. {{ $hdr->fprno ?? '-' }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td>Tanggal</td>
-                            <td>:</td>
+                            <td style="width: 110px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fprdate) }}</td>
                         </tr>
                         <tr>

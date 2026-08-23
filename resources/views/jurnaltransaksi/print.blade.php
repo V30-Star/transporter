@@ -275,13 +275,13 @@
                     @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                     @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                 </div>
-                <div>
+                <div style="min-width: 260px;">
                     <div class="title-so">Voucher Jurnal</div>
                     <div class="so-no">No. {{ $hdr->fjurnalno ?? '-' }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td>Tanggal</td>
-                            <td>:</td>
+                            <td style="width: 75px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fjurnaldate) }}</td>
                         </tr>
                     </table>

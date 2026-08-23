@@ -389,7 +389,7 @@ class Tr_prhController extends Controller
         }
 
         $this->validateStoreRequest($request);
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('fnoacak', []));
 
         $fprdate = $request->filled('fprdate')
             ? Carbon::parse($request->fprdate)->startOfDay()
@@ -654,7 +654,7 @@ class Tr_prhController extends Controller
         }
 
         $this->validateUpdateRequest($request);
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('fnoacak', []));
 
         $fprdate = $request->filled('fprdate')
             ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
@@ -1175,23 +1175,25 @@ class Tr_prhController extends Controller
         return false;
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '|' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -1200,7 +1202,7 @@ class Tr_prhController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Permintaan Pembelian.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Permintaan Pembelian.";
         }
 
         throw ValidationException::withMessages($messages);
