@@ -172,7 +172,7 @@
         }
 
         .sign-container {
-            margin-top: 15px;
+            margin-top: -30px;
             clear: both;
             display: flex;
             justify-content: space-between;
