@@ -1416,7 +1416,7 @@ class SuratJalanController extends Controller
             'ppnAmount' => (float) ($suratjalan->famountpopajak ?? 0),
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
-            'filterSupplierId' => $request->query('filter_supplier_id'),
+        'filterSupplierId' => $request->query('filter_supplier_id'),
             'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'view',
@@ -1425,269 +1425,273 @@ class SuratJalanController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
-        $allowNegativeStockQty = stock_boleh_minus();
-        // =========================
-        // 1) VALIDASI INPUT
-        // =========================
-        $request->validate([
-            'fstockmtno' => ['nullable', 'string', 'max:100'],
-            'fstockmtdate' => ['required', 'date'],
-            'fsupplier' => ['required', 'string', 'max:30'],
-            'ffrom' => ['required', 'string', 'max:10'],
-            'fket' => ['nullable', 'string', 'max:50'],
-            'fketinternal' => ['nullable', 'string', 'max:300'],
-            'fkirim' => ['nullable', 'string', 'max:300'],
-            'fbranchcode' => ['nullable', 'string', 'max:20'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:20'],
-            'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'string', 'max:100'],
-            'fqty' => ['required', 'array'],
-            'fqty.*' => [
-                'required',
-                'numeric',
-                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
-                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
-                    }
-                },
-            ],
-            'fprice' => ['required', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
-            'fdesc' => ['nullable', 'array'],
-            'fdesc.*' => ['nullable', 'string', 'max:500'],
-            'fcurrency' => ['nullable', 'string', 'max:5'],
-            'frate' => ['nullable', 'numeric', 'min:0'],
-            'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-            'frefso' => ['nullable', 'array'],
-            'frefso.*' => ['nullable', 'string', 'max:100'],
-            'fdiscpersen' => ['nullable', 'array'],
-            'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'ffrom.required' => 'Gudang wajib diisi.',
-            'fsupplier.required' => 'Customer wajib diisi.',
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-        ]);
-
-        $this->ensureNoDuplicateDetailCodes(
-            $request->input('fitemcode', []),
-            $request->input('frefdtno', []),
-            $request->input('fqty', [])
-        );
-
-        // =========================
-        // 2) AMBIL DATA HEADER
-        // =========================
-        $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-
-        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
-            return redirect()->route('suratjalan.edit', $header->fstockmtid)->with('error', $message);
-        }
-
-        if ($message = $this->getUsageLockMessage($header)) {
-            return redirect()->route('suratjalan.index')->with('error', $message);
-        }
-
-        $userLogin = auth('sysuser')->user() ?? auth()->user();
-        $userName = $userLogin->fname ?? Auth::user()->fname ?? 'system';
-        $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
-
-        $fstockmtno = $header->fstockmtno;
-        $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
-        $fsupplier = trim((string) $request->input('fsupplier'));
-        $ffrom = trim((string) $request->input('ffrom'));
-        $fket = trim((string) $request->input('fket', ''));
-        $fketinternal = trim((string) $request->input('fketinternal', ''));
-        $fkirim = trim((string) $request->input('fkirim', ''));
-        $fbranchcode = $request->input('fbranchcode');
-        $fcurrency = $request->input('fcurrency', 'IDR');
-        $frate = (float) $request->input('frate', 1);
-        if ($frate <= 0) {
-            $frate = 1;
-        }
-        $ppnAmount = (float) $request->input('famountpopajak', 0);
-        $userid = $userLogin->fsysuserid ?? 'admin';
-        $now = now();
-
-        // =========================
-        // 3) DETAIL ARRAYS
-        // =========================
-        $codes = $request->input('fitemcode', []);
-        $satuans = $request->input('fsatuan', []);
-        $refdtno = $request->input('frefdtno', []);
-        $qtys = $request->input('fqty', []);
-        $prices = $request->input('fprice', []);
-        $descs = $request->input('fdesc', []);
-        $frefso = $request->input('frefso', []);
-        $fdiscpersens = $request->input('fdiscpersen', []);
-        $fnoacaks = $request->input('fnoacak', []);
-        $frefnoacaks = $request->input('frefnoacak', []);
-
-        $uniqueCodes = array_values(array_unique(
-            array_filter(
-                array_map(fn($c) => trim((string) $c), $codes),
-                fn($code) => $code !== '' && ! $this->isSkippedSuratJalanProductCode($code)
-            )
-        ));
-
-        // =========================
-        // 4) PRELOAD MASTER PRODUK
-        // =========================
-        $prodMeta = DB::table('msprd')
-            ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
-            ->keyBy('fprdcode');
-
-        $pickDefaultSat = function ($meta) {
-            if (! $meta) {
-                return '';
-            }
-            foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-                $v = trim((string) ($meta->$k ?? ''));
-                if ($v !== '') {
-                    return mb_substr($v, 0, 5);
-                }
-            }
-
-            return '';
-        };
-
-        // =========================
-        // 5) RAKIT DETAIL + HITUNG SUBTOTAL
-        // =========================
-        $rowsDt = [];
-        $subtotal = 0.0;
-        $usedNoAcaks = [];
-
-        foreach ($codes as $i => $rawCode) {
-            $code = trim((string) $rawCode);
-            if ($this->isSkippedSuratJalanProductCode($code)) {
-                continue;
-            }
-
-            $sat = trim((string) ($satuans[$i] ?? ''));
-            $rref = $refdtno[$i] ?? null;
-            $qty = (float) ($qtys[$i] ?? 0);
-            $price = (float) ($prices[$i] ?? 0);
-            $desc = (string) ($descs[$i] ?? '');
-
-            $meta = $prodMeta[$code] ?? null;
-
-            $frefdtnoValue = trim((string) ($rref ?? ''));
-            $refDoc = trim((string) ($frefso[$i] ?? ''));
-            $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
-
-            $referenceRatio = null;
-            if ($refDoc !== '') {
-                $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
-                if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
-                    $sat = trim((string) $referenceDetail->fsatuan);
-                }
-                if ($referenceDetail) {
-                    $referenceQty = (float) ($referenceDetail->fqty ?? 0);
-                    $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
-                    if ($referenceQty > 0 && $referenceQtyKecil > 0) {
-                        $referenceRatio = $referenceQtyKecil / $referenceQty;
-                    }
-                }
-            }
-
-            if ($sat === '') {
-                $sat = $pickDefaultSat($meta);
-            }
-            $sat = mb_substr($sat, 0, 5);
-            if ($sat === '') {
-                continue;
-            }
-
-            $qtyKecil = $qty;
-            if ($referenceRatio !== null && $referenceRatio > 0) {
-                $qtyKecil = $qty * $referenceRatio;
-            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil;
-            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil2;
-            }
-
-            $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;
-            $amount = $qty * $price;
-            $subtotal += $amount;
-
-            $row = [
-                'fprdcode' => $code,
-                'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
-                'fqty' => $qty,
-                'fprice' => $price,
-                'fprice_rp' => $price * $frate,
-                'ftotprice' => $amount,
-                'ftotprice_rp' => $amount * $frate,
-                'fusercreate' => $header->fusercreate, // Tetap gunakan creator asli
-                'fuserupdate' => $userName,
-                'fdatetime' => $now,
-                'fketdt' => '',
-                'fcode' => $this->resolveSuratJalanFcode([
-                    'frefso' => $frefso[$i] ?? null,
-                ]),
-                'frefso' => $frefso[$i] ?? null,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
-                    ? $refNoAcak
-                    : null,
-                'fdesc' => $desc,
-                'fsatuan' => $sat,
-                'fclosedt' => '0',
-                'fdiscpersen' => max(0, min(100, (float) ($fdiscpersens[$i] ?? 0))),
-                'fbiaya' => 0,
-                'fqtykecil' => $qtyKecil,
-                'fqtyremain' => $qtyKecil,
-            ];
-
-            $rowsDt[] = $row;
-        }
-
-        if (empty($rowsDt)) {
-            return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
-            ]);
-        }
-
-        $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
-        $oldInvoiceReferenceDocs = DB::table('trstockdt')
-            ->where('fstockmtno', $header->fstockmtno)
-            ->pluck('frefso')
-            ->filter(fn($value) => $this->isInvoiceReferenceDoc((string) $value))
-            ->values()
-            ->all();
-        $newInvoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
-
-        // =========================
-        // 5.5) VALIDASI QTY REMAIN SO
-        // =========================
-        if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference, $header->fstockmtno)) {
-            return back()->withInput()->withErrors([
-                'detail' => $validationMessage,
-            ]);
-        }
-
-        if ($stockResponse = $this->validateStockMinusLines(
-            $this->buildStockMinusLinesForOutChange($rowsDt, $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
-            $request->boolean('force_save')
-        )) {
-            return $stockResponse;
-        }
-
-        // =========================
-        // 6) TRANSAKSI DB
-        // =========================
         try {
+            $allowNegativeStockQty = stock_boleh_minus();
+            // =========================
+            // 1) VALIDASI INPUT
+            // =========================
+            $request->validate([
+                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtdate' => ['required', 'date'],
+                'fsupplier' => ['required', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:10'],
+                'fket' => ['nullable', 'string', 'max:50'],
+                'fketinternal' => ['nullable', 'string', 'max:300'],
+                'fkirim' => ['nullable', 'string', 'max:300'],
+                'fbranchcode' => ['nullable', 'string', 'max:20'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:50'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:20'],
+                'frefdtno' => ['nullable', 'array'],
+                'frefdtno.*' => ['nullable', 'string', 'max:100'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
+                'fprice' => ['required', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
+                'fdesc' => ['nullable', 'array'],
+                'fdesc.*' => ['nullable', 'string', 'max:500'],
+                'fcurrency' => ['nullable', 'string', 'max:5'],
+                'frate' => ['nullable', 'numeric', 'min:0'],
+                'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+                'frefso' => ['nullable', 'array'],
+                'frefso.*' => ['nullable', 'string', 'max:100'],
+                'fdiscpersen' => ['nullable', 'array'],
+                'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib diisi.',
+                'fsupplier.required' => 'Customer wajib diisi.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+            ]);
+
+            $this->ensureNoDuplicateDetailCodes(
+                $request->input('fitemcode', []),
+                $request->input('frefdtno', []),
+                $request->input('fqty', [])
+            );
+
+            // =========================
+            // 2) AMBIL DATA HEADER
+            // =========================
+            $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
+                return redirect()->route('suratjalan.edit', $header->fstockmtid)->with('error', $message);
+            }
+
+            if ($message = $this->getUsageLockMessage($header)) {
+                return redirect()->route('suratjalan.index')->with('error', $message);
+            }
+
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userName = $userLogin->fname ?? Auth::user()->fname ?? 'system';
+            $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
+
+            $fstockmtno = $header->fstockmtno;
+            $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
+            $fsupplier = trim((string) $request->input('fsupplier'));
+            $ffrom = trim((string) $request->input('ffrom'));
+            $fket = trim((string) $request->input('fket', ''));
+            $fketinternal = trim((string) $request->input('fketinternal', ''));
+            $fkirim = trim((string) $request->input('fkirim', ''));
+            $fbranchcode = $request->input('fbranchcode');
+            $fcurrency = $request->input('fcurrency', 'IDR');
+            $frate = (float) $request->input('frate', 1);
+            if ($frate <= 0) {
+                $frate = 1;
+            }
+            $ppnAmount = (float) $request->input('famountpopajak', 0);
+            $userid = $userLogin->fsysuserid ?? 'admin';
+            $now = now();
+
+            // =========================
+            // 3) DETAIL ARRAYS
+            // =========================
+            $codes = $request->input('fitemcode', []);
+            $satuans = $request->input('fsatuan', []);
+            $refdtno = $request->input('frefdtno', []);
+            $qtys = $request->input('fqty', []);
+            $prices = $request->input('fprice', []);
+            $descs = $request->input('fdesc', []);
+            $frefso = $request->input('frefso', []);
+            $fdiscpersens = $request->input('fdiscpersen', []);
+            $fnoacaks = $request->input('fnoacak', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
+
+            $uniqueCodes = array_values(array_unique(
+                array_filter(
+                    array_map(fn($c) => trim((string) $c), $codes),
+                    fn($code) => $code !== '' && ! $this->isSkippedSuratJalanProductCode($code)
+                )
+            ));
+
+            // =========================
+            // 4) PRELOAD MASTER PRODUK
+            // =========================
+            $prodMeta = DB::table('msprd')
+                ->whereIn('fprdcode', $uniqueCodes)
+                ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
+                ->keyBy('fprdcode');
+
+            $pickDefaultSat = function ($meta) {
+                if (! $meta) {
+                    return '';
+                }
+                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
+                    $v = trim((string) ($meta->$k ?? ''));
+                    if ($v !== '') {
+                        return mb_substr($v, 0, 5);
+                    }
+                }
+
+                return '';
+            };
+
+            // =========================
+            // 5) RAKIT DETAIL + HITUNG SUBTOTAL
+            // =========================
+            $rowsDt = [];
+            $subtotal = 0.0;
+            $usedNoAcaks = [];
+
+            foreach ($codes as $i => $rawCode) {
+                $code = trim((string) $rawCode);
+                if ($this->isSkippedSuratJalanProductCode($code)) {
+                    continue;
+                }
+
+                $sat = trim((string) ($satuans[$i] ?? ''));
+                $rref = $refdtno[$i] ?? null;
+                $qty = (float) ($qtys[$i] ?? 0);
+                $price = (float) ($prices[$i] ?? 0);
+                $desc = (string) ($descs[$i] ?? '');
+
+                $meta = $prodMeta[$code] ?? null;
+
+                $frefdtnoValue = trim((string) ($rref ?? ''));
+                $refDoc = trim((string) ($frefso[$i] ?? ''));
+                $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
+
+                $referenceRatio = null;
+                if ($refDoc !== '') {
+                    $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
+                    if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
+                        $sat = trim((string) $referenceDetail->fsatuan);
+                    }
+                    if ($referenceDetail) {
+                        $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                        $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                        if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                            $referenceRatio = $referenceQtyKecil / $referenceQty;
+                        }
+                    }
+                }
+
+                if ($sat === '') {
+                    $sat = $pickDefaultSat($meta);
+                }
+                $sat = mb_substr($sat, 0, 5);
+                if ($sat === '') {
+                    continue;
+                }
+
+                $qtyKecil = $qty;
+                if ($referenceRatio !== null && $referenceRatio > 0) {
+                    $qtyKecil = $qty * $referenceRatio;
+                } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
+                }
+
+                $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;
+                $disc = max(0, min(100, (float) ($fdiscpersens[$i] ?? 0)));
+                $amount = $qty * $price * (1 - $disc / 100);
+                $subtotal += $amount;
+
+                $row = [
+                    'fprdcode' => $code,
+                    'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
+                    'fqty' => $qty,
+                    'fprice' => $price,
+                    'fprice_rp' => $price * $frate,
+                    'ftotprice' => $amount,
+                    'ftotprice_rp' => $amount * $frate,
+                    'fusercreate' => $header->fusercreate,
+                    'fuserupdate' => $userName,
+                    'fdatetime' => $now,
+                    'fketdt' => '',
+                    'fcode' => $this->resolveSuratJalanFcode([
+                        'frefso' => $frefso[$i] ?? null,
+                    ]),
+                    'frefso' => $frefso[$i] ?? null,
+                    'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                    'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
+                        ? $refNoAcak
+                        : null,
+                    'fdesc' => $desc,
+                    'fsatuan' => $sat,
+                    'fclosedt' => '0',
+                    'fdiscpersen' => $disc,
+                    'fbiaya' => 0,
+                    'fqtykecil' => $qtyKecil,
+                    'fqtyremain' => $qtyKecil,
+                ];
+
+                $rowsDt[] = $row;
+            }
+
+            if (empty($rowsDt)) {
+                return back()->withInput()->withErrors([
+                    'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                ]);
+            }
+
+            $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
+            $oldInvoiceReferenceDocs = DB::table('trstockdt')
+                ->where('fstockmtno', $header->fstockmtno)
+                ->pluck('frefso')
+                ->filter(fn($value) => $this->isInvoiceReferenceDoc((string) $value))
+                ->values()
+                ->all();
+            $newInvoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
+
+            // =========================
+            // 5.5) VALIDASI QTY REMAIN SO
+            // =========================
+            if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference, $header->fstockmtno)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $validationMessage], 422);
+                }
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
+            }
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForOutChange($rowsDt, $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
+            // =========================
+            // 6) TRANSAKSI DB
+            // =========================
             DB::transaction(function () use (
                 $header,
                 $fstockmtno,
@@ -1853,11 +1857,41 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
             });
+
+            $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Surat Jalan {$fstockmtno} berhasil diupdate.",
+                    'redirect_url' => route('suratjalan.index'),
+                    'success_prompt' => ! $this->canCreateInvoice() ? null : [
+                        'type' => 'suratjalan_create_invoice',
+                        'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
+                    ]
+                ]);
+            }
+
+            $redirect = redirect()
+                ->route('suratjalan.index')
+                ->with('success', "Surat Jalan {$fstockmtno} berhasil diupdate.");
+
+            if (! $this->canCreateInvoice()) {
+                return $redirect;
+            }
+
+            return $redirect->with('success_prompt', [
+                'type' => 'suratjalan_create_invoice',
+                'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
+            ]);
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
             if ($request->expectsJson()) {
-                return response()->json(['message' => $firstError ?: 'Gagal update surat jalan.'], 422);
+                return response()->json([
+                    'message' => $firstError ?: 'Gagal update surat jalan.',
+                    'errors'  => $e->errors(),
+                ], 422);
             }
 
             return redirect()
@@ -1871,32 +1905,6 @@ class SuratJalanController extends Controller
             }
             return back()->withInput()->with('error', 'Data belum berhasil diperbarui: ' . $e->getMessage());
         }
-
-        $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => "Surat Jalan {$fstockmtno} berhasil diupdate.",
-                'redirect_url' => route('suratjalan.index'),
-                'success_prompt' => ! $this->canCreateInvoice() ? null : [
-                    'type' => 'suratjalan_create_invoice',
-                    'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
-                ]
-            ]);
-        }
-
-        $redirect = redirect()
-            ->route('suratjalan.index')
-            ->with('success', "Surat Jalan {$fstockmtno} berhasil diupdate.");
-
-        if (! $this->canCreateInvoice()) {
-            return $redirect;
-        }
-
-        return $redirect->with('success_prompt', [
-            'type' => 'suratjalan_create_invoice',
-            'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
-        ]);
     }
 
     public function delete(Request $request, $fstockmtid)
