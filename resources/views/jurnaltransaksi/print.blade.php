@@ -217,8 +217,6 @@
 
             .sheet {
                 margin: 0;
-            .sheet {
-                margin: 0;
                 border: none;
                 box-shadow: none;
                 transform: none !important;
