@@ -1514,7 +1514,7 @@ class SalesOrderController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
 
-        $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
+        $soQuery = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
                     $j->on('msprd.fprdcode', '=', 'trsodt.fprdcode');
@@ -1627,7 +1627,7 @@ class SalesOrderController extends Controller
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
-        $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
+        $soQuery = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
                     $j->on('msprd.fprdcode', '=', 'trsodt.fprdcode');
