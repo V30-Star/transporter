@@ -329,7 +329,7 @@
                     <div style="width: 250px;">
                         <table class="info-table" style="margin-top: 0;">
                             <tr>
-                                <td style="width: 60px;">Tanggal</td>
+                                <td style="width: 75px;">Tanggal</td>
                                 <td style="width: 10px;">:</td>
                                 <td>{{ $fmt($hdr->fsodate) }}</td>
                             </tr>
@@ -337,6 +337,11 @@
                                 <td>Tempo</td>
                                 <td>:</td>
                                 <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                            </tr>
+                            <tr>
+                                <td>No. Ref PO</td>
+                                <td>:</td>
+                                <td>{{ $hdr->frefpo ?: '-' }}</td>
                             </tr>
                             <tr>
                                 <td>Sales</td>
