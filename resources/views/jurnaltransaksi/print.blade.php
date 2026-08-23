@@ -375,7 +375,7 @@
 
                 <div class="meta-right">
                     @if(!empty($hdr->fjurnalnote))<div style="margin-bottom: 2px;">Ket : {{ $hdr->fjurnalnote }}</div>@endif
-                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                    <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
         </div>
@@ -389,7 +389,7 @@
             <div class="sign-container" style="margin-top: 20px;">
                 <div></div>
                 <div class="meta-right">
-                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                    <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
         </div>

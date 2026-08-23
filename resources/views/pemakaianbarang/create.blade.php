@@ -1016,7 +1016,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Pemakaian Barang.`,
+                        text: `Kode produk ${duplicateCode} dengan nomor acak yang sama tidak boleh dobel dalam satu Pemakaian Barang.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -1145,22 +1145,6 @@
     }
 
         window.getPemakaianBarangDuplicateCode = function(form) {
-            const seen = new Set();
-            const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
-
-            for (const input of inputs) {
-                const code = (input.value || '').toString().trim().toUpperCase();
-                if (!code) {
-                    continue;
-                }
-
-                if (seen.has(code)) {
-                    return code;
-                }
-
-                seen.add(code);
-            }
-
             return '';
         };
 

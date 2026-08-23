@@ -31,23 +31,25 @@ class MutasiController extends Controller
         return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '|' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -56,7 +58,7 @@ class MutasiController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Mutasi.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Mutasi.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -665,7 +667,7 @@ class MutasiController extends Controller
                 'fto.required' => 'Gudang wajib di isi.',
             ]);
 
-            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
             if ($errors = $this->mutasiWarehouseErrors($request)) {
                 return back()->withInput()->withErrors($errors);
             }
@@ -1077,7 +1079,7 @@ class MutasiController extends Controller
                 'fto.required' => 'Gudang wajib di isi.',
             ]);
 
-            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
             if ($errors = $this->mutasiWarehouseErrors($request)) {
                 return back()->withInput()->withErrors($errors);
             }

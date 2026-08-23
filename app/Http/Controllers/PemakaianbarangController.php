@@ -32,23 +32,25 @@ class PemakaianbarangController extends Controller
         return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
             $code = strtoupper(trim((string) $rawCode));
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $key = $code . '|' . $noAcak;
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -57,7 +59,7 @@ class PemakaianbarangController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Pemakaian Barang.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Pemakaian Barang.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -542,8 +544,6 @@ class PemakaianbarangController extends Controller
             throw $e;
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
-
         // =========================
         // 2) HEADER FIELDS
         // =========================
@@ -659,6 +659,8 @@ class PemakaianbarangController extends Controller
                 'detail' => $msg,
             ]);
         }
+
+        $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
 
         if ($stockResponse = $this->validateStockMinusLines(
             $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom),
@@ -1096,8 +1098,6 @@ class PemakaianbarangController extends Controller
             'ffrom.max' => 'Gudang maksimal 10 karakter.',
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
-
         // =========================
         // 2) AMBIL DATA MASTER & HEADER
         // =========================
@@ -1225,6 +1225,8 @@ class PemakaianbarangController extends Controller
                     : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).',
             ]);
         }
+
+        $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
 
         if ($stockResponse = $this->validateStockMinusLines(
             $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),

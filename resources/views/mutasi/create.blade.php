@@ -904,11 +904,13 @@
                 continue;
             }
 
-            if (seen.has(code)) {
+            const refNoAcak = form.querySelectorAll('input[name="frefnoacak[]"]')[[...inputs].indexOf(input)]?.value?.trim() || '';
+            const key = `${code}|${refNoAcak}`;
+            if (seen.has(key)) {
                 return code;
             }
 
-            seen.add(code);
+            seen.add(key);
         }
 
         return '';
@@ -1135,7 +1137,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Mutasi.`,
+                        text: `Kode produk ${duplicateCode} dengan nomor acak yang sama tidak boleh dobel dalam satu Mutasi.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'

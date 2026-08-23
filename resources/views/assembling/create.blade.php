@@ -645,7 +645,7 @@
                                     Swal.fire({
                                         icon: 'warning',
                                         title: 'Produk Duplikat',
-                                        text: `Kode produk ${duplicateCodeBahan || duplicateCodeJadi} tidak boleh sama dalam kategori yang sama.`,
+                                        text: `Kode produk ${duplicateCodeBahan || duplicateCodeJadi} dengan nomor acak yang sama tidak boleh dobel dalam kategori yang sama.`,
                                         confirmButtonText: 'OK',
                                         customClass: {
                                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -794,22 +794,6 @@
                     }
 
                     window.getAssemblingDuplicateCode = function(form, category = null) {
-                        const seen = new Set();
-                        const wrappers = Array.from(form.querySelectorAll('div.hidden > div'));
-                        for (const wrapper of wrappers) {
-                            const codeInput = wrapper.querySelector('input[name^="fitemcode["]');
-                            const typeInput = wrapper.querySelector('input[name^="fitemtype["]');
-                            if (!codeInput) continue;
-                            const code = (codeInput.value || '').toString().trim().toUpperCase();
-                            const type = typeInput ? (typeInput.value || '').toString().trim() : '';
-                            if (!code) continue;
-                            if (category && type !== category) continue;
-                            const key = `${code}::${type}`;
-                            if (seen.has(key)) {
-                                return code;
-                            }
-                            seen.add(key);
-                        }
                         return '';
                     };
                 </script>

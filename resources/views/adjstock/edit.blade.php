@@ -1664,22 +1664,6 @@
     };
 
     window.getAdjstockDuplicateCode = function(form) {
-        const seen = new Set();
-        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
-
-        for (const input of inputs) {
-            const code = (input.value || '').toString().trim().toUpperCase();
-            if (!code) {
-                continue;
-            }
-
-            if (seen.has(code)) {
-                return code;
-            }
-
-            seen.add(code);
-        }
-
         return '';
     };
 
