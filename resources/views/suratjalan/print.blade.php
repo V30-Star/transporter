@@ -65,12 +65,11 @@
 
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 12px;
-            width: 450px;
-            min-height: 78px;
+            width: 100%;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -267,49 +266,49 @@
         <div class="header-row">
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                <div class="customer-container">
-                    <span class="customer-label">Customer</span>
-                    <div style="font-weight: bold;">
-                        {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
-                    </div>
-                    <div style="font-size: 11px;">
-                        Alamat : {{ $hdr->customer_address ?? '-' }}
-                    </div>
-                    <div style="font-size: 11px;">
-                        Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
-                    </div>
-                    <div style="font-size: 11px;">
-                        Keterangan : {{ $hdr->fket ?: '-' }}
-                    </div>
-                </div>
+                @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
             </div>
             <div>
                 <div class="title-so">Surat Jalan</div>
                 <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
-                <table class="info-table">
-                    <tr>
-                        <td>Tanggal</td>
-                        <td>:</td>
-                        <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Tempo</td>
-                        <td>:</td>
-                        <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                    </tr>
-                    <tr>
-                        <td>No. Ref</td>
-                        <td>:</td>
-                        <td>{{ $hdr->frefno ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Sales</td>
-                        <td>:</td>
-                        <td>{{ $hdr->fsalesname ?? '-' }}</td>
-                    </tr>
-                </table>
+            </div>
+        </div>
+
+        <div class="customer-container">
+            <span class="customer-label">Customer</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold;">
+                        {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                    </div>
+                    <div style="font-size: 11px; margin-top: 2px;">
+                        Alamat : {{ $hdr->customer_address ?? '-' }}
+                    </div>
+                </div>
+                <div style="width: 250px;">
+                    <table class="info-table" style="margin-top: 0;">
+                        <tr>
+                            <td style="width: 60px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
+                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Tempo</td>
+                            <td>:</td>
+                            <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                        </tr>
+                        <tr>
+                            <td>No. Ref</td>
+                            <td>:</td>
+                            <td>{{ $hdr->frefno ?: ($hdr->frefpo ?: '-') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Sales</td>
+                            <td>:</td>
+                            <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? ($hdr->fsalesman ?? '-')) }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -324,9 +323,12 @@
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
+                    @php
+                        $productDisplayName = trim((string)($r->fdesc ?? '')) !== '' ? $r->fdesc : ($r->product_name ?? '-');
+                    @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_name ?? '-' }}</td>
+                        <td>{{ $productDisplayName }}</td>
                         <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
                         <td>{{ $r->fdesc ?: ($r->fket ?: '-') }}</td>
                     </tr>
