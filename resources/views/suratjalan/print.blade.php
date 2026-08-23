@@ -276,8 +276,8 @@
 
         <div class="customer-container">
             <span class="customer-label">Customer</span>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
-                <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
                     <div style="font-weight: bold;">
                         {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
                     </div>
