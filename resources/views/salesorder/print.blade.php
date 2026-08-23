@@ -313,7 +313,7 @@
                         {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
                     </div>
                     <div style="font-size: 11px; margin-top: 2px;">
-                        Alamat : {{ $hdr->customer_address ?? '-' }}
+                        {{ $hdr->customer_address ?? '-' }}
                     </div>
                 </div>
                 <div style="width: 250px;">
