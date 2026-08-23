@@ -174,7 +174,7 @@
 
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 28px;
+            margin-top: 2px;
         }
 
         .sign-container {

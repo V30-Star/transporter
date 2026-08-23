@@ -125,8 +125,7 @@
         /* Footer Section */
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 40px;
-            /* Jarak disesuaikan untuk Mutasi Stock */
+            margin-top: 2px;
         }
 
         .terbilang-box {

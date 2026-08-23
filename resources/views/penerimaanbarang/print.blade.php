@@ -120,7 +120,7 @@
         /* Footer Section */
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 150px; /* Adjust based on content */
+            margin-top: 2px;
         }
 
         .terbilang-box {
