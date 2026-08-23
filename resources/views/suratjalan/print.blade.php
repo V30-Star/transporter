@@ -227,7 +227,21 @@
                 box-shadow: none;
             }
 
-            .no-print, .print-hide {
+            .sheet {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+                transform: none !important;
+                page-break-after: always;
+                height: 5.83in;
+                max-height: 5.83in;
+            }
+
+            .sheet:last-child {
+                page-break-after: auto;
+            }
+
+            .no-print, .print-hide, #raw-templates {
                 display: none !important;
             }
 
@@ -262,58 +276,64 @@
         </button>
     </div>
 
-    <div class="sheet">
-        <div class="header-row">
-            <div>
-                <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+    <div id="print-container"></div>
+
+    <div id="raw-templates" style="display: none;">
+        {{-- Header Template --}}
+        <div id="tpl-header">
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($company_name) }}</div>
+                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                </div>
+                <div>
+                    <div class="title-so">Surat Jalan</div>
+                    <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
+                </div>
             </div>
-            <div>
-                <div class="title-so">Surat Jalan</div>
-                <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
+
+            <div class="customer-container">
+                <span class="customer-label">Customer</span>
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <div style="font-weight: bold;">
+                            {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                        </div>
+                        <div style="font-size: 11px; margin-top: 2px;">
+                            {{ $hdr->customer_address ?? '-' }}
+                        </div>
+                    </div>
+                    <div style="width: 250px;">
+                        <table class="info-table" style="margin-top: 0;">
+                            <tr>
+                                <td style="width: 60px;">Tanggal</td>
+                                <td style="width: 10px;">:</td>
+                                <td>{{ $fmt($hdr->fstockmtdate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Tempo</td>
+                                <td>:</td>
+                                <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                            </tr>
+                            <tr>
+                                <td>No. Ref</td>
+                                <td>:</td>
+                                <td>{{ $hdr->frefno ?: ($hdr->frefpo ?: '-') }}</td>
+                            </tr>
+                            <tr>
+                                <td>Sales</td>
+                                <td>:</td>
+                                <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? ($hdr->fsalesman ?? '-')) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="customer-container">
-            <span class="customer-label">Customer</span>
-            <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
-                <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
-                    <div style="font-weight: bold;">
-                        {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
-                    </div>
-                    <div style="font-size: 11px; margin-top: 2px;">
-                        {{ $hdr->customer_address ?? '-' }}
-                    </div>
-                </div>
-                <div style="width: 250px;">
-                    <table class="info-table" style="margin-top: 0;">
-                        <tr>
-                            <td style="width: 60px;">Tanggal</td>
-                            <td style="width: 10px;">:</td>
-                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Tempo</td>
-                            <td>:</td>
-                            <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                        </tr>
-                        <tr>
-                            <td>No. Ref</td>
-                            <td>:</td>
-                            <td>{{ $hdr->frefno ?: ($hdr->frefpo ?: '-') }}</td>
-                        </tr>
-                        <tr>
-                            <td>Sales</td>
-                            <td>:</td>
-                            <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? ($hdr->fsalesman ?? '-')) }}</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <table class="tb">
-            <thead>
+        {{-- Table Head Template --}}
+        <table id="tpl-table">
+            <thead id="tpl-thead">
                 <tr>
                     <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 50%;">Nama Produk</th>
@@ -321,13 +341,13 @@
                     <th style="width: 30%;">Keterangan</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     @php
                         $productDisplayName = trim((string)($r->fdesc ?? '')) !== '' ? $r->fdesc : ($r->product_name ?? '-');
                     @endphp
-                    <tr>
-                        <td class="text-center">{{ $i + 1 }}</td>
+                    <tr class="item-row">
+                        <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>{{ $productDisplayName }}</td>
                         <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
                         <td>{{ $r->fdesc ?: ($r->fket ?: '-') }}</td>
@@ -336,42 +356,205 @@
             </tbody>
         </table>
 
-        <div class="note-block">
-            <div class="note-title">Catatan</div>
-            <div>{{ $hdr->fket ?: '-' }}</div>
+        {{-- Summary / Notes Template (Last Page) --}}
+        <div id="tpl-summary">
+            <div class="note-block">
+                <div class="note-title">Catatan</div>
+                <div>{{ $hdr->fket ?: '-' }}</div>
+            </div>
+            <div class="footer-line"></div>
         </div>
 
-        <div class="footer-line"></div>
-
-        <div class="sign-container">
-            <div style="display: flex; align-items: flex-start; gap: 40px;">
-                <div style="width: 160px; min-width: 140px;">
-                    <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
-                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                        ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
+        {{-- Sign Template (Last Page) --}}
+        <div id="tpl-sign">
+            <div class="sign-container">
+                <div style="display: flex; align-items: flex-start; gap: 40px;">
+                    <div style="width: 160px; min-width: 140px;">
+                        <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
+                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                            ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
+                        </div>
+                    </div>
+                    <div style="width: 160px; min-width: 140px;">
+                        <div style="font-size: 11px;">Mengetahui,</div>
+                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                            ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+                        </div>
                     </div>
                 </div>
-                <div style="width: 160px; min-width: 140px;">
-                    <div style="font-size: 11px;">Mengetahui,</div>
-                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                        ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
-                    </div>
+
+                <div class="meta-right">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
+        </div>
 
-            <div class="meta-right">
-                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
+        {{-- Continued Template (Non-last Page) --}}
+        <div id="tpl-continued">
+            <div style="margin-top: 15px; text-align: right; font-style: italic; font-weight: bold; font-size: 11px;">
+                Bersambung ke halaman <span class="next-page-num">2</span>
+            </div>
+            <div class="sign-container" style="margin-top: 20px;">
+                <div></div>
+                <div class="meta-right">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        function runResponsivePagination() {
+            const printContainer = document.getElementById('print-container');
+            const tplHeader = document.getElementById('tpl-header');
+            const tplThead = document.getElementById('tpl-thead');
+            const tplSummary = document.getElementById('tpl-summary');
+            const tplSign = document.getElementById('tpl-sign');
+            const tplContinued = document.getElementById('tpl-continued');
+            const rawRows = Array.from(document.querySelectorAll('#raw-rows tr'));
+
+            printContainer.innerHTML = '';
+
+            // Usable content height for 5.83in at 96dpi (560px - 48px padding = 512px)
+            const MAX_SHEET_CONTENT_HEIGHT = 490;
+
+            function getContentHeight(sheet) {
+                let total = 0;
+                for (let i = 0; i < sheet.children.length; i++) {
+                    total += sheet.children[i].offsetHeight;
+                }
+                return total;
+            }
+
+            function createSheet() {
+                const sheet = document.createElement('div');
+                sheet.className = 'sheet';
+
+                const header = tplHeader.cloneNode(true);
+                header.removeAttribute('id');
+                sheet.appendChild(header);
+
+                const table = document.createElement('table');
+                table.className = 'tb';
+                table.appendChild(tplThead.cloneNode(true));
+
+                const tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+                sheet.appendChild(table);
+
+                const footerSlot = document.createElement('div');
+                footerSlot.className = 'footer-slot';
+                sheet.appendChild(footerSlot);
+
+                printContainer.appendChild(sheet);
+                return { sheet, header, table, tbody, footerSlot };
+            }
+
+            let currentSheet = createSheet();
+            let sheets = [currentSheet];
+
+            for (let idx = 0; idx < rawRows.length; idx++) {
+                const row = rawRows[idx].cloneNode(true);
+                currentSheet.tbody.appendChild(row);
+
+                const isLastItem = (idx === rawRows.length - 1);
+
+                if (isLastItem) {
+                    // Test if summary & sign also fit on this sheet
+                    currentSheet.footerSlot.innerHTML = '';
+                    const summaryClone = tplSummary.cloneNode(true);
+                    summaryClone.removeAttribute('id');
+                    const signClone = tplSign.cloneNode(true);
+                    signClone.removeAttribute('id');
+
+                    currentSheet.footerSlot.appendChild(summaryClone);
+                    currentSheet.footerSlot.appendChild(signClone);
+
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
+                        // Move row and summary to next sheet
+                        currentSheet.tbody.removeChild(row);
+                        currentSheet.footerSlot.innerHTML = '';
+
+                        // Set continuation on current sheet
+                        const contClone = tplContinued.cloneNode(true);
+                        contClone.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(contClone);
+
+                        // New sheet for the remaining item + summary
+                        currentSheet = createSheet();
+                        sheets.push(currentSheet);
+
+                        currentSheet.tbody.appendChild(row);
+                        currentSheet.footerSlot.appendChild(summaryClone);
+                        currentSheet.footerSlot.appendChild(signClone);
+                    }
+                } else {
+                    // Test with continuation footer
+                    currentSheet.footerSlot.innerHTML = '';
+                    const contTest = tplContinued.cloneNode(true);
+                    contTest.removeAttribute('id');
+                    currentSheet.footerSlot.appendChild(contTest);
+
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
+                        // Overflow! Move row to next sheet
+                        currentSheet.tbody.removeChild(row);
+
+                        currentSheet = createSheet();
+                        sheets.push(currentSheet);
+
+                        currentSheet.tbody.appendChild(row);
+                    }
+                }
+            }
+
+            // Finalize sheets footer & page numbers
+            const totalPages = sheets.length;
+            sheets.forEach((s, i) => {
+                const pageNum = i + 1;
+                const isLast = (pageNum === totalPages);
+
+                s.footerSlot.innerHTML = '';
+                if (!isLast) {
+                    const cont = tplContinued.cloneNode(true);
+                    cont.removeAttribute('id');
+                    const nextNum = cont.querySelector('.next-page-num');
+                    if (nextNum) nextNum.innerText = (pageNum + 1);
+                    s.footerSlot.appendChild(cont);
+                } else {
+                    const summaryClone = tplSummary.cloneNode(true);
+                    summaryClone.removeAttribute('id');
+                    const signClone = tplSign.cloneNode(true);
+                    signClone.removeAttribute('id');
+                    s.footerSlot.appendChild(summaryClone);
+                    s.footerSlot.appendChild(signClone);
+                }
+
+                s.sheet.querySelectorAll('.page-counter').forEach(el => {
+                    el.innerText = `Hal : ${pageNum} / ${totalPages}`;
+                });
+            });
+
+            // Re-index all rows globally 1..N
+            let globalRow = 1;
+            document.querySelectorAll('#print-container tbody tr').forEach(tr => {
+                const cell = tr.querySelector('.row-no');
+                if (cell) cell.innerText = globalRow++;
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runResponsivePagination);
+        } else {
+            runResponsivePagination();
+        }
+
         let currentZoom = 1.0;
         function adjustZoom(delta) {
             currentZoom = Math.min(Math.max(currentZoom + delta, 0.5), 2.0);
-            const target = document.querySelector('.sheet') || document.body;
-            target.style.transform = `scale(${currentZoom})`;
-            target.style.transformOrigin = "top center";
+            document.querySelectorAll('.sheet').forEach(target => {
+                target.style.transform = `scale(${currentZoom})`;
+                target.style.transformOrigin = "top center";
+            });
             document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
         }
     </script>
