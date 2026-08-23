@@ -229,4 +229,23 @@ if (!function_exists('can_print_again')) {
   }
 }
 
+if (!function_exists('sysuser_name')) {
+  function sysuser_name(?string $usercode): string
+  {
+    $code = trim((string) $usercode);
+    if ($code === '') {
+      return '';
+    }
+    static $userNames = [];
+    if (isset($userNames[$code])) {
+      return $userNames[$code];
+    }
+    $name = \Illuminate\Support\Facades\DB::table('sysuser')
+      ->where('fsysuserid', $code)
+      ->orWhere('fname', $code)
+      ->value('fname');
 
+    $userNames[$code] = $name ?: $code;
+    return $userNames[$code];
+  }
+}

@@ -395,7 +395,7 @@
 
                 <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
                     <div style="width: 160px; min-width: 140px;">
-                        <div style="font-size: 11px;">Dibuat Oleh,</div>
+                        <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
                         <div style="margin-top: 36px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                             ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
                         </div>
