@@ -221,9 +221,28 @@
 
         @media print {
             body { background: #fff; }
-            .sheet { margin: 0; border: none; box-shadow: none; }
-            .no-print, .print-hide { display: none !important; }
-            @page { size: 8.27in 5.83in; margin: 0; }
+            .sheet {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+                transform: none !important;
+                page-break-after: always;
+                height: 5.83in;
+                max-height: 5.83in;
+            }
+
+            .sheet:last-child {
+                page-break-after: auto;
+            }
+
+            .no-print, .print-hide, #raw-templates {
+                display: none !important;
+            }
+
+            @page {
+                size: 8.27in 5.83in;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -251,50 +270,56 @@
         </button>
     </div>
 
-    <div class="sheet">
-        <div class="header-row">
-            <div>
-                <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                <div class="customer-container">
-                    <span class="customer-label">Customer</span>
-                    <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
-                    <div style="font-size: 11px; width: 350px;">
-                        {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+    <div id="print-container"></div>
+
+    <div id="raw-templates" style="display: none;">
+        {{-- Header Template --}}
+        <div id="tpl-header">
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($company_name) }}</div>
+                    @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
+                    @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                    <div class="customer-container">
+                        <span class="customer-label">Customer</span>
+                        <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
+                        <div style="font-size: 11px; width: 350px;">
+                            {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <div class="title-so">Penerimaan Barang</div>
-                <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
-                <table class="info-table">
-                    <tr>
-                        <td>Tanggal</td>
-                        <td>:</td>
-                        <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Tempo</td>
-                        <td>:</td>
-                        <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                    </tr>
-                    <tr>
-                        <td>Ref.PO</td>
-                        <td>:</td>
-                        <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Sales</td>
-                        <td>:</td>
-                        <td>{{ $hdr->fsalesname ?? '' }}</td>
-                    </tr>
-                </table>
+                <div>
+                    <div class="title-so">Penerimaan Barang</div>
+                    <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
+                    <table class="info-table">
+                        <tr>
+                            <td>Tanggal</td>
+                            <td>:</td>
+                            <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Tempo</td>
+                            <td>:</td>
+                            <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                        </tr>
+                        <tr>
+                            <td>Ref.PO</td>
+                            <td>:</td>
+                            <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Sales</td>
+                            <td>:</td>
+                            <td>{{ $hdr->fsalesname ?? '' }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <table class="tb">
-            <thead>
+        {{-- Table Head Template --}}
+        <table id="tpl-table">
+            <thead id="tpl-thead">
                 <tr>
                     <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 45%;">Nama Produk</th>
@@ -304,86 +329,249 @@
                     <th style="width: 15%; text-align: right;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
-                <tr>
-                    
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</td>
-                    <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
-                    <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
-                    <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, ',', '.') }}</td>
-                </tr>
+                    <tr class="item-row">
+                        <td class="text-center row-no">{{ $i + 1 }}</td>
+                        <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</td>
+                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
+                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, ',', '.') }}</td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="footer-line"></div>
-        
-        <div class="terbilang-box">
-            Terbilang : <br>
-            # {{ strtoupper(terbilang($hdr->famountmt ?? 0)) }} RUPIAH #
+        {{-- Summary Template (Last Page) --}}
+        <div id="tpl-summary">
+            <div class="footer-line"></div>
+            
+            <div class="terbilang-box">
+                Terbilang : <br>
+                # {{ strtoupper(terbilang($hdr->famountmt ?? 0)) }} RUPIAH #
+            </div>
+
+            <div class="summary-box">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">0,00</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">Total Setelah Disc</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; white-space: nowrap;">PPN</td>
+                        <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famountpajak ?? 0, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($hdr->famountmt ?? 0, 2, ',', '.') }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
-        <div class="summary-box">
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                <tr>
-                    <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
-                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                    <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
-                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                    <td style="text-align: right; padding: 1px 0;">0,00</td>
-                </tr>
-                <tr>
-                    <td style="padding: 1px 0; white-space: nowrap;">Total Setelah Disc</td>
-                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                    <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 1px 0; white-space: nowrap;">PPN</td>
-                    <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                    <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famountpajak ?? 0, 2, ',', '.') }}</td>
-                </tr>
-                <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
-                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
-                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                    <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($hdr->famountmt ?? 0, 2, ',', '.') }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="sign-container">
-            <div style="display: flex; align-items: flex-start; gap: 40px;">
-                <div style="width: 160px; min-width: 140px;">
-                    <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
-                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                        ( {{ strtoupper($namattdpo ?: '-') }} )
+        {{-- Sign Template (Last Page) --}}
+        <div id="tpl-sign">
+            <div class="sign-container">
+                <div style="display: flex; align-items: flex-start; gap: 40px;">
+                    <div style="width: 160px; min-width: 140px;">
+                        <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
+                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                            ( {{ strtoupper($namattdpo ?: '-') }} )
+                        </div>
+                    </div>
+                    <div style="width: 160px; min-width: 140px;">
+                        <div style="font-size: 11px;">Mengetahui,</div>
+                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                            ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+                        </div>
                     </div>
                 </div>
-                <div style="width: 160px; min-width: 140px;">
-                    <div style="font-size: 11px;">Mengetahui,</div>
-                    <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                        ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
-                    </div>
+                <div class="meta-right">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
-            <div class="meta-right">
-                <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} Hal : 1 / 1</div>
+        </div>
+
+        {{-- Continued Template (Non-last Page) --}}
+        <div id="tpl-continued">
+            <div style="margin-top: 15px; text-align: right; font-style: italic; font-weight: bold; font-size: 11px;">
+                Bersambung ke halaman <span class="next-page-num">2</span>
+            </div>
+            <div class="sign-container" style="margin-top: 20px;">
+                <div></div>
+                <div class="meta-right">
+                    <div>Dicetak {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        function runResponsivePagination() {
+            const printContainer = document.getElementById('print-container');
+            const tplHeader = document.getElementById('tpl-header');
+            const tplThead = document.getElementById('tpl-thead');
+            const tplSummary = document.getElementById('tpl-summary');
+            const tplSign = document.getElementById('tpl-sign');
+            const tplContinued = document.getElementById('tpl-continued');
+            const rawRows = Array.from(document.querySelectorAll('#raw-rows tr'));
+
+            printContainer.innerHTML = '';
+
+            // Usable content height for 5.83in at 96dpi (560px - 48px padding = 512px)
+            const MAX_SHEET_CONTENT_HEIGHT = 490;
+
+            function getContentHeight(sheet) {
+                let total = 0;
+                for (let i = 0; i < sheet.children.length; i++) {
+                    total += sheet.children[i].offsetHeight;
+                }
+                return total;
+            }
+
+            function createSheet() {
+                const sheet = document.createElement('div');
+                sheet.className = 'sheet';
+
+                const header = tplHeader.cloneNode(true);
+                header.removeAttribute('id');
+                sheet.appendChild(header);
+
+                const table = document.createElement('table');
+                table.className = 'tb';
+                table.appendChild(tplThead.cloneNode(true));
+
+                const tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+                sheet.appendChild(table);
+
+                const footerSlot = document.createElement('div');
+                footerSlot.className = 'footer-slot';
+                sheet.appendChild(footerSlot);
+
+                printContainer.appendChild(sheet);
+                return { sheet, header, table, tbody, footerSlot };
+            }
+
+            let currentSheet = createSheet();
+            let sheets = [currentSheet];
+
+            for (let idx = 0; idx < rawRows.length; idx++) {
+                const row = rawRows[idx].cloneNode(true);
+                currentSheet.tbody.appendChild(row);
+
+                const isLastItem = (idx === rawRows.length - 1);
+
+                if (isLastItem) {
+                    // Test if summary & sign also fit on this sheet
+                    currentSheet.footerSlot.innerHTML = '';
+                    const summaryClone = tplSummary.cloneNode(true);
+                    summaryClone.removeAttribute('id');
+                    const signClone = tplSign.cloneNode(true);
+                    signClone.removeAttribute('id');
+
+                    currentSheet.footerSlot.appendChild(summaryClone);
+                    currentSheet.footerSlot.appendChild(signClone);
+
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
+                        // Move row and summary to next sheet
+                        currentSheet.tbody.removeChild(row);
+                        currentSheet.footerSlot.innerHTML = '';
+
+                        // Set continuation on current sheet
+                        const contClone = tplContinued.cloneNode(true);
+                        contClone.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(contClone);
+
+                        // New sheet for the remaining item + summary
+                        currentSheet = createSheet();
+                        sheets.push(currentSheet);
+
+                        currentSheet.tbody.appendChild(row);
+                        currentSheet.footerSlot.appendChild(summaryClone);
+                        currentSheet.footerSlot.appendChild(signClone);
+                    }
+                } else {
+                    // Test with continuation footer
+                    currentSheet.footerSlot.innerHTML = '';
+                    const contTest = tplContinued.cloneNode(true);
+                    contTest.removeAttribute('id');
+                    currentSheet.footerSlot.appendChild(contTest);
+
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
+                        // Overflow! Move row to next sheet
+                        currentSheet.tbody.removeChild(row);
+
+                        currentSheet = createSheet();
+                        sheets.push(currentSheet);
+
+                        currentSheet.tbody.appendChild(row);
+                    }
+                }
+            }
+
+            // Finalize sheets footer & page numbers
+            const totalPages = sheets.length;
+            sheets.forEach((s, i) => {
+                const pageNum = i + 1;
+                const isLast = (pageNum === totalPages);
+
+                s.footerSlot.innerHTML = '';
+                if (!isLast) {
+                    const cont = tplContinued.cloneNode(true);
+                    cont.removeAttribute('id');
+                    const nextNum = cont.querySelector('.next-page-num');
+                    if (nextNum) nextNum.innerText = (pageNum + 1);
+                    s.footerSlot.appendChild(cont);
+                } else {
+                    const summaryClone = tplSummary.cloneNode(true);
+                    summaryClone.removeAttribute('id');
+                    const signClone = tplSign.cloneNode(true);
+                    signClone.removeAttribute('id');
+                    s.footerSlot.appendChild(summaryClone);
+                    s.footerSlot.appendChild(signClone);
+                }
+
+                s.sheet.querySelectorAll('.page-counter').forEach(el => {
+                    el.innerText = `Hal : ${pageNum} / ${totalPages}`;
+                });
+            });
+
+            // Re-index all rows globally 1..N
+            let globalRow = 1;
+            document.querySelectorAll('#print-container tbody tr').forEach(tr => {
+                const cell = tr.querySelector('.row-no');
+                if (cell) cell.innerText = globalRow++;
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runResponsivePagination);
+        } else {
+            runResponsivePagination();
+        }
+
         let currentZoom = 1.0;
         function adjustZoom(delta) {
             currentZoom = Math.min(Math.max(currentZoom + delta, 0.5), 2.0);
-            const target = document.querySelector('.sheet') || document.body;
-            target.style.transform = `scale(${currentZoom})`;
-            target.style.transformOrigin = "top center";
+            document.querySelectorAll('.sheet').forEach(target => {
+                target.style.transform = `scale(${currentZoom})`;
+                target.style.transformOrigin = "top center";
+            });
             document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
         }
     </script>
