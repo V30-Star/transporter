@@ -311,13 +311,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="title-section">
+                <div style="min-width: 260px;">
                     <div class="title-so">Pemakaian Barang</div>
                     <div class="so-no" style="font-size: 14px;">No. {{ $hdr->fstockmtno ?? '-' }}</div>
-                    <table class="info-table">
+                    <table class="info-table" style="width: 100%;">
                         <tr>
-                            <td class="info-label">Tanggal</td>
-                            <td>:</td>
+                            <td style="width: 75px;">Tanggal</td>
+                            <td style="width: 10px;">:</td>
                             <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                         </tr>
                     </table>
