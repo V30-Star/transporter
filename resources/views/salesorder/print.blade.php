@@ -431,13 +431,13 @@
                     <div style="width: 160px; min-width: 140px;">
                         <div style="font-size: 11px;">Dibuat Oleh {{ strtoupper(sysuser_name($hdr->fusercreate ?? '') ?: ($hdr->fusercreate ?? '-')) }},</div>
                         <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( {{ strtoupper($namattdfakturpenjualan ?: ($namattdpo ?: '-')) }} )
+                            ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                         </div>
                     </div>
                     <div style="width: 160px; min-width: 140px;">
                         <div style="font-size: 11px;">Disetujui,</div>
                         <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( {{ strtoupper($hdr->fuserapproved ?? '-') }} )
+                            ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
                     </div>
                 </div>
