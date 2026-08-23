@@ -482,11 +482,12 @@
                                     data-skip-auto-detail-style="true">
                                     <colgroup>
                                         <col style="width:2%;">
-                                        <col style="width:15%;">
-                                        <col style="width:35%;">
+                                        <col style="width:14%;">
+                                        <col style="width:28%;">
+                                        <col style="width:16%;">
+                                        <col style="width:8%;">
+                                        <col style="width:12%;">
                                         <col style="width:20%;">
-                                        <col style="width:13%;">
-                                        <col style="width:15%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -496,6 +497,7 @@
                                             <th class="p-2 text-left">No.Ref</th>
                                             <th class="p-2 text-left w-24">Sat</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-left w-48">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -525,6 +527,9 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatQtyValue(it.fqty)"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fketdt || '-'"></div>
                                                 </td>
                                                 <td class="hidden">
                                                     <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
@@ -803,13 +808,14 @@
                                                 data-skip-auto-detail-style="true">
                                                 <colgroup>
                                                     <col style="width:2%;">
+                                                    <col style="width:14%;">
+                                                    <col style="width:{{ $action === 'view' ? '30%' : '24%' }};">
                                                     <col style="width:15%;">
-                                                    <col style="width:{{ $action === 'view' ? '40%' : '30%' }};">
-                                                    <col style="width:18%;">
-                                                    <col style="width:10%;">
-                                                    <col style="width:15%;">
+                                                    <col style="width:8%;">
+                                                    <col style="width:12%;">
+                                                    <col style="width:{{ $action === 'view' ? '19%' : '17%' }};">
                                                     @if ($action !== 'view')
-                                                        <col style="width:10%;">
+                                                        <col style="width:6%;">
                                                     @endif
                                                 </colgroup>
                                                 <thead class="bg-gray-100">
@@ -820,8 +826,9 @@
                                                         <th class="p-2 text-left">No.Ref</th>
                                                         <th class="p-2 text-right w-24">Sat</th>
                                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                                        <th class="p-2 text-left w-48">Keterangan</th>
                                                         @if ($action !== 'view')
-                                                            <th class="p-2 text-center w-36">Aksi</th>
+                                                             <th class="p-2 text-center w-36">Aksi</th>
                                                         @endif
                                                     </tr>
                                                 </thead>
@@ -884,6 +891,13 @@
                                                             <span x-show="it.fitemcode"
                                                                 x-html="formatStockLimit(it)"></span>
                                                         </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                            :id="'ketdt_row_' + i" x-model="it.fketdt"
+                                                            @input="onRowUpdated(i)"
+                                                            placeholder="Keterangan...">
                                                     </td>
                                                     @if ($action !== 'view')
                                                         <td class="p-2 text-center text-xs">

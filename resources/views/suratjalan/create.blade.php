@@ -478,12 +478,13 @@
                                 data-skip-auto-detail-style="true">
                                 <colgroup>
                                     <col style="width:2%;">
+                                    <col style="width:14%;">
+                                    <col style="width:25%;">
                                     <col style="width:15%;">
-                                    <col style="width:30%;">
+                                    <col style="width:8%;">
+                                    <col style="width:12%;">
                                     <col style="width:18%;">
-                                    <col style="width:10%;">
-                                    <col style="width:15%;">
-                                    <col style="width:10%;">
+                                    <col style="width:6%;">
                                 </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
@@ -493,6 +494,7 @@
                                         <th class="p-2 text-left">No. Ref</th>
                                         <th class="p-2 text-right w-24">Sat</th>
                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-left w-48">Keterangan</th>
                                         <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
@@ -535,7 +537,7 @@
                                                         x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
                                                         @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in it.units" :key="u">
-                                                            <option :value="u" :selected="u === it.fsatuan"
+                                                             <option :value="u" :selected="u === it.fsatuan"
                                                                 x-text="u"></option>
                                                         </template>
                                                     </select>
@@ -553,6 +555,13 @@
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                     <span x-show="it.fitemcode" x-html="formatStockLimit(it)"></span>
                                                 </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                    :id="'ketdt_row_' + i" x-model="it.fketdt"
+                                                    @input="onRowUpdated(i)"
+                                                    placeholder="Keterangan...">
                                             </td>
                                             <td class="p-2 text-center text-xs">
                                                 <button type="button" @click="removeSaved(i)"

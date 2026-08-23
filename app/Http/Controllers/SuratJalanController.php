@@ -507,6 +507,7 @@ class SuratJalanController extends Controller
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.fdesc',
+                'trstockdt.fketdt',
                 'trstockdt.fnoacak',
                 'trstockdt.ftotprice as ftotal'
             )
@@ -796,6 +797,8 @@ class SuratJalanController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'fdiscpersen' => ['nullable', 'array'],
                 'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fketdt' => ['nullable', 'array'],
+                'fketdt.*' => ['nullable', 'string', 'max:500'],
                 'fnoacak' => ['nullable', 'array'],
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
@@ -858,6 +861,7 @@ class SuratJalanController extends Controller
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
         $fdiscpersens = $request->input('fdiscpersen', []);
+        $fketdts = $request->input('fketdt', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -962,7 +966,7 @@ class SuratJalanController extends Controller
                 'ftotprice_rp' => $amount * $frate,
                 'fusercreate' => Auth::user()->fname ?? 'system',
                 'fdatetime' => $now,
-                'fketdt' => '',
+                'fketdt' => trim((string) ($fketdts[$i] ?? '')),
                 'fcode' => $this->resolveSuratJalanFcode(['frefso' => $frefso[$i] ?? null]),
                 'frefso' => $frefso[$i] ?? null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1471,6 +1475,8 @@ class SuratJalanController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'fdiscpersen' => ['nullable', 'array'],
                 'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fketdt' => ['nullable', 'array'],
+                'fketdt.*' => ['nullable', 'string', 'max:500'],
                 'fnoacak' => ['nullable', 'array'],
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
@@ -1535,6 +1541,7 @@ class SuratJalanController extends Controller
             $descs = $request->input('fdesc', []);
             $frefso = $request->input('frefso', []);
             $fdiscpersens = $request->input('fdiscpersen', []);
+            $fketdts = $request->input('fketdt', []);
             $fnoacaks = $request->input('fnoacak', []);
             $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -1640,7 +1647,7 @@ class SuratJalanController extends Controller
                     'fusercreate' => $header->fusercreate,
                     'fuserupdate' => $userName,
                     'fdatetime' => $now,
-                    'fketdt' => '',
+                    'fketdt' => trim((string) ($fketdts[$i] ?? '')),
                     'fcode' => $this->resolveSuratJalanFcode([
                         'frefso' => $frefso[$i] ?? null,
                     ]),
