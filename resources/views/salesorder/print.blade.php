@@ -450,7 +450,8 @@
 
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
-            <div style="margin-top: 15px; text-align: right; font-style: italic; font-weight: bold; font-size: 11px;">
+            <div class="footer-line"></div>
+            <div style="margin-top: 8px; text-align: right; font-style: italic; font-weight: bold; font-size: 11px;">
                 Bersambung ke halaman <span class="next-page-num">2</span>
             </div>
             <div class="sign-container" style="margin-top: 20px;">
