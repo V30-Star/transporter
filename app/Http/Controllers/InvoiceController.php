@@ -291,7 +291,7 @@ class InvoiceController extends Controller
 
     private function ensureNoDuplicateDetailCodes(array $codes, array $detailPayload = []): void
     {
-        $seenCodes = [];
+        $seenKeys = [];
         $seenSignatures = [];
         $duplicates = [];
 
@@ -315,12 +315,15 @@ class InvoiceController extends Controller
 
             $seenSignatures[$rowSignature] = true;
 
-            if (isset($seenCodes[$code])) {
+            $noAcak = trim((string) ($detailPayload['fnoacak'][$index] ?? ''));
+            $key = $code . '|' . $noAcak;
+
+            if (isset($seenKeys[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seenCodes[$code] = true;
+            $seenKeys[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -329,7 +332,7 @@ class InvoiceController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Faktur Penjualan.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Penjualan.";
         }
 
         throw ValidationException::withMessages($messages);

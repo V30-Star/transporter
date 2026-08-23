@@ -1600,7 +1600,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: 'Produk Duplikat',
-                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Faktur Penjualan.`,
+                text: `Kode produk ${duplicateCode} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Penjualan.`,
                 confirmButtonText: 'OK',
                 customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
             });
@@ -1630,10 +1630,12 @@
             for (const row of rows) {
                 const code = (row?.fitemcode || '').toString().trim().toUpperCase();
                 if (!code) continue;
-                if (seen.has(code)) {
+                const noAcak = (row?.fnoacak || '').toString().trim();
+                const key = `${code}|${noAcak}`;
+                if (seen.has(key)) {
                     return code;
                 }
-                seen.add(code);
+                seen.add(key);
             }
             return '';
         }
@@ -1642,10 +1644,12 @@
         for (const input of inputs) {
             const code = (input.value || '').toString().trim().toUpperCase();
             if (!code) continue;
-            if (seen.has(code)) {
+            const noAcak = form.querySelector(`[name="fnoacak[${input.name.match(/\[(\d+)\]/)?.[1] ?? ''}]"]`)?.value?.trim() || '';
+            const key = `${code}|${noAcak}`;
+            if (seen.has(key)) {
                 return code;
             }
-            seen.add(code);
+            seen.add(key);
         }
 
         return '';

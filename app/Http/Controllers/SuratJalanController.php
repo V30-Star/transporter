@@ -102,7 +102,7 @@ class SuratJalanController extends Controller
         return str_replace('/', '.', $normalized);
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes, array $refs = [], array $qtys = []): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $refs = [], array $qtys = [], array $noAcaks = []): void
     {
         $seen = [];
         $duplicates = [];
@@ -123,7 +123,8 @@ class SuratJalanController extends Controller
             }
 
             $ref = strtoupper(trim((string) ($refs[$index] ?? '')));
-            $key = $code . '|' . $ref;
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
+            $key = $code . '|' . $ref . '|' . $noAcak;
 
             if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
@@ -139,7 +140,7 @@ class SuratJalanController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Surat Jalan.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Surat Jalan.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -821,7 +822,8 @@ class SuratJalanController extends Controller
         $this->ensureNoDuplicateDetailCodes(
             $request->input('fitemcode', []),
             $request->input('frefdtno', []),
-            $request->input('fqty', [])
+            $request->input('fqty', []),
+            $request->input('fnoacak', [])
         );
 
         // =========================
@@ -1483,7 +1485,8 @@ class SuratJalanController extends Controller
             $this->ensureNoDuplicateDetailCodes(
                 $request->input('fitemcode', []),
                 $request->input('frefdtno', []),
-                $request->input('fqty', [])
+                $request->input('fqty', []),
+                $request->input('fnoacak', [])
             );
 
             // =========================

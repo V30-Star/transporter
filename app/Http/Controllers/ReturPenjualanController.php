@@ -115,7 +115,8 @@ class ReturPenjualanController extends Controller
         array $referenceCodes = [],
         array $referenceSo = [],
         array $referenceSrj = [],
-        array $referenceNoAcak = []
+        array $referenceNoAcak = [],
+        array $noAcaks = []
     ): void
     {
         $seen = [];
@@ -131,11 +132,12 @@ class ReturPenjualanController extends Controller
             $refSo = strtoupper(trim((string) ($referenceSo[$index] ?? '')));
             $refSrj = strtoupper(trim((string) ($referenceSrj[$index] ?? '')));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($referenceNoAcak[$index] ?? null);
+            $noAcak = trim((string) ($noAcaks[$index] ?? ''));
 
             $hasReference = $refCode !== '' || $refSo !== '' || $refSrj !== '' || $refNoAcak !== '';
             $key = $hasReference
-                ? implode('|', [$code, $refCode, $refSo, $refSrj, $refNoAcak])
-                : $code;
+                ? implode('|', [$code, $refCode, $refSo, $refSrj, $refNoAcak, $noAcak])
+                : $code . '|' . $noAcak;
 
             if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
@@ -151,7 +153,7 @@ class ReturPenjualanController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Retur Penjualan.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Retur Penjualan.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -1542,7 +1544,8 @@ class ReturPenjualanController extends Controller
             $frefcodes,
             $frefso,
             $frefsrj,
-            $frefnoacaks
+            $frefnoacaks,
+            $fnoacaks
         );
 
         if ($umPriceValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
@@ -2898,7 +2901,8 @@ class ReturPenjualanController extends Controller
             $frefcodes,
             $frefso,
             $frefsrj,
-            $frefnoacaks
+            $frefnoacaks,
+            $fnoacaks
         );
 
         if ($umPriceValidation = $this->validateAdvancePaymentPriceAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $prices, (string) $request->input('fcustno'))) {
