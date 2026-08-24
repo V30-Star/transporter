@@ -22,7 +22,7 @@
                             <select name="cust_from" id="cust_from" class="w-full border rounded-lg px-3 py-2 text-sm select2">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomername }} ({{ $c->fcustomercode }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -31,7 +31,7 @@
                             <select name="cust_to" id="cust_to" class="w-full border rounded-lg px-3 py-2 text-sm select2">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomername }} ({{ $c->fcustomercode }})</option>
                                 @endforeach
                             </select>
                         </div>

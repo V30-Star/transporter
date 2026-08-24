@@ -73,7 +73,7 @@
                                 <select name="sup_from" class="select2 w-full">
                                     <option value="">-- All --</option>
                                     @foreach ($suppliers as $s)
-                                        <option value="{{ $s->fsuppliercode }}">{{ $s->fsuppliercode }}</option>
+                                        <option value="{{ $s->fsuppliercode }}">{{ $s->fsuppliername }} ({{ $s->fsuppliercode }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -82,7 +82,7 @@
                                 <select name="sup_to" class="select2 w-full">
                                     <option value="">-- All --</option>
                                     @foreach ($suppliers as $s)
-                                        <option value="{{ $s->fsuppliercode }}">{{ $s->fsuppliercode }}</option>
+                                        <option value="{{ $s->fsuppliercode }}">{{ $s->fsuppliername }} ({{ $s->fsuppliercode }})</option>
                                     @endforeach
                                 </select>
                             </div>
