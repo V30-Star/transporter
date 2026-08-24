@@ -350,7 +350,7 @@
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>{{ $productDisplayName }}</td>
                         <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
-                        <td>{{ $r->fdesc ?: ($r->fket ?: '-') }}</td>
+                        <td>{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>
