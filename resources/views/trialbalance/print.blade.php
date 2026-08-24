@@ -132,7 +132,7 @@
         }
 
         .tb-row:hover {
-            background-color: #f8fafc;
+            background-color: transparent;
         }
 
         .tb-total-row {
@@ -146,10 +146,10 @@
 
         .tb-footer-row {
             font-weight: bold;
-            border-top: 1px dashed #64748b;
-            border-bottom: 1px dashed #64748b;
-            background-color: #f8fafc;
-            color: #0f172a;
+            border-top: 1px dashed #000000;
+            border-bottom: 1px dashed #000000;
+            background-color: transparent;
+            color: #000000;
             margin-top: 4px;
             padding: 4px 6px;
         }

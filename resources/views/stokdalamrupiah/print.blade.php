@@ -129,33 +129,32 @@
         .stock-group-row {
             display: block;
             font-weight: bold;
-            background-color: #f1f5f9;
-            color: #1e293b;
-            padding: 4px 6px;
+            background-color: transparent;
+            color: #000000;
+            padding: 4px 4px;
             margin-top: 6px;
             margin-bottom: 2px;
-            border-left: 3px solid #3b82f6;
             text-transform: uppercase;
         }
 
         .stock-row {
             background-color: transparent;
             color: #0f172a;
-            border-bottom: 1px dotted #f1f5f9;
+            border-bottom: 1px dotted #e2e8f0;
         }
 
         .stock-row:hover {
-            background-color: #f8fafc;
+            background-color: transparent;
         }
 
         .stock-subtotal-row {
             font-weight: bold;
-            border-top: 1px solid #94a3b8;
-            border-bottom: 1px solid #94a3b8;
-            color: #0f172a;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            color: #000000;
             margin-top: 2px;
             margin-bottom: 6px;
-            background-color: #fafafa;
+            background-color: transparent;
         }
 
         .stock-grandtotal-row {
@@ -165,7 +164,7 @@
             color: #000000;
             margin-top: 10px;
             margin-bottom: 8px;
-            background-color: #f8fafc;
+            background-color: transparent;
         }
 
         .stock-row > div:nth-child(5),
