@@ -419,7 +419,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {{-- Kirim ke --}}
                         <div x-data="{
                             tab: 1,
@@ -492,17 +492,17 @@
                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
 
-                    {{-- Catatan Internal --}}
-                    <div>
-                        <label class="block text-xs font-bold mb-1">Catatan Internal</label>
-                        <textarea name="fketinternal" rows="2"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
-                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
-                        @error('fketinternal')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                        {{-- Catatan Internal --}}
+                        <div class="flex flex-col">
+                            <label class="block text-xs font-bold mb-1">Catatan Internal</label>
+                            <textarea name="fketinternal"
+                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px] @error('fketinternal') border-red-400 @enderror"
+                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
+                            @error('fketinternal')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
             </div>

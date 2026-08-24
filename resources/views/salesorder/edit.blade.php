@@ -427,92 +427,93 @@
                                 </div>
 
                                 {{-- Address and Notes section --}}
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <div x-data="{
-                                            tab: 1,
-                                            addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
-                                            addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
-                                            addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
-                                        
-                                            updateFinal() {
-                                                let val = '';
-                                                if (this.tab === 1) val = this.addr1;
-                                                else if (this.tab === 2) val = this.addr2;
-                                                else if (this.tab === 3) val = this.addr3;
-                                        
-                                                const el = document.getElementById('falamatkirim_final');
-                                                if (el) el.value = val;
-                                            }
-                                        }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
-                                        if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
-                                        updateFinal();"
-                                            class="flex flex-col gap-2">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    {{-- Kirim ke --}}
+                                    <div x-data="{
+                                        tab: 1,
+                                        addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
+                                        addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
+                                        addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
+                                    
+                                        updateFinal() {
+                                            let val = '';
+                                            if (this.tab === 1) val = this.addr1;
+                                            else if (this.tab === 2) val = this.addr2;
+                                            else if (this.tab === 3) val = this.addr3;
+                                    
+                                            const el = document.getElementById('falamatkirim_final');
+                                            if (el) el.value = val;
+                                        }
+                                    }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
+                                    if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
+                                    updateFinal();"
+                                        class="flex flex-col gap-2">
 
-                                            <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                                value="{{ old('falamatkirim') }}">
+                                        <input type="hidden" name="falamatkirim" id="falamatkirim_final"
+                                            value="{{ old('falamatkirim') }}">
 
-                                            <div class="flex items-center gap-2">
-                                                <label class="text-xs font-bold mr-2">Kirim ke :</label>
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-xs font-bold mr-2">Kirim ke :</label>
 
-                                                <div class="inline-flex rounded-md shadow-sm" role="group">
-                                                    <button type="button" @click="tab = 1" disabled
-                                                        :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-3 py-1 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                        Alamat 1
-                                                    </button>
-                                                    <button type="button" @click="tab = 2" disabled
-                                                        :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                        Alamat 2
-                                                    </button>
-                                                    <button type="button" @click="tab = 3" disabled
-                                                        :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                        Alamat 3
-                                                    </button>
-                                                </div>
+                                            <div class="inline-flex rounded-md shadow-sm" role="group">
+                                                <button type="button" @click="tab = 1" disabled
+                                                    :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                        'bg-white text-gray-700 hover:bg-gray-50'"
+                                                    class="px-3 py-1 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                    Alamat 1
+                                                </button>
+                                                <button type="button" @click="tab = 2" disabled
+                                                    :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                        'bg-white text-gray-700 hover:bg-gray-50'"
+                                                    class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                    Alamat 2
+                                                </button>
+                                                <button type="button" @click="tab = 3" disabled
+                                                    :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                        'bg-white text-gray-700 hover:bg-gray-50'"
+                                                    class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                    Alamat 3
+                                                </button>
                                             </div>
+                                        </div>
 
-                                            <div class="w-full">
-                                                <textarea x-show="tab === 1" x-model="addr1" readonly
-                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
-                                                    placeholder="Isi Alamat 1..."></textarea>
+                                        <div class="w-full">
+                                            <textarea x-show="tab === 1" x-model="addr1" readonly
+                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                placeholder="Isi Alamat 1..."></textarea>
 
-                                                <textarea x-show="tab === 2" x-model="addr2" readonly
-                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
-                                                    placeholder="Isi Alamat 2..."></textarea>
+                                            <textarea x-show="tab === 2" x-model="addr2" readonly
+                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                placeholder="Isi Alamat 2..."></textarea>
 
-                                                <textarea x-show="tab === 3" x-model="addr3" readonly
-                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
-                                                    placeholder="Isi Alamat 3..."></textarea>
-                                            </div>
+                                            <textarea x-show="tab === 3" x-model="addr3" readonly
+                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                placeholder="Isi Alamat 3..."></textarea>
                                         </div>
                                     </div>
 
-                                        <div>
-                                            <label class="block text-xs font-bold mb-2">Catatan Internal</label>
-                                            <textarea readonly name="fketinternal"
-                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                            @error('fketinternal')
-                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                            @enderror
-                                        </div>
+                                    {{-- Keterangan --}}
+                                    <div class="flex flex-col">
+                                        <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                        <textarea readonly name="fket"
+                                            class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed flex-1 min-h-[72px] @error('fket') border-red-500 @enderror"
+                                            placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                        @error('fket')
+                                            <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
 
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                    <textarea readonly name="fket" rows="2"
-                                        class="w-full border border-gray-300 rounded-lg text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fket') border-red-500 @enderror"
-                                        placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
-                                    @enderror
+                                    {{-- Catatan Internal --}}
+                                    <div class="flex flex-col">
+                                        <label class="block text-xs font-bold mb-1">Catatan Internal</label>
+                                        <textarea readonly name="fketinternal"
+                                            class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed flex-1 min-h-[72px] @error('fketinternal') border-red-500 @enderror"
+                                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                        @error('fketinternal')
+                                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
                         </div>
                     </div>
 
@@ -1001,7 +1002,8 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {{-- Address and Notes section --}}
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         {{-- Kirim ke --}}
                                         <div x-data="{
                                             tab: 1,
@@ -1074,29 +1076,30 @@
                                             </div>
                                         </div>
 
+                                        {{-- Keterangan --}}
+                                        <div class="flex flex-col">
+                                            <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                            <textarea name="fket"
+                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px] @error('fket') border-red-400 @enderror"
+                                                placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                            @error('fket')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
                                         {{-- Catatan Internal --}}
                                         <div class="flex flex-col">
                                             <label class="block text-xs font-bold mb-1">Catatan Internal</label>
                                             <textarea name="fketinternal"
-                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px]"
+                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px] @error('fketinternal') border-red-400 @enderror"
                                                 placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
                                             @error('fketinternal')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
-
-                                    {{-- Keterangan --}}
-                                    <div>
-                                        <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                        <textarea name="fket" rows="2"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
-                                            placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                        @error('fket')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
                                 </div>
+                            </div>
 
                             <div x-data="itemsTable()" x-init="init()" class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
 
