@@ -294,6 +294,10 @@
                 @enderror
             </div>
 
+            @php
+                $defaultFrom = old('ffrom', $mutasi->ffrom ?? ($lastFrom ?? ''));
+                $defaultTo = old('fto', $mutasi->fto ?? ($lastTo ?? ''));
+            @endphp
             <!-- Field FROM - styled like Cabang (assembling) -->
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Gudang (Dari)</label>
@@ -306,7 +310,7 @@
                             @foreach (($fromWarehouses ?? $warehouses) as $wh)
                                 <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                     data-branch="{{ $wh->fbranchcode }}"
-                                    {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $defaultFrom == $wh->fwhcode ? 'selected' : '' }}>
                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                 </option>
                             @endforeach
@@ -319,7 +323,7 @@
 
                     <!-- Simpan fwhid di ffrom -->
                     <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                        value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
+                        value="{{ $defaultFrom }}">
 
                     <button type="button"
                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
@@ -352,7 +356,7 @@
                             @foreach ($warehouses as $wh)
                                 <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                     data-branch="{{ $wh->fbranchcode }}"
-                                    {{ old('fto', $mutasi->fto ?? '') == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $defaultTo == $wh->fwhcode ? 'selected' : '' }}>
                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                 </option>
                             @endforeach
@@ -365,7 +369,7 @@
 
                     <!-- Simpan fwhid di fto -->
                     <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
-                        value="{{ old('fto', $mutasi->fto ?? '') }}">
+                        value="{{ $defaultTo }}">
 
                     <button type="button"
                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))"

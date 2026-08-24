@@ -490,9 +490,18 @@ class AssemblingController extends Controller
             ->orderBy('fprdname')
             ->get();
 
+        $lastWarehouse = DB::table('trstockmt')
+            ->where('fstockmtcode', 'LHP')
+            ->when($fbranchcode, fn ($q) => $q->where('fbranchcode', $fbranchcode))
+            ->whereNotNull('ffrom')
+            ->where('ffrom', '!=', '')
+            ->latest('fstockmtid')
+            ->value('ffrom');
+
         return view('assembling.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
+            'lastWarehouse' => $lastWarehouse,
             'supplier' => $supplier,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,

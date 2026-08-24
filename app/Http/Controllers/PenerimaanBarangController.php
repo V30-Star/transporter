@@ -880,8 +880,17 @@ class PenerimaanBarangController extends Controller
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
 
+        $lastWarehouse = DB::table('trstockmt')
+            ->where('fstockmtcode', 'TER')
+            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
+            ->whereNotNull('ffrom')
+            ->where('ffrom', '!=', '')
+            ->latest('fstockmtid')
+            ->value('ffrom');
+
         return view('penerimaanbarang.create', [
             'warehouses' => $warehouses,
+            'lastWarehouse' => $lastWarehouse,
             'suppliers' => $suppliers,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,

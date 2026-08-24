@@ -595,10 +595,18 @@ class MutasiController extends Controller
             ->orderBy('fprdname')
             ->get();
 
+        $lastRecord = DB::table('trstockmt')
+            ->where('fstockmtcode', 'MUT')
+            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
+            ->latest('fstockmtid')
+            ->first(['ffrom', 'fto']);
+
         return view('mutasi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
             'fromWarehouses' => $fromWarehouses,
+            'lastFrom' => $lastRecord?->ffrom ?? null,
+            'lastTo' => $lastRecord?->fto ?? null,
             'accounts' => $accounts,
             'supplier' => $supplier,
             'fcabang' => $fcabang,

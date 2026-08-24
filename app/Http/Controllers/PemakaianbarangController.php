@@ -455,9 +455,18 @@ class PemakaianbarangController extends Controller
             ->orderBy('fprdname')
             ->get();
 
+        $lastWarehouse = DB::table('trstockmt')
+            ->where('fstockmtcode', 'PBR')
+            ->when($fbranchcode, fn ($q) => $q->where('fbranchcode', $fbranchcode))
+            ->whereNotNull('ffrom')
+            ->where('ffrom', '!=', '')
+            ->latest('fstockmtid')
+            ->value('ffrom');
+
         return view('pemakaianbarang.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
+            'lastWarehouse' => $lastWarehouse,
             'accounts' => $accounts,
             'subaccounts' => $subaccounts,
             'supplier' => $supplier,

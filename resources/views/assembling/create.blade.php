@@ -304,6 +304,9 @@
             @enderror
         </div>
 
+        @php
+            $defaultWarehouse = old('ffrom', $mutasi->ffrom ?? ($lastWarehouse ?? ''));
+        @endphp
         <!-- Field FROM - styled like Cabang -->
         <div class="lg:col-span-4">
             <label class="block text-xs font-bold mb-1">Gudang</label>
@@ -316,7 +319,7 @@
                         @foreach ($warehouses as $wh)
                             <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                 data-branch="{{ $wh->fbranchcode }}"
-                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
+                                {{ $defaultWarehouse == $wh->fwhcode ? 'selected' : '' }}>
                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                             </option>
                         @endforeach
@@ -329,7 +332,7 @@
 
                 <!-- Simpan fwhid di ffrom -->
                 <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                    value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
+                    value="{{ $defaultWarehouse }}">
 
                 <button type="button"
                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"

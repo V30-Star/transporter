@@ -1430,11 +1430,20 @@ class ReturPenjualanController extends Controller
 
         $productMap = $this->buildProductMap($products);
 
+        $lastWarehouse = DB::table('trstockmt')
+            ->where('fstockmtcode', 'REJ')
+            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
+            ->whereNotNull('ffrom')
+            ->where('ffrom', '!=', '')
+            ->latest('fstockmtid')
+            ->value('ffrom');
+
         return view('returpenjualan.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'customers' => $customers,
             'salesmans' => $salesmans,
             'warehouses' => $warehouses,
+            'lastWarehouse' => $lastWarehouse,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,

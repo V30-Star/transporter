@@ -377,6 +377,9 @@
                         </div>
 
                         {{-- Gudang --}}
+                        @php
+                            $defaultWarehouse = old('ffrom', $lastWarehouse ?? '');
+                        @endphp
                         <div>
                             <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                             <div class="flex">
@@ -388,7 +391,7 @@
                                         @foreach ($warehouses as $wh)
                                             <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ $defaultWarehouse == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -397,9 +400,9 @@
                                         @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                                    value="{{ old('ffrom') }}">
+                                    value="{{ $defaultWarehouse }}">
                                 <input type="hidden" name="fwhid" id="warehouseIdHidden"
-                                    value="{{ old('fwhid') }}">
+                                    value="{{ old('fwhid', $warehouses->firstWhere('fwhcode', $defaultWarehouse)?->fwhid ?? '') }}">
                                 <button type="button"
                                     @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"

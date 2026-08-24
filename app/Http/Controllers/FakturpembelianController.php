@@ -1462,9 +1462,18 @@ class FakturpembelianController extends Controller
 
         $products = $this->browseProducts();
 
+        $lastWarehouse = DB::table('trstockmt')
+            ->where('fstockmtcode', 'BUY')
+            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
+            ->whereNotNull('ffrom')
+            ->where('ffrom', '!=', '')
+            ->latest('fstockmtid')
+            ->value('ffrom');
+
         return view('fakturpembelian.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
+            'lastWarehouse' => $lastWarehouse,
             'accounts' => $accounts,
             'suppliers' => $suppliers,
             'fcabang' => $fcabang,

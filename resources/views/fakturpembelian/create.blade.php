@@ -427,6 +427,9 @@
                                     </div>
                                 </div>
 
+                                @php
+                                    $defaultWarehouse = old('ffrom', $lastWarehouse ?? '');
+                                @endphp
                                 {{-- Gudang --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
@@ -439,7 +442,7 @@
                                                 @foreach ($warehouses as $wh)
                                                     <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                         data-branch="{{ $wh->fbranchcode }}"
-                                                        {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                        {{ $defaultWarehouse == $wh->fwhcode ? 'selected' : '' }}>
                                                         {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                     </option>
                                                 @endforeach
@@ -447,7 +450,7 @@
                                             <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse warehouse"
                                                 @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"></div>
                                         </div>
-                                        <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
+                                        <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ $defaultWarehouse }}">
                                         <button type="button" @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"
                                             class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                             title="Browse Gudang">

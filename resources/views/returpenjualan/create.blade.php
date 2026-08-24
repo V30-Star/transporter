@@ -309,7 +309,7 @@
                             $currentSodate = old('fsodate', session('last_header.fsodate', date('Y-m-d')));
                             $currentCustNo = old('fcustno', session('last_header.fcustno', $filterSupplierId));
                             $currentSalesman = old('fsalesman', session('last_header.fsalesman', $filterSalesmanId ?: '0'));
-                            $currentWarehouse = old('ffrom', session('last_header.ffrom', ''));
+                            $currentWarehouse = old('ffrom', session('last_header.ffrom', $lastWarehouse ?? ''));
                             $currentKet = old('fket', session('last_header.fket', ''));
                         @endphp
 
