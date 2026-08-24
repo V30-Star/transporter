@@ -592,7 +592,7 @@ class ReturPembelianController extends Controller
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => company_setting()->fcity ?? config('app.company_city', 'Tangerang'),
         ]);
     }
 
