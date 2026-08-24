@@ -69,7 +69,7 @@
                             render: function(data, type, row) {
                                 const code = (data || '').toString().trim();
                                 const name = (row.fsuppliername || '').toString().trim();
-                                if (code && name) return `${code} - ${name}`;
+                                if (code && name) return `${name} (${code})`;
                                 return code || name || '-';
                             }
                         },

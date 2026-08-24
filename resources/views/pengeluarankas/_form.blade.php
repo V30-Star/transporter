@@ -761,7 +761,7 @@
                             const code = (event.detail?.fcustomercode || '').toString().trim();
                             const name = (event.detail?.fcustomername || '').toString().trim();
                             this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
-                                code && name ? `${code} - ${name}` : code);
+                                code && name ? `${name} (${code})` : code);
                             this.validateActiveLookupRow(activeRow);
                         });
 
@@ -774,7 +774,7 @@
                             const code = (event.detail?.fsuppliercode || '').toString().trim();
                             const name = (event.detail?.fsuppliername || '').toString().trim();
                             this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
-                                code && name ? `${code} - ${name}` : code);
+                                code && name ? `${name} (${code})` : code);
                             this.validateActiveLookupRow(activeRow);
                         });
 
@@ -1158,7 +1158,7 @@
                             const name = (item.name || '').toString().trim();
                             if (!code) return;
                             const isSelected = code === currentValue;
-                            const text = name ? `${code} - ${name}` : code;
+                            const text = name ? `${name} (${code})` : code;
                             $select.append(new Option(text, code, isSelected, isSelected));
                         });
 

@@ -246,7 +246,7 @@
                     window.addEventListener('supplier-picked', (event) => {
                         const detail = event.detail || {};
                         const code = String(detail.fsuppliercode || '').trim();
-                        const label = code && detail.fsuppliername ? `${code} - ${detail.fsuppliername}` : code;
+                        const label = code && detail.fsuppliername ? `${detail.fsuppliername} (${code})` : code;
                         if (this.activeSupplierField === 'from') {
                             this.supplierFromCode = code;
                             this.supplierFromLabel = label;
