@@ -391,13 +391,32 @@
         {{-- Summary Template (Last Page) --}}
         <div id="tpl-summary">
             <div class="footer-line"></div>
-            <div style="overflow: hidden;">
-                <div class="terbilang-box">
-                    Terbilang : <br>
-                    # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
+                {{-- Kolom Kiri: Terbilang di atas, TTD di bawahnya --}}
+                <div style="width: 62%; display: flex; flex-direction: column;">
+                    <div class="terbilang-box" style="float: none; width: 100%; margin-top: 0;">
+                        Terbilang : <br>
+                        # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 40px; margin-top: 12px;">
+                        <div style="width: 160px; min-width: 140px; text-align: center;">
+                            <div style="font-size: 11px;">Dibuat Oleh,</div>
+                            <div style="margin-top: 45px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                                ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
+                            </div>
+                        </div>
+                        <div style="width: 160px; min-width: 140px; text-align: center;">
+                            <div style="font-size: 11px;">Disetujui,</div>
+                            <div style="margin-top: 45px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                                ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="summary-box">
+                {{-- Kolom Kanan: Summary Total & Metadata --}}
+                <div style="width: 35%;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
@@ -425,30 +444,10 @@
                             <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                </div>
-            </div>
-        </div>
 
-        {{-- Sign Template (Last Page) --}}
-        <div id="tpl-sign">
-            <div class="sign-container">
-                <div style="display: flex; align-items: flex-start; gap: 40px;">
-                    <div style="width: 160px; min-width: 140px; text-align: center;">
-                        <div style="font-size: 11px;">Dibuat Oleh,</div>
-                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
-                        </div>
+                    <div class="meta-right" style="margin-top: 8px;">
+                        <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                     </div>
-                    <div style="width: 160px; min-width: 140px; text-align: center;">
-                        <div style="font-size: 11px;">Disetujui,</div>
-                        <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
-                        </div>
-                    </div>
-                </div>
-
-                <div class="meta-right">
-                    <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
         </div>
@@ -474,7 +473,6 @@
             const tplHeader = document.getElementById('tpl-header');
             const tplThead = document.getElementById('tpl-thead');
             const tplSummary = document.getElementById('tpl-summary');
-            const tplSign = document.getElementById('tpl-sign');
             const tplContinued = document.getElementById('tpl-continued');
             const rawRows = Array.from(document.querySelectorAll('#raw-rows tr'));
 
@@ -525,15 +523,12 @@
                 const isLastItem = (idx === rawRows.length - 1);
 
                 if (isLastItem) {
-                    // Test if summary & sign also fit on this sheet
+                    // Test if summary fits on this sheet
                     currentSheet.footerSlot.innerHTML = '';
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
-                    const signClone = tplSign.cloneNode(true);
-                    signClone.removeAttribute('id');
 
                     currentSheet.footerSlot.appendChild(summaryClone);
-                    currentSheet.footerSlot.appendChild(signClone);
 
                     if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
                         // Move row and summary to next sheet
@@ -551,7 +546,6 @@
 
                         currentSheet.tbody.appendChild(row);
                         currentSheet.footerSlot.appendChild(summaryClone);
-                        currentSheet.footerSlot.appendChild(signClone);
                     }
                 } else {
                     // Test with continuation footer
@@ -588,10 +582,7 @@
                 } else {
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
-                    const signClone = tplSign.cloneNode(true);
-                    signClone.removeAttribute('id');
                     s.footerSlot.appendChild(summaryClone);
-                    s.footerSlot.appendChild(signClone);
                 }
 
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
