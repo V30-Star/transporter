@@ -78,21 +78,15 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between mt-6 pt-4 border-t">
-                    <button type="button" onclick="exportToExcel()"
-                        class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 shadow-sm">
-                        <i class="fa-solid fa-file-excel"></i> Export Excel
+                <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+                    <button type="button" onclick="window.location.href='{{ route('dashboard') }}'"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition">
+                        Keluar
                     </button>
-                    <div class="flex space-x-2">
-                        <button type="button" onclick="window.location.href='{{ route('dashboard') }}'"
-                            class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition">
-                            Keluar
-                        </button>
-                        <button type="submit"
-                            class="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
-                            <i class="fa-solid fa-print"></i> Preview / Cetak
-                        </button>
-                    </div>
+                    <button type="submit"
+                        class="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Preview / Cetak
+                    </button>
                 </div>
             </form>
         </div>
@@ -108,25 +102,5 @@
                 allowClear: true
             });
         });
-
-        function exportToExcel() {
-            const form = document.getElementById('trialBalanceForm');
-            const periodFrom = document.getElementById('period_from').value.trim();
-            const periodTo = document.getElementById('period_to').value.trim();
-
-            if (!periodFrom || !periodTo) {
-                alert('Periode Dari dan Periode Sampai wajib diisi.');
-                return;
-            }
-
-            const params = new URLSearchParams({
-                period_from: periodFrom,
-                period_to: periodTo,
-                account_from: $('#account_from').val() || '',
-                account_to: $('#account_to').val() || ''
-            });
-
-            window.location.href = "{{ route('trialbalance.excel') }}?" + params.toString();
-        }
     </script>
 @endsection
