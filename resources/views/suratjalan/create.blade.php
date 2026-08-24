@@ -347,7 +347,7 @@
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomercode }}"
-                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ (!session()->has('success') && $filterSupplierId == $customer->fcustomercode) ? 'selected' : '' }}>
                                                 {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
@@ -356,7 +356,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsupplier" id="customerCodeHidden"
-                                    value="{{ old('fsupplier') }}">
+                                    value="{{ session()->has('success') ? '' : old('fsupplier') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                     class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
@@ -1838,6 +1838,33 @@
         });
     });
 </script>
+
+@if (session()->has('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            localStorage.removeItem('transaction-form-draft:suratjalan:create');
+        } catch (e) {}
+
+        const customerSelect = document.getElementById('modal_filter_customer_id');
+        const customerHidden = document.getElementById('customerCodeHidden');
+        if (customerSelect) {
+            customerSelect.value = '';
+            Array.from(customerSelect.options).forEach(opt => opt.selected = (opt.value === ''));
+            customerSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (customerHidden) {
+            customerHidden.value = '';
+            customerHidden.dispatchEvent(new Event('input', { bubbles: true }));
+            customerHidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const shippingAddressInput = document.querySelector('textarea[name="fkirim"]');
+        if (shippingAddressInput) {
+            shippingAddressInput.value = '';
+        }
+    });
+</script>
+@endif
 
 @include('components.transaction.browse-product-script', [
     'showControls' => true,
