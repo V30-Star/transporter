@@ -519,7 +519,7 @@
                                                   @foreach ($supplierOptions as $supp)
                                                       <option value="{{ $supp->fsuppliercode }}"
                                                           {{ $detailSubaccountCode === (string) $supp->fsuppliercode ? 'selected' : '' }}>
-                                                          {{ $supp->fsuppliercode }} - {{ $supp->fsuppliername }}
+                                                          {{ $supp->fsuppliername }} ({{ $supp->fsuppliercode }})
                                                       </option>
                                                   @endforeach
                                               @else

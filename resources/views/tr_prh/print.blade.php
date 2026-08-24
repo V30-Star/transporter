@@ -271,7 +271,7 @@
                     <div class="customer-container">
                         <span class="customer-label">Supplier</span>
                         <div style="font-weight: bold;">
-                            {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->supplier_name ?? ''), ' -') ?: '-' }}
+                            {{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}
                         </div>
                         <div style="font-size: 11px;">
                             Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}

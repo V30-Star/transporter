@@ -281,10 +281,10 @@
                     @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
                     @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
                     <div class="customer-container">
-                        <span class="customer-label">Customer</span>
-                        <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
+                        <span class="customer-label">Supplier</span>
+                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: 'PT. DWIBROS MULTI ENERGI') }}</div>
                         <div style="font-size: 11px; width: 350px;">
-                            {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                            {{ $hdr->supplier_address ?? ($hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT') }}
                         </div>
                     </div>
                 </div>

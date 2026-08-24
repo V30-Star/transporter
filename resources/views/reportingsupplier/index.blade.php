@@ -26,7 +26,7 @@
                                 <option value="">-- Pilih Supplier Awal --</option>
                                 @foreach ($suppliers as $sup)
                                     <option value="{{ $sup->fsuppliercode }}">
-                                        {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                        {{ $sup->fsuppliername }} ({{ $sup->fsuppliercode }})
                                     </option>
                                 @endforeach
                             </select>
@@ -40,7 +40,7 @@
                                 <option value="">-- Pilih Supplier Akhir --</option>
                                 @foreach ($suppliers as $sup)
                                     <option value="{{ $sup->fsuppliercode }}">
-                                        {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                        {{ $sup->fsuppliername }} ({{ $sup->fsuppliercode }})
                                     </option>
                                 @endforeach
                             </select>

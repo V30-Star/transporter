@@ -89,7 +89,7 @@
                             <select name="supplier_from" class="select2 w-full">
                                 <option value="">-- Awal --</option>
                                 @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->fsuppliercode }}">{{ $supplier->fsuppliercode }} - {{ $supplier->fsuppliername }}</option>
+                                    <option value="{{ $supplier->fsuppliercode }}">{{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -98,7 +98,7 @@
                             <select name="supplier_to" class="select2 w-full">
                                 <option value="">-- Akhir --</option>
                                 @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->fsuppliercode }}">{{ $supplier->fsuppliercode }} - {{ $supplier->fsuppliername }}</option>
+                                    <option value="{{ $supplier->fsuppliercode }}">{{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})</option>
                                 @endforeach
                             </select>
                         </div>

@@ -160,8 +160,7 @@
                 <div class="p-6">
                     <p class="text-gray-700 mb-4">
                         Apakah Anda yakin ingin menghapus supplier <strong
-                            class="text-gray-900">{{ $supplier->fsuppliercode }} -
-                            {{ $supplier->fsuppliername }}</strong>?
+                            class="text-gray-900">{{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})</strong>?
                     </p>
                     <p class="text-sm text-red-600 mb-6">
                         Tindakan ini tidak dapat dibatalkan dan data akan dihapus secara permanen.
