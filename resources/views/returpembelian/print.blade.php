@@ -298,12 +298,12 @@
                 </div>
                 <div style="min-width: 260px;">
                     <div class="title-so">Retur Pembelian</div>
-                    <div class="so-no">No. {{ $hdr->freturmtno ?? '-' }}</div>
+                    <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
                     <table class="info-table" style="width: 100%;">
                         <tr>
                             <td style="width: 75px;">Tanggal</td>
                             <td style="width: 10px;">:</td>
-                            <td>{{ $fmt($hdr->freturmtdate) }}</td>
+                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                         </tr>
                     </table>
                 </div>
