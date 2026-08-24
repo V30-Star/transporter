@@ -908,6 +908,7 @@ class SalesOrderController extends Controller
         $cols = [
             'trsomt.*',
             'c.fcustomername as customer_name',
+            'c.faddress as customer_address',
             'b.fcabangname as cabang_name',
             's.fsalesmanname as salesman_name',
         ];

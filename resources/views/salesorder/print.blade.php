@@ -322,8 +322,8 @@
                         <div style="font-weight: bold;">
                             {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fcustno) ? ' (' . $hdr->fcustno . ')' : '') : ($hdr->fcustno ?: '-') }}
                         </div>
-                        <div style="font-size: 11px; margin-top: 2px;">
-                            {{ $hdr->customer_address ?? '-' }}
+                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
+                            {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
                     <div style="width: 290px;">

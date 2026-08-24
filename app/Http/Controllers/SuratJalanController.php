@@ -613,12 +613,14 @@ class SuratJalanController extends Controller
             ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', 'trstockmt.fsalesman')
             ->leftJoin('mssalesman as scust', 'scust.fsalesmancode', '=', 'cust.fsalesman')
-            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom');
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
+            ->leftJoin('trsomt as so', 'so.fsono', '=', 'trstockmt.frefpo');
 
         $cols = [
             'trstockmt.*',
             'cust.fcustomername as customer_name', // Ambil dari alias cust
             'cust.faddress as customer_address',   // Ambil alamat customer
+            'so.falamatkirim as falamatkirim',     // Ambil alamat kirim dari SO
             'cb.fcabangname as cabang_name',      // Ambil dari alias cb
             DB::raw('COALESCE(s.fsalesmanname, scust.fsalesmanname) as salesman_name'),
             'w.fwhname as fwhnamen',
