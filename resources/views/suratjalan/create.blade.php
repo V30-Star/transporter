@@ -397,14 +397,14 @@
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Gudang"
-                                        @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ $defaultWarehouse }}">
                                 <input type="hidden" name="fwhid" id="warehouseIdHidden"
                                     value="{{ old('fwhid', $warehouses->firstWhere('fwhcode', $defaultWarehouse)?->fwhid ?? '') }}">
                                 <button type="button"
-                                    @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
@@ -1666,7 +1666,6 @@
                     }
 
                     const json = await res.json();
-                    window.suratJalanWarehouseLockedFromSalesOrder = true;
                     window.applyTransactionCustomerSelection?.({
                         fcustomercode: json.header?.fcustno ?? '',
                         fcustomername: json.header?.fcustomername ?? '',
@@ -1776,7 +1775,6 @@
 
 <script>
     window.PRODUCT_MAP = @json($productMap ?? []);
-    window.suratJalanWarehouseLockedFromSalesOrder = false;
 </script>
 
 @include('components.transaction.browse-customer-script')
