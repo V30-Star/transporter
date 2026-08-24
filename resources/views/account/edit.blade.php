@@ -115,44 +115,47 @@
                         </svg>
                         <p class="text-xs font-bold uppercase tracking-wide text-gray-700">Konfigurasi</p>
                     </div>
-                    <div class="p-4 space-y-4">
+                    <div class="p-4 space-y-4" x-data="{ fend: '{{ old('fend', $account->fend) }}', fnormal: '{{ old('fnormal', $account->fnormal ?: 'D') }}' }">
 
                         {{-- Saldo Normal --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-800 mb-2">Saldo Normal</label>
-                            <div class="flex gap-2" x-data="{ val: '{{ old('fnormal', $account->fnormal ?: 'D') }}' }">
-                                <input type="hidden" name="fnormal" :value="val">
+                            <input type="hidden" name="fnormal" :value="fnormal">
+                            <div class="flex gap-2">
+                                <template x-if="{{ !empty($isUsedInTransaction) ? 'true' : 'false' }} || fend === '0'">
+                                    <div class="flex gap-2">
+                                        <button type="button" disabled
+                                            :class="fnormal === 'D' ?
+                                                'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
+                                                'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Debit</button>
 
-                                @if (!empty($isUsedInTransaction))
-                                    {{-- State TERKUNCI (Ada Transaksi) --}}
-                                    <button type="button" disabled
-                                        :class="val === 'D' ?
-                                            'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
-                                            'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
-                                        class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Debit</button>
+                                        <button type="button" disabled
+                                            :class="fnormal === 'K' ?
+                                                'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
+                                                'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
+                                    </div>
+                                </template>
+                                <template x-if="!({{ !empty($isUsedInTransaction) ? 'true' : 'false' }} || fend === '0')">
+                                    <div class="flex gap-2">
+                                        <button type="button" @click="fnormal='D'"
+                                            :class="fnormal === 'D' ?
+                                                'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
+                                                'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Debit</button>
 
-                                    <button type="button" disabled
-                                        :class="val === 'K' ?
-                                            'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
-                                            'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
-                                        class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
-                                @else
-                                    {{-- State NORMAL (Bisa Dipilih) --}}
-                                    <button type="button" @click="val='D'"
-                                        :class="val === 'D' ?
-                                            'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
-                                            'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
-                                        class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Debit</button>
-
-                                    <button type="button" @click="val='K'"
-                                        :class="val === 'K' ?
-                                            'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
-                                            'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
-                                        class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
-                                @endif
+                                        <button type="button" @click="fnormal='K'"
+                                            :class="fnormal === 'K' ?
+                                                'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
+                                                'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
+                                    </div>
+                                </template>
                             </div>
+                            <p x-show="fend === '0'" class="text-amber-600 text-xs mt-1 font-medium">Saldo normal tidak bisa diubah untuk Account Header.</p>
                             @if (!empty($isUsedInTransaction))
-                                <p class="text-amber-600 text-xs mt-1 font-medium">Saldo normal tidak bisa diubah karena account sudah dipakai transaksi.</p>
+                                <p x-show="fend !== '0'" class="text-amber-600 text-xs mt-1 font-medium">Saldo normal tidak bisa diubah karena account sudah dipakai transaksi.</p>
                             @endif
                             @error('fnormal')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -165,32 +168,32 @@
                             @php
                                 $isTypeAccountDisabled = !empty($isUsedInTransaction) || !empty($isReferencedAsHeader);
                             @endphp
-                            <div class="flex gap-2" x-data="{ val: '{{ old('fend', $account->fend) }}' }">
-                                <input type="hidden" name="fend" :value="val">
+                            <div class="flex gap-2">
+                                <input type="hidden" name="fend" :value="fend">
 
                                 @if ($isTypeAccountDisabled)
                                     {{-- State TERKUNCI --}}
                                     <button type="button" disabled
-                                        :class="val === '1' ?
+                                        :class="fend === '1' ?
                                             'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
                                             'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Detil</button>
 
                                     <button type="button" disabled
-                                        :class="val === '0' ?
+                                        :class="fend === '0' ?
                                             'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
                                             'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Header</button>
                                 @else
                                     {{-- State NORMAL (Bisa Dipilih) --}}
-                                    <button type="button" @click="val='1'"
-                                        :class="val === '1' ?
+                                    <button type="button" @click="fend='1'"
+                                        :class="fend === '1' ?
                                             'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
                                             'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Detil</button>
 
-                                    <button type="button" @click="val='0'"
-                                        :class="val === '0' ?
+                                    <button type="button" @click="fend='0'"
+                                        :class="fend === '0' ?
                                             'bg-indigo-600 border-indigo-600 text-white font-semibold shadow-sm' :
                                             'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'"
                                         class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Header</button>

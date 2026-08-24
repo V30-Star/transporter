@@ -87,35 +87,57 @@
                         </svg>
                         <p class="text-xs font-bold uppercase tracking-wide text-gray-700">Konfigurasi</p>
                     </div>
-                    <div class="p-4 space-y-4">
+                    <div class="p-4 space-y-4" x-data="{ fend: '{{ old('fend', '1') }}', fnormal: '{{ old('fnormal', 'D') }}' }">
 
                         {{-- Saldo Normal --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-800 mb-2">Saldo Normal</label>
-                            <div class="flex gap-2" x-data="{ val: '{{ old('fnormal', 'D') }}' }">
-                                <input type="hidden" name="fnormal" :value="val">
-                                <button type="button" @click="val='D'"
-                                    :class="val === 'D' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
-                                        'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
-                                    class="px-4 py-1.5 rounded-full text-xs border transition-all">Debit</button>
-                                <button type="button" @click="val='K'"
-                                    :class="val === 'K' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
-                                        'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
-                                    class="px-4 py-1.5 rounded-full text-xs border transition-all">Kredit</button>
+                            <input type="hidden" name="fnormal" :value="fnormal">
+                            <div class="flex gap-2">
+                                <template x-if="fend === '0'">
+                                    <div class="flex gap-2">
+                                        <button type="button" disabled
+                                            :class="fnormal === 'D' ?
+                                                'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
+                                                'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Debit</button>
+                                        <button type="button" disabled
+                                            :class="fnormal === 'K' ?
+                                                'bg-gray-400 border-gray-400 text-white cursor-not-allowed shadow-inner' :
+                                                'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all focus:outline-none">Kredit</button>
+                                    </div>
+                                </template>
+                                <template x-if="fend !== '0'">
+                                    <div class="flex gap-2">
+                                        <button type="button" @click="fnormal='D'"
+                                            :class="fnormal === 'D' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
+                                                'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all">Debit</button>
+                                        <button type="button" @click="fnormal='K'"
+                                            :class="fnormal === 'K' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
+                                                'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
+                                            class="px-4 py-1.5 rounded-full text-xs border transition-all">Kredit</button>
+                                    </div>
+                                </template>
                             </div>
+                            <p x-show="fend === '0'" class="text-amber-600 text-xs mt-1 font-medium">Saldo normal tidak bisa diubah untuk Account Header.</p>
+                            @error('fnormal')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         {{-- Type Account --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-800 mb-2">Type Account</label>
-                            <div class="flex gap-2" x-data="{ val: '{{ old('fend', '1') }}' }">
-                                <input type="hidden" name="fend" :value="val">
-                                <button type="button" @click="val='1'"
-                                    :class="val === '1' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
+                            <div class="flex gap-2">
+                                <input type="hidden" name="fend" :value="fend">
+                                <button type="button" @click="fend='1'"
+                                    :class="fend === '1' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
                                         'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
                                     class="px-4 py-1.5 rounded-full text-xs border transition-all">Detil</button>
-                                <button type="button" @click="val='0'"
-                                    :class="val === '0' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
+                                <button type="button" @click="fend='0'"
+                                    :class="fend === '0' ? 'bg-blue-50 border-blue-400 text-blue-700 font-medium' :
                                         'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
                                     class="px-4 py-1.5 rounded-full text-xs border transition-all">Header</button>
                             </div>

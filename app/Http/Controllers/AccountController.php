@@ -273,7 +273,8 @@ class AccountController extends Controller
                 : '0';
 
             // Map select lain
-            $validated['fnormal'] = $isUsedInTransaction ? (string) $account->fnormal : $request->input('fnormal');
+            $isNormalDisabled = $isUsedInTransaction || (string) $account->fend === '0';
+            $validated['fnormal'] = $isNormalDisabled ? (string) $account->fnormal : $request->input('fnormal');
             $validated['fend'] = ($isUsedInTransaction || $isReferencedAsHeader) ? (string) $account->fend : $request->input('fend');
             $validated['fuserlevel'] = $request->input('fuserlevel');
             $validated['fcurrency'] = 'IDR';
