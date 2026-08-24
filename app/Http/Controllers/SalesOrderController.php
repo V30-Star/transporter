@@ -748,7 +748,7 @@ class SalesOrderController extends Controller
                 'trsodt.fqtykecil',
                 'trsodt.fqtyremain as fqtyremain_source',
                 'trsodt.fdesc',
-                'trsodt.fketdt',
+                'trsodt.fdesc as fketdt',
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',

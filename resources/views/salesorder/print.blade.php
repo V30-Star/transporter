@@ -339,7 +339,7 @@
                                 <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
                             </tr>
                             <tr>
-                                <td>No. Ref PO</td>
+                                <td>Ref.PO</td>
                                 <td>:</td>
                                 <td>{{ $hdr->frefpo ?: '-' }}</td>
                             </tr>
