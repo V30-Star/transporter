@@ -512,7 +512,7 @@
                                                   @foreach ($customerOptions as $cust)
                                                       <option value="{{ $cust->fcustomercode }}"
                                                           {{ $detailSubaccountCode === (string) $cust->fcustomercode ? 'selected' : '' }}>
-                                                          {{ $cust->fcustomercode }} - {{ $cust->fcustomername }}
+                                                          {{ $cust->fcustomername }} ({{ $cust->fcustomercode }})
                                                       </option>
                                                   @endforeach
                                               @elseif ($detailSubaccountType === 'P')

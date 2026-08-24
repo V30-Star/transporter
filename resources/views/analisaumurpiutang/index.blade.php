@@ -80,8 +80,7 @@
                                 <select name="cust_from" class="select2 w-full">
                                     <option value="">-- Awal --</option>
                                     @foreach ($customers as $customer)
-                                        <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomercode }} -
-                                            {{ $customer->fcustomername }}</option>
+                                        <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomername }} ({{ $customer->fcustomercode }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -90,8 +89,7 @@
                                 <select name="cust_to" class="select2 w-full">
                                     <option value="">-- Akhir --</option>
                                     @foreach ($customers as $customer)
-                                        <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomercode }} -
-                                            {{ $customer->fcustomername }}</option>
+                                        <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomername }} ({{ $customer->fcustomercode }})</option>
                                     @endforeach
                                 </select>
                             </div>

@@ -236,7 +236,7 @@
                     window.addEventListener('customer-picked', (event) => {
                         const detail = event.detail || {};
                         const code = String(detail.fcustomercode || '').trim();
-                        const label = code && detail.fcustomername ? `${code} - ${detail.fcustomername}` : code;
+                        const label = code && detail.fcustomername ? `${detail.fcustomername} (${code})` : code;
                         if (this.activeCustomerField === 'from') {
                             this.customerFromCode = code;
                             this.customerFromLabel = label;

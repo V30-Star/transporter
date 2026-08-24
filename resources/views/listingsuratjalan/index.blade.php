@@ -67,8 +67,7 @@
                             <select name="customer" class="select2 w-full border rounded px-3 py-2 text-sm">
                                 <option value="">Semua Customer</option>
                                 @foreach ($customers as $customer)
-                                    <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomercode }} -
-                                        {{ $customer->fcustomername }}</option>
+                                    <option value="{{ $customer->fcustomercode }}">{{ $customer->fcustomername }} ({{ $customer->fcustomercode }})</option>
                                 @endforeach
                             </select>
                         </div>

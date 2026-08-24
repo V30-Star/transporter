@@ -348,7 +348,7 @@
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomercode }}"
                                                 {{ $currentCustNo == $customer->fcustomercode ? 'selected' : '' }}>
-                                                {{ $customer->fcustomercode }} - {{ $customer->fcustomername }}
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -663,7 +663,7 @@
                                     if (hid && hid.value === code) return;
 
                                     const name = (customerName ?? '').toString().trim();
-                                    const label = name !== '' ? `${code} - ${name}` : code;
+                                    const label = name !== '' ? `${name} (${code})` : code;
 
                                     if (typeof window.applyTransactionCustomerSelection === 'function') {
                                         window.applyTransactionCustomerSelection({
@@ -1773,7 +1773,7 @@
                 }
 
                 let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
-                const label = `${customer.fcustomercode} - ${customer.fcustomername}`;
+                const label = `${customer.fcustomername} (${customer.fcustomercode})`;
                 if (!opt) {
                     opt = new Option(label, customer.fcustomercode, true, true);
                     sel.add(opt);

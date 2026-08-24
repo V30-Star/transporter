@@ -75,8 +75,7 @@
                             <select name="customer_code" id="customer_code" class="select2 w-full">
                                 <option value="">-- Semua / All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} -
-                                        {{ $c->fcustomername }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomername }} ({{ $c->fcustomercode }})</option>
                                 @endforeach
                             </select>
                         </div>
