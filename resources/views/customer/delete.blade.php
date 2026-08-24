@@ -156,8 +156,7 @@
                 <div class="p-6">
                     <p class="text-gray-700 mb-4">
                         Apakah Anda yakin ingin menghapus customer <strong
-                            class="text-gray-900">{{ $customer->fcustomercode }} -
-                            {{ $customer->fcustomername }}</strong>?
+                            class="text-gray-900">{{ $customer->fcustomername }} ({{ $customer->fcustomercode }})</strong>?
                     </p>
                     <p class="text-sm text-red-600 mb-6">
                         Tindakan ini tidak dapat dibatalkan dan data akan dihapus secara permanen.

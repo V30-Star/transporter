@@ -297,7 +297,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
                     <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
                         <div style="font-weight: bold;">
-                            {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                            {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}
                         </div>
                         <div style="font-size: 11px; margin-top: 2px;">
                             {{ $hdr->customer_address ?? '-' }}

@@ -392,7 +392,7 @@
             @endphp
             <div class="journal-block">
                 <div class="customer-header-row">
-                    Customer: {{ $custNo }} - {{ $custName }}
+                    Customer: {{ !empty($custName) ? $custName . (!empty($custNo) ? ' (' . $custNo . ')' : '') : ($custNo ?: '-') }}
                 </div>
 
                 @foreach ($customerRows->groupBy('fgroupcode') as $groupCode => $groupRows)
