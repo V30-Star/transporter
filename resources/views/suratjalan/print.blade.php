@@ -300,7 +300,7 @@
                             {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}
                         </div>
                         <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
-                            {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
+                            {{ !empty(trim((string) ($hdr->fkirim ?? ''))) ? $hdr->fkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
                     <div style="width: 290px;">
@@ -356,12 +356,8 @@
             </tbody>
         </table>
 
-        {{-- Summary / Notes Template (Last Page) --}}
+        {{-- Summary Template (Last Page) --}}
         <div id="tpl-summary">
-            <div class="note-block">
-                <div class="note-title">Catatan</div>
-                <div>{{ $hdr->fket ?: '-' }}</div>
-            </div>
             <div class="footer-line"></div>
         </div>
 
