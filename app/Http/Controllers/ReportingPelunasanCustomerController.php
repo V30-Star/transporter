@@ -190,7 +190,7 @@ class ReportingPelunasanCustomerController extends Controller
                 $sheet->setCellValue('B' . $row, $record->fkasmtdate ? Carbon::parse($record->fkasmtdate)->format('d/m/Y') : '');
                 $sheet->setCellValue('C' . $row, $record->account);
                 $sheet->setCellValue('D' . $row, $record->fgiromundur == '1' ? 'Yes' : 'No');
-                $sheet->setCellValue('E' . $row, ($record->fcustomer ? $record->fcustomer . ' - ' : '') . $record->fcustname);
+                $sheet->setCellValue('E' . $row, $record->fcustname ? $record->fcustname . ($record->fcustomer ? ' (' . $record->fcustomer . ')' : '') : ($record->fcustomer ?: '-'));
                 $sheet->setCellValue('F' . $row, $adminFee);
                 $sheet->setCellValue('G' . $row, $adjustment);
                 $sheet->setCellValue('H' . $row, $record->fuserid);

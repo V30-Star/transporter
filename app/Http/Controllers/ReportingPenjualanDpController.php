@@ -63,7 +63,7 @@ class ReportingPenjualanDpController extends Controller
                 $master->fbranchcode,
                 $master->fsono,
                 $master->fsodate,
-                $master->fcustno.' - '.$master->fcustname,
+                $master->fcustname ? $master->fcustname . ' (' . $master->fcustno . ')' : $master->fcustno,
                 (float) $master->famountsonet,
                 (float) $master->ftotaldp,
                 (float) $master->fsisadp,

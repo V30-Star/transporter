@@ -90,8 +90,11 @@
                             data: @js($partyColumnLabel),
                             name: @js($partyColumnName),
                             className: 'text-sm',
-                            render: function(data) {
-                                return data || '<span class="text-gray-400">-</span>';
+                            render: function(data, type, row) {
+                                const code = (row?.fcustomercode || row?.fcustno || row?.fsupplier || '').toString().trim();
+                                const name = (data || '').toString().trim();
+                                if (code && name) return `${name} (${code})`;
+                                return name || code || '<span class="text-gray-400">-</span>';
                             }
                         },
                         {

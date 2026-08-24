@@ -188,7 +188,7 @@ class ReportingPelunasanSupplierController extends Controller
                 $sheet->setCellValue('A' . $row, $record->fkasmtno);
                 $sheet->setCellValue('B' . $row, $record->fkasmtdate ? Carbon::parse($record->fkasmtdate)->format('d/m/Y') : '');
                 $sheet->setCellValue('C' . $row, $record->account);
-                $sheet->setCellValue('D' . $row, ($record->fcustomer ? $record->fcustomer . ' - ' : '') . $record->fcustname);
+                $sheet->setCellValue('D' . $row, $record->fcustname ? $record->fcustname . ($record->fcustomer ? ' (' . $record->fcustomer . ')' : '') : ($record->fcustomer ?: '-'));
                 $sheet->setCellValue('E' . $row, $adminFee);
                 $sheet->setCellValue('F' . $row, $adjustment);
                 $sheet->setCellValue('G' . $row, $record->fuserid);

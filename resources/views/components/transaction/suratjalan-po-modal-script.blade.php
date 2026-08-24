@@ -54,8 +54,11 @@
                             data: 'fsuppliername',
                             name: 'fsuppliername',
                             className: 'text-sm',
-                            render: function(data) {
-                                return data || '<span class="text-gray-400">-</span>';
+                            render: function(data, type, row) {
+                                const code = (row?.fsupplier || row?.fsuppliercode || '').toString().trim();
+                                const name = (data || '').toString().trim();
+                                if (code && name) return `${name} (${code})`;
+                                return name || code || '<span class="text-gray-400">-</span>';
                             }
                         },
                         {

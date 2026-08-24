@@ -53,8 +53,11 @@
                             data: 'fsuppliername',
                             name: 'fsuppliername',
                             className: 'text-sm',
-                            render: function(data) {
-                                return data || '-';
+                            render: function(data, type, row) {
+                                const code = (row?.fsupplier || row?.fsuppliercode || '').toString().trim();
+                                const name = (data || '').toString().trim();
+                                if (code && name) return `${name} (${code})`;
+                                return name || code || '-';
                             }
                         },
                         {

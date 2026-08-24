@@ -61,8 +61,9 @@ class ReportingRekapPenjualanCustomerProdukController extends Controller
         if ($filters['report_type'] === 'REKAP') {
             foreach ($rows->groupBy(fn ($row) => $row->fcustno.'|'.$row->fgroupcode) as $groupRows) {
                 $first = $groupRows->first();
+                $custLabel = $first->customer_name ? $first->customer_name . ' (' . $first->fcustno . ')' : $first->fcustno;
                 $writer->addRow($makeRow([
-                    $first->fcustno.' - '.$first->customer_name,
+                    $custLabel,
                     $first->fgroupcode,
                     '',
                     'TOTAL '.$first->fgroupcode,
@@ -75,8 +76,9 @@ class ReportingRekapPenjualanCustomerProdukController extends Controller
             }
         } else {
             foreach ($rows as $row) {
+                $custLabel = $row->customer_name ? $row->customer_name . ' (' . $row->fcustno . ')' : $row->fcustno;
                 $writer->addRow($makeRow([
-                    $row->fcustno.' - '.$row->customer_name,
+                    $custLabel,
                     $row->fgroupcode,
                     $row->fprdcode,
                     $row->fprdname,

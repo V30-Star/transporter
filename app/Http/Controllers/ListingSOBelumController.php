@@ -100,7 +100,7 @@ class ListingSOBelumController extends Controller
             foreach ($results as $row) {
                 $grandTotalQty += (float) $row->fqty;
                 $writer->addRow($makeRow([
-                    $row->fcustno . ' - ' . $row->fcustomername,
+                    $row->fcustomername ? $row->fcustomername . ' (' . $row->fcustno . ')' : $row->fcustno,
                     (float) $row->fqty,
                     (float) $row->fstok,
                 ]));
