@@ -4,13 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listing SO Belum Kirim - Customer</title>
+    <title>SO Yang Belum Dikirim (By Customer)</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -18,176 +16,182 @@
             box-sizing: border-box;
         }
 
-        /* Monitor Screen Layout */
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000000;
-            /* Solid Black text */
+            color: #0f172a;
             background-color: #f1f5f9;
-            /* Modern light slate background on monitor */
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 12mm 15mm;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
-        /* Strict height applied after pagination */
         .page-a4-strict {
             height: 297mm !important;
             min-height: 297mm !important;
             overflow: hidden !important;
         }
 
-        .header-section {
-            position: relative;
-            margin-bottom: 60px;
-            text-align: center;
-            padding-bottom: 20px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000;
-            /* Dark Red matching Listing PO */
-            letter-spacing: 0.5px;
         }
 
-        .filter-info {
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #475569;
-            /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
         }
 
-        .supplier-info-kiri {
-            position: absolute;
-            top: 15px;
-            /* Shifted one line up inline with right side metadata */
-            left: 0mm;
-            font-size: 10px;
-            color: #334155;
-            /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+            line-height: 1.4;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #334155;
-            /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
-        }
-
-        .info-label {
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 50px;
-            color: #475569;
-            /* Slate 600 */
+            color: #334155;
+            width: 85px;
         }
 
-        /* --- COLUMN STYLES (7 Kolom) --- */
+        /* --- COLUMN STYLES (Detail 7 Kolom / Rekap 3 Kolom) --- */
         .grid-header,
         .grid-row,
         .cust-subtotal {
-            color: #304ee7;
             display: grid;
-            grid-template-columns: 25mm 18mm 45mm 15mm 24mm 24mm 24mm;
+            grid-template-columns: 24mm 18mm 1fr 14mm 22mm 20mm 20mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 2px 8px;
-            /* Reduced vertical padding matching PO */
+            font-size: 8.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
-        .grid-header {
+        .grid-header-rekap,
+        .grid-row-rekap,
+        .cust-subtotal-rekap {
+            display: grid;
+            grid-template-columns: 1fr 30mm 30mm;
+            gap: 1px;
+            font-size: 8.5px;
+            padding: 2px 6px;
+            align-items: center;
+        }
+
+        .grid-header,
+        .grid-header-rekap {
             background-color: transparent;
             color: #000000;
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
             margin-bottom: 0px;
-            /* Reduced spacing */
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
-        .grid-row {
+        .grid-row,
+        .grid-row-rekap {
             background-color: transparent;
-            color: #000000;
+            color: #0f172a;
+            font-weight: normal;
         }
 
         .cust-group {
             display: block;
-            background-color: transparent;
-            color: #000000;
+            background-color: #f8fafc;
+            color: #0f172a;
             font-weight: bold;
             font-size: 8.5px;
-            padding: 2px 8px;
-            margin-top: 2px;
-            margin-bottom: 3px;
+            padding: 3px 6px;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            border-bottom: 1px dashed #cbd5e1;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .cust-subtotal {
+        .cust-subtotal,
+        .cust-subtotal-rekap {
             background-color: transparent;
+            font-weight: bold;
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px solid #000000;
+            padding: 3px 6px;
+            margin-bottom: 4px;
+            color: #0f172a;
         }
 
-        /* Alignment & Monospace Fonts */
-        .grid-header>div.text-right,
-        .grid-row>div.text-right,
-        .cust-subtotal>div.text-right {
-            text-align: right;
-        }
+        /* Alignment */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
 
-        .grid-header>div.text-center,
-        .grid-row>div.text-center,
-        .cust-subtotal>div.text-center {
-            text-align: center;
-        }
-
-        .grid-row>div:nth-child(1),
-        .grid-row>div:nth-child(2),
-        .grid-row>div:nth-child(4),
-        .grid-row>div:nth-child(5),
-        .grid-row>div:nth-child(6),
-        .grid-row>div:nth-child(7),
-        .cust-subtotal>div.text-right {
+        /* Fonts for Numbers & System Codes */
+        .grid-header > div:nth-child(2),
+        .grid-row > div:nth-child(1),
+        .grid-row > div:nth-child(2),
+        .grid-row > div:nth-child(5),
+        .grid-row > div:nth-child(6),
+        .grid-row > div:nth-child(7),
+        .cust-subtotal > div:nth-child(2),
+        .cust-subtotal > div:nth-child(3),
+        .grid-row-rekap > div:nth-child(2),
+        .grid-row-rekap > div:nth-child(3) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
 
-        .grid-row>div:nth-child(1),
-        .grid-row>div:nth-child(2),
-        .grid-row>div:nth-child(4),
-        .grid-row>div:nth-child(5),
-        .grid-row>div:nth-child(6),
-        .grid-row>div:nth-child(7) {
-            font-weight: normal;
-            /* Normal weight for detail items */
+        .separator {
+            border-bottom: 1px dotted #cbd5e1;
+            margin: 3px 0;
+            clear: both;
         }
 
         .truncate {
@@ -210,69 +214,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
             border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .print-button {
-            background-color: #0f172a;
-            /* Navy-Ink background */
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            border: none;
-            font-weight: 600;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 12px;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
-        }
-
-        .print-button:hover {
-            background-color: #000000;
-            /* Black background on hover */
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
-        }
-
-        .journal-block {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            margin-bottom: 0px;
-        }
-
-        /* Zoom Out Button Style */
-        .no-print button {
-            transition: background-color 0.2s;
-        }
-
-        /* Totals Panel style */
-        .po-totals-panel-wrapper {
-            margin-top: 5px;
-            border-top: 1px solid #000000;
-            width: 180mm;
-            /* Full printable width */
-            padding-top: 5px;
-            position: relative;
-            /* Position context for centering */
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        .end-of-report-inline {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: -15px;
-            /* Vertically inline with bottom row */
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 8px;
-            font-weight: bold;
-            color: #000000;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .trx-action-trigger {
@@ -393,37 +334,84 @@
             }
         }
 
+        .print-button {
+            background-color: #0f172a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
+        }
+
+        .print-button:hover {
+            background-color: #000000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
+        }
+
+        .journal-block {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 0px;
+        }
+
+        .po-totals-panel-wrapper {
+            margin-top: 5px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 5px;
+            position: relative;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            text-align: center;
+        }
+
+        .end-of-report-inline {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .po-totals-container {
-            margin-left: auto;
-            /* Push to the right side */
-            width: 70mm;
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-size: 8.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 5px;
+            padding-right: 5px;
         }
 
         .po-total-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
-            color: #000000;
-        }
-
-        .po-total-row span:nth-child(2) {
-            font-weight: bold;
+            width: 280px;
+            font-size: 9px;
+            padding: 2px 0;
         }
 
         .grand-total-row {
-            color: #304ee7;
-            border-top: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            padding: 5px 0;
             font-weight: bold;
+            border-top: 1px solid #000;
+            border-bottom: 2px double #000;
+            margin-top: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
         }
 
-        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -432,12 +420,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 12mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -453,6 +444,30 @@
 </head>
 
 <body>
+    @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
+        $customerText = request('cust_from')
+            ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '')
+            : 'Semua';
+        $groupText = request('group_prd') ?: 'Semua';
+        $productText = request('selected_products')
+            ? str_replace(',', ', ', (string) request('selected_products'))
+            : 'Semua';
+        $stokText = request()->has('only_stok') ? 'Ya' : 'Tidak';
+        $rekapText = ($reportType ?? request('report_type', 'detail')) === 'rekap' ? 'Rekap' : 'Detail';
+        $isRekap = ($reportType ?? request('report_type', 'detail')) === 'rekap';
+
+        $dateFromFmt = $request->date_from ? date('d-m-Y', strtotime($request->date_from)) : '...';
+        $dateToFmt = $request->date_to ? date('d-m-Y', strtotime($request->date_to)) : '...';
+        $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+    @endphp
+
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -481,48 +496,95 @@
         </a>
     </div>
 
-    @php
-        $branchText = request()->has('branch_codes')
-            ? implode(', ', (array) request()->input('branch_codes'))
-            : 'Semua';
-        $customerText = request('cust_from')
-            ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '')
-            : 'Semua';
-        $groupText = request('group_prd') ?: 'Semua';
-        $productText = request('selected_products')
-            ? str_replace(',', ', ', (string) request('selected_products'))
-            : 'Semua';
-        $stokText = request()->has('only_stok') ? 'Ya' : 'Tidak';
-        $rekapText = ($reportType ?? request('report_type', 'detail')) === 'rekap' ? 'Rekap' : 'Detail';
-        $isRekap = ($reportType ?? request('report_type', 'detail')) === 'rekap';
-    @endphp
-
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                Customer: {{ $customerText }}
-                <br>Cabang: {{ $branchText }}
-                <br>Group Produk: {{ $groupText }}
-                <br>Produk: {{ $productText }}
-                <br>Hanya Stok > 0: {{ $stokText }}
-                <br>Jenis: {{ $rekapText }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">SO Yang Belum Dikirim (By Customer)</div>
+                </div>
             </div>
-            <h2>SO Yang Belum Dikirim(By Customer)</h2>
-            <div class="filter-info">
-                Periode: {{ $request->date_from ? \Carbon\Carbon::parse($request->date_from)->format('d/m/Y') : '...' }}
-                s/d {{ $request->date_to ? \Carbon\Carbon::parse($request->date_to)->format('d/m/Y') : '...' }}
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Customer</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $customerText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td>:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Group Produk</td>
+                                <td>:</td>
+                                <td>{{ $groupText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Produk</td>
+                                <td>:</td>
+                                <td>{{ $productText }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Hanya Stok > 0</td>
+                                <td>:</td>
+                                <td>{{ $stokText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jenis</td>
+                                <td>:</td>
+                                <td>{{ $rekapText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jam</td>
+                                <td>:</td>
+                                <td>{{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
         @if ($isRekap)
-            <div class="grid-header">
-                <div style="grid-column: span 5;">Customer</div>
+            <div class="grid-header-rekap">
+                <div>Customer</div>
                 <div class="text-right">Qty. Sisa</div>
                 <div class="text-right">Qty. Stok</div>
             </div>
@@ -530,9 +592,8 @@
             @foreach ($soData as $row)
                 <div class="journal-block">
                     <div class="cust-group">Customer: {{ $row->fcustomername }}</div>
-                    <div class="grid-row">
-                        <div style="grid-column: span 5;" class="truncate">{{ $row->fcustno }} -
-                            {{ $row->fcustomername }}</div>
+                    <div class="grid-row-rekap">
+                        <div class="truncate">{{ $row->fcustno }} - {{ $row->fcustomername }}</div>
                         <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
                         <div class="text-right">{{ number_format((float) $row->fstok, 2, ',', '.') }}</div>
                     </div>
@@ -541,7 +602,7 @@
         @else
             <div class="grid-header">
                 <div>No. SO</div>
-                <div>Tanggal</div>
+                <div class="text-center">Tanggal</div>
                 <div>Nama Barang</div>
                 <div class="text-center">Satuan</div>
                 <div class="text-right">@ Harga</div>
@@ -564,7 +625,7 @@
                             <div class="truncate">
                                 <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fsono }}</span>
                             </div>
-                            <div>{{ date('d/m/Y', strtotime($row->fsodate)) }}</div>
+                            <div class="text-center">{{ date('d-m-Y', strtotime($row->fsodate)) }}</div>
                             <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
                             <div class="text-center">{{ $row->fsatuan }}</div>
                             <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
@@ -575,25 +636,32 @@
 
                     <div class="cust-subtotal">
                         <div style="grid-column: span 5; text-align:right;">
-                            Total {{ $rows->first()->fcustomername }}
+                            Total {{ $rows->first()->fcustomername }} :
                         </div>
                         <div class="text-right">{{ number_format((float) $rows->sum('fqty'), 2, ',', '.') }}</div>
-                        <div></div>
+                        <div class="text-right">{{ number_format((float) $rows->sum('fstok'), 2, ',', '.') }}</div>
                     </div>
                 </div>
             @endforeach
         @endif
     </div>
 
-    @php
-        $grandTotalQty = 0;
-        $grandTotalQty = $isRekap ? $soData->sum('fqty') : $soData->sum(fn($rows) => $rows->sum('fqty'));
-    @endphp
-
     {{-- Hidden Totals Panel Container --}}
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row grand-total-row">
+                    <span>GRAND TOTAL QTY SISA</span>
+                    <span>
+                        @if ($isRekap)
+                            {{ number_format((float) $soData->sum('fqty'), 2, ',', '.') }}
+                        @else
+                            {{ number_format((float) $soData->flatten()->sum('fqty'), 2, ',', '.') }}
+                        @endif
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -602,23 +670,85 @@
         @if ($soData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15px;">
-                        Customer: {{ $customerText }}
-                        <br>Cabang: {{ $branchText }}
-                        <br>Group Produk: {{ $groupText }}
-                        <br>Produk: {{ $productText }}
-                        <br>Hanya Stok > 0: {{ $stokText }}
-                        <br>Jenis: {{ $rekapText }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">SO Yang Belum Dikirim (By Customer)</div>
+                        </div>
                     </div>
-                    <h2>SO Yang Belum Dikirim(By Customer)</h2>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                    <div class="customer-container">
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Customer</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $customerText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td>:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Group Produk</td>
+                                        <td>:</td>
+                                        <td>{{ $groupText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Produk</td>
+                                        <td>:</td>
+                                        <td>{{ $productText }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Periode</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td style="font-weight: bold;">{{ $period }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hanya Stok > 0</td>
+                                        <td>:</td>
+                                        <td>{{ $stokText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jenis</td>
+                                        <td>:</td>
+                                        <td>{{ $rekapText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
-                        ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -653,7 +783,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -661,7 +791,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
-        // Measure actual 297mm page height on the screen dynamically in pixels
+        // Measure actual 297mm page height on the screen dynamically in pixels (A4 Portrait)
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -670,11 +800,11 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
-        const gridHeaderHtml = rawSource.querySelector(".grid-header").outerHTML;
+        const gridHeaderHtml = rawSource.querySelector(".grid-header, .grid-header-rekap").outerHTML;
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -684,15 +814,8 @@
                     ${headerSectionHtml}
                     ${gridHeaderHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML =
-                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -702,86 +825,57 @@
 
         journals.forEach((journal) => {
             const custGroup = journal.querySelector(".cust-group");
-            const gridRows = Array.from(journal.querySelectorAll(".grid-row"));
-            const custSubtotal = journal.querySelector(".cust-subtotal");
+            const gridRows = Array.from(journal.querySelectorAll(".grid-row, .grid-row-rekap"));
+            const custSubtotal = journal.querySelector(".cust-subtotal, .cust-subtotal-rekap");
 
-            // Create a new journal-block container on the current page
             let currentJournalBlock = document.createElement("div");
             currentJournalBlock.className = "journal-block";
             currentContent.appendChild(currentJournalBlock);
 
-            // Append group header
-            currentJournalBlock.appendChild(custGroup.cloneNode(true));
-
-            // Check if page overflowed after adding group header
-            if (currentPage.offsetHeight > maxPageHeight) {
-                const blockCount = currentContent.querySelectorAll(".journal-block").length;
-                if (blockCount > 1) {
-                    currentContent.removeChild(currentJournalBlock);
-                    currentPage = createNewPage();
-                    currentContent = currentPage.querySelector(".page-content");
-
-                    currentJournalBlock = document.createElement("div");
-                    currentJournalBlock.className = "journal-block";
-                    currentContent.appendChild(currentJournalBlock);
-                    currentJournalBlock.appendChild(custGroup.cloneNode(true));
-                }
+            if (custGroup) {
+                currentJournalBlock.appendChild(custGroup.cloneNode(true));
             }
 
-            // Append details one by one
             gridRows.forEach((row) => {
                 const rowClone = row.cloneNode(true);
                 currentJournalBlock.appendChild(rowClone);
 
-                // Check overflow
                 if (currentPage.offsetHeight > maxPageHeight) {
-                    const rowCount = currentJournalBlock.querySelectorAll(".grid-row").length;
+                    const rowCount = currentJournalBlock.querySelectorAll(".grid-row, .grid-row-rekap").length;
                     const blockCount = currentContent.querySelectorAll(".journal-block").length;
 
                     if (blockCount > 1 || rowCount > 1) {
                         currentJournalBlock.removeChild(rowClone);
 
-                        // Create new page
                         currentPage = createNewPage();
                         currentContent = currentPage.querySelector(".page-content");
 
-                        // Create a new journal block on the new page
                         currentJournalBlock = document.createElement("div");
                         currentJournalBlock.className = "journal-block";
                         currentContent.appendChild(currentJournalBlock);
 
-                        // Append header clone with "(Lanjutan)" suffix
-                        const headerClone = custGroup.cloneNode(true);
-                        headerClone.textContent = headerClone.textContent + " (Lanjutan)";
-                        currentJournalBlock.appendChild(headerClone);
-
-                        // Append the detail row
+                        if (custGroup) {
+                            const groupClone = custGroup.cloneNode(true);
+                            groupClone.textContent = groupClone.textContent + " (Lanjutan)";
+                            currentJournalBlock.appendChild(groupClone);
+                        }
                         currentJournalBlock.appendChild(rowClone);
                     }
                 }
             });
 
-            // Append subtotal if present
             if (custSubtotal) {
                 const subtotalClone = custSubtotal.cloneNode(true);
                 currentJournalBlock.appendChild(subtotalClone);
 
-                // If subtotal overflows, move to next page
                 if (currentPage.offsetHeight > maxPageHeight) {
                     currentJournalBlock.removeChild(subtotalClone);
-
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
 
                     currentJournalBlock = document.createElement("div");
                     currentJournalBlock.className = "journal-block";
                     currentContent.appendChild(currentJournalBlock);
-
-                    // Add group header clone with "(Lanjutan)"
-                    const headerClone = custGroup.cloneNode(true);
-                    headerClone.textContent = headerClone.textContent + " (Lanjutan)";
-                    currentJournalBlock.appendChild(headerClone);
-
                     currentJournalBlock.appendChild(subtotalClone);
                 }
             }
@@ -802,14 +896,14 @@
             }
         }
 
-        // Apply strict height class to lock A4 size and hide overflows
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 
