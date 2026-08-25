@@ -33,6 +33,7 @@ class PengeluaranKasController extends Controller
     public function index()
     {
         $records = Trkasmt::query()
+            ->where('trkasmt.ftrancode', self::TRAN_CODE)
             ->leftJoin('trkasdt as dt', 'dt.fkasmtid', '=', 'trkasmt.fkasmtid')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
             ->select([
