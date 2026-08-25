@@ -51,43 +51,30 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                         <div>
-                            <label for="falamat1" class="block text-sm font-medium text-gray-700 mb-1">Alamat 1</label>
+                            <label for="falamat1" class="block text-sm font-medium text-gray-700 mb-1">Alamat Kop Surat Baris 1</label>
                             <input type="text" id="falamat1" name="falamat1" value="{{ old('falamat1', $setting->falamat1 ?? '') }}"
                                 class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Alamat baris 1">
+                                placeholder="Alamat Kop Surat Baris 1">
                             @error('falamat1') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label for="falamat2" class="block text-sm font-medium text-gray-700 mb-1">Alamat 2</label>
+                            <label for="falamat2" class="block text-sm font-medium text-gray-700 mb-1">Alamat Kop Surat Baris 2</label>
                             <input type="text" id="falamat2" name="falamat2" value="{{ old('falamat2', $setting->falamat2 ?? '') }}"
                                 class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Alamat baris 2">
+                                placeholder="Alamat Kop Surat Baris 1">
                             @error('falamat2') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
-                            <label for="fcity" class="block text-sm font-medium text-gray-700 mb-1">Kota</label>
-                            <input type="text" id="fcity" name="fcity" value="{{ old('fcity', $setting->fcity ?? '') }}"
-                                class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                placeholder="Kota">
-                            @error('fcity') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label for="ftelp" class="block text-sm font-medium text-gray-700 mb-1">Telepon</label>
-                                <input type="text" id="ftelp" name="ftelp" value="{{ old('ftelp', $setting->ftelp ?? '') }}"
-                                    class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    placeholder="No. Telp">
-                            </div>
-                            <div>
-                                <label for="ffax" class="block text-sm font-medium text-gray-700 mb-1">Fax</label>
-                                <input type="text" id="ffax" name="ffax" value="{{ old('ffax', $setting->ffax ?? '') }}"
-                                    class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    placeholder="No. Fax">
-                            </div>
-                        </div>
+                    </div>
+                    <div>
+                       <label for="fcity" class="block text-sm font-medium text-gray-700 mb-1">
+                            Alamat Singkat <span class="text-gray-500 font-bold">(Khusus untuk Laporan)</span>
+                        </label>
+                        <input type="text" id="fcity" name="fcity" value="{{ old('fcity', $setting->fcity ?? '') }}"
+                            class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            placeholder="Alamat Singkat (Khusus untuk Laporan)">
+                        @error('fcity') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
