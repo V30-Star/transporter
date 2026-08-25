@@ -1355,20 +1355,23 @@ class FakturpembelianController extends Controller
 
     public function print(string $fstockmtno)
     {
-        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername', 'faddress');
 
         $base = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
                 $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom');
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
+            ->leftJoin('account as a', 'a.faccount', '=', 'trstockmt.fprdjadi');
 
         $cols = [
             'trstockmt.*',
             's.fsuppliername as supplier_name',
+            's.faddress as supplier_address',
             'c.fcabangname as cabang_name',
             'w.fwhname as fwhnamen',
+            'a.faccname as account_name',
         ];
 
         if (is_numeric($fstockmtno)) {

@@ -67,12 +67,11 @@
         /* Box Container (Supplier/Info) */
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 12px;
-            width: 450px;
-            min-height: 70px;
+            width: 100%;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -278,6 +277,28 @@
         </button>
     </div>
 
+    @php
+        $calcTotalHarga = 0;
+        $calcTotalDPP = 0;
+        foreach ($dt as $r) {
+            $qty = (float) ($r->fqty ?? 0);
+            $price = (float) ($r->fprice ?? 0);
+            $biaya = (float) ($r->fbiaya ?? 0);
+            $disc = is_numeric($r->fdiscpersen) ? (float) $r->fdiscpersen : 0;
+            $hargaBarang = $qty * $price;
+            $diskon = $hargaBarang * ($disc / 100);
+            $dpp = $hargaBarang - $diskon;
+            $calcTotalDPP += $dpp;
+            $lineTotal = (float) ($r->ftotprice ?? $r->famount ?? ($dpp + ($qty * $biaya)));
+            $calcTotalHarga += $lineTotal;
+        }
+        $displayTotalHarga = (float) ($hdr->famount ?? 0) > 0 ? (float) $hdr->famount : $calcTotalHarga;
+        $displayTotalDPP = $calcTotalDPP;
+        $ppnPersen = (float) ($hdr->fppnpersen ?? 11);
+        $ppnAmount = (float) ($hdr->famountpajak ?? ($hdr->fapplyppn ? round($displayTotalDPP * $ppnPersen / 100, 2) : 0));
+        $displayGrandTotal = (float) ($hdr->famountmt ?? 0) > 0 ? (float) $hdr->famountmt : ($displayTotalHarga + $ppnAmount);
+    @endphp
+
     <div id="print-container"></div>
 
     <div id="raw-templates" style="display: none;">
@@ -286,26 +307,52 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                    @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                    <div class="customer-container">
-                        <span class="customer-label">{{ "Supplier" }}</span>
-                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}</div>
-                        <div style="font-size: 11px;">
-                            {{ "Gudang" }} : {{ $hdr->fwhnamen ?? '-' }}
-                        </div>
-                    </div>
+                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
                 </div>
-                <div style="min-width: 260px;">
+                <div>
                     <div class="title-so">{{ "Faktur Pembelian" }}</div>
                     <div class="so-no">{{ "No" }}. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
-                    <table class="info-table" style="width: 100%;">
-                        <tr>
-                            <td style="width: 75px;">{{ "Tanggal" }}</td>
-                            <td style="width: 10px;">:</td>
-                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                        </tr>
-                    </table>
+                </div>
+            </div>
+
+            <div class="customer-container">
+                <span class="customer-label">{{ "Supplier" }}</span>
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}</div>
+                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
+                            {{ $hdr->supplier_address ?? '-' }}
+                        </div>
+                    </div>
+                    <div style="width: 290px;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
+                            <tr>
+                                <td style="width: 80px;">{{ "Tanggal" }}</td>
+                                <td style="width: 10px;">:</td>
+                                <td>{{ $fmt($hdr->fstockmtdate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ "Tempo" }}</td>
+                                <td>:</td>
+                                <td>{{ $fmt($hdr->fjatuhtempo ?? $hdr->fstockmtdate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ "Gudang" }}</td>
+                                <td>:</td>
+                                <td>{{ !empty($hdr->fwhnamen) ? $hdr->fwhnamen : ($hdr->ffrom ?: '-') }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ "No.Faktur" }}</td>
+                                <td>:</td>
+                                <td>{{ $hdr->frefno ?: '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ "TOP" }}</td>
+                                <td>:</td>
+                                <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -315,22 +362,34 @@
             <thead id="tpl-thead">
                 <tr>
                     <th style="width: 5%; text-align: center;" class="text-center">{{ "No" }}.</th>
-                    <th style="width: 20%;">{{ "Kode Barang" }}</th>
-                    <th style="width: 50%;">{{ "Nama Barang" }}</th>
-                    <th style="width: 10%; text-align: center;" class="text-center">{{ "Qty." }}</th>
-                    <th style="width: 15%; text-align: center;" class="text-center">{{ "Satuan" }}</th>
+                    <th style="width: 33%;">{{ "Nama Barang" }}</th>
+                    <th style="width: 8%; text-align: right;" class="text-right">{{ "Qty." }}</th>
+                    <th style="width: 8%; text-align: center;" class="text-center">{{ "Satuan" }}</th>
+                    <th style="width: 12%; text-align: right;" class="text-right">{{ "@ Harga" }}</th>
+                    <th style="width: 10%; text-align: right;" class="text-right">{{ "@ Biaya" }}</th>
+                    <th style="width: 9%; text-align: center;" class="text-center">{{ "Disc.%" }}</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">{{ "Total Harga" }}</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
                             <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
                         </td>
-                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fbiaya ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-center">
+                            @if (is_numeric($r->fdiscpersen))
+                                {{ (float)$r->fdiscpersen == (int)$r->fdiscpersen ? (int)$r->fdiscpersen : number_format((float)$r->fdiscpersen, 2, ',', '.') }}
+                            @else
+                                {{ $r->fdiscpersen ?: '0' }}
+                            @endif
+                        </td>
+                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -340,27 +399,52 @@
         <div id="tpl-summary">
             <div class="footer-line"></div>
 
-            <div class="terbilang-box">
-                {{ "Note" }} : <br>
-                <span
-                    style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
-            </div>
+            <div style="overflow: hidden;">
+                <div class="terbilang-box">
+                    {{ "Terbilang" }} : <br>
+                    # {{ strtoupper(terbilang($displayGrandTotal)) }} RUPIAH #
+                </div>
 
-            <div class="summary-box">
-                <div style="text-align: right; font-style: italic; font-size: 10px; color: #555;">
-                    * {{ "Dokumen ini sah sebagai bukti penerimaan stok." }}
+                <div class="summary-box">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">{{ "Total Harga" }}</td>
+                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalHarga, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">{{ "Total DPP" }}</td>
+                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalDPP, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">PPN {{ $ppnPersen }}%</td>
+                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
+                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">{{ "Grand Total" }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($displayGrandTotal, 2, ',', '.') }}</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
 
         {{-- Sign Template (Last Page) --}}
         <div id="tpl-sign">
-            <div class="sign-container">
+            @if((string)($hdr->ftypebuy ?? '') === '1' || (int)($hdr->ftypebuy ?? 0) === 1)
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px;">
+                    Account : {{ !empty($hdr->fprdjadi) ? $hdr->fprdjadi . (!empty($hdr->account_name) ? ' - ' . $hdr->account_name : '') : '-' }}
+                </div>
+            @endif
+            <div class="sign-container" style="margin-top: 0;">
                 <div style="display: flex; align-items: flex-start; gap: 40px;">
                     <div style="width: 160px; min-width: 140px; text-align: center;">
                         <div style="font-size: 11px;">Dibuat Oleh,</div>
                         <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( {!! !empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' !!} )
+                            ( {!! !empty($namattdpo) ? strtoupper($namattdpo) : (!empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                         </div>
                     </div>
                     <div style="width: 160px; min-width: 140px; text-align: center;">
@@ -369,7 +453,14 @@
                             ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
                     </div>
+                    @if(!empty(trim((string)($hdr->fket ?? ''))))
+                        <div style="font-size: 11px; max-width: 250px;">
+                            <div>Keterangan:</div>
+                            <div style="white-space: pre-line;">{{ $hdr->fket }}</div>
+                        </div>
+                    @endif
                 </div>
+
                 <div class="meta-right">
                     <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>

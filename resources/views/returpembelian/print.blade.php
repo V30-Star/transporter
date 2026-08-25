@@ -344,12 +344,6 @@
                 <span
                     style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
             </div>
-
-            <div class="summary-box">
-                <div style="text-align: right; font-style: italic; font-size: 10px; color: #555;">
-                    * Dokumen ini sah sebagai bukti penerimaan stok.
-                </div>
-            </div>
         </div>
 
         {{-- Sign Template (Last Page) --}}
