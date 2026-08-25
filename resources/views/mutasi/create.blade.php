@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Mutasi Stock - New')
+@section('title', 'Mutasi Stok - New')
 
 @section('content')
     @php
@@ -245,7 +245,7 @@
                 </div>
             @endif
 
-            {{-- ─── CARD 1: Identitas Mutasi Stock ─────────────── --}}
+            {{-- ─── CARD 1: Identitas Mutasi Stok ─────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
     <div class="flex items-center gap-2 px-4 pt-3 pb-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
@@ -253,7 +253,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
-        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stok</p>
     </div>
     <div class="p-4">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -700,7 +700,7 @@
                                                     Merek</th>
                                                 <th
                                                     class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Stock</th>
+                                                    Stok</th>
                                                 <th
                                                     class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                     Aksi</th>

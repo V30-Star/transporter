@@ -502,7 +502,7 @@
                 </ul>
             </li>
 
-            <!-- Transaksi Stock-->
+            <!-- Transaksi Stok-->
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
@@ -1003,7 +1003,7 @@
                 </ul>
             </li>
 
-            {{-- Reporting Stock --}}
+            {{-- Reporting Stok --}}
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">

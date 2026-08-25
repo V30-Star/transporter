@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Adjustment Stock')
+@section('title', 'Laporan Adjustment Stok')
 
 @section('content')
     <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Laporan Adjustment Stock</h2>
+        <h2 class="text-xl font-bold mb-4">Laporan Adjustment Stok</h2>
 
         <div class="flex flex-wrap items-center gap-4 mb-6">
             {{-- Tombol Pemicu Modal --}}
@@ -18,7 +18,7 @@
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-lg font-semibold">Laporan Adjustment Stock</h3>
+                    <h3 class="text-lg font-semibold">Laporan Adjustment Stok</h3>
                     <button onclick="toggleModal(false)"
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>

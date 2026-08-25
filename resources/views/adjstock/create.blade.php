@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Adjustment Stock - New')
+@section('title', 'Adjustment Stok - New')
 
 @section('content')
     @php
@@ -224,7 +224,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -1106,7 +1106,7 @@
                                                     Merek</th>
                                                 <th
                                                     class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Stock</th>
+                                                    Stok</th>
                                                 <th
                                                     class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                     Aksi</th>
@@ -1603,7 +1603,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -1994,7 +1994,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'

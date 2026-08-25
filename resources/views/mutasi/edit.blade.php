@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Mutasi Stock - Delete' : ($action === 'view' ? 'Mutasi Stock - View' : 'Mutasi Stock - Edit'))
+@section('title', $action === 'delete' ? 'Mutasi Stok - Delete' : ($action === 'view' ? 'Mutasi Stok - View' : 'Mutasi Stok - Edit'))
 
 @section('content')
     @php
@@ -236,7 +236,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ $action === 'delete' ? 'Mutasi Stock Tidak Dapat Dihapus' : 'Mutasi Stock Tidak Dapat Diedit' }}
+                            {{ $action === 'delete' ? 'Mutasi Stok Tidak Dapat Dihapus' : 'Mutasi Stok Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
@@ -274,7 +274,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
-        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stok</p>
     </div>
     <div class="p-4">
         <div class="grid grid-cols-3 gap-3">
@@ -621,7 +621,7 @@
                                                         Merek</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Stock</th>
+                                                        Stok</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>
@@ -689,7 +689,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
-        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stok</p>
     </div>
     <div class="p-4">
         <div class="grid grid-cols-3 gap-3">
@@ -1138,7 +1138,7 @@
                                                         Merek</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Stock</th>
+                                                        Stok</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Adjustment Stock</title>
+    <title>Laporan Adjustment Stok</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap');
 
@@ -486,7 +486,7 @@
                 Gudang: {{ $activeWarehouseName ?? 'Semua' }}
                 <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
             </div>
-            <h2>Listing Adjustment Stock</h2>
+            <h2>Listing Adjustment Stok</h2>
             <div class="filter-info">
                 Periode:
                 {{ request('filter_date_from') ? \Carbon\Carbon::parse(request('filter_date_from'))->format('d/m/Y') : '...' }}
@@ -592,7 +592,7 @@
                         Gudang: {{ $activeWarehouseName ?? 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
-                    <h2>Listing Adjustment Stock</h2>
+                    <h2>Listing Adjustment Stok</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>

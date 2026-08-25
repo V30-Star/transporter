@@ -284,14 +284,14 @@
                                 <td colspan="5" class="px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider">Transaksi Persediaan & Gudang</td>
                             </tr>
                             <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Adjustment Stock</td>
+                                <td class="px-3 py-2 font-semibold">Adjustment Stok</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewAdjstock" {{ in_array('viewAdjstock', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createAdjstock" {{ in_array('createAdjstock', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="updateAdjstock" {{ in_array('updateAdjstock', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="deleteAdjstock" {{ in_array('deleteAdjstock', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Mutasi Stock</td>
+                                <td class="px-3 py-2 font-semibold">Mutasi Stok</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewMutasi" {{ in_array('viewMutasi', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createMutasi" {{ in_array('createMutasi', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="updateMutasi" {{ in_array('updateMutasi', $selectedPermissions) ? 'checked' : '' }}></td>

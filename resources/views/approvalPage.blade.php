@@ -78,7 +78,7 @@
                                 <th>Product Name</th>
                                 <th class="text-right">Qty</th>
                                 <th>Unit</th>
-                                <th class="text-right">Remaining Stock</th>
+                                <th class="text-right">Remaining Stok</th>
                                 <th>Description</th>
                             </tr>
                         </thead>

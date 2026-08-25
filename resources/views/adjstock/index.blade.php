@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Adjustment Stock')
+@section('title', 'Adjustment Stok')
 
 @section('content')
     <div x-data="{
@@ -82,7 +82,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">Cabang</th>
-                    <th class="border px-2 py-1">No. Adj Stock</th>
+                    <th class="border px-2 py-1">No. Adj Stok</th>
                     <th class="border px-2 py-1">Tanggal</th>
             <th class="border px-2 py-1">Tipe Adj</th>
             <th class="border px-2 py-1">

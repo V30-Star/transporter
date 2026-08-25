@@ -213,7 +213,7 @@ class ReportingAdjStockController extends Controller
 
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Adjustment Stock Report');
+        $sheet->setTitle('Adjustment Stok Report');
 
         // Header kolom
         $headers = [

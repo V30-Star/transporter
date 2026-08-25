@@ -611,7 +611,7 @@
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan
                                 </th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Merek</th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stock
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stok
                                 </th>
                                 <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
                                 </th>

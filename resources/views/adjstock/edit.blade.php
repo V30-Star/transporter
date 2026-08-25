@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Adjustment Stock - Delete' : ($action === 'view' ? 'Adjustment Stock - View' : 'Adjustment Stock - Edit'))
+@section('title', $action === 'delete' ? 'Adjustment Stok - Delete' : ($action === 'view' ? 'Adjustment Stok - View' : 'Adjustment Stok - Edit'))
 
 @section('content')
     @php
@@ -207,7 +207,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ $action === 'delete' ? 'Adjustment Stock Tidak Dapat Dihapus' : 'Adjustment Stock Tidak Dapat Diedit' }}
+                            {{ $action === 'delete' ? 'Adjustment Stok Tidak Dapat Dihapus' : 'Adjustment Stok Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
@@ -249,7 +249,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -1345,7 +1345,7 @@
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Merek</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                            Stock</th>
+                                            Stok</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Aksi</th>
                                     </tr>
@@ -1890,7 +1890,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
@@ -2297,7 +2297,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Produk Duplikat',
-                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stok.`,
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'

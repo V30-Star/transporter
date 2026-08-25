@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Adjustment Stock - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>Adjustment Stok - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -300,7 +300,7 @@
                     @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
                 </div>
                 <div>
-                    <div class="title-so">Adjustment Stock</div>
+                    <div class="title-so">Adjustment Stok</div>
                     <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
                 </div>
             </div>

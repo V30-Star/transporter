@@ -3363,7 +3363,7 @@ class ReturPenjualanController extends Controller
                 }
 
                 if ($stockHeader) {
-                    // Update Stock Header
+                    // Update Stok Header
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->update([
                         'fstockmtcode'     => 'REJ',
                         'fstockmtdate'     => $fsodate,
@@ -3435,7 +3435,7 @@ class ReturPenjualanController extends Controller
                         'fdatetimelog'     => $now,
                     ]);
 
-                    // Sync Stock Details
+                    // Sync Stok Details
                     DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->delete();
                     foreach ($stockDetailRows as &$srow) {
                         $srow['fstockmtno'] = $fstockmtno;

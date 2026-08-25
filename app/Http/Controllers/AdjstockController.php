@@ -60,7 +60,7 @@ class AdjstockController extends Controller
 
         $messages = [];
         foreach ($duplicates as $index => $code) {
-            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Adjustment Stock.";
+            $messages["fitemcode.$index"] = "Kode produk {$code} dengan nomor acak yang sama tidak boleh dobel dalam satu Adjustment Stok.";
         }
 
         throw ValidationException::withMessages($messages);
@@ -488,13 +488,13 @@ class AdjstockController extends Controller
 
     public function downloadTemplate()
     {
-        $path = public_path('Template Adjustment Stock.xlsx');
+        $path = public_path('Template Adjustment Stok.xlsx');
 
         if (! is_file($path)) {
-            abort(404, 'Template Adjustment Stock.xlsx tidak ditemukan.');
+            abort(404, 'Template Adjustment Stok.xlsx tidak ditemukan.');
         }
 
-        return response()->download($path, 'Template Adjustment Stock.xlsx');
+        return response()->download($path, 'Template Adjustment Stok.xlsx');
     }
 
     public function uploadExcel(Request $request)
@@ -608,7 +608,7 @@ class AdjstockController extends Controller
                     'max:100',
                     function ($attribute, $value, $fail) use ($request) {
                         if (! $request->boolean('auto_generate', true) && empty(trim((string) $value))) {
-                            $fail('No. Transaksi Adjustment Stock wajib diisi jika Auto tidak dicentang.');
+                            $fail('No. Transaksi Adjustment Stok wajib diisi jika Auto tidak dicentang.');
                         }
                     },
                 ],
@@ -869,7 +869,7 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment Stock {$finalNo} berhasil disimpan.",
+                    'message' => "Adjustment Stok {$finalNo} berhasil disimpan.",
                     'redirect_url' => route('adjstock.create'),
                     'success_prompt' => [
                         'type' => 'adjstock_create',
@@ -880,7 +880,7 @@ class AdjstockController extends Controller
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "Adjustment Stock {$finalNo} berhasil disimpan.")
+                ->with('success', "Adjustment Stok {$finalNo} berhasil disimpan.")
                 ->with('success_prompt', [
                     'type' => 'adjstock_create',
                     'redirect_url' => route('adjstock.print', $finalNo),
@@ -937,7 +937,7 @@ class AdjstockController extends Controller
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
-        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stok ini')) {
             return redirect()
                 ->route('adjstock.view', $adjstock->fstockmtid)
                 ->with('error', $message);
@@ -1164,7 +1164,7 @@ class AdjstockController extends Controller
             // 2) AMBIL DATA MASTER & HEADER
             // =========================
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Adjustment Stock ini')) {
+            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Adjustment Stok ini')) {
                 return redirect()->route('adjstock.edit', $header->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($header)) {
@@ -1441,14 +1441,14 @@ class AdjstockController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment Stock {$header->fstockmtno} berhasil diupdate.",
+                    'message' => "Adjustment Stok {$header->fstockmtno} berhasil diupdate.",
                     'redirect_url' => route('adjstock.index'),
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.index')
-                ->with('success', "Adjustment Stock {$header->fstockmtno} berhasil diupdate.");
+                ->with('success', "Adjustment Stok {$header->fstockmtno} berhasil diupdate.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
@@ -1507,7 +1507,7 @@ class AdjstockController extends Controller
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
-        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stok ini')) {
             return redirect()
                 ->route('adjstock.edit', $adjstock->fstockmtid)
                 ->with('error', $message);
@@ -1593,7 +1593,7 @@ class AdjstockController extends Controller
     {
         try {
             $adjstock = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-            if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+            if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stok ini')) {
                 return redirect()->route('adjstock.edit', $adjstock->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($adjstock)) {

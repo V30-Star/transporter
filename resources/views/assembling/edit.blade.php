@@ -797,7 +797,7 @@
                                                         Merek</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Stock</th>
+                                                        Stok</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>
@@ -1727,7 +1727,7 @@
                                                         Merek</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Stock</th>
+                                                        Stok</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>

@@ -315,6 +315,10 @@ class Tr_prhController extends Controller
 
         abort_if(! $hdr, 404);
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Permintaan Pembelian belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Permintaan Pembelian Sudah Pernah diPrint.');
         }
@@ -497,22 +501,24 @@ class Tr_prhController extends Controller
         });
 
         $message = "PR {$fprno} berhasil disimpan";
+        $successPrompt = $isApproved ? [
+            'type' => 'tr_prh_create',
+            'redirect_url' => route('tr_prh.print', $fprno),
+        ] : null;
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
                 'redirect_url' => route('tr_prh.create'),
-                'success_prompt' => [
-                    'type' => 'tr_prh_create',
-                    'redirect_url' => route('tr_prh.print', $fprno),
-                ],
+                'success_prompt' => $successPrompt,
             ]);
         }
-        return redirect()->route('tr_prh.create')
-            ->with('success', $message)
-            ->with('success_prompt', [
-                'type' => 'tr_prh_create',
-                'redirect_url' => route('tr_prh.print', $fprno),
-            ]);
+        $redirect = redirect()->route('tr_prh.create')
+            ->with('success', $message);
+        if ($successPrompt) {
+            $redirect->with('success_prompt', $successPrompt);
+        }
+        return $redirect;
     }
 
     public function view(Request $request, $fprhid)
