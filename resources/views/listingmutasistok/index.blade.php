@@ -108,19 +108,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="bg-gray-50 p-3 rounded border text-center">
-                            <div class="flex justify-center gap-6">
-                                <label class="flex items-center text-sm font-semibold cursor-pointer">
-                                    <input type="radio" name="display_type" value="detail" checked
-                                        class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Detail
-                                </label>
-                                <label class="flex items-center text-sm font-semibold cursor-pointer">
-                                    <input type="radio" name="display_type" value="rekap"
-                                        class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Rekap
-                                </label>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="flex justify-end space-x-3 mt-6 pt-4 border-t">

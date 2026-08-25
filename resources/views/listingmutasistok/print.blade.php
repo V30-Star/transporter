@@ -109,7 +109,7 @@
             grid-template-columns: 12mm 28mm 18mm 22mm 22mm 1fr 14mm;
             gap: 1px;
             font-size: 8.5px;
-            padding: 2px 6px;
+            padding: 2px 1px;
             align-items: center;
         }
 
@@ -137,7 +137,7 @@
             grid-template-columns: 30mm 1fr 24mm;
             gap: 1px;
             font-size: 8px;
-            padding: 2px 6px;
+            padding: 2px 30px;
             align-items: center;
         }
 
@@ -497,11 +497,6 @@
                                 <td style="font-weight: bold;">{{ $period }}</td>
                             </tr>
                             <tr>
-                                <td class="info-col-label">Display</td>
-                                <td>:</td>
-                                <td>{{ $displayType }}</td>
-                            </tr>
-                            <tr>
                                 <td class="info-col-label">Tanggal</td>
                                 <td>:</td>
                                 <td>{{ date('d-m-Y') }}</td>
@@ -569,7 +564,7 @@
                         <div class="mt-detail">
                             <div class="truncate">{{ $d->fprdcode }}</div>
                             <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
-                            <div>{{ number_format((float) $d->fqty, 2, ',', '.') }}</div>
+                            <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->fsatuan }}</div>
                         </div>
                     @endforeach
                 @endif
@@ -636,11 +631,6 @@
                                         <td class="info-col-label">Periode</td>
                                         <td style="width: 8px;">:</td>
                                         <td style="font-weight: bold;">{{ $period }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="info-col-label">Display</td>
-                                        <td>:</td>
-                                        <td>{{ $displayType }}</td>
                                     </tr>
                                     <tr>
                                         <td class="info-col-label">Tanggal</td>
