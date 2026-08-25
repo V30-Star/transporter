@@ -1135,6 +1135,23 @@
             },
 
             onSubmit($event) {
+                const whFrom = (document.getElementById('warehouseCodeHiddenFrom')?.value || document.getElementById('warehouseSelectFrom')?.value || '').trim();
+                const whTo = (document.getElementById('warehouseCodeHiddenTo')?.value || document.getElementById('warehouseSelectTo')?.value || '').trim();
+
+                if (whFrom !== '' && whTo !== '' && whFrom.toLowerCase() === whTo.toLowerCase()) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Peringatan',
+                        text: 'Gudang(Dari) dan Gudang(Tujuan) tidak boleh sama',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
+
                 const duplicateCode = window.getMutasiDuplicateCode?.($event.target);
                 if (duplicateCode) {
                     $event.preventDefault();

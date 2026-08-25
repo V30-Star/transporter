@@ -306,6 +306,11 @@ class MutasiController extends Controller
         $userBranch = $this->resolveCurrentUserBranchCode();
         $errors = [];
 
+        if ($from !== '' && $to !== '' && strcasecmp($from, $to) === 0) {
+            $errors['fto'] = 'Gudang(Dari) dan Gudang(Tujuan) tidak boleh sama';
+            return $errors;
+        }
+
         if ($userBranch === '' || ! DB::table('mswh')
             ->whereRaw('TRIM(COALESCE(fwhcode, \'\')) = ?', [$from])
             ->whereRaw('TRIM(COALESCE(fbranchcode, \'\')) = ?', [$userBranch])
@@ -680,6 +685,9 @@ class MutasiController extends Controller
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
             if ($errors = $this->mutasiWarehouseErrors($request)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => reset($errors)], 422);
+                }
                 return back()->withInput()->withErrors($errors);
             }
 
@@ -1092,6 +1100,9 @@ class MutasiController extends Controller
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('frefnoacak', []));
             if ($errors = $this->mutasiWarehouseErrors($request)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => reset($errors)], 422);
+                }
                 return back()->withInput()->withErrors($errors);
             }
 
