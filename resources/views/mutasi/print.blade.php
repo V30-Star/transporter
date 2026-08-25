@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Mutasi Stock - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>Mutasi Stok - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -67,12 +67,11 @@
         /* Box Container (Supplier/Info) */
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 12px;
-            width: 450px;
-            min-height: 70px;
+            width: 100%;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -286,26 +285,42 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                    @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                    <div class="customer-container">
-                        <span class="customer-label">Supplier</span>
-                        <div style="font-weight: bold;">{{ $hdr->supplier_name ?? '-' }}</div>
-                        <div style="font-size: 11px;">
-                            Gudang : {{ $hdr->fwhnamen ?? '-' }}
+                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                </div>
+                <div>
+                    <div class="title-so">Mutasi Stok</div>
+                    <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                </div>
+            </div>
+
+            <div class="customer-container">
+                <span class="customer-label">Supplier</span>
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) && $hdr->fsupplier !== '0' ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier && $hdr->fsupplier !== '0' ? $hdr->fsupplier : '-') }}</div>
+                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
+                            {{ $hdr->supplier_address ?? '-' }}
                         </div>
                     </div>
-                </div>
-                <div style="min-width: 260px;">
-                    <div class="title-so">Mutasi Barang</div>
-                    <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
-                    <table class="info-table" style="width: 100%;">
-                        <tr>
-                            <td style="width: 75px;">Tanggal</td>
-                            <td style="width: 10px;">:</td>
-                            <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                        </tr>
-                    </table>
+                    <div style="width: 290px;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
+                            <tr>
+                                <td style="width: 100px;">Tanggal</td>
+                                <td style="width: 10px;">:</td>
+                                <td>{{ $fmt($hdr->fstockmtdate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Gudang Dari</td>
+                                <td>:</td>
+                                <td>{{ !empty($hdr->wh_from_name) ? $hdr->wh_from_name : ($hdr->ffrom ?: '-') }}</td>
+                            </tr>
+                            <tr>
+                                <td>Gudang Tujuan</td>
+                                <td>:</td>
+                                <td>{{ !empty($hdr->wh_to_name) ? $hdr->wh_to_name : ($hdr->fto ?: '-') }}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -317,7 +332,7 @@
                     <th style="width: 5%; text-align: center;" class="text-center">No.</th>
                     <th style="width: 20%;">Kode Barang</th>
                     <th style="width: 50%;">Nama Barang</th>
-                    <th style="width: 10%; text-align: center;" class="text-center">Qty.</th>
+                    <th style="width: 10%; text-align: right;" class="text-right">Qty.</th>
                     <th style="width: 15%; text-align: center;" class="text-center">Satuan</th>
                 </tr>
             </thead>
@@ -327,9 +342,9 @@
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
-                            <div>{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
+                            <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
                         </td>
-                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                     </tr>
                 @endforeach
@@ -339,12 +354,6 @@
         {{-- Summary Template (Last Page) --}}
         <div id="tpl-summary">
             <div class="footer-line"></div>
-
-            <div class="terbilang-box">
-                Note : <br>
-                <span
-                    style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
-            </div>
         </div>
 
         {{-- Sign Template (Last Page) --}}
@@ -354,7 +363,7 @@
                     <div style="width: 160px; min-width: 140px; text-align: center;">
                         <div style="font-size: 11px;">Dibuat Oleh,</div>
                         <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                            ( {!! !empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' !!} )
+                            ( {!! !empty($namattdpo) ? strtoupper($namattdpo) : (!empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                         </div>
                     </div>
                     <div style="width: 160px; min-width: 140px; text-align: center;">
@@ -363,6 +372,12 @@
                             ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
                     </div>
+                    @if(!empty(trim((string)($hdr->fket ?? ''))))
+                        <div style="font-size: 11px; max-width: 250px;">
+                            <div>Keterangan:</div>
+                            <div style="white-space: pre-line;">{{ $hdr->fket }}</div>
+                        </div>
+                    @endif
                 </div>
                 <div class="meta-right">
                     <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>

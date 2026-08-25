@@ -476,20 +476,23 @@ class MutasiController extends Controller
 
     public function print(string $fstockmtno)
     {
-        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername', 'faddress');
 
         $base = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
                 $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom');
+            ->leftJoin('mswh as w_from', 'w_from.fwhcode', '=', 'trstockmt.ffrom')
+            ->leftJoin('mswh as w_to', 'w_to.fwhcode', '=', 'trstockmt.fto');
 
         $cols = [
             'trstockmt.*',
             's.fsuppliername as supplier_name',
+            's.faddress as supplier_address',
             'c.fcabangname as cabang_name',
-            'w.fwhname as fwhnamen',
+            'w_from.fwhname as wh_from_name',
+            'w_to.fwhname as wh_to_name',
         ];
 
         if (is_numeric($fstockmtno)) {
