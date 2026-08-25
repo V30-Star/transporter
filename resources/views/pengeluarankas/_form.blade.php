@@ -338,7 +338,7 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
-                        <textarea name="fket" rows="3"
+                        <textarea name="fket" rows="2"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $pengeluaranKas->fket) }}</textarea>
                         @error('fket')

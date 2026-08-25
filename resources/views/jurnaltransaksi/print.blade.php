@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Voucher Jurnal - {{ $hdr->fjurnalno ?? '-' }}</title>
+    <title>Slip Jurnal Umum - {{ $hdr->fjurnalno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -149,28 +149,19 @@
 
         /* Signature */
         .sign-container {
-            margin-top: 30px;
+            margin-top: 20px;
             clear: both;
             display: flex;
+            justify-content: space-between;
             align-items: flex-end;
+            gap: 16px;
         }
 
-        .sign-table {
-            border-collapse: collapse;
-            width: 400px;
-        }
-
-        .sign-table td {
-            border: 1px solid #000;
-            width: 33.33%;
-            height: 25px;
-            text-align: center;
-        }
-
-        .sign-table .box-content {
-            height: 70px;
-            vertical-align: bottom;
-            padding-bottom: 5px;
+        .meta-right {
+            text-align: right;
+            font-size: 10px;
+            color: #444;
+            white-space: nowrap;
         }
 
         .caption-note {
@@ -272,11 +263,10 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                    @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
+                    @if(!empty($company_city))<div style="font-size: 12px; font-weight: bold;">{{ strtoupper($company_city) }}</div>@endif
                 </div>
                 <div style="min-width: 260px;">
-                    <div class="title-so">Voucher Jurnal</div>
+                    <div class="title-so">Slip Jurnal Umum</div>
                     <div class="so-no">No. {{ $hdr->fjurnalno ?? '-' }}</div>
                     <table class="info-table" style="width: 100%;">
                         <tr>
@@ -371,10 +361,15 @@
                             ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
                     </div>
+                    @if(!empty(trim((string)($hdr->fjurnalnote ?? ''))))
+                        <div style="font-size: 11px; max-width: 250px;">
+                            <div>Keterangan:</div>
+                            <div style="white-space: pre-line;">{{ $hdr->fjurnalnote }}</div>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="meta-right">
-                    @if(!empty($hdr->fjurnalnote))<div style="margin-bottom: 2px;">Ket : {{ $hdr->fjurnalnote }}</div>@endif
                     <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
