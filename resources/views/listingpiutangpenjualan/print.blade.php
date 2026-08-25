@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listing Piutang Penjualan</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,23 +17,26 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee;
+            color: #0f172a;
+            background-color: #f1f5f9;
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 12mm 15mm;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
         .page-a4-strict {
@@ -38,109 +45,160 @@
             overflow: hidden !important;
         }
 
-         .header-section {
-            position: relative;
-            margin-bottom: 30px;
-            text-align: center;
-            padding-bottom: 20px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PO */
-            letter-spacing: 0.5px;
         }
 
-       .filter-info {
-            font-size: 10px;
-            color: #475569; /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
         }
 
-        .supplier-info-kiri {
-            position: absolute;
-            top: 0;
-            left: 0mm;
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
+        }
+
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
             line-height: 1.4;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #333;
-            text-align: left;
-            line-height: 1.4;
-        }
-
-        .info-label {
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 55px;
-            color: #475569; /* Slate 600 */
+            color: #334155;
+            width: 90px;
         }
 
+        /* --- TABLE STYLES (8 Kolom) --- */
         .po-header-labels,
         .item-row,
         .group-total-row {
             display: grid;
-            grid-template-columns: 8mm 12mm 28mm 20mm 22mm 30mm 30mm 30mm;
-            gap: 4px;
-            font-size: 8px;
-            padding: 4px 3px;
+            grid-template-columns: 8mm 10mm 26mm 18mm 18mm 24mm 24mm 1fr;
+            gap: 1px;
+            font-size: 8.5px;
+            padding: 2px 6px;
+            align-items: center;
         }
 
         .po-header-labels {
-            border: 1px solid #000;
-            margin-bottom: 1px;
+            background-color: transparent;
+            color: #000000;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            margin-bottom: 0px;
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .item-row {
-            padding: 3px 3px;
-        }
-
-        .item-row>div:nth-child(6),
-        .item-row>div:nth-child(7),
-        .po-header-labels>div:nth-child(6),
-        .po-header-labels>div:nth-child(7),
-        .group-total-row>div:nth-child(2),
-        .group-total-row>div:nth-child(3) {
-            text-align: right;
-        }
-
-        .item-row>div:nth-child(7),
-        .po-header-labels>div:nth-child(7),
-        .group-total-row>div:nth-child(3),
-        .grand-total-row>div:nth-child(3) {
-            padding-right: 6px;
+            background-color: transparent;
+            color: #0f172a;
+            font-weight: normal;
         }
 
         .group-row {
             display: block;
+            background-color: #f8fafc;
+            color: #0f172a;
             font-weight: bold;
-            font-size: 8px;
-            padding: 2px 6px;
-            margin-bottom: 1px;
+            font-size: 8.5px;
+            padding: 3px 6px;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            border-bottom: 1px dashed #cbd5e1;
+            text-transform: uppercase;
         }
 
         .group-total-row {
+            background-color: transparent;
             font-weight: bold;
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px solid #000000;
+            padding: 3px 6px;
+            margin-bottom: 4px;
+            color: #0f172a;
         }
 
         .text-rej,
         .text-rej div,
         .text-rej span {
-            color: #cc0000 !important;
+            color: #ff0000 !important;
+        }
+
+        /* Alignment */
+        .po-header-labels > div:nth-child(1),
+        .po-header-labels > div:nth-child(2),
+        .po-header-labels > div:nth-child(4),
+        .po-header-labels > div:nth-child(5),
+        .item-row > div:nth-child(1),
+        .item-row > div:nth-child(2),
+        .item-row > div:nth-child(4),
+        .item-row > div:nth-child(5) {
+            text-align: center;
+        }
+
+        .po-header-labels > div:nth-child(6),
+        .po-header-labels > div:nth-child(7),
+        .item-row > div:nth-child(6),
+        .item-row > div:nth-child(7),
+        .group-total-row > div:nth-child(2),
+        .group-total-row > div:nth-child(3) {
+            text-align: right;
+        }
+
+        /* Fonts for Numbers & System Codes */
+        .item-row > div:nth-child(1),
+        .item-row > div:nth-child(2),
+        .item-row > div:nth-child(3),
+        .item-row > div:nth-child(4),
+        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6),
+        .item-row > div:nth-child(7),
+        .group-total-row > div:nth-child(2),
+        .group-total-row > div:nth-child(3) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .separator {
+            border-bottom: 1px dotted #cbd5e1;
+            margin: 3px 0;
+            clear: both;
         }
 
         .truncate {
@@ -285,7 +343,6 @@
 
         .print-button {
             background-color: #0f172a;
-            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -303,7 +360,6 @@
 
         .print-button:hover {
             background-color: #000000;
-            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -311,35 +367,58 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 0px;
         }
 
-        .grand-total-section {
+        .po-totals-panel-wrapper {
             margin-top: 5px;
-            border-top: 1px solid #919191;
-            border-bottom: 1px solid #919191;
-            padding-top: 1px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 5px;
+            position: relative;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            text-align: center;
         }
 
-        .grand-total-panel {
-            font-size: 10px;
+        .end-of-report-inline {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .po-totals-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 5px;
+            padding-right: 5px;
+        }
+
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            font-size: 9px;
+            padding: 2px 0;
         }
 
         .grand-total-row {
-            display: grid;
-            grid-template-columns: 8mm 12mm 28mm 20mm 22mm 30mm 30mm 30mm;
-            gap: 4px;
             font-weight: bold;
-            padding: 4px 3px;
-        }
-
-        .grand-total-row>div:nth-child(2),
-        .grand-total-row>div:nth-child(3) {
-            text-align: right;
+            border-top: 1px solid #000;
+            border-bottom: 2px double #000;
+            margin-top: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
         }
 
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -348,12 +427,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 12mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -369,6 +451,32 @@
 </head>
 
 <body>
+    @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
+        $grandFaktur = 0;
+        $grandPiutang = 0;
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
+        $wilayahText = request('wilayah') ?: 'Semua';
+        $customerText = request('cust_from') || request('cust_to')
+            ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+            : 'Semua';
+        $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
+
+        $perTanggalFmt = request('per_tanggal') ? date('d-m-Y', strtotime(request('per_tanggal'))) : date('d-m-Y');
+        $tglBayarFmt = request()->boolean('tgl_pembayaran')
+            ? (request('tgl_pembayaran_date') ? date('d-m-Y', strtotime(request('tgl_pembayaran_date'))) : $perTanggalFmt)
+            : 'Semua';
+        $jatuhTempoFmt = request('due_filter') === 'due'
+            ? (request('due_date') ? date('d-m-Y', strtotime(request('due_date'))) : $perTanggalFmt)
+            : 'Semua';
+    @endphp
+
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -397,49 +505,89 @@
         </a>
     </div>
 
-    @php
-        $grandFaktur = 0;
-        $grandPiutang = 0;
-        $branchText = request()->has('branch_codes')
-            ? implode(', ', (array) request()->input('branch_codes'))
-            : 'Semua';
-        $salesmanText = request('salesman') ?: 'Semua';
-        $wilayahText = request('wilayah') ?: 'Semua';
-        $customerText = request('cust_from') || request('cust_to')
-            ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
-            : 'Semua';
-        $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
-    @endphp
-
+    {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                Cabang: {{ $branchText }}<br>
-                Customer: {{ $customerText }}<br>
-                Wilayah: {{ $wilayahText }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">Listing Piutang Penjualan</div>
+                </div>
             </div>
-            <h2>Listing Piutang Penjualan</h2>
-            <div class="filter-info">
-                <div>Per Tanggal: {{ \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}</div>
-                @if (request()->boolean('tgl_pembayaran'))
-                    <div>Tgl.Pembayaran s.d.: {{ request('tgl_pembayaran_date') ? \Carbon\Carbon::parse(request('tgl_pembayaran_date'))->format('d/m/Y') : \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}</div>
-                @else
-                    <div>Tgl.Pembayaran: Semua</div>
-                @endif
-                @if (request('due_filter') === 'due')
-                    <div>Jatuh Tempo s/d: {{ request('due_date') ?: request('per_tanggal') }}</div>
-                @endif
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
-                <div><span class="info-label">Salesman</span>: {{ $salesmanText }}</div>
-                <div><span class="info-label">Mode</span>: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</div>
-                <div><span class="info-label">Retur</span>: {{ $returText }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Customer</td>
+                                <td>:</td>
+                                <td>{{ $customerText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Wilayah</td>
+                                <td>:</td>
+                                <td>{{ $wilayahText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Salesman</td>
+                                <td>:</td>
+                                <td>{{ $salesmanText }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Per Tanggal</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $perTanggalFmt }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tgl. Pembayaran</td>
+                                <td>:</td>
+                                <td>{{ $tglBayarFmt }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jatuh Tempo</td>
+                                <td>:</td>
+                                <td>{{ $jatuhTempoFmt }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Mode / Retur</td>
+                                <td>:</td>
+                                <td>{{ ($mode === 'rekap' ? 'Rekap' : 'Detail') . ' / ' . $returText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal / Jam</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }} {{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -465,7 +613,7 @@
 
             {{-- Group Header block --}}
             <div class="journal-block group-row">
-                {{ $customer }} - {{ $first->fcustname }}
+                Customer: {{ $customer }} - {{ $first->fcustname }}
             </div>
 
             @if ($mode === 'detail')
@@ -477,18 +625,16 @@
                     @endphp
                     <div class="journal-block">
                         <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
-                            <div class="text-center">{{ $index + 1 }}</div>
+                            <div>{{ $index + 1 }}</div>
                             <div>{{ $row->fbranchcode }}</div>
                             <div class="truncate" title="{{ $row->fsono }}">
                                 <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fsono }}</span>
                             </div>
-                            <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
-                            <div>
-                                {{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}
-                            </div>
+                            <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d-m-Y') : '' }}</div>
+                            <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d-m-Y') : '' }}</div>
                             <div>{{ number_format((float) $row->famountso, 2, ',', '.') }}</div>
                             <div>{{ number_format((float) $row->fsisapiu, 2, ',', '.') }}</div>
-                            <div title="{{ $row->fsalesman }}">{{ $row->fsalesman }}</div>
+                            <div class="truncate" title="{{ $row->fsalesman }}">{{ $row->fsalesman }}</div>
                         </div>
                     </div>
                 @endforeach
@@ -498,54 +644,118 @@
             <div class="journal-block">
                 <div class="group-total-row">
                     <div style="grid-column: span 5; text-align: right; padding-right: 8px;">
-                        Total ({{ $first->fcustname }})</div>
+                        Total {{ $customer }} - {{ $first->fcustname }} :
+                    </div>
                     <div>{{ number_format((float) $customerFaktur, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $customerPiutang, 2, ',', '.') }}</div>
                     <div></div>
                 </div>
             </div>
         @empty
-            <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">
-                Tidak ada data ditemukan.
-            </div>
         @endforelse
+    </div>
 
-        <div class="grand-total-section">
-            <div class="grand-total-panel">
-                <div class="grand-total-row">
-                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Grand Total:</div>
-                    <div>{{ number_format((float) $grandFaktur, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $grandPiutang, 2, ',', '.') }}</div>
-                    <div></div>
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row">
+                    <span>GRAND TOTAL FAKTUR</span>
+                    <span>Rp {{ number_format((float) $grandFaktur, 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row grand-total-row">
+                    <span>GRAND TOTAL PIUTANG</span>
+                    <span>Rp {{ number_format((float) $grandPiutang, 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 0;">
-                        <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                        Cabang: {{ $branchText }}<br>
-                        Customer: {{ $customerText }}<br>
-                        Wilayah: {{ $wilayahText }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">Listing Piutang Penjualan</div>
+                        </div>
                     </div>
-                    <h2>Listing Piutang Penjualan</h2>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
-                        <div><span class="info-label">Salesman</span>: {{ $salesmanText }}</div>
-                        <div><span class="info-label">Mode</span>: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</div>
-                        <div><span class="info-label">Retur</span>: {{ $returText }}</div>
+                    <div class="customer-container">
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Customer</td>
+                                        <td>:</td>
+                                        <td>{{ $customerText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Wilayah</td>
+                                        <td>:</td>
+                                        <td>{{ $wilayahText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Salesman</td>
+                                        <td>:</td>
+                                        <td>{{ $salesmanText }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Per Tanggal</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td style="font-weight: bold;">{{ $perTanggalFmt }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tgl. Pembayaran</td>
+                                        <td>:</td>
+                                        <td>{{ $tglBayarFmt }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jatuh Tempo</td>
+                                        <td>:</td>
+                                        <td>{{ $jatuhTempoFmt }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Mode / Retur</td>
+                                        <td>:</td>
+                                        <td>{{ ($mode === 'rekap' ? 'Rekap' : 'Detail') . ' / ' . $returText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal / Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }} {{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
-                        ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -580,7 +790,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -588,6 +798,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
+        // Measure actual 297mm page height on the screen dynamically in pixels (A4 Portrait)
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -596,10 +807,11 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
+
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
         const poHeaderLabelsHtml = rawSource.querySelector(".po-header-labels").outerHTML;
-        const grandTotalSectionHtml = rawSource.querySelector(".grand-total-section")?.outerHTML;
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -609,15 +821,8 @@
                     ${headerSectionHtml}
                     ${poHeaderLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML =
-                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -626,59 +831,49 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
-            const journalClone = journal.cloneNode(true);
-            currentContent.appendChild(journalClone);
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = journal.className;
+            currentJournalBlock.innerHTML = journal.innerHTML;
+            currentContent.appendChild(currentJournalBlock);
 
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
-                    currentContent.removeChild(journalClone);
+                    currentContent.removeChild(currentJournalBlock);
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
-                    currentContent.appendChild(journalClone);
+
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = journal.className;
+                    currentJournalBlock.innerHTML = journal.innerHTML;
+                    currentContent.appendChild(currentJournalBlock);
                 }
             }
         });
 
-        if (grandTotalSectionHtml) {
-            const tempTotal = document.createElement("div");
-            tempTotal.innerHTML = grandTotalSectionHtml;
-            const grandTotalEl = tempTotal.firstElementChild;
-            currentPage.appendChild(grandTotalEl);
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
 
-            if (currentPage.offsetHeight > maxPageHeight && currentContent.children.length > 0) {
-                currentPage.removeChild(grandTotalEl);
+            if (currentPage.offsetHeight > maxPageHeight) {
+                currentPage.removeChild(totalsClone);
                 currentPage = createNewPage();
-                currentPage.appendChild(grandTotalEl);
+                currentPage.appendChild(totalsClone);
             }
         }
 
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
-        currentPage.appendChild(endOfReportEl);
-
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
-        }
-
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 

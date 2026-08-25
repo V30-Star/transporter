@@ -51,6 +51,7 @@ class ListingReturPembelianController extends Controller
                 'm.fstockmtdate',
                 'm.fbranchcode',
                 'm.fsupplier',
+                'm.fsupplier as fsuppliercode',
                 's.fsuppliername',
                 'm.ffrom',
                 'm.fket',
@@ -60,13 +61,17 @@ class ListingReturPembelianController extends Controller
                 DB::raw('COALESCE(m.famountmt, 0) as header_total'),
                 'wh.fwhname',
                 'd.fprdcode',
+                'd.fprdcode as fitemcode',
                 DB::raw('COALESCE(d.fqtykecil, 0) as fqtykecil'),
                 DB::raw('COALESCE(d.fqty, 0) as fqty'),
                 DB::raw('COALESCE(d.fprice, 0) as fprice'),
                 DB::raw('COALESCE(d.ftotprice, 0) as famount'),
+                DB::raw('COALESCE(d.ftotprice, 0) as fdetailtotal'),
                 'd.fsatuan',
+                'd.fsatuan as funit',
                 'p.fprdcode',
-                'p.fprdname'
+                'p.fprdname',
+                'p.fprdname as fitemname'
             );
 
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');

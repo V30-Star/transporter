@@ -16,96 +16,100 @@
             box-sizing: border-box;
         }
 
-        /* Monitor Screen Layout */
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000000; /* Solid Black text */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #0f172a;
+            background-color: #f1f5f9;
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 12mm 15mm;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
-        /* Strict height applied after pagination */
         .page-a4-strict {
             height: 297mm !important;
             min-height: 297mm !important;
             overflow: hidden !important;
         }
 
-        .header-section {
-            position: relative;
-            margin-bottom: 20px;
-            text-align: center;
-            padding-bottom: 20px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PO */
-            letter-spacing: 0.5px;
         }
 
-        .filter-info {
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #475569; /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
         }
 
-        .supplier-info-kiri {
-            position: absolute;
-            top: 15px; /* Shifted one line up inline with right side metadata */
-            left: 0mm;
-            font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+            line-height: 1.4;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
-        }
-
-        .info-label {
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #334155;
+            width: 95px;
         }
 
         /* --- PR HEADER STYLES (7 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 15mm 30mm 20mm 50mm 22mm 25mm 13mm;
+            grid-template-columns: 15mm 30mm 20mm 1fr 24mm 24mm 14mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 3px 8px; /* Reduced vertical padding matching PO */
+            font-size: 8.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -114,26 +118,26 @@
             color: #000000;
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
-            margin-bottom: 0px; /* Reduced spacing */
+            margin-bottom: 0px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .po-header {
             background-color: transparent;
-            margin-bottom: 0px;
-            color: #000000;
+            color: #0f172a;
+            font-weight: normal;
         }
 
         /* --- PR DETAIL STYLES (5 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 30mm 75mm 20mm 25mm 25mm;
+            grid-template-columns: 30mm 1fr 20mm 24mm 24mm;
             gap: 1px;
             font-size: 8px;
-            padding: 2px 8px; /* Reduced vertical padding matching PO */
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -142,9 +146,9 @@
             color: #cc0000;
             background-color: transparent;
             border-bottom: 1px solid #000000;
-            margin-top: 0px; /* Reduced spacing */
+            margin-top: 0px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .po-detail {
@@ -152,13 +156,34 @@
             background-color: transparent;
         }
 
-        /* Alignment & Monospace Fonts */
+        .po-detail > div:first-child {
+            padding-left: 2mm;
+        }
+
+        .separator {
+            border-bottom: 1px dotted #cbd5e1;
+            margin: 3px 0;
+            clear: both;
+        }
+
+        /* Alignment */
+        .po-header-labels > div:nth-child(1),
+        .po-header-labels > div:nth-child(3),
+        .po-header-labels > div:nth-child(5),
         .po-header > div:nth-child(1),
-        .po-header > div:nth-child(2),
         .po-header > div:nth-child(3),
-        .po-header > div:nth-child(5),
+        .po-header > div:nth-child(5) {
+            text-align: center;
+        }
+
+        .po-header-labels > div:nth-child(6),
         .po-header > div:nth-child(6) {
-            font-family: 'IBM Plex Mono', Courier, monospace;
+            text-align: right;
+        }
+
+        .po-detail-labels > div:nth-child(3),
+        .po-detail > div:nth-child(3) {
+            text-align: center;
         }
 
         .po-detail-labels > div:nth-child(4),
@@ -168,17 +193,17 @@
             text-align: right;
         }
 
+        /* Fonts for Numbers & System Codes */
+        .po-header > div:nth-child(1),
+        .po-header > div:nth-child(2),
+        .po-header > div:nth-child(3),
+        .po-header > div:nth-child(5),
+        .po-header > div:nth-child(6),
         .po-detail > div:nth-child(1),
         .po-detail > div:nth-child(4),
         .po-detail > div:nth-child(5) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
-            font-weight: normal; /* Normal weight for detail product code and quantity */
-        }
-
-        .separator {
-            margin: 0px;
-            clear: both;
         }
 
         .truncate {
@@ -322,19 +347,20 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy slate default */
+            background-color: #0f172a;
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             border: none;
             font-weight: 600;
-            font-size: 11px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
-            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
         .print-button:hover {
@@ -346,31 +372,21 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px; /* Reduced spacing matching PO */
+            margin-bottom: 0px;
         }
 
-        /* Zoom Out Button Style */
-        .no-print button {
-            transition: background-color 0.2s;
-        }
-
-        /* Totals Panel style */
         .po-totals-panel-wrapper {
-            margin-top: 15px;
-            margin-bottom: 25px; /* Added space for absolute centered footer below */
-            width: 180mm; /* Full printable width */
-            border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 4px;
-            position: relative; /* Position context for centering */
+            margin-top: 5px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 5px;
+            position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
+            text-align: center;
         }
 
         .end-of-report-inline {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: -15px; /* Below the double border */
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -379,29 +395,35 @@
             letter-spacing: 1px;
         }
 
-        .po-total-row-grid {
-            display: grid;
-            grid-template-columns: 30mm 75mm 20mm 25mm 25mm;
-            gap: 1px;
-            font-size: 8px;
-            padding: 6px 8px;
-            align-items: center;
+        .po-totals-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 5px;
+            padding-right: 5px;
+        }
+
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            width: 320px;
+            font-size: 9px;
+            padding: 2px 0;
+        }
+
+        .grand-total-row {
             font-weight: bold;
-            color: #000000;
-            border-bottom: 3px double #000000; /* Double accounting border */
+            border-top: 1px solid #000;
+            border-bottom: 2px double #000;
+            margin-top: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
         }
 
-        .po-total-row-grid > div:nth-child(4),
-        .po-total-row-grid > div:nth-child(5) {
-            text-align: right;
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -410,12 +432,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 12mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -431,6 +456,29 @@
 </head>
 
 <body>
+    @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
+        $totalQtyPR = 0;
+        $totalQtyPO = 0;
+        foreach ($groupedData as $fprno => $details) {
+            foreach ($details as $d) {
+                $totalQtyPR += (float) $d->fqty;
+                $totalQtyPO += (float) $d->fqtypo;
+            }
+        }
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $supplierText = request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua';
+        $sortText = request('sort_by') ?: 'No. PR';
+        $statusText = request()->has('only_pending') ? 'Hanya Pending' : 'Semua PR';
+
+        $dateFromFmt = request('date_from') ? date('d-m-Y', strtotime(request('date_from'))) : '...';
+        $dateToFmt = request('date_to') ? date('d-m-Y', strtotime(request('date_to'))) : '...';
+        $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+    @endphp
+
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -461,44 +509,79 @@
         </a>
     </div>
 
-    @php
-        $totalQtyPR = 0;
-        $totalQtyPO = 0;
-        foreach ($groupedData as $fprno => $details) {
-            foreach ($details as $d) {
-                $totalQtyPR += (float) $d->fqty;
-                $totalQtyPO += (float) $d->fqtypo;
-            }
-        }
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
-        $supplierText = request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua';
-        $sortText = request('sort_by') ?: 'No. PR';
-        $statusText = request()->has('only_pending') ? 'Hanya Pending' : 'Semua PR';
-    @endphp
-
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                Supplier: {{ $supplierText }}
-                <br>Cabang: {{ $branchText }}
-                <br>Urut: {{ $sortText }}
-                <br>Status: {{ $statusText }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">Listing Purchase Request</div>
+                </div>
             </div>
-            <h2>Listing Purchase Request</h2>
-            <div class="filter-info">
-                Periode:
-                {{ request('date_from') ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }}
-                s/d
-                {{ request('date_to') ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Supplier</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $supplierText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td>:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Urut</td>
+                                <td>:</td>
+                                <td>{{ $sortText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Status</td>
+                                <td>:</td>
+                                <td>{{ $statusText }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jam</td>
+                                <td>:</td>
+                                <td>{{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -508,50 +591,53 @@
             <div>Tanggal</div>
             <div>Nama Supplier</div>
             <div>Tgl.Dibutuhkan</div>
-            <div>Tgl.Paling Lambat</div>
-            <div>User-id</div>
+            <div>Total Qty</div>
+            <div>User-Id</div>
         </div>
 
-        <div class="po-detail-labels">
-            <div>Produk#</div>
-            <div>Nama Produk</div>
-            <div>Satuan</div>
-            <div>Qty. PR</div>
-            <div>Qty. PO</div>
-        </div>
+        @if (request()->has('detail'))
+            <div class="po-detail-labels">
+                <div>Kode Barang</div>
+                <div>Nama Barang</div>
+                <div>Satuan</div>
+                <div>Qty PR</div>
+                <div>Qty PO</div>
+            </div>
+        @endif
 
-        @php
-            $grouped = $groupedData;
-        @endphp
-
-        @foreach ($grouped as $fprno => $details)
+        @foreach ($groupedData as $fprno => $details)
             @php
                 $h = $details->first();
+                $headerTotalQty = $details->sum('fqty');
                 $viewUrl = route('tr_prh.view', $h->fprhid);
                 $editUrl = route('tr_prh.edit', $h->fprhid);
             @endphp
             <div class="journal-block">
                 <div class="po-header">
-                    <div class="truncate">{{ $h->fbranchcode }}</div>
+                    <div>{{ $h->fbranchcode }}</div>
                     <div class="truncate" title="{{ $h->fprno }}">
                         <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $h->fprno }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $h->fprno }}</span>
                     </div>
-                    <div>{{ \Carbon\Carbon::parse($h->fprdate)->format('d/m/Y') }}</div>
+                    <div>{{ \Carbon\Carbon::parse($h->fprdate)->format('d-m-Y') }}</div>
                     <div class="truncate" title="{{ $h->fsuppliername }}">{{ $h->fsuppliername }}</div>
-                    <div>{{ $h->fneeddate ? \Carbon\Carbon::parse($h->fneeddate)->format('d/m/Y') : '-' }}</div>
-                    <div>{{ $h->fduedate ? \Carbon\Carbon::parse($h->fduedate)->format('d/m/Y') : '-' }}</div>
+                    <div>{{ \Carbon\Carbon::parse($h->fneeddate)->format('d-m-Y') }}</div>
+                    <div>{{ number_format($headerTotalQty, 2, ',', '.') }}</div>
                     <div class="truncate">{{ trim($h->fusercreate) }}</div>
                 </div>
 
-                @foreach ($details as $d)
-                    <div class="po-detail">
-                        <div class="truncate">{{ $d->fprdcode }}</div>
-                        <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
-                        <div>{{ $d->fsatuan }}</div>
-                        <div>{{ number_format($d->fqty, 2, ',', '.') }}</div>
-                        <div>{{ number_format($d->fqtypo, 2, ',', '.') }}</div>
-                    </div>
-                @endforeach
+                @if (request()->has('detail'))
+                    @foreach ($details as $d)
+                        @if (!empty($d->fitemcode))
+                            <div class="po-detail">
+                                <div class="truncate">{{ $d->fitemcode }}</div>
+                                <div class="truncate" title="{{ $d->fitemname }}">{{ $d->fitemname }}</div>
+                                <div>{{ $d->funit }}</div>
+                                <div>{{ number_format((float) $d->fqty, 2, ',', '.') }}</div>
+                                <div>{{ number_format((float) $d->fqtypo, 2, ',', '.') }}</div>
+                            </div>
+                        @endif
+                    @endforeach
+                @endif
 
                 @if (!$loop->last)
                     <div class="separator"></div>
@@ -564,29 +650,91 @@
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row">
+                    <span>TOTAL QTY PR</span>
+                    <span>{{ number_format($totalQtyPR, 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row grand-total-row">
+                    <span>TOTAL QTY PO</span>
+                    <span>{{ number_format($totalQtyPO, 2, ',', '.') }}</span>
+                </div>
+            </div>
         </div>
     </div>
 
     {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
-        @if ($groupedData->isEmpty())
+        @if ($results->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15px;">
-                        <div style="font-weight: bold; font-size: 20px; text-transform: uppercase;">{{ $company_name }}</div>
-                        @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                        @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                        Supplier: {{ $supplierText }}
-                        <br>Cabang: {{ $branchText }}
-                        <br>Urut: {{ $sortText }}
-                        <br>Status: {{ $statusText }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">Listing Purchase Request</div>
+                        </div>
                     </div>
-                    <h2>Listing Purchase Request</h2>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+                    <div class="customer-container">
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Supplier</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $supplierText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td>:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Urut</td>
+                                        <td>:</td>
+                                        <td>{{ $sortText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Status</td>
+                                        <td>:</td>
+                                        <td>{{ $statusText }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Periode</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td style="font-weight: bold;">{{ $period }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
@@ -631,7 +779,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
-        // Measure actual 297mm page height on the screen dynamically in pixels
+        // Measure actual 297mm page height on the screen dynamically in pixels (A4 Portrait)
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -640,12 +788,13 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
         const poHeaderLabelsHtml = rawSource.querySelector(".po-header-labels").outerHTML;
-        const poDetailLabelsHtml = rawSource.querySelector(".po-detail-labels").outerHTML;
+        const poDetailLabelsEl = rawSource.querySelector(".po-detail-labels");
+        const poDetailLabelsHtml = poDetailLabelsEl ? poDetailLabelsEl.outerHTML : "";
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -656,14 +805,8 @@
                     ${poHeaderLabelsHtml}
                     ${poDetailLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -672,19 +815,11 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
-            const poHeader = journal.querySelector(".po-header");
-            const poDetails = Array.from(journal.querySelectorAll(".po-detail"));
-            const separator = journal.querySelector(".separator");
-
-            // Create a new journal-block container on the current page
             let currentJournalBlock = document.createElement("div");
-            currentJournalBlock.className = "journal-block";
+            currentJournalBlock.className = journal.className;
+            currentJournalBlock.innerHTML = journal.innerHTML;
             currentContent.appendChild(currentJournalBlock);
 
-            // Append header
-            currentJournalBlock.appendChild(poHeader.cloneNode(true));
-
-            // Check if page overflowed after adding header
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
@@ -693,56 +828,9 @@
                     currentContent = currentPage.querySelector(".page-content");
 
                     currentJournalBlock = document.createElement("div");
-                    currentJournalBlock.className = "journal-block";
+                    currentJournalBlock.className = journal.className;
+                    currentJournalBlock.innerHTML = journal.innerHTML;
                     currentContent.appendChild(currentJournalBlock);
-                    currentJournalBlock.appendChild(poHeader.cloneNode(true));
-                }
-            }
-
-            // Append details one by one
-            poDetails.forEach((detail) => {
-                const detailClone = detail.cloneNode(true);
-                currentJournalBlock.appendChild(detailClone);
-
-                // Check overflow
-                if (currentPage.offsetHeight > maxPageHeight) {
-                    const detailCount = currentJournalBlock.querySelectorAll(".po-detail").length;
-                    const blockCount = currentContent.querySelectorAll(".journal-block").length;
-
-                    if (blockCount > 1 || detailCount > 1) {
-                        currentJournalBlock.removeChild(detailClone);
-
-                        // Create new page
-                        currentPage = createNewPage();
-                        currentContent = currentPage.querySelector(".page-content");
-
-                        // Create a new journal block on the new page
-                        currentJournalBlock = document.createElement("div");
-                        currentJournalBlock.className = "journal-block";
-                        currentContent.appendChild(currentJournalBlock);
-
-                        // Append header clone with "(Lanjutan)" suffix
-                        const headerClone = poHeader.cloneNode(true);
-                        const firstChildDiv = headerClone.firstElementChild;
-                        if (firstChildDiv) {
-                            firstChildDiv.textContent = firstChildDiv.textContent + " (Lanjutan)";
-                        }
-                        currentJournalBlock.appendChild(headerClone);
-
-                        // Append the detail row
-                        currentJournalBlock.appendChild(detailClone);
-                    }
-                }
-            });
-
-            // Append separator if present
-            if (separator) {
-                const separatorClone = separator.cloneNode(true);
-                currentJournalBlock.appendChild(separatorClone);
-
-                // If separator overflows, remove it since a page break is happening anyway
-                if (currentPage.offsetHeight > maxPageHeight) {
-                    currentJournalBlock.removeChild(separatorClone);
                 }
             }
         });
@@ -762,14 +850,14 @@
             }
         }
 
-        // Apply strict height class to lock A4 size and hide overflows
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 

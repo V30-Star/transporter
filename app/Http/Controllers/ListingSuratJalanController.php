@@ -28,9 +28,17 @@ class ListingSuratJalanController extends Controller
         $type = $request->input('display_type', 'detail');
         $groupedData = $results->groupBy('fstockmtno');
 
+        $branchText = !empty($request->input('branch_codes', [])) ? implode(', ', (array) $request->input('branch_codes', [])) : 'Semua';
+        $semua = $request->boolean('semua_surat_jalan') || !$request->has('belum_faktur');
+        $sjStatus = $semua ? 'Semua' : 'Belum Faktur';
+        $sjDisplay = $type === 'detail' ? 'Detail' : 'Rekap';
+
         return view('listingsuratjalan.print', [
             'groupedData' => $groupedData,
             'type' => $type,
+            'branchText' => $branchText,
+            'sjStatus' => $sjStatus,
+            'sjDisplay' => $sjDisplay,
             'request' => $request,
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);

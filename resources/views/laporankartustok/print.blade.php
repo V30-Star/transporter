@@ -82,16 +82,7 @@
             margin-bottom: 6px;
         }
 
-        .customer-label {
-            position: absolute;
-            top: -8px;
-            left: 15px;
-            background: #fff;
-            padding: 0 5px;
-            font-size: 10px;
-            font-weight: bold;
-            color: #0f172a;
-        }
+
 
         .info-col-table {
             width: 100%;

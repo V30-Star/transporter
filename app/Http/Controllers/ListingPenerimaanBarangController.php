@@ -51,6 +51,7 @@ class ListingPenerimaanBarangController extends Controller
                     ->on(DB::raw('d.frefdtno::text'), '=', DB::raw('buy.frefdtno_text'));
             })
             ->select(
+                'm.fstockmtid',
                 'm.fstockmtno',
                 'm.fstockmtdate',
                 'm.fusercreate',

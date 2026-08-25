@@ -193,8 +193,10 @@ class ListingFakturPembelianController extends Controller
                 'd.frefdtno',
                 'd.fqty',
                 'd.fqtyremain',
+                'd.fcode as fadj',
                 'd.fprice',
                 'd.fbiaya',
+                'd.fbiaya as fcostother',
                 'd.ftotprice',
                 'd.fsatuan',
                 DB::raw("case when m.ftrancode='0' then 'Trade' else 'Non Trade' end as ftype")

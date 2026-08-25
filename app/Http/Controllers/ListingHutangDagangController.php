@@ -42,7 +42,7 @@ class ListingHutangDagangController extends Controller
 
         $base = DB::table('trstockmt as h')
             ->join('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
-            ->selectRaw("h.fstockmtid, h.fbranchcode, h.fstockmtno, h.fstockmtdate, h.fjatuhtempo, h.fstockmtcode, s.fsuppliername, h.fsupplier, h.fcurrency, h.frate, h.famountmt AS fnilainota, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountmt, h.fusercreate AS fuserid, h.frefno AS fnofaktur")
+            ->selectRaw("h.fstockmtid, h.fstockmtid AS ftranmtid, h.fbranchcode, h.fstockmtno, h.fstockmtno AS ftransactionno, h.fstockmtdate, h.fstockmtdate AS ftglfaktur, h.fjatuhtempo, h.fstockmtcode, s.fsuppliername, h.fsupplier, h.fcurrency, h.frate, h.famountmt AS fnilainota, CASE WHEN h.fstockmtcode = 'BUY' THEN h.famountmt ELSE h.famountmt * -1 END AS famountmt, h.famountmt AS fnilaifaktur, h.fusercreate AS fuserid, h.frefno AS fnofaktur, h.frefno AS finvoiceno")
             ->whereIn('h.fstockmtcode', ['BUY', 'REB', 'RUB']);
 
         if ($request->input('date_mode', 'per_tanggal') === 'periode') {
@@ -95,7 +95,7 @@ class ListingHutangDagangController extends Controller
             ->fromSub($base, 'a')
             ->leftJoinSub($payments, 'b', 'a.fstockmtno', '=', 'b.frefno')
             ->leftJoinSub($journals, 'c', 'a.fstockmtno', '=', 'c.frefno')
-            ->selectRaw("a.*, COALESCE(b.ftotalbayar, 0) AS ftotalbayar, COALESCE(c.ftotalsju, 0) AS ftotalsju, CASE WHEN a.fstockmtcode IN ('REB', 'RUB') THEN (a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0))) * -1 ELSE a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0)) END AS famountremain")
+            ->selectRaw("a.*, COALESCE(b.ftotalbayar, 0) AS ftotalbayar, COALESCE(c.ftotalsju, 0) AS ftotalsju, CASE WHEN a.fstockmtcode IN ('REB', 'RUB') THEN (a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0))) * -1 ELSE a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0)) END AS famountremain, CASE WHEN a.fstockmtcode IN ('REB', 'RUB') THEN (a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0))) * -1 ELSE a.fnilainota - (COALESCE(b.ftotalbayar, 0) + COALESCE(c.ftotalsju, 0)) END AS fsisahutang")
             ->whereRaw("(a.fnilainota - (COALESCE(ABS(b.ftotalbayar), 0) + COALESCE(ABS(c.ftotalsju), 0))) > 0")
             ->orderBy('a.fsupplier')
             ->orderBy('a.fstockmtdate')

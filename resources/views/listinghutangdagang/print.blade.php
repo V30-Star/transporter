@@ -16,86 +16,90 @@
             box-sizing: border-box;
         }
 
-        /* Monitor Screen Layout */
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000000; /* Solid Black text */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #0f172a;
+            background-color: #f1f5f9;
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 12mm 15mm;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
-        /* Strict height applied after pagination */
         .page-a4-strict {
             height: 297mm !important;
             min-height: 297mm !important;
             overflow: hidden !important;
         }
 
-        .header-section {
-            position: relative;
-            margin-bottom: 10px;
-            text-align: center;
-            padding-bottom: 20px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PO */
-            letter-spacing: 0.5px;
         }
 
-        .filter-info {
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #475569; /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
         }
 
-        .supplier-info-kiri {
-            position: absolute;
-            top: 15px; /* Shifted one line up inline with right side metadata */
-            left: 0mm;
-            font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+            line-height: 1.4;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
-        }
-
-        .info-label {
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #334155;
+            width: 95px;
         }
 
         /* --- AP COLUMN STYLES (8 Kolom) --- */
@@ -103,10 +107,10 @@
         .item-row,
         .group-total-row {
             display: grid;
-            grid-template-columns: 8mm 12mm 25mm 25mm 18mm 18mm 34mm 35mm;
+            grid-template-columns: 8mm 12mm 26mm 26mm 18mm 18mm 35mm 35mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 3px 8px; /* Reduced vertical padding matching PO */
+            font-size: 8.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -115,10 +119,10 @@
             color: #000000;
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
-            margin-bottom: 0px; /* Reduced spacing */
+            margin-bottom: 0px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .item-row {
@@ -128,25 +132,42 @@
 
         .group-row {
             display: block;
-            background-color: transparent;
-            color: #000000;
-            /* font-weight: bold; */
+            background-color: #f8fafc;
+            color: #0f172a;
+            font-weight: bold;
             font-size: 8.5px;
-            padding: 2px 6px;
-            /* border-bottom: 1px solid #000000; */
-            margin-top: 10px;
+            padding: 3px 6px;
+            margin-top: 4px;
             margin-bottom: 2px;
+            border-bottom: 1px dashed #cbd5e1;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .group-total-row {
             background-color: transparent;
             font-weight: bold;
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px solid #000;
+            padding: 3px 6px;
+            margin-bottom: 4px;
+            color: #0f172a;
         }
 
-        /* Alignment & Monospace Fonts */
-        .item-row > div:nth-child(1) {
+        .text-rej,
+        .text-rej div,
+        .text-rej span {
+            color: #ff0000 !important;
+        }
+
+        /* Alignment */
+        .item-row > div:nth-child(1),
+        .po-header-labels > div:nth-child(1),
+        .po-header-labels > div:nth-child(2),
+        .po-header-labels > div:nth-child(5),
+        .po-header-labels > div:nth-child(6),
+        .item-row > div:nth-child(2),
+        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6) {
             text-align: center;
         }
 
@@ -159,6 +180,8 @@
             text-align: right;
         }
 
+        /* Fonts for Numbers & System Codes */
+        .item-row > div:nth-child(1),
         .item-row > div:nth-child(2),
         .item-row > div:nth-child(3),
         .item-row > div:nth-child(4),
@@ -170,16 +193,6 @@
         .group-total-row > div:nth-child(3) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
-        }
-
-        .item-row > div:nth-child(2),
-        .item-row > div:nth-child(3),
-        .item-row > div:nth-child(4),
-        .item-row > div:nth-child(5),
-        .item-row > div:nth-child(6),
-        .item-row > div:nth-child(7),
-        .item-row > div:nth-child(8) {
-            font-weight: normal; /* Normal weight for detail items */
         }
 
         .truncate {
@@ -323,19 +336,20 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy slate default */
+            background-color: #0f172a;
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             border: none;
             font-weight: 600;
-            font-size: 11px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
-            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
         .print-button:hover {
@@ -347,30 +361,21 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 2px;
+            margin-bottom: 0px;
         }
 
-        /* Zoom Out Button Style */
-        .no-print button {
-            transition: background-color 0.2s;
-        }
-
-        /* Totals Panel style */
         .po-totals-panel-wrapper {
-            margin-top: 15px;
-            width: 180mm; /* Full printable width */
-            border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 8px;
-            position: relative; /* Position context for centering */
+            margin-top: 5px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 5px;
+            position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
+            text-align: center;
         }
 
         .end-of-report-inline {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 5px; /* Vertically inline with bottom row */
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -380,36 +385,34 @@
         }
 
         .po-totals-container {
-            margin-left: auto; /* Push to the right side */
-            width: 55mm;
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-size: 8.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 5px;
+            padding-right: 5px;
         }
 
         .po-total-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
-            color: #000000;
-        }
-
-        .po-total-row span:nth-child(2) {
-            font-weight: bold;
+            width: 320px;
+            font-size: 9px;
+            padding: 2px 0;
         }
 
         .grand-total-row {
-            color: #304ee7;
-            /* border-top: 1px solid #000000; */
-            border-bottom: 1px solid #000000;
-            padding: 5px 0;
-            margin-top: 2px;
             font-weight: bold;
+            border-top: 1px solid #000;
+            border-bottom: 2px double #000;
+            margin-top: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
         }
 
-        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -418,12 +421,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 12mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -439,6 +445,23 @@
 </head>
 
 <body>
+    @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
+        $grandFaktur = 0;
+        $grandHutang = 0;
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $supplierText = trim((string) request('supplier_from')) !== '' || trim((string) request('supplier_to')) !== ''
+            ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir')
+            : 'Semua';
+
+        $period = request('date_mode', 'per_tanggal') === 'periode'
+            ? (request('date_from') ? date('d-m-Y', strtotime(request('date_from'))) : '...') . ' s/d ' . (request('date_to') ? date('d-m-Y', strtotime(request('date_to'))) : '...')
+            : 'Per Tanggal ' . (request('per_tanggal') ? date('d-m-Y', strtotime(request('per_tanggal'))) : date('d-m-Y'));
+    @endphp
+
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -468,41 +491,74 @@
         </a>
     </div>
 
-    @php
-        $grandFaktur = 0;
-        $grandHutang = 0;
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
-        $supplierText = trim((string) request('supplier_from')) !== '' || trim((string) request('supplier_to')) !== ''
-            ? (request('supplier_from') ?: 'Awal') . ' s/d ' . (request('supplier_to') ?: 'Akhir')
-            : 'Semua';
-    @endphp
-
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                Cabang: {{ $branchText }}
-                <br>Supplier: {{ $supplierText }}
-                <br>Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">Listing Hutang Dagang</div>
+                </div>
             </div>
-            <h2>Listing Hutang Dagang</h2>
-            <div class="filter-info">
-                @if (request('date_mode', 'per_tanggal') === 'periode')
-                    Periode: {{ request('date_from') ?: date('Y-m-01') }} s/d {{ request('date_to') ?: date('Y-m-d') }}
-                @else
-                    Per Tanggal: {{ request('per_tanggal') ?: date('Y-m-d') }}
-                @endif
-                @if (request('payment_filter') === 'payment')
-                    | Tgl. Pembayaran: {{ request('payment_date') ?: request('per_tanggal') }}
-                @endif
-                @if (request('due_filter') === 'due')
-                    | Jatuh Tempo s/d: {{ request('due_date') ?: request('per_tanggal') }}
-                @endif
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Supplier</td>
+                                <td>:</td>
+                                <td>{{ $supplierText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Mode</td>
+                                <td>:</td>
+                                <td>{{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jam</td>
+                                <td>:</td>
+                                <td>{{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'User') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -519,36 +575,36 @@
 
         @forelse ($rows->groupBy('fsupplier') as $supplier => $items)
             @php
-                $first = $items->first();
-                $supplierFaktur = $items->sum('famountmt');
-                $supplierHutang = $items->sum('famountremain');
-                $grandFaktur += $supplierFaktur;
-                $grandHutang += $supplierHutang;
+                $supplierName = $items->first()->fsuppliername ?: $supplier;
+                $totFaktur = $items->sum('fnilaifaktur');
+                $totHutang = $items->sum('fsisahutang');
+                $grandFaktur += $totFaktur;
+                $grandHutang += $totHutang;
             @endphp
 
             <div class="journal-block group-row">
-                {{ $supplier }} - {{ $first->fsuppliername }}
+                Supplier: {{ $supplier }} - {{ $supplierName }}
             </div>
 
             @if ($mode === 'detail')
                 @foreach ($items as $index => $row)
                     @php
                         $isReturn = in_array($row->fstockmtcode ?? '', ['REB', 'RUB'], true);
-                        $viewUrl = $isReturn ? route('returpembelian.view', $row->fstockmtid) : route('fakturpembelian.view', $row->fstockmtid);
-                        $editUrl = $isReturn ? route('returpembelian.edit', $row->fstockmtid) : route('fakturpembelian.edit', $row->fstockmtid);
+                        $viewUrl = $isReturn ? route('returpembelian.view', $row->ftranmtid) : route('fakturpembelian.view', $row->ftranmtid);
+                        $editUrl = $isReturn ? route('returpembelian.edit', $row->ftranmtid) : route('fakturpembelian.edit', $row->ftranmtid);
                     @endphp
                     <div class="journal-block">
                         <div class="item-row">
                             <div>{{ $index + 1 }}</div>
                             <div class="truncate">{{ $row->fbranchcode }}</div>
-                            <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $row->fstockmtno }}">
-                                <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fstockmtno }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fstockmtno }}</span>
+                            <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $row->ftransactionno }}">
+                                <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->ftransactionno }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->ftransactionno }}</span>
                             </div>
-                            <div class="truncate" title="{{ $row->fnofaktur }}">{{ $row->fnofaktur }}</div>
-                            <div>{{ $row->fstockmtdate ? \Carbon\Carbon::parse($row->fstockmtdate)->format('d/m/Y') : '' }}</div>
-                            <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}</div>
-                            <div>{{ number_format((float) $row->famountmt, 2, ',', '.') }}</div>
-                            <div>{{ number_format((float) $row->famountremain, 2, ',', '.') }}</div>
+                            <div class="truncate" title="{{ $row->finvoiceno }}">{{ $row->finvoiceno }}</div>
+                            <div>{{ $row->ftglfaktur ? \Carbon\Carbon::parse($row->ftglfaktur)->format('d-m-Y') : '' }}</div>
+                            <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d-m-Y') : '' }}</div>
+                            <div>{{ number_format((float) $row->fnilaifaktur, 2, ',', '.') }}</div>
+                            <div>{{ number_format((float) $row->fsisahutang, 2, ',', '.') }}</div>
                         </div>
                     </div>
                 @endforeach
@@ -556,13 +612,12 @@
 
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 6; text-align: right; padding-right: 8px;">Total ({{ $first->fsuppliername }})</div>
-                    <div>{{ number_format((float) $supplierFaktur, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $supplierHutang, 2, ',', '.') }}</div>
+                    <div style="grid-column: span 6; text-align: right; padding-right: 8px;">Total {{ $supplierName }} :</div>
+                    <div>{{ number_format((float) $totFaktur, 2, ',', '.') }}</div>
+                    <div>{{ number_format((float) $totHutang, 2, ',', '.') }}</div>
                 </div>
             </div>
         @empty
-            <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">Tidak ada data ditemukan.</div>
         @endforelse
     </div>
 
@@ -572,12 +627,12 @@
             <div class="end-of-report-inline">** END OF REPORT **</div>
             <div class="po-totals-container">
                 <div class="po-total-row">
-                    <span>TOTAL NILAI FAKTUR</span>
-                    <span>{{ number_format((float) $grandFaktur, 2, ',', '.') }}</span>
+                    <span>GRAND TOTAL NILAI FAKTUR</span>
+                    <span>Rp {{ number_format((float) $grandFaktur, 2, ',', '.') }}</span>
                 </div>
                 <div class="po-total-row grand-total-row">
-                    <span>TOTAL SISA HUTANG</span>
-                    <span>{{ number_format((float) $grandHutang, 2, ',', '.') }}</span>
+                    <span>GRAND TOTAL SISA HUTANG</span>
+                    <span>Rp {{ number_format((float) $grandHutang, 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
@@ -588,17 +643,68 @@
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15px;">
-                        Cabang: {{ $branchText }}
-                        <br>Supplier: {{ $supplierText }}
-                        <br>Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">Listing Hutang Dagang</div>
+                        </div>
                     </div>
-                    <h2>Listing Hutang Dagang</h2>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                    <div class="customer-container">
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Supplier</td>
+                                        <td>:</td>
+                                        <td>{{ $supplierText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Mode</td>
+                                        <td>:</td>
+                                        <td>{{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Periode</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td style="font-weight: bold;">{{ $period }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'User') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
@@ -643,7 +749,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
-        // Measure actual 297mm page height on the screen dynamically in pixels
+        // Measure actual 297mm page height on the screen dynamically in pixels (A4 Portrait)
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -652,7 +758,7 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
@@ -666,14 +772,8 @@
                     ${headerSectionHtml}
                     ${poHeaderLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -682,21 +782,22 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
-            const journalClone = journal.cloneNode(true);
-            currentContent.appendChild(journalClone);
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = journal.className;
+            currentJournalBlock.innerHTML = journal.innerHTML;
+            currentContent.appendChild(currentJournalBlock);
 
-            // Check overflow
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
-                    currentContent.removeChild(journalClone);
-
-                    // Create new page
+                    currentContent.removeChild(currentJournalBlock);
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
 
-                    // Append the block to the new page
-                    currentContent.appendChild(journalClone);
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = journal.className;
+                    currentJournalBlock.innerHTML = journal.innerHTML;
+                    currentContent.appendChild(currentJournalBlock);
                 }
             }
         });
@@ -716,14 +817,14 @@
             }
         }
 
-        // Apply strict height class to lock A4 size and hide overflows
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 

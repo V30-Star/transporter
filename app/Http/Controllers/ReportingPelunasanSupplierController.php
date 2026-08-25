@@ -271,11 +271,11 @@ class ReportingPelunasanSupplierController extends Controller
         $query = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as t', 't.faccount', '=', 'm.faccountheader')
+            ->leftJoin('trstockmt as n', 'd.frefno', '=', 'n.fstockmtno')
             ->leftJoin('mssupplier as c', function ($join) {
                 $join->on(DB::raw("TRIM(c.fsuppliercode)"), '=', DB::raw("TRIM(d.fsubaccount)"))
                     ->orOn(DB::raw("TRIM(c.fsuppliercode)"), '=', DB::raw("TRIM(n.fsupplier)"));
             })
-            ->leftJoin('trstockmt as n', 'd.frefno', '=', 'n.fstockmtno')
             ->leftJoinSub(
                 DB::table('trstockdt')->selectRaw('fstockmtno, SUM(fqtykecil) AS fqty')->groupBy('fstockmtno'),
                 'dt',

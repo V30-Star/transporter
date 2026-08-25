@@ -30,6 +30,7 @@ class ListingPRController extends Controller
         $groupedData = $results->groupBy('fprno');
 
         return view('listingpr.print', [
+            'results' => $results,
             'groupedData' => $groupedData,
             'user_session' => auth()->user(),
             'request' => $request,

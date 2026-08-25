@@ -76,8 +76,8 @@ class ReportingRekapPenjualanSalesCustomerController extends Controller
 
         $query = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->leftJoin('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
-            ->selectRaw("COALESCE(m.fsalesman, '') AS fsalesman, MIN(s.fsalesmanname) AS salesman_name")
+            ->leftJoin('mssalesman as s', DB::raw('m.fsalesman::text'), '=', 's.fsalesmancode')
+            ->selectRaw("m.fsalesman::text AS fsalesman, MIN(s.fsalesmanname) AS salesman_name")
             ->selectRaw("m.fcustno, CAST(TRIM(MIN(c.fcustomername)) || '   (' || TRIM(m.fcustno) || ')' AS CHAR(90)) AS customer")
             ->selectRaw('SUM(m.ftotalsalesnet - (m.ftotalsalesnet * (COALESCE(m.fdiscpersen, 0) / 100))) AS totalnota')
             ->where('m.fsodate', '>=', $filters['date_from'])
@@ -88,7 +88,7 @@ class ReportingRekapPenjualanSalesCustomerController extends Controller
             $query->whereIn('m.fbranchcode', $filters['branch_codes']);
         }
         if ($filters['salesman_id'] !== '') {
-            $query->where('m.fsalesman', $filters['salesman_id']);
+            $query->whereRaw('CAST(m.fsalesman AS text) = ?', [$filters['salesman_id']]);
         }
         if ($filters['customer_from'] !== '') {
             $query->where('m.fcustno', '>=', $filters['customer_from']);

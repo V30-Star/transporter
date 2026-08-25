@@ -5,34 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisa Umur Piutang</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap');
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Monitor Screen Layout */
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
             color: #0f172a;
-            /* Navy-Ink */
             background-color: #f1f5f9;
-            /* Modern light slate background on monitor */
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages */
+        /* Screen Simulation Styles for A4 Pages (LANDSCAPE) */
         .page-a4 {
             width: 297mm;
             margin: 30px auto;
             background: white;
-            padding: 15mm 20mm 15mm 20mm;
+            padding: 12mm 18mm;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
@@ -41,67 +40,68 @@
             border-radius: 4px;
         }
 
-        /* Strict height applied after pagination */
+        /* Strict height applied after pagination (LANDSCAPE height is 210mm) */
         .page-a4-strict {
             height: 210mm !important;
             min-height: 210mm !important;
             overflow: hidden !important;
         }
 
-        .header-section {
-            position: relative;
-            margin-bottom: 1px;
-            text-align: center;
-            padding-bottom: 15px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000;
-            /* Dark Red matching Listing PR */
-            letter-spacing: 0.5px;
         }
 
-        .filter-info {
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #475569;
-            /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
         }
 
-        .supplier-info-kiri {
-            position: absolute;
-            top: 15px;
-            left: 0mm;
-            font-size: 10px;
-            color: #334155;
-            /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+            line-height: 1.4;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #334155;
-            /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
-        }
-
-        .info-label {
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 50px;
-            color: #475569;
-            /* Slate 600 */
+            color: #334155;
+            width: 95px;
         }
 
         /* --- TABLE HEADERS & ROWS (13 Kolom) --- */
@@ -110,10 +110,10 @@
         .group-total-row,
         .grand-total-row {
             display: grid;
-            grid-template-columns: 8mm 12mm 1fr 20mm 20mm 15mm 22mm 17mm 17mm 16mm 16mm 16mm 16mm;
+            grid-template-columns: 8mm 10mm 26mm 18mm 18mm 12mm 22mm 18mm 18mm 18mm 18mm 18mm 18mm;
             gap: 1px;
-            font-size: 7px;
-            padding: 2px 8px;
+            font-size: 7.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -125,78 +125,75 @@
             margin-bottom: 0px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .row-data {
             background-color: transparent;
-            margin-bottom: 0px;
             color: #0f172a;
-            /* border-bottom: 1px solid #edf2f7; */
-            padding: 3px 8px;
-        }
-
-        .row-data>div:nth-child(1) {
-            text-align: center;
-        }
-
-        .row-data>div:nth-child(6),
-        .row-data>div:nth-child(7),
-        .row-data>div:nth-child(8),
-        .row-data>div:nth-child(9),
-        .row-data>div:nth-child(10),
-        .row-data>div:nth-child(11),
-        .row-data>div:nth-child(12),
-        .row-data>div:nth-child(13),
-        .po-header-labels>div:nth-child(6),
-        .po-header-labels>div:nth-child(7),
-        .po-header-labels>div:nth-child(8),
-        .po-header-labels>div:nth-child(9),
-        .po-header-labels>div:nth-child(10),
-        .po-header-labels>div:nth-child(11),
-        .po-header-labels>div:nth-child(12),
-        .po-header-labels>div:nth-child(13),
-        .group-total-row>div:not(:first-child),
-        .grand-total-row>div:not(:first-child) {
-            text-align: right;
-        }
-
-        /* Fonts for Numbers & System Codes */
-        .row-data>div:nth-child(3),
-        .row-data>div:nth-child(6),
-        .row-data>div:nth-child(7),
-        .row-data>div:nth-child(8),
-        .row-data>div:nth-child(9),
-        .row-data>div:nth-child(10),
-        .row-data>div:nth-child(11),
-        .row-data>div:nth-child(12),
-        .row-data>div:nth-child(13),
-        .group-total-row>div:not(:first-child),
-        .grand-total-row>div:not(:first-child) {
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-variant-numeric: tabular-nums;
+            font-weight: normal;
         }
 
         .group-row {
             display: block;
+            background-color: #f8fafc;
+            color: #0f172a;
             font-weight: bold;
-            font-size: 8px;
-            padding: 2px 8px;
-            /* border: 1px solid #ccc; */
-            margin-bottom: 1px;
+            font-size: 8.5px;
+            padding: 3px 6px;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            border-bottom: 1px dashed #cbd5e1;
+            text-transform: uppercase;
         }
 
         .group-total-row {
             background-color: transparent;
             font-weight: bold;
-            /* border-top: 1px solid #000000; */
-            /* border-bottom: 1px solid #000000; */
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px solid #000000;
+            padding: 3px 6px;
+            margin-bottom: 4px;
             color: #0f172a;
         }
 
-        .separator {
-            margin: 0px;
-            clear: both;
+        .text-rej,
+        .text-rej div,
+        .text-rej span {
+            color: #ff0000 !important;
+        }
+
+        /* Alignment */
+        .po-header-labels > div:nth-child(1),
+        .po-header-labels > div:nth-child(2),
+        .po-header-labels > div:nth-child(4),
+        .po-header-labels > div:nth-child(5),
+        .po-header-labels > div:nth-child(6),
+        .row-data > div:nth-child(1),
+        .row-data > div:nth-child(2),
+        .row-data > div:nth-child(4),
+        .row-data > div:nth-child(5),
+        .row-data > div:nth-child(6) {
+            text-align: center;
+        }
+
+        .po-header-labels > div:nth-child(n+7),
+        .row-data > div:nth-child(n+7),
+        .group-total-row > div:nth-child(n+2) {
+            text-align: right;
+        }
+
+        /* Fonts for Numbers & System Codes */
+        .row-data > div:nth-child(1),
+        .row-data > div:nth-child(2),
+        .row-data > div:nth-child(3),
+        .row-data > div:nth-child(4),
+        .row-data > div:nth-child(5),
+        .row-data > div:nth-child(6),
+        .row-data > div:nth-child(n+7),
+        .group-total-row > div:nth-child(n+2) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
         }
 
         .truncate {
@@ -205,7 +202,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Floating zoom bar style from Listing PO */
         .no-print {
             position: fixed;
             top: 15px;
@@ -342,7 +338,6 @@
 
         .print-button {
             background-color: #0f172a;
-            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -360,7 +355,6 @@
 
         .print-button:hover {
             background-color: #000000;
-            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -368,23 +362,21 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         .po-totals-panel-wrapper {
             margin-top: 5px;
-            width: 257mm;
-            padding-top: 0px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 5px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
+            text-align: center;
         }
 
         .end-of-report-inline {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: -15px;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -393,15 +385,31 @@
             letter-spacing: 1px;
         }
 
-        .grand-total-row {
-            background-color: transparent;
-            font-weight: bold;
-            border-top: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            color: #304ee7;
+        .po-totals-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 5px;
+            padding-right: 5px;
         }
 
-        /* Print Media CSS Overrides */
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            width: 320px;
+            font-size: 9px;
+            padding: 2px 0;
+        }
+
+        .grand-total-row {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            border-bottom: 2px double #000;
+            margin-top: 2px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
         @media print {
             body {
                 background-color: white !important;
@@ -414,7 +422,7 @@
                 width: 297mm;
                 height: 210mm !important;
                 margin: 0 auto !important;
-                padding: 15mm 20mm 15mm 20mm !important;
+                padding: 12mm 18mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
@@ -438,6 +446,29 @@
 </head>
 
 <body>
+    @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
+        $grand = ['undue' => 0, 'd30' => 0, 'd60' => 0, 'd90' => 0, 'd91' => 0, 'd1y' => 0];
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
+        $customerText =
+            trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
+                ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+                : 'Semua';
+        $salesmanText = request('salesman') ?: 'Semua';
+
+        $dateFromFmt = request('date_from') ? date('d-m-Y', strtotime(request('date_from'))) : '...';
+        $dateToFmt = request('date_to') ? date('d-m-Y', strtotime(request('date_to'))) : '...';
+        $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+        $dueFmt = $request->input('mode') === 'due'
+            ? 's.d. ' . ($request->input('due_date_to') ? date('d-m-Y', strtotime($request->input('due_date_to'))) : '...')
+            : 'Semua';
+    @endphp
+
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -466,39 +497,79 @@
         </a>
     </div>
 
-    @php
-        $grand = ['undue' => 0, 'd30' => 0, 'd60' => 0, 'd90' => 0, 'd91' => 0, 'd1y' => 0];
-        $branchText = request()->has('branch_codes')
-            ? implode(', ', (array) request()->input('branch_codes'))
-            : 'Semua';
-        $customerText =
-            trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
-                ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
-                : 'Semua';
-        $salesmanText = request('salesman') ?: 'Semua';
-    @endphp
-
+    {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                Customer: {{ $customerText }}
-                <br>Cabang: {{ $branchText }}
-                <br>Salesman: {{ $salesmanText }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">Analisa Umur Piutang</div>
+                </div>
             </div>
-            <h2>{{ $title }}</h2>
-            <div class="filter-info">
-                Periode:
-                {{ request('date_from') ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }}
-                s/d
-                {{ request('date_to') ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
-                @if ($request->input('mode') === 'due')
-                    | Jatuh Tempo s.d {{ \Carbon\Carbon::parse($request->input('due_date_to'))->format('d/m/Y') }}
-                @endif
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Customer</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $customerText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td>:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Salesman</td>
+                                <td>:</td>
+                                <td>{{ $salesmanText }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jatuh Tempo</td>
+                                <td>:</td>
+                                <td>{{ $dueFmt }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jam</td>
+                                <td>:</td>
+                                <td>{{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -536,7 +607,7 @@
 
             {{-- Group Header block --}}
             <div class="journal-block group-row">
-                {{ $custCode }} - {{ $name }}
+                Customer: {{ $custCode }} - {{ $name }}
             </div>
 
             @foreach ($items as $index => $row)
@@ -552,9 +623,8 @@
                         <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $row->fsono }}">
                             <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fsono }}</span>
                         </div>
-                        <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
-                        <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}
-                        </div>
+                        <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d-m-Y') : '' }}</div>
+                        <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d-m-Y') : '' }}</div>
                         <div>{{ $row->mu }}</div>
                         <div>{{ number_format((float) $row->famountso, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) $row->varundue, 2, ',', '.') }}</div>
@@ -570,8 +640,7 @@
             {{-- Group Total block --}}
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 7; text-align: right; padding-right: 8px;">Total {{ $name }}
-                    </div>
+                    <div style="grid-column: span 7; text-align: right; padding-right: 8px;">Total {{ $name }} :</div>
                     <div>{{ number_format((float) $tot['undue'], 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $tot['d30'], 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $tot['d60'], 2, ',', '.') }}</div>
@@ -581,9 +650,6 @@
                 </div>
             </div>
         @empty
-            <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">
-                Tidak ada data ditemukan.
-            </div>
         @endforelse
     </div>
 
@@ -591,36 +657,109 @@
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
-            <div class="grand-total-row">
-                <div style="grid-column: span 7; text-align: right; padding-right: 8px;">GRAND TOTAL</div>
-                <div>{{ number_format((float) $grand['undue'], 2, ',', '.') }}</div>
-                <div>{{ number_format((float) $grand['d30'], 2, ',', '.') }}</div>
-                <div>{{ number_format((float) $grand['d60'], 2, ',', '.') }}</div>
-                <div>{{ number_format((float) $grand['d90'], 2, ',', '.') }}</div>
-                <div>{{ number_format((float) $grand['d91'], 2, ',', '.') }}</div>
-                <div>{{ number_format((float) $grand['d1y'], 2, ',', '.') }}</div>
+            <div class="po-totals-container">
+                <div class="po-total-row">
+                    <span>TOTAL UN DUE</span>
+                    <span>Rp {{ number_format((float) $grand['undue'], 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row">
+                    <span>TOTAL 0-30 HARI</span>
+                    <span>Rp {{ number_format((float) $grand['d30'], 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row">
+                    <span>TOTAL 31-60 HARI</span>
+                    <span>Rp {{ number_format((float) $grand['d60'], 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row">
+                    <span>TOTAL 61-90 HARI</span>
+                    <span>Rp {{ number_format((float) $grand['d90'], 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row">
+                    <span>TOTAL 91-1 TAHUN</span>
+                    <span>Rp {{ number_format((float) $grand['d91'], 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row grand-total-row">
+                    <span>TOTAL &gt;1 TAHUN</span>
+                    <span>Rp {{ number_format((float) $grand['d1y'], 2, ',', '.') }}</span>
+                </div>
             </div>
         </div>
     </div>
 
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15px;">
-                        Customer: {{ $customerText }}
-                        <br>Cabang: {{ $branchText }}
-                        <br>Salesman: {{ $salesmanText }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">Analisa Umur Piutang</div>
+                        </div>
                     </div>
-                    <h2>{{ $title }}</h2>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+                    <div class="customer-container">
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Customer</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $customerText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td>:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Salesman</td>
+                                        <td>:</td>
+                                        <td>{{ $salesmanText }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Periode</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td style="font-weight: bold;">{{ $period }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jatuh Tempo</td>
+                                        <td>:</td>
+                                        <td>{{ $dueFmt }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
-                        ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -655,7 +794,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -663,7 +802,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
-        // Measure actual 297mm page height on the screen dynamically in pixels
+        // Measure actual 210mm page height on the screen dynamically in pixels (A4 Landscape)
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "210mm";
         tempDiv.style.position = "absolute";
@@ -672,7 +811,7 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
@@ -686,15 +825,8 @@
                     ${headerSectionHtml}
                     ${poHeaderLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML =
-                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -703,16 +835,22 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
-            const journalClone = journal.cloneNode(true);
-            currentContent.appendChild(journalClone);
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = journal.className;
+            currentJournalBlock.innerHTML = journal.innerHTML;
+            currentContent.appendChild(currentJournalBlock);
 
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
-                    currentContent.removeChild(journalClone);
+                    currentContent.removeChild(currentJournalBlock);
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
-                    currentContent.appendChild(journalClone);
+
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = journal.className;
+                    currentJournalBlock.innerHTML = journal.innerHTML;
+                    currentContent.appendChild(currentJournalBlock);
                 }
             }
         });
@@ -732,14 +870,14 @@
             }
         }
 
-        // Apply strict height class to lock A4 size and hide overflows
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 

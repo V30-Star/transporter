@@ -30,6 +30,7 @@ class ListingPengeluaranKasBankController extends Controller
 
         return view('listingpengeluarankasbank.print', [
             'results' => $results,
+            'grouped' => $results->groupBy('fkasmtno'),
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }

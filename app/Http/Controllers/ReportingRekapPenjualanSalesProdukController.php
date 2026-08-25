@@ -88,8 +88,8 @@ class ReportingRekapPenjualanSalesProdukController extends Controller
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->leftJoin('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
-            ->selectRaw("m.fsalesman AS fcustno, MIN(s.fsalesmanname) AS salesman_name, CAST(MIN({$groupExpr}) AS CHAR(15)) AS fgroupcode")
+            ->leftJoin('mssalesman as s', DB::raw('m.fsalesman::text'), '=', 's.fsalesmancode')
+            ->selectRaw("m.fsalesman::text AS fcustno, MIN(s.fsalesmanname) AS salesman_name, CAST(MIN({$groupExpr}) AS CHAR(15)) AS fgroupcode")
             ->selectRaw("d.fprdcode, MIN(p.fprdname) AS fprdname, MIN(p.fsatuanbesar) AS fsatuanbesar, MIN(p.fsatuankecil) AS fsatuankecil")
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric) / NULLIF(CAST(p.fqtykecil AS Numeric), 0)) AS fqtybesar')
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric)) AS fqtykecil')
@@ -102,8 +102,8 @@ class ReportingRekapPenjualanSalesProdukController extends Controller
             ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
             ->join('mscustomer as c', 'm.fsupplier', '=', 'c.fcustomercode')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->leftJoin('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
-            ->selectRaw("m.fsalesman AS fcustno, MIN(s.fsalesmanname) AS salesman_name, CAST(MIN({$groupExpr}) AS CHAR(15)) AS fgroupcode")
+            ->leftJoin('mssalesman as s', DB::raw('m.fsalesman::text'), '=', 's.fsalesmancode')
+            ->selectRaw("m.fsalesman::text AS fcustno, MIN(s.fsalesmanname) AS salesman_name, CAST(MIN({$groupExpr}) AS CHAR(15)) AS fgroupcode")
             ->selectRaw("d.fprdcode, MIN(p.fprdname) AS fprdname, MIN(p.fsatuanbesar) AS fsatuanbesar, MIN(p.fsatuankecil) AS fsatuankecil")
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric) / NULLIF(CAST(p.fqtykecil AS Numeric), 0)) * -1 AS fqtybesar')
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric)) * -1 AS fqtykecil')
@@ -140,7 +140,7 @@ class ReportingRekapPenjualanSalesProdukController extends Controller
             $query->whereIn("{$p}.fgroupcode", $filters['group_produk_in']);
         }
         if ($filters['salesman_id'] !== '') {
-            $query->where("{$m}.fsalesman", $filters['salesman_id']);
+            $query->whereRaw("CAST({$m}.fsalesman AS text) = ?", [$filters['salesman_id']]);
         }
         if ($filters['merek_id'] !== '') {
             $query->whereRaw("TRIM({$p}.fmerek) = ?", [$filters['merek_id']]);

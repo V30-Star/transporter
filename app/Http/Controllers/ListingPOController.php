@@ -29,6 +29,7 @@ class ListingPOController extends Controller
         $groupedData = $results->groupBy('fpono');
 
         return view('listingpo.print', [
+            'results' => $results,
             'groupedData' => $groupedData,
             'user_session' => auth()->user(),
             'request' => $request,

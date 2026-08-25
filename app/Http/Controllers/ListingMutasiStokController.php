@@ -27,10 +27,17 @@ class ListingMutasiStokController extends Controller
     {
         $results = $this->buildQuery($request)->get();
         $type = $request->input('display_type', 'detail');
+        $productText = $request->input('selected_products', '') ?: 'Semua';
+        $branchText = !empty($request->input('branch_codes', [])) ? implode(', ', (array) $request->input('branch_codes', [])) : 'Semua';
+        $period = ($request->input('date_from') ?: '...') . ' s/d ' . ($request->input('date_to') ?: '...');
 
         return view('listingmutasistok.print', [
             'groupedData' => $results->groupBy('fstockmtno'),
             'type' => $type,
+            'productText' => $productText,
+            'branchText' => $branchText,
+            'period' => $period,
+            'displayType' => $type === 'detail' ? 'Detail' : 'Rekap',
             'request' => $request,
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
