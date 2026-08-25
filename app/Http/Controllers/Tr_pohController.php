@@ -751,13 +751,15 @@ class Tr_pohController extends Controller
 
         $base = Tr_poh::query()
             ->leftJoin("{$supplierTable} as s", 's.fsuppliercode', '=', 'tr_poh.fsupplier')
-            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode');
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
+            ->leftJoin('mscurrency as cur', 'cur.fcurrcode', '=', 'tr_poh.fcurrency');
 
         $cols = [
             'tr_poh.*',
             's.fsuppliername as supplier_name',
             's.faddress as supplier_address',
             'c.fcabangname as cabang_name',
+            'cur.fcurrname as currency_name',
         ];
 
         if (is_numeric($fpono)) {
