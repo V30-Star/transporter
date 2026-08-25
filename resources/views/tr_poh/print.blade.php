@@ -315,16 +315,6 @@
                                 <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
                             </tr>
                             <tr>
-                                <td>Ref.PO</td>
-                                <td>:</td>
-                                <td>{{ $hdr->frefno ?: '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td>Sales</td>
-                                <td>:</td>
-                                <td>{{ $hdr->fsalesname ?: '-' }}</td>
-                            </tr>
-                            <tr>
                                 <td>Mata Uang</td>
                                 <td>:</td>
                                 <td>{{ ($hdr->fcurrency ?: 'IDR') . (!empty($hdr->currency_name) ? ' - ' . $hdr->currency_name : (($hdr->fcurrency ?? 'IDR') === 'IDR' ? ' - Rupiah' : '')) }}</td>
