@@ -1281,6 +1281,10 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (isset($hdr->frekeningname)) {
             $hdr->frekeningname = decrypt_value($hdr->frekeningname);
         }
@@ -2529,9 +2533,10 @@ class InvoiceController extends Controller
                 ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
                 : null;
 
+            $isApprovedInv = (int) ($headerInsert['fapproval'] ?? 0) === 1;
             $successPrompt = [
                 'type' => 'invoice_create',
-                'redirect_url' => route('invoice.print', $fsono),
+                'redirect_url' => $isApprovedInv ? route('invoice.print', $fsono) : null,
             ];
             if ($suratjalanUrl) {
                 $successPrompt['suratjalan_url'] = $suratjalanUrl;

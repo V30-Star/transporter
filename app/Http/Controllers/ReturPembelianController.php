@@ -561,6 +561,10 @@ class ReturPembelianController extends Controller
             return redirect()->back()->with('error', 'Retur pembelian tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Retur Pembelian belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Retur Pembelian Sudah Pernah diPrint.');
         }

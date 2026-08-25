@@ -412,6 +412,10 @@ class AssemblingController extends Controller
             return redirect()->back()->with('error', 'Assembling tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Assembling belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Assembling Sudah Pernah diPrint.');
         }

@@ -503,6 +503,10 @@ class LembarPenagihanController extends Controller
             return redirect()->back()->with('error', 'Lembar penagihan tidak ditemukan.');
         }
 
+        if (isset($hdr->fapproval) && (int) $hdr->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Lembar Penagihan belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Lembar Penagihan Sudah Pernah diPrint.');
         }

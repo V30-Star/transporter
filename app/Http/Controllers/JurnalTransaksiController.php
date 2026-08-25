@@ -565,6 +565,10 @@ class JurnalTransaksiController extends Controller
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
+        if (isset($hdr->fapproval) && (int) $hdr->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Jurnal Transaksi belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Jurnal Transaksi Sudah Pernah diPrint.');
         }

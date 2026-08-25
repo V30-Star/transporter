@@ -544,6 +544,10 @@ class PengeluaranKasController extends Controller
             return redirect()->back()->with('error', 'Pengeluaran kas tidak ada.');
         }
 
+        if (isset($header->fapproval) && (int) $header->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Pengeluaran Kas/Bank belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Transaksi Kas/Bank ini sudah pernah di-print.');
         }

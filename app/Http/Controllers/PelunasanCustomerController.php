@@ -1646,6 +1646,10 @@ class PelunasanCustomerController extends Controller
             return redirect()->back()->with('error', 'Pelunasan customer tidak ada.');
         }
 
+        if (isset($header->fapproval) && (int) $header->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Pelunasan Customer belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Pelunasan Customer Sudah Pernah diPrint.');
         }

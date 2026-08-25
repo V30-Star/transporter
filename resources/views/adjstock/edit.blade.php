@@ -1423,8 +1423,17 @@
                                 <x-heroicon-o-check class="w-6 h-6" /> Simpan
                             </button>
                         @elseif ($action === 'view')
-                            @php $isPrinted = ! can_print_again() && (int) ($adjstock->fprint ?? 0) === 1; @endphp
-                            @if ($isPrinted)
+                            @php
+                                $isApproved = (int) ($adjstock->fapproval ?? 0) === 1;
+                                $isPrinted = ! can_print_again() && (int) ($adjstock->fprint ?? 0) === 1;
+                            @endphp
+                            @if (!$isApproved)
+                                <button type="button"
+                                    onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Adjustment Stok belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                    class="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                                    <x-heroicon-o-printer class="w-6 h-6" /> Print
+                                </button>
+                            @elseif ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Adjustment Stok Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                     class="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">

@@ -335,7 +335,18 @@
                         Kembali
                     </button>
                     @if ($canPrint)
-                        @if ($isPrinted)
+                        @php
+                            $isApproved = (int) ($pemakaianbarang->fapproval ?? 0) === 1;
+                            $isPrinted = ! can_print_again() && (int) ($pemakaianbarang->fprint ?? 0) === 1;
+                        @endphp
+                        @if (!$isApproved)
+                            <button type="button"
+                                onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Pemakaian Barang belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <x-heroicon-o-printer class="w-6 h-6" />
+                                Print
+                            </button>
+                        @elseif ($isPrinted)
                             <button type="button"
                                 onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Pemakaian Barang Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">

@@ -157,8 +157,18 @@
         {{-- ── FOOTER ACTION BUTTONS ── --}}
         <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
             <div class="flex justify-end gap-3">
-                @php $isPrinted = ! can_print_again() && (int) ($jurnaltransaksi->fprint ?? 0) === 1; @endphp
-                @if ($isPrinted)
+                @php
+                    $isApproved = !isset($jurnaltransaksi->fapproval) || (int) ($jurnaltransaksi->fapproval ?? 0) === 1;
+                    $isPrinted = ! can_print_again() && (int) ($jurnaltransaksi->fprint ?? 0) === 1;
+                @endphp
+                @if (!$isApproved)
+                    <button type="button"
+                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Jurnal Transaksi belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                        class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors">
+                        <x-heroicon-o-printer class="w-6 h-6 mr-2" />
+                        Print
+                    </button>
+                @elseif ($isPrinted)
                     <button type="button"
                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Jurnal Transaksi Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                         class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors">

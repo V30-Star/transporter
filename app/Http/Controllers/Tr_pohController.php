@@ -791,6 +791,10 @@ class Tr_pohController extends Controller
             return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Order Pembelian belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Purchase Order Sudah Pernah diPrint.');
         }

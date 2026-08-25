@@ -688,8 +688,22 @@
                                         </button>
                                     @endif
                                 @elseif ($action === 'view' && $canPrintPermission)
-                                    @php $isPrinted = ! can_print_again() && (int) ($fakturpembelian->fprint ?? 0) === 1; @endphp
-                                    @if ($isPrinted)
+                                    @php
+                                        $isApproved = (int) ($fakturpembelian->fapproval ?? 0) === 1;
+                                        $isPrinted = ! can_print_again() && (int) ($fakturpembelian->fprint ?? 0) === 1;
+                                    @endphp
+                                    @if (!$isApproved)
+                                        <button type="button"
+                                            onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Pembelian belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                            class="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                                </path>
+                                            </svg>
+                                            Print
+                                        </button>
+                                    @elseif ($isPrinted)
                                         <button type="button"
                                             onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Pembelian Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                             class="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors">

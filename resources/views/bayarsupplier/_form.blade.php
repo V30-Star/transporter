@@ -486,10 +486,18 @@
             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                 @php
                     $printVoucherNo = $voucherNo ?: ($header?->fkasmtno ?? ($headerData?->fkasmtno ?? null));
+                    $isApproved = !isset($header->fapproval) || (int) ($header?->fapproval ?? ($headerData?->fapproval ?? 0)) === 1;
                     $isPrinted = ! can_print_again() && (int) ($header?->fprint ?? ($headerData?->fprint ?? 0)) === 1;
                 @endphp
                 @if ($isReadOnly && !$isDeleteMode && !empty($printVoucherNo))
-                    @if ($isPrinted)
+                    @if (!$isApproved)
+                        <button type="button"
+                            onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Bayar Supplier belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                            class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                            <x-heroicon-o-printer class="w-4 h-4" />
+                            {{ 'Print' }}
+                        </button>
+                    @elseif ($isPrinted)
                         <button type="button"
                             onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Bayar Supplier Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                             class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">

@@ -1544,6 +1544,10 @@ class BayarSupplierController extends Controller
             return redirect()->back()->with('error', 'Bayar supplier tidak ada.');
         }
 
+        if (isset($header->fapproval) && (int) $header->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Bayar Supplier belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Bayar Supplier Sudah Pernah diPrint.');
         }

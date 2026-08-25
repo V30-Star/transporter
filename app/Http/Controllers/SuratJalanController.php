@@ -643,6 +643,10 @@ class SuratJalanController extends Controller
             return redirect()->back()->with('error', 'Surat Jalan tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Surat Jalan belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Surat Jalan Sudah Pernah diPrint.');
         }

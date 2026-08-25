@@ -545,6 +545,10 @@ class PenerimaanKasController extends Controller
             return redirect()->back()->with('error', 'Penerimaan kas tidak ada.');
         }
 
+        if (isset($header->fapproval) && (int) $header->fapproval !== 1) {
+            return redirect()->back()->with('error', 'Penerimaan Kas/Bank belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($header->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Penerimaan Kas/Bank Sudah Pernah diPrint.');
         }

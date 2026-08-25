@@ -930,6 +930,10 @@ class SalesOrderController extends Controller
             return redirect()->back()->with('error', 'Sales Order tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Sales Order belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Sales Order Sudah Pernah diPrint.');
         }
@@ -1390,9 +1394,10 @@ class SalesOrderController extends Controller
                 ? route('suratjalan.create', ['sales_order_id' => $ftrsomtid])
                 : null;
 
+            $isApprovedSo = (int) ($creditApproval['fapproval'] ?? 0) === 1;
             $successPrompt = [
                 'type' => 'salesorder_create',
-                'redirect_url' => route('salesorder.print', $fsono),
+                'redirect_url' => $isApprovedSo ? route('salesorder.print', $fsono) : null,
                 'suratjalan_url' => $suratJalanUrl,
             ];
 

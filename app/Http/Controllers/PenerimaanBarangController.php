@@ -829,6 +829,10 @@ class PenerimaanBarangController extends Controller
             return redirect()->back()->with('error', 'Penerimaan Barang tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Penerimaan Barang belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Penerimaan Barang Sudah Pernah diPrint.');
         }

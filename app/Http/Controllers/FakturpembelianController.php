@@ -1394,6 +1394,10 @@ class FakturpembelianController extends Controller
             return redirect()->back()->with('error', 'Faktur Pembelian tidak ada.');
         }
 
+        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+            return redirect()->back()->with('error', 'Faktur Pembelian belum di-approve dan tidak boleh dicetak.');
+        }
+
         if (! $this->canPrintAgain() && (int) ($hdr->fprint ?? 0) === 1) {
             return redirect()->back()->with('error', 'Faktur Pembelian Sudah Pernah diPrint.');
         }

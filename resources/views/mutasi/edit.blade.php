@@ -650,8 +650,17 @@
                     Hapus
                 </button>
                     @elseif ($action === 'view')
-                        @php $isPrinted = ! can_print_again() && (int) ($mutasi->fprint ?? 0) === 1; @endphp
-                        @if ($isPrinted)
+                        @php
+                            $isApproved = (int) ($mutasi->fapproval ?? 0) === 1;
+                            $isPrinted = ! can_print_again() && (int) ($mutasi->fprint ?? 0) === 1;
+                        @endphp
+                        @if (!$isApproved)
+                            <button type="button"
+                                onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Mutasi Stok belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <x-heroicon-o-printer class="w-5 h-5" /> Print
+                            </button>
+                        @elseif ($isPrinted)
                             <button type="button"
                                 onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Mutasi Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                 class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -1168,8 +1177,17 @@
                                 Simpan
                             </button>
                         @elseif ($action === 'view')
-                            @php $isPrinted = ! can_print_again() && (int) ($mutasi->fprint ?? 0) === 1; @endphp
-                            @if ($isPrinted)
+                            @php
+                                $isApproved = (int) ($mutasi->fapproval ?? 0) === 1;
+                                $isPrinted = ! can_print_again() && (int) ($mutasi->fprint ?? 0) === 1;
+                            @endphp
+                            @if (!$isApproved)
+                                <button type="button"
+                                    onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Mutasi Stok belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                    class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                </button>
+                            @elseif ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Mutasi Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                     class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
