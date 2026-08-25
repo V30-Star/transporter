@@ -273,12 +273,12 @@ class Tr_pohController extends Controller
                 'mscabang.fcabangname'
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
-            ->whereIn('tr_prh.fprdin', ['0', ''])
+            ->whereIn('tr_prh.fprdin', ['0', '', '2'])
             ->where('tr_prh.fapproval', 1);
 
         // Total records sesuai kriteria dasar
         $recordsTotal = Tr_prh::whereIn('tr_prh.fclose', ['0', ''])
-            ->whereIn('tr_prh.fprdin', ['0', ''])
+            ->whereIn('tr_prh.fprdin', ['0', '', '2'])
             ->where('tr_prh.fapproval', 1)
             ->count();
 

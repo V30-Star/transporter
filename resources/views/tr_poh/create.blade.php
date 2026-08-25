@@ -1669,6 +1669,11 @@
                 });
 
                 if (addedRows.length > 0) {
+                    const prSupplier = (header?.fsuppliercode || header?.fsupplier || '').trim();
+                    if (!this.getSupplier() && prSupplier) {
+                        this.syncSupplierDisplay(prSupplier);
+                    }
+
                     const shouldReplaceStarter = this.rows.every((row) => !this.isRowFilled(row));
                     if (shouldReplaceStarter) {
                         this.rows = addedRows;
@@ -1714,6 +1719,12 @@
             },
 
             submitForm(form) {
+                const supplier = (document.getElementById('supplierCodeHidden')?.value || this.getSupplier() || '').toString().trim();
+                if (!supplier) {
+                    this.showNoSupplier = true;
+                    return;
+                }
+
                 const preparedRows = this.prepareRowsForSubmit();
                 if (!preparedRows) return;
                 const validRows = preparedRows.filter((row) => this.isRowSavable(row));
@@ -2003,10 +2014,6 @@
                 });
             },
             openModal() {
-                if (!(document.getElementById('supplierCodeHidden')?.value || '').trim()) {
-                    window.dispatchEvent(new CustomEvent('show-no-supplier'));
-                    return;
-                }
                 this.show = true;
                 this.$nextTick(() => {
                     this.initDataTable();

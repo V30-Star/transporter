@@ -2297,6 +2297,11 @@
                     existingSet.add(key);
                 });
                 if (toAdd.length > 0) {
+                    const prSupplier = (header?.fsuppliercode || header?.fsupplier || '').trim();
+                    if (!this.getSupplier() && prSupplier) {
+                        this.syncSupplierDisplay(prSupplier);
+                    }
+
                     const shouldReplaceStarter = this.rows.every((row) => !this.isRowFilled(row));
                     if (shouldReplaceStarter) {
                         this.rows = toAdd;
@@ -2340,6 +2345,11 @@
 
             submitForm(form) {
                 if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
+                const supplier = (document.getElementById('supplierCodeHidden')?.value || this.getSupplier() || '').toString().trim();
+                if (!supplier) {
+                    this.showNoSupplier = true;
+                    return;
+                }
                 const preparedRows = this.prepareRowsForSubmit();
                 if (!preparedRows) return;
                 const validRows = preparedRows.filter((row) => this.isRowSavable(row));
@@ -2371,6 +2381,11 @@
 
             submitWithApproval() {
                 if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
+                const supplier = (document.getElementById('supplierCodeHidden')?.value || this.getSupplier() || '').toString().trim();
+                if (!supplier) {
+                    this.showNoSupplier = true;
+                    return;
+                }
                 const form = document.querySelector('form[action*="tr_poh"]');
                 const preparedRows = this.prepareRowsForSubmit();
                 if (!preparedRows) return;
@@ -2624,10 +2639,6 @@
                     });
                 },
                 openModal() {
-                    if (!(document.getElementById('supplierCodeHidden')?.value || '').trim()) {
-                        window.dispatchEvent(new CustomEvent('show-no-supplier'));
-                        return;
-                    }
                     this.show = true;
                     this.$nextTick(() => {
                         this.initDataTable();
