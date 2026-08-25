@@ -14,23 +14,21 @@
             box-sizing: border-box;
         }
 
-        /* Monitor Screen Layout */
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #0f172a; /* Navy-Ink */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #0f172a;
+            background-color: #f1f5f9;
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Screen Simulation Styles for A4 Pages (LANDSCAPE) */
         .page-a4 {
             width: 297mm;
             margin: 30px auto;
             background: white;
-            padding: 15mm 20mm 15mm 20mm; /* Page margins */
+            padding: 12mm 18mm;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
@@ -39,73 +37,97 @@
             border-radius: 4px;
         }
 
-        /* Strict height applied after pagination (LANDSCAPE height is 210mm) */
         .page-a4-strict {
             height: 210mm !important;
             min-height: 210mm !important;
             overflow: hidden !important;
         }
 
-        .header-section {
-            position: relative;
-            margin-bottom: 60px;
-            text-align: center;
-            padding-bottom: 15px;
-        }
-
-        .header-section h2 {
-            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
-            font-size: 20px;
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 6px;
-            font-weight: 600;
+        }
+
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            color: #0f172a;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .title-so {
+            font-size: 18px;
+            color: #0000ff;
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PR */
-            letter-spacing: 0.5px;
         }
 
-        .filter-info {
-            font-size: 10px;
-            color: #475569; /* Slate 600 */
-            margin-bottom: 5px;
-            font-weight: 500;
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 100%;
+            position: relative;
+            margin-top: 4px;
+            margin-bottom: 6px;
         }
 
-        .supplier-info-kiri {
+        .customer-label {
             position: absolute;
-            top: 15px;
-            left: 0mm;
+            top: -8px;
+            left: 15px;
+            background: #fff;
+            padding: 0 5px;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
-            max-width: 80mm;
+            font-weight: bold;
+            color: #0f172a;
         }
 
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
+        .info-col-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
-            text-align: left;
-            line-height: 1.5;
         }
 
-        .info-label {
+        .info-col-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+            line-height: 1.4;
+        }
+
+        .info-col-label {
             font-weight: 600;
-            display: inline-block;
-            width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #334155;
+            width: 85px;
+        }
+
+        .wh-header-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin: 4px 0 3px 0;
+            padding-left: 2px;
         }
 
         /* --- TABLE HEADERS & ROWS (REKAP) --- */
         .rekap-header-labels,
         .rekap-row {
             display: grid;
-            grid-template-columns: 8mm 24mm 1fr 20mm 24mm 22mm 22mm 24mm;
+            grid-template-columns: 8mm 32mm 1fr 28mm 28mm 32mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 2px 8px;
+            font-size: 8.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -113,10 +135,10 @@
         .detail-header-labels,
         .detail-row {
             display: grid;
-            grid-template-columns: 35mm 18mm 18mm 25mm 1fr 20mm 22mm 22mm 22mm 24mm;
+            grid-template-columns: 42mm 20mm 24mm 32mm 1fr 28mm 28mm 30mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 2px 8px;
+            font-size: 8.5px;
+            padding: 2px 6px;
             align-items: center;
         }
 
@@ -129,107 +151,73 @@
             margin-bottom: 0px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .rekap-header-labels,
-        .detail-header-labels {
+            letter-spacing: 0.3px;
             grid-template-rows: auto auto;
+            align-items: center;
         }
 
         .header-span-rows {
             grid-row: 1 / span 2;
+            display: flex;
+            align-items: center;
         }
 
         .header-mutasi {
-            grid-column: span 2;
             grid-row: 1;
-            text-align: center;
+            text-align: center !important;
+            padding: 1px 0;
+            line-height: 1.2;
         }
 
-        .rekap-mutasi { grid-column: 6 / 8; grid-row: 1; }
-        .rekap-saldo-akhir { grid-column: 8; grid-row: 1 / span 2; }
-        .rekap-masuk { grid-column: 6; grid-row: 2; }
-        .rekap-keluar { grid-column: 7; grid-row: 2; }
-        .rekap-col-1 { grid-column: 1; }
-        .rekap-col-2 { grid-column: 2; }
-        .rekap-col-3 { grid-column: 3; }
-        .rekap-col-4 { grid-column: 4; }
-        .rekap-col-5 { grid-column: 5; }
-        .detail-mutasi { grid-column: 8 / 10; grid-row: 1; }
-        .detail-saldo-akhir { grid-column: 10; grid-row: 1 / span 2; }
-        .detail-masuk { grid-column: 8; grid-row: 2; }
-        .detail-keluar { grid-column: 9; grid-row: 2; }
-        .detail-col-1 { grid-column: 1; }
-        .detail-col-2 { grid-column: 2; }
-        .detail-col-3 { grid-column: 3; }
-        .detail-col-4 { grid-column: 4; }
-        .detail-col-5 { grid-column: 5; }
-        .detail-col-6 { grid-column: 6; }
-        .detail-col-7 { grid-column: 7; }
+        .rekap-mutasi { grid-column: 4 / 6; }
+        .rekap-saldo-akhir { grid-column: 6; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
+        .rekap-masuk { grid-column: 4; grid-row: 2; text-align: center; }
+        .rekap-keluar { grid-column: 5; grid-row: 2; text-align: center; }
+        .rekap-col-1 { grid-column: 1; justify-content: center; text-align: center; }
+        .rekap-col-2 { grid-column: 2; justify-content: flex-start; text-align: left; }
+        .rekap-col-3 { grid-column: 3; justify-content: flex-start; text-align: left; }
+
+        .detail-mutasi { grid-column: 6 / 8; }
+        .detail-saldo-akhir { grid-column: 8; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
+        .detail-masuk { grid-column: 6; grid-row: 2; text-align: center; }
+        .detail-keluar { grid-column: 7; grid-row: 2; text-align: center; }
+        .detail-col-1 { grid-column: 1; justify-content: flex-start; text-align: left; }
+        .detail-col-2 { grid-column: 2; justify-content: center; text-align: center; }
+        .detail-col-3 { grid-column: 3; justify-content: center; text-align: center; }
+        .detail-col-4 { grid-column: 4; justify-content: flex-start; text-align: left; }
+        .detail-col-5 { grid-column: 5; justify-content: flex-start; text-align: left; }
 
         .rekap-row,
         .detail-row {
             background-color: transparent;
             margin-bottom: 0px;
             color: #0f172a;
-            padding: 2px 8px;
+            padding: 2px 6px;
         }
 
-        /* Alignment for Rekap */
-        .rekap-header-labels > div:nth-child(n+5),
-        .rekap-row > div:nth-child(n+5) {
-            text-align: right;
-        }
+        /* Alignment for Rekap Rows */
+        .rekap-row > div:nth-child(1) { text-align: center; }
+        .rekap-row > div:nth-child(2) { text-align: left; }
+        .rekap-row > div:nth-child(3) { text-align: left; }
+        .rekap-row > div:nth-child(4) { text-align: right; }
+        .rekap-row > div:nth-child(5) { text-align: right; }
+        .rekap-row > div:nth-child(6) { text-align: right; }
 
-        .rekap-header-labels > div:nth-child(1),
-        .rekap-row > div:nth-child(1) {
-            text-align: center;
-        }
-
-        /* Alignment for Detail */
-        .detail-header-labels > div:nth-child(7),
-        .detail-header-labels > div:nth-child(8),
-        .detail-header-labels > div:nth-child(9),
-        .detail-header-labels > div:nth-child(10),
-        .detail-row > div:nth-child(7),
-        .detail-row > div:nth-child(8),
-        .detail-row > div:nth-child(9),
-        .detail-row > div:nth-child(10) {
-            text-align: right;
-        }
-
-        .header-mutasi {
-            align-self: center;
-            justify-self: stretch;
-            text-align: center;
-        }
-
-        .rekap-header-labels > .header-mutasi,
-        .detail-header-labels > .header-mutasi {
-            text-align: center !important;
-        }
-
-        .rekap-masuk,
-        .rekap-keluar,
-        .detail-masuk,
-        .detail-keluar {
-            text-align: center !important;
-        }
-
-        .rekap-row > div:nth-child(6),
-        .rekap-row > div:nth-child(7),
-        .detail-row > div:nth-child(8),
-        .detail-row > div:nth-child(9) {
-            text-align: center;
-        }
+        /* Alignment for Detail Rows */
+        .detail-row > div:nth-child(1) { text-align: left; }
+        .detail-row > div:nth-child(2) { text-align: center; }
+        .detail-row > div:nth-child(3) { text-align: center; }
+        .detail-row > div:nth-child(4) { text-align: left; }
+        .detail-row > div:nth-child(5) { text-align: left; }
+        .detail-row > div:nth-child(6) { text-align: right; }
+        .detail-row > div:nth-child(7) { text-align: right; }
+        .detail-row > div:nth-child(8) { text-align: right; }
 
         /* Fonts for Numbers & System Codes */
         .rekap-row > div:nth-child(2),
+        .rekap-row > div:nth-child(4),
         .rekap-row > div:nth-child(5),
-        .rekap-row > div:nth-child(6),
-        .rekap-row > div:nth-child(7),
-        .rekap-row > div:nth-child(8) {
+        .rekap-row > div:nth-child(6) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -238,32 +226,20 @@
         .detail-row > div:nth-child(2),
         .detail-row > div:nth-child(3),
         .detail-row > div:nth-child(4),
+        .detail-row > div:nth-child(6),
         .detail-row > div:nth-child(7),
-        .detail-row > div:nth-child(8),
-        .detail-row > div:nth-child(9),
-        .detail-row > div:nth-child(10) {
+        .detail-row > div:nth-child(8) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
-        }
-
-        .wh-title {
-            font-weight: bold;
-            margin-top: 6px;
-            padding: 2px 8px;
-            font-size: 8px;
-            text-transform: uppercase;
         }
 
         .group-title {
             font-weight: bold;
             margin-top: 3px;
-            padding: 2px 8px;
-            font-size: 8px;
-        }
-
-        .separator {
-            margin: 0px;
-            clear: both;
+            padding: 2px 6px;
+            font-size: 8.5px;
+            background-color: #f8fafc;
+            border-bottom: 1px dashed #cbd5e1;
         }
 
         .truncate {
@@ -272,7 +248,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Floating zoom bar style from Listing PO */
         .no-print {
             position: fixed;
             top: 15px;
@@ -408,7 +383,7 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy-Ink background */
+            background-color: #0f172a;
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -425,7 +400,7 @@
         }
 
         .print-button:hover {
-            background-color: #000000; /* Black background on hover */
+            background-color: #000000;
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -433,25 +408,21 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
-        /* Totals Panel style */
         .po-totals-panel-wrapper {
             margin-top: 15px;
-            width: 257mm; /* Full printable width for landscape */
-            border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 15px;
+            width: 100%;
+            border-top: 1px solid #000000;
+            padding-top: 10px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
+            text-align: center;
         }
 
         .end-of-report-inline {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 5px;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -460,7 +431,6 @@
             letter-spacing: 1px;
         }
 
-        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
@@ -473,7 +443,7 @@
                 width: 297mm;
                 height: 210mm !important;
                 margin: 0 auto !important;
-                padding: 15mm 20mm 15mm 20mm !important;
+                padding: 12mm 18mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
@@ -498,15 +468,24 @@
 
 <body>
     @php
+        $companySetting = company_setting();
+        $companyProject = $companySetting->fproject ?? 'PT. M-Trade';
+        $companyCity = $companySetting->fcity ?? '';
+
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request('branch_codes')) : 'Semua';
-        $period = (request('date_from') ?: date('Y-01-01')) . ' s/d ' . (request('date_to') ?: date('Y-12-31'));
-        $groupBy = request('grouping', 'group') === 'merek' ? 'Merek' : 'Group Produk';
-        $pagePerWh = request()->boolean('page_per_warehouse');
+        
+        $dateFromRaw = request('date_from');
+        $dateToRaw = request('date_to');
+        $dateFromFmt = $dateFromRaw ? date('d-m-Y', strtotime($dateFromRaw)) : date('01-01-Y');
+        $dateToFmt = $dateToRaw ? date('d-m-Y', strtotime($dateToRaw)) : date('31-12-Y');
+        $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+
         $whText = request('warehouse') ?: 'Semua';
         $groupText = request('group_code') ?: 'Semua';
         $merekText = request('merek') ?: 'Semua';
         $productRange = (request('product_from') ?: 'Awal') . ' s/d ' . (request('product_to') ?: 'Akhir');
         if (!request('product_from') && !request('product_to')) $productRange = 'Semua';
+
         $stockStatusText = match (request('stock_status', 'all')) {
             'not_zero' => 'Stok <> 0',
             'positive' => 'Stok > 0',
@@ -515,8 +494,6 @@
             'below_min' => 'Stok < Min Stok',
             default => 'Semua',
         };
-        $reportModeText = request('report_mode', 'rekap') === 'detail' ? 'Detail' : 'Rekap';
-        $pagePerWhText = $pagePerWh ? 'Ya' : 'Tidak';
     @endphp
 
     <div class="no-print">
@@ -550,27 +527,88 @@
 
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
+        {{-- Header Template --}}
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                Cabang: {{ $branchText }}
-                <br>Gudang: {{ $whText }}
-                <br>Group Produk: {{ $groupText }}
-                <br>Merek: {{ $merekText }}
-                <br>Produk: {{ $productRange }}
-                <br>Ganti Halaman/Gudang: {{ $pagePerWhText }}
-                <br>Mode: {{ strtoupper($mode) }}
+            <div class="header-row">
+                <div>
+                    <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                    @if(!empty($companyCity))
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    @endif
+                </div>
+                <div>
+                    <div class="title-so">Laporan Kartu Stok</div>
+                </div>
             </div>
-            <h2>{{ $title }}</h2>
-            <div class="filter-info">Periode: {{ $period }}</div>
-            <div class="filter-info">
-                Grouping: {{ $groupBy }}
-                <br>Status Stok: {{ $stockStatusText }}
-                <br>Tampilan: {{ $reportModeText }}
-            </div>
-            <div class="info-tambahan">
-                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+
+            <div class="customer-container">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    {{-- Kiri --}}
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Cabang</td>
+                                <td style="width: 8px;">:</td>
+                                <td>{{ $branchText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Gudang</td>
+                                <td>:</td>
+                                <td>{{ $whText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Group Produk</td>
+                                <td>:</td>
+                                <td>{{ $groupText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Merek</td>
+                                <td>:</td>
+                                <td>{{ $merekText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Produk</td>
+                                <td>:</td>
+                                <td>{{ $productRange }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
+                            <tr>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Status Stok</td>
+                                <td>:</td>
+                                <td>{{ $stockStatusText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Tanggal</td>
+                                <td>:</td>
+                                <td>{{ date('d-m-Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jam</td>
+                                <td>:</td>
+                                <td>{{ date('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Operator</td>
+                                <td>:</td>
+                                <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                            </tr>
+                            <tr class="hal-row">
+                                <td class="info-col-label">Hal</td>
+                                <td>:</td>
+                                <td><span class="page-number-current"></span> / <span class="page-number-total"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -579,8 +617,6 @@
                 <div class="header-span-rows rekap-col-1">No.</div>
                 <div class="header-span-rows rekap-col-2">Kode Prd</div>
                 <div class="header-span-rows rekap-col-3">Nama Produk</div>
-                <div class="header-span-rows rekap-col-4">Satuan</div>
-                <div class="header-span-rows rekap-col-5">Saldo Awal</div>
                 <div class="header-mutasi rekap-mutasi">Mutasi</div>
                 <div class="header-span-rows rekap-saldo-akhir">Saldo Akhir</div>
                 <div class="rekap-masuk">Masuk</div>
@@ -593,8 +629,6 @@
                 <div class="header-span-rows detail-col-3">Tanggal</div>
                 <div class="header-span-rows detail-col-4">No.Ref</div>
                 <div class="header-span-rows detail-col-5">Supplier/Customer</div>
-                <div class="header-span-rows detail-col-6">Satuan</div>
-                <div class="header-span-rows detail-col-7">Saldo Awal</div>
                 <div class="header-mutasi detail-mutasi">Mutasi</div>
                 <div class="header-span-rows detail-saldo-akhir">Saldo Akhir</div>
                 <div class="detail-masuk">Masuk</div>
@@ -603,90 +637,86 @@
         @endif
 
         @forelse ($rows->groupBy('fwhcode') as $whcode => $whRows)
-            {{-- Warehouse header --}}
-            <div class="journal-block wh-title">
-                Gudang: {{ $whcode }}
-            </div>
-
-            @if ($mode === 'rekap')
-                @foreach ($whRows->groupBy(request('grouping', 'group') === 'merek' ? 'fmerekname' : 'fgroupname') as $groupName => $items)
-                    {{-- Group title header --}}
-                    <div class="journal-block group-title">
-                        {{ $groupName ?: '-' }}
-                    </div>
-
-                    @foreach ($items as $row)
-                        <div class="journal-block">
-                            <div class="rekap-row">
-                                <div>{{ $loop->iteration }}</div>
-                                <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
-                                <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
-                                <div>{{ $row->fsatuan }}</div>
-                                <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ $row->qtysaldotext ?? (number_format((float) $row->qtysaldokecil, 2, ',', '.') . ' ' . $row->fsatuan) }}</div>
-                            </div>
+            <div class="warehouse-group" data-whcode="{{ $whcode }}">
+                @if ($mode === 'rekap')
+                    @foreach ($whRows->groupBy(request('grouping', 'group') === 'merek' ? 'fmerekname' : 'fgroupname') as $groupName => $items)
+                        <div class="journal-block group-title">
+                            {{ $groupName ?: '-' }}
                         </div>
-                    @endforeach
-                @endforeach
-            @else
-                @foreach ($whRows->groupBy('fprdcode') as $prdcode => $items)
-                    {{-- Product group title header --}}
-                    <div class="journal-block group-title">
-                        {{ $prdcode }} - {{ $items->first()->fprdname ?? '' }}
-                    </div>
 
-                    @foreach ($items as $row)
-                        @php
-                            $code = strtoupper(trim((string) ($row->fstockmtcode ?? '')));
-                            $id = $row->fstockmtid ?? null;
-                            $hasTrx = !empty($id) && !in_array($code, ['SALDO AWAL', 'AWAL', 'SALDO']);
-                            $routeMap = [
-                                'SO' => ['view' => 'salesorder.view', 'edit' => 'salesorder.edit'],
-                                'SJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
-                                'SRJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
-                                'INV' => ['view' => 'invoice.view', 'edit' => 'invoice.edit'],
-                                'REJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
-                                'RUJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
-                                'PR' => ['view' => 'tr_prh.view', 'edit' => 'tr_prh.edit'],
-                                'PO' => ['view' => 'tr_poh.view', 'edit' => 'tr_poh.edit'],
-                                'PB' => ['view' => 'penerimaanbarang.view', 'edit' => 'penerimaanbarang.edit'],
-                                'BUY' => ['view' => 'fakturpembelian.view', 'edit' => 'fakturpembelian.edit'],
-                                'REB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
-                                'RUB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
-                                'ADJ' => ['view' => 'adjstock.view', 'edit' => 'adjstock.edit'],
-                                'MUT' => ['view' => 'mutasi.view', 'edit' => 'mutasi.edit'],
-                                'PBR' => ['view' => 'pemakaianbarang.view', 'edit' => 'pemakaianbarang.edit'],
-                                'PRD' => ['view' => 'assembling.view', 'edit' => 'assembling.edit'],
-                            ];
-                            $canClick = $hasTrx && isset($routeMap[$code]);
-                            $viewUrl = $canClick ? route($routeMap[$code]['view'], $id) : '#';
-                            $editUrl = $canClick ? route($routeMap[$code]['edit'], $id) : '#';
-                        @endphp
-                        <div class="journal-block">
-                            <div class="detail-row">
-                                <div class="truncate {{ in_array($code, ['REJ', 'RUJ', 'REB', 'RUB']) ? 'text-rej' : '' }}" title="{{ $row->fstockmt }}">
-                                    @if ($canClick)
-                                        <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fstockmt }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fstockmt }}</span>
-                                    @else
-                                        {{ $row->fstockmt }}
-                                    @endif
+                        @foreach ($items as $row)
+                            <div class="journal-block">
+                                <div class="rekap-row">
+                                    <div>{{ $loop->iteration }}</div>
+                                    <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
+                                    <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                                    <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
+                                    <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
+                                    <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
                                 </div>
-                                <div>{{ $row->fstockmtcode }}</div>
-                                <div>{{ $row->fstockdate ? \Carbon\Carbon::parse($row->fstockdate)->format('d/m/Y') : '' }}</div>
-                                <div class="truncate" title="{{ $row->frefno }}">{{ $row->frefno }}</div>
-                                <div class="truncate" title="{{ $row->fsuppliername }}">{{ $row->fsuppliername }}</div>
-                                <div>{{ $row->fsatuan ?? '' }}</div>
-                                <div>{{ number_format((float) $row->qtyawalkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                <div>{{ $row->qtysaldotext ?? (number_format((float) $row->qtysaldokecil, 2, ',', '.') . ' ' . ($row->fsatuan ?? '')) }}</div>
                             </div>
-                        </div>
+                        @endforeach
                     @endforeach
-                @endforeach
-            @endif
+                @else
+                    @foreach ($whRows->groupBy('fprdcode') as $prdcode => $items)
+                        <div class="journal-block group-title">
+                            {{ $prdcode }} - {{ $items->first()->fprdname ?? '' }}
+                        </div>
+
+                        @foreach ($items as $row)
+                            @php
+                                $code = strtoupper(trim((string) ($row->fstockmtcode ?? '')));
+                                $id = $row->fstockmtid ?? null;
+                                $isSaldoAwal = ($row->fstockmt === 'Saldo Awal') || in_array($code, ['SALDO AWAL', 'AWAL', 'SALDO']);
+                            @endphp
+                            @if (!$isSaldoAwal)
+                                @php
+                                    $hasTrx = !empty($id);
+                                    $routeMap = [
+                                        'SO' => ['view' => 'salesorder.view', 'edit' => 'salesorder.edit'],
+                                        'SJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
+                                        'SRJ' => ['view' => 'suratjalan.view', 'edit' => 'suratjalan.edit'],
+                                        'INV' => ['view' => 'invoice.view', 'edit' => 'invoice.edit'],
+                                        'REJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
+                                        'RUJ' => ['view' => 'returpenjualan.view', 'edit' => 'returpenjualan.edit'],
+                                        'PR' => ['view' => 'tr_prh.view', 'edit' => 'tr_prh.edit'],
+                                        'PO' => ['view' => 'tr_poh.view', 'edit' => 'tr_poh.edit'],
+                                        'PB' => ['view' => 'penerimaanbarang.view', 'edit' => 'penerimaanbarang.edit'],
+                                        'BUY' => ['view' => 'fakturpembelian.view', 'edit' => 'fakturpembelian.edit'],
+                                        'REB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
+                                        'RUB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
+                                        'ADJ' => ['view' => 'adjstock.view', 'edit' => 'adjstock.edit'],
+                                        'MUT' => ['view' => 'mutasi.view', 'edit' => 'mutasi.edit'],
+                                        'PBR' => ['view' => 'pemakaianbarang.view', 'edit' => 'pemakaianbarang.edit'],
+                                        'PRD' => ['view' => 'assembling.view', 'edit' => 'assembling.edit'],
+                                    ];
+                                    $canClick = $hasTrx && isset($routeMap[$code]);
+                                    $viewUrl = $canClick ? route($routeMap[$code]['view'], $id) : '#';
+                                    $editUrl = $canClick ? route($routeMap[$code]['edit'], $id) : '#';
+                                @endphp
+                                <div class="journal-block">
+                                    <div class="detail-row">
+                                        <div class="truncate {{ in_array($code, ['REJ', 'RUJ', 'REB', 'RUB']) ? 'text-rej' : '' }}" title="{{ $row->fstockmt }}">
+                                            @if ($canClick)
+                                                <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fstockmt }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fstockmt }}</span>
+                                            @else
+                                                {{ $row->fstockmt }}
+                                            @endif
+                                        </div>
+                                        <div>{{ $row->fstockmtcode }}</div>
+                                        <div>{{ $row->fstockdate ? \Carbon\Carbon::parse($row->fstockdate)->format('d-m-Y') : '' }}</div>
+                                        <div class="truncate" title="{{ $row->frefno }}">{{ $row->frefno }}</div>
+                                        <div class="truncate" title="{{ $row->fsuppliername }}">{{ $row->fsuppliername }}</div>
+                                        <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
+                                        <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
+                                        <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    @endforeach
+                @endif
+            </div>
         @empty
             <div class="journal-block" style="padding:20px;text-align:center;color:#666; font-size:11px;">
                 Tidak ada data ditemukan.
@@ -706,27 +736,84 @@
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15px;">
-                        Cabang: {{ $branchText }}
-                        <br>Gudang: {{ $whText }}
-                        <br>Group Produk: {{ $groupText }}
-                        <br>Merek: {{ $merekText }}
-                        <br>Produk: {{ $productRange }}
-                        <br>Ganti Halaman/Gudang: {{ $pagePerWhText }}
-                        <br>Mode: {{ strtoupper($mode) }}
-                        <br>Status Stok: {{ $stockStatusText }}
-                        <br>Tampilan: {{ $reportModeText }}
+                    <div class="header-row">
+                        <div>
+                            <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                            @if(!empty($companyCity))
+                                <div class="comp-city">{{ $companyCity }}</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="title-so">Laporan Kartu Stok</div>
+                        </div>
                     </div>
-                    <h2>{{ $title }}</h2>
-                    <div class="filter-info">Periode: {{ $period }}</div>
-                    <div class="filter-info">
-                        Grouping: {{ $groupBy }}
-                    </div>
-                    <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
-                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+                    <div class="customer-container">
+                        <span class="customer-label">Parameter</span>
+                        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                            <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Cabang</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $branchText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Gudang</td>
+                                        <td>:</td>
+                                        <td>{{ $whText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Group Produk</td>
+                                        <td>:</td>
+                                        <td>{{ $groupText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Merek</td>
+                                        <td>:</td>
+                                        <td>{{ $merekText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Produk</td>
+                                        <td>:</td>
+                                        <td>{{ $productRange }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
+                                    <tr>
+                                        <td class="info-col-label">Periode</td>
+                                        <td style="width: 8px;">:</td>
+                                        <td>{{ $period }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Status Stok</td>
+                                        <td>:</td>
+                                        <td>{{ $stockStatusText }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Tanggal</td>
+                                        <td>:</td>
+                                        <td>{{ date('d-m-Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Jam</td>
+                                        <td>:</td>
+                                        <td>{{ date('H:i') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Operator</td>
+                                        <td>:</td>
+                                        <td>{{ $user_session->fname ?? ($user_session->username ?? 'admin') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="info-col-label">Hal</td>
+                                        <td>:</td>
+                                        <td>1 / 1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
@@ -768,8 +855,8 @@
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
 
-        const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
-        if (journals.length === 0) return;
+        const warehouseGroups = Array.from(rawSource.querySelectorAll(".warehouse-group"));
+        if (warehouseGroups.length === 0) return;
 
         // Measure actual 210mm page height on the screen dynamically in pixels (A4 Landscape)
         const tempDiv = document.createElement("div");
@@ -780,7 +867,7 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
-        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        // Leave a safety margin to prevent overflowing A4 height
         const maxPageHeight = pageHeightPx - 20;
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
@@ -788,67 +875,71 @@
         const detailHeaderHtml = rawSource.querySelector(".detail-header-labels")?.outerHTML || '';
         const poHeaderLabelsHtml = rekapHeaderHtml || detailHeaderHtml;
 
-        function createNewPage() {
+        function createNewPage(whcode) {
             const page = document.createElement("div");
             page.className = "page-a4";
             page.innerHTML = `
                 <div class="page-header-container">
                     ${headerSectionHtml}
+                    <div class="wh-header-title">GUDANG: ${whcode}</div>
                     ${poHeaderLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content" style="margin-top: 3px;"></div>
             `;
-            const infoTambahan = page.querySelector(".info-tambahan");
-            if (infoTambahan) {
-                const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
-                infoTambahan.prepend(halDiv);
-            }
             reportWrapper.appendChild(page);
             return page;
         }
 
-        let currentPage = createNewPage();
-        let currentContent = currentPage.querySelector(".page-content");
+        warehouseGroups.forEach((whGroup) => {
+            const whcode = whGroup.getAttribute("data-whcode") || '';
+            const whJournals = Array.from(whGroup.querySelectorAll(".journal-block"));
+            if (whJournals.length === 0) return;
 
-        journals.forEach((journal) => {
-            const journalClone = journal.cloneNode(true);
-            currentContent.appendChild(journalClone);
+            let currentPage = createNewPage(whcode);
+            let currentContent = currentPage.querySelector(".page-content");
 
-            if (currentPage.offsetHeight > maxPageHeight) {
-                const blockCount = currentContent.querySelectorAll(".journal-block").length;
-                if (blockCount > 1) {
-                    currentContent.removeChild(journalClone);
-                    currentPage = createNewPage();
-                    currentContent = currentPage.querySelector(".page-content");
-                    currentContent.appendChild(journalClone);
+            whJournals.forEach((journal) => {
+                const journalClone = journal.cloneNode(true);
+                currentContent.appendChild(journalClone);
+
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    const blockCount = currentContent.querySelectorAll(".journal-block").length;
+                    if (blockCount > 1) {
+                        currentContent.removeChild(journalClone);
+                        currentPage = createNewPage(whcode);
+                        currentContent = currentPage.querySelector(".page-content");
+                        currentContent.appendChild(journalClone);
+                    }
                 }
-            }
+            });
         });
 
-        // Add Totals Panel dynamically right before end of report
+        // Add Totals Panel dynamically at the end of report
         const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
-        if (totalsPanelRaw) {
+        const allPagesInitial = reportWrapper.querySelectorAll(".page-a4");
+        if (totalsPanelRaw && allPagesInitial.length > 0) {
+            let lastPage = allPagesInitial[allPagesInitial.length - 1];
             const totalsClone = totalsPanelRaw.cloneNode(true);
             totalsClone.style.display = "block";
             totalsClone.removeAttribute("id");
-            currentPage.appendChild(totalsClone);
+            lastPage.appendChild(totalsClone);
 
-            if (currentPage.offsetHeight > maxPageHeight) {
-                currentPage.removeChild(totalsClone);
-                currentPage = createNewPage();
-                currentPage.appendChild(totalsClone);
+            if (lastPage.offsetHeight > maxPageHeight) {
+                lastPage.removeChild(totalsClone);
+                const lastWhcode = warehouseGroups[warehouseGroups.length - 1]?.getAttribute("data-whcode") || '';
+                lastPage = createNewPage(lastWhcode);
+                lastPage.appendChild(totalsClone);
             }
         }
 
-        // Apply strict height class to lock A4 size and hide overflows
+        // Apply strict height class to lock A4 size and set final page numbers
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            const currentEl = page.querySelector(".page-number-current");
-            const totalEl = page.querySelector(".page-number-total");
-            if (currentEl) currentEl.textContent = index + 1;
-            if (totalEl) totalEl.textContent = allPages.length;
+            const currentEls = page.querySelectorAll(".page-number-current");
+            const totalEls = page.querySelectorAll(".page-number-total");
+            currentEls.forEach(el => el.textContent = index + 1);
+            totalEls.forEach(el => el.textContent = allPages.length);
         });
     });
 
