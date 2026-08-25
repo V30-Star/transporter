@@ -381,7 +381,7 @@ class AssemblingController extends Controller
 
     public function print(string $fstockmtno)
     {
-        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername', 'faddress');
 
         $base = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
@@ -393,6 +393,7 @@ class AssemblingController extends Controller
         $cols = [
             'trstockmt.*',
             's.fsuppliername as supplier_name',
+            's.faddress as supplier_address',
             'c.fcabangname as cabang_name',
             'w.fwhname as fwhnamen',
         ];

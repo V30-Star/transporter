@@ -333,7 +333,7 @@ class PemakaianbarangController extends Controller
 
     public function print(string $fstockmtno)
     {
-        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername', 'faddress');
 
         $base = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
@@ -345,6 +345,7 @@ class PemakaianbarangController extends Controller
         $cols = [
             'trstockmt.*',
             's.fsuppliername as supplier_name',
+            's.faddress as supplier_address',
             'c.fcabangname as cabang_name',
             'w.fwhname as fwhnamen',
         ];
@@ -373,6 +374,12 @@ class PemakaianbarangController extends Controller
             ->leftJoin('msprd as p', function ($j) {
                 $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(trstockdt.fprdcode)'));
             })
+            ->leftJoin('account as a', function ($j) {
+                $j->on(DB::raw('TRIM(a.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
+            })
+            ->leftJoin('mssubaccount as sub', function ($j) {
+                $j->on(DB::raw('TRIM(sub.fsubaccountcode)'), '=', DB::raw('TRIM(trstockdt.frefso)'));
+            })
             ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fstockdtid')
             ->get([
@@ -381,6 +388,8 @@ class PemakaianbarangController extends Controller
                 'p.fprdcode as product_code',
                 'p.fminstock as stock',
                 'trstockdt.fqtyremain',
+                'a.faccname as account_name',
+                'sub.fsubaccountname as subaccount_name',
             ]);
 
         $fmt = fn ($d) => $d
