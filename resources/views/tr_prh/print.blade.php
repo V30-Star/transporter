@@ -65,12 +65,11 @@
 
         .customer-container {
             border: 1px solid #000;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 12px;
-            width: 450px;
-            min-height: 78px;
+            width: 100%;
             position: relative;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .customer-label {
@@ -266,41 +265,44 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_address1))<div style="font-size: 12px;">{{ $company_address1 }}</div>@endif
-                    @if(!empty($company_address2))<div style="font-size: 12px;">{{ $company_address2 }}</div>@endif
-                    <div class="customer-container">
-                        <span class="customer-label">Supplier</span>
+                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                </div>
+                <div>
+                    <div class="title-so">Permintaan Pembelian</div>
+                    <div class="so-no">No. {{ $hdr->fprno ?? '-' }}</div>
+                </div>
+            </div>
+
+            <div class="customer-container">
+                <span class="customer-label">Supplier</span>
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
+                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
                         <div style="font-weight: bold;">
                             {{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier ?: '-') }}
                         </div>
-                        <div style="font-size: 11px;">
-                            Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
-                        </div>
-                        <div style="font-size: 11px;">
-                            Keterangan : {{ $hdr->fket ?: '-' }}
+                        <div style="font-size: 11px; margin-top: 2px;">
+                            {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
                         </div>
                     </div>
-                </div>
-                <div style="min-width: 260px;">
-                    <div class="title-so">Permintaan Pembelian</div>
-                    <div class="so-no">No. {{ $hdr->fprno ?? '-' }}</div>
-                    <table class="info-table" style="width: 100%;">
-                        <tr>
-                            <td style="width: 110px;">Tanggal</td>
-                            <td style="width: 10px;">:</td>
-                            <td>{{ $fmt($hdr->fprdate) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Tgl. Dibutuhkan</td>
-                            <td>:</td>
-                            <td>{{ $fmt($hdr->fneeddate) }}</td>
-                        </tr>
-                        <tr>
-                            <td>Tgl. Paling Lambat</td>
-                            <td>:</td>
-                            <td>{{ $fmt($hdr->fduedate) }}</td>
-                        </tr>
-                    </table>
+                    <div style="width: 290px;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
+                            <tr>
+                                <td style="width: 115px;">Tanggal</td>
+                                <td style="width: 10px;">:</td>
+                                <td>{{ $fmt($hdr->fprdate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Tgl. Dibutuhkan</td>
+                                <td>:</td>
+                                <td>{{ $fmt($hdr->fneeddate) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Tgl. Paling Lambat</td>
+                                <td>:</td>
+                                <td>{{ $fmt($hdr->fduedate) }}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -310,17 +312,15 @@
             <thead id="tpl-thead">
                 <tr>
                     <th style="width: 5%; text-align: center;" class="text-center">No.</th>
-                    <th style="width: 18%;">Kode Produk</th>
-                    <th style="width: 44%;">Nama Produk</th>
-                    <th style="width: 13%; text-align: right;" class="text-right">Qty</th>
-                    <th style="width: 20%;">Keterangan</th>
+                    <th style="width: 55%;">Nama Produk</th>
+                    <th style="width: 15%; text-align: right;" class="text-right">Qty</th>
+                    <th style="width: 25%;">Keterangan</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
                             <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
                         </td>
@@ -352,6 +352,12 @@
                             ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
                     </div>
+                    @if(!empty(trim((string)($hdr->fket ?? ''))))
+                        <div style="font-size: 11px; max-width: 250px;">
+                            <div>Keterangan:</div>
+                            <div style="white-space: pre-line;">{{ $hdr->fket }}</div>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="meta-right">
