@@ -735,6 +735,7 @@ class SalesOrderController extends Controller
         );
 
         $items = SalesOrderDetail::where('trsodt.fsono', $header->fsono)
+            ->whereRaw('COALESCE(trsodt.fqtyremain, 0) > 0')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fprdcode')
             ->select([
                 'trsodt.ftrsodtid as frefdtno',
@@ -776,7 +777,9 @@ class SalesOrderController extends Controller
                 );
 
                 return $item;
-            });
+            })
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0 && (float) ($item->maxqty ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [

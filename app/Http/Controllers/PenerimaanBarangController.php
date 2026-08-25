@@ -269,6 +269,7 @@ class PenerimaanBarangController extends Controller
 
         $items = DB::table('tr_pod as d')
             ->where('d.fpono', $header->fpono)
+            ->whereRaw('COALESCE(d.fqtyremain, 0) > 0')
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdid')
             ->leftJoinSub($receiptSub, 'st', function ($join) {
                 $join->on('st.frefdtno', '=', 'd.fpono')
@@ -295,14 +296,14 @@ class PenerimaanBarangController extends Controller
                 'm.fqtykecil',
                 'm.fqtykecil2',
                 DB::raw('COALESCE(st.fqtykecilterima, 0) AS fqtykecilterima'),
-                DB::raw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0), 0) AS fqtykecil_sisa'),
+                DB::raw('GREATEST(COALESCE(d.fqtyremain, d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0), 0) AS fqtykecil_sisa'),
                 DB::raw("COALESCE(
                     CASE
                         WHEN d.fsatuan = m.fsatuanbesar
-                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil, 0)
+                            THEN (COALESCE(d.fqtyremain, d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil, 0)
                         WHEN d.fsatuan = m.fsatuanbesar2
-                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil2, 0)
-                        ELSE COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)
+                            THEN (COALESCE(d.fqtyremain, d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(d.fqtyremain, d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)
                     END, 0) AS fqtysisapo"),
                 DB::raw("COALESCE(
                     CASE
@@ -318,7 +319,7 @@ class PenerimaanBarangController extends Controller
             ->get()
             ->map(function ($item) use ($header) {
                 $item->frefdtno = (string) $header->fpono;
-                $remainKecil = (float) ($item->fqtykecil_sisa ?? 0);
+                $remainKecil = (float) ($item->fqtykecil_sisa ?? $item->fqtyremain ?? 0);
                 $item->fqtyremain = $remainKecil;
                 $item->fqtykecil_ref = $remainKecil;
                 $item->maxqty = $this->qtyKecilToUnit($item, (string) ($item->fsatuan ?? ''), $remainKecil);
@@ -330,7 +331,9 @@ class PenerimaanBarangController extends Controller
                 ]));
 
                 return $item;
-            });
+            })
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0 && (float) ($item->maxqty ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [

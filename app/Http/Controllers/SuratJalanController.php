@@ -342,7 +342,7 @@ class SuratJalanController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', $request->input('fsupplier', ''))));
-        $onlyRemaining = $request->boolean('only_remaining');
+        $onlyRemaining = $request->boolean('only_remaining', true);
 
         $query = DB::table('trstockmt')
             ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
@@ -492,6 +492,7 @@ class SuratJalanController extends Controller
 
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
+            ->whereRaw('COALESCE(trstockdt.fqtyremain, 0) > 0')
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
             ->select(
                 'trstockdt.fstockmtno as frefdtno',
@@ -519,7 +520,9 @@ class SuratJalanController extends Controller
                 $item->maxqty = $remain;
 
                 return $item;
-            });
+            })
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0 && (float) ($item->maxqty ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => $header,

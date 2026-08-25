@@ -929,7 +929,7 @@ class InvoiceController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
-        $onlyRemaining = $request->boolean('only_remaining');
+        $onlyRemaining = $request->boolean('only_remaining', true);
 
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
@@ -1047,6 +1047,7 @@ class InvoiceController extends Controller
         $items = DB::table('trandt as d')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'd.fprdcode')
             ->where('d.fsono', $header->fsono)
+            ->whereRaw('COALESCE(d.fqtyremain, 0) > 0')
             ->select([
                 'd.ftrandtid as frefdtno',
                 DB::raw("COALESCE(d.fnoacak::text, '') as frefnoacak"),
@@ -1060,7 +1061,9 @@ class InvoiceController extends Controller
                 'd.fdesc',
             ])
             ->orderBy('d.ftrandtid')
-            ->get();
+            ->get()
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [

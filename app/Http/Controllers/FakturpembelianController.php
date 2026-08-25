@@ -491,6 +491,7 @@ class FakturpembelianController extends Controller
 
         $items = Tr_pod::query()
             ->where('tr_pod.fpono', $header->fpono)
+            ->whereRaw('COALESCE(tr_pod.fqtyremain, 0) > 0')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_pod.fprdcode')
             ->leftJoinSub($terSub, 'ter', function ($join) {
                 $join->on('ter.frefdtno', '=', 'tr_pod.fpono')
@@ -513,12 +514,12 @@ class FakturpembelianController extends Controller
                 DB::raw("COALESCE(
                     CASE
                         WHEN tr_pod.fsatuan = m.fsatuanbesar
-                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil, 0)
+                            THEN (COALESCE(tr_pod.fqtyremain, tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil, 0)
                         WHEN tr_pod.fsatuan = m.fsatuanbesar2
-                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil2, 0)
-                        ELSE COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)
+                            THEN (COALESCE(tr_pod.fqtyremain, tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(tr_pod.fqtyremain, tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)
                     END, 0) as fqtysisa"),
-                DB::raw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) as fqtyremain'),
+                DB::raw('COALESCE(tr_pod.fqtyremain, tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('tr_pod.fpodid')
@@ -529,7 +530,9 @@ class FakturpembelianController extends Controller
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
-            });
+            })
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0 && (float) ($item->fqty ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [
@@ -641,6 +644,7 @@ class FakturpembelianController extends Controller
         $items = PenerimaanPembelianDetail::query()
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->where('trstockdt.fstockmtcode', 'TER')
+            ->whereRaw('COALESCE(trstockdt.fqtyremain, 0) > 0')
             ->leftJoin('trstockmt as hdr', 'hdr.fstockmtno', '=', 'trstockdt.fstockmtno')
             ->leftJoin('tr_poh as po', 'po.fpono', '=', 'trstockdt.frefso')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trstockdt.fprdcode')
@@ -672,12 +676,12 @@ class FakturpembelianController extends Controller
                 DB::raw("COALESCE(
                     CASE
                         WHEN trstockdt.fsatuan = m.fsatuanbesar
-                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil, 0)
+                            THEN (COALESCE(trstockdt.fqtyremain, trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil, 0)
                         WHEN trstockdt.fsatuan = m.fsatuanbesar2
-                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil2, 0)
-                        ELSE COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)
+                            THEN (COALESCE(trstockdt.fqtyremain, trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(trstockdt.fqtyremain, trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)
                     END, 0) as fqtysisa"),
-                DB::raw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) as fqtyremain'),
+                DB::raw('COALESCE(trstockdt.fqtyremain, trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('trstockdt.fstockdtid')
@@ -688,7 +692,9 @@ class FakturpembelianController extends Controller
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
-            });
+            })
+            ->filter(fn($item) => (float) ($item->fqtyremain ?? 0) > 0 && (float) ($item->fqty ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [
