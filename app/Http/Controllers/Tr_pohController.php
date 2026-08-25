@@ -263,7 +263,7 @@ class Tr_pohController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dengan JOIN - Hanya tampilkan PR yang sudah disetujui (fapproval = 1)
+        // Base query dengan JOIN - Hanya tampilkan PR yang sudah disetujui (fapproval = 1) dan masih ada sisa
         $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->leftJoin('mscabang', 'tr_prh.fbranchcode', '=', 'mscabang.fcabangkode')
             ->select(
@@ -274,12 +274,24 @@ class Tr_pohController extends Controller
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', '', '2'])
-            ->where('tr_prh.fapproval', 1);
+            ->where('tr_prh.fapproval', 1)
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('tr_prd as d')
+                    ->whereColumn('d.fprno', 'tr_prh.fprno')
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+            });
 
         // Total records sesuai kriteria dasar
         $recordsTotal = Tr_prh::whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', '', '2'])
             ->where('tr_prh.fapproval', 1)
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('tr_prd as d')
+                    ->whereColumn('d.fprno', 'tr_prh.fprno')
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+            })
             ->count();
 
         // Search
@@ -360,6 +372,7 @@ class Tr_pohController extends Controller
                     ->on('o.frefnoacak', '=', 'd.fnoacak');
             })
             ->where('d.fprno', $header->fprno)
+            ->whereRaw('COALESCE(d.fqtyremain, 0) > 0')
             ->select([
                 DB::raw('d.fprdcode::text as frefdtno'),
                 'm.fprdcode as fitemcode',
@@ -444,7 +457,9 @@ class Tr_pohController extends Controller
                     'fqtykecil' => $rasio,
                     'fqtykecil2' => $rasio2,
                 ];
-            });
+            })
+            ->filter(fn($item) => (float) ($item['fqtyremain'] ?? 0) > 0 && (float) ($item['maxqty'] ?? 0) > 0)
+            ->values();
 
         return response()->json([
             'header' => [
