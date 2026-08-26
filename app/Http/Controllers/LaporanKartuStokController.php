@@ -17,7 +17,7 @@ class LaporanKartuStokController extends Controller
         $warehouses = DB::table('mswh')->where('fnonactive', '0')->orderBy('fwhcode')->get(['fwhcode', 'fwhname', 'fbranchcode']);
         $groups = DB::table('ms_groupprd')->orderBy('fgroupcode')->get(['fgroupcode', 'fgroupname']);
         $mereks = DB::table('msmerek')->orderBy('fmerekcode')->get(['fmerekcode', 'fmerekname']);
-        $products = DB::table('msprd')->where('ftype', 'Produk')->orderBy('fprdcode')->get(['fprdcode', 'fprdname']);
+        $products = DB::table('msprd')->where('ftype', 'Produk')->whereNotIn('fprdcode', ['UM', 'AWAL'])->orderBy('fprdcode')->get(['fprdcode', 'fprdname']);
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
@@ -96,7 +96,8 @@ class LaporanKartuStokController extends Controller
             ->leftJoinSub($openingOut, 'oo', 'oo.fprdcode', '=', 'p.fprdcode')
             ->leftJoinSub($periodIn, 'pi', 'pi.fprdcode', '=', 'p.fprdcode')
             ->leftJoinSub($periodOut, 'po', 'po.fprdcode', '=', 'p.fprdcode')
-            ->where('p.ftype', 'Produk');
+            ->where('p.ftype', 'Produk')
+            ->whereNotIn('p.fprdcode', ['UM', 'AWAL']);
 
         $this->applyProductFilters($query, $request, 'p');
 
@@ -274,7 +275,9 @@ class LaporanKartuStokController extends Controller
         $query = DB::table('trstockmt as m')
             ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->where('p.ftype', 'Produk');
+            ->where('p.ftype', 'Produk')
+            ->whereNotIn('p.fprdcode', ['UM', 'AWAL'])
+            ->whereNotIn('d.fprdcode', ['UM', 'AWAL']);
 
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
