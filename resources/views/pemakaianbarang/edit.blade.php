@@ -283,111 +283,88 @@
                 @if ($action === 'delete')
                     {{-- ─── CARD 1: Identitas ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                            <x-heroicon-o-identification class="w-5 h-5 text-blue-600" />
-                            <h2 class="font-semibold text-gray-800">Identitas Pemakaian Barang</h2>
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Pemakaian</p>
                         </div>
                         <div class="p-4">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                {{-- Cabang --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
+                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
 
-                        {{-- HEADER FORM --}}
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Cabang</label>
-                                <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="text-xs font-bold mb-1">
-                                    Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
-                                </label>
-                                <div class="flex items-center gap-3">
+                                {{-- Transaksi# --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-xs font-bold mb-1">Transaksi#</label>
                                     <input type="text" name="fstockmtno"
                                         value="{{ strtoupper(old('fstockmtno', $pemakaianbarang->fstockmtno ?? '')) }}"
-                                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        :disabled="autoCode"
-                                        :required="!autoCode"
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
-                                        :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
-                                        oninput="this.value = this.value.toUpperCase()">
-                                    <label class="inline-flex items-center select-none cursor-pointer">
-                                        <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-800 font-medium cursor-not-allowed font-mono"
+                                        disabled>
+                                    <input type="hidden" name="fstockmtno" value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}">
                                 </div>
-                            </div>
 
-                            <input type="hidden" name="fstockmtid" value="fstockmtid">
+                                <input type="hidden" name="fstockmtid" value="{{ $pemakaianbarang->fstockmtid }}">
 
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Tanggal</label>
-                                <input disabled type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                                {{-- Tanggal --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
+                                    <input disabled type="date" name="fstockmtdate"
+                                        value="{{ old('fstockmtdate', $pemakaianbarang->fstockmtdate ? (\Carbon\Carbon::parse($pemakaianbarang->fstockmtdate)->format('Y-m-d')) : date('Y-m-d')) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed">
+                                </div>
 
-                            <!-- Field FROM -->
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Gudang</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-
-                                        <select id="warehouseSelectFrom"
-                                            class="w-full border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-
-                                        {{-- Overlay untuk buka browser gudang --}}
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                {{-- Gudang --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-xs font-bold mb-1">Gudang</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1">
+                                            <select id="warehouseSelectFrom"
+                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
+                                                disabled>
+                                                <option value=""></option>
+                                                @foreach ($warehouses as $wh)
+                                                    <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                        data-branch="{{ $wh->fbranchcode }}"
+                                                        {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                        {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
+                                            value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
+                                        <button type="button" disabled
+                                            class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-400 cursor-not-allowed rounded-r-lg"
+                                            title="Browse Gudang">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
                                     </div>
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
+                                </div>
 
-                                    {{-- Tombol-tombol Anda --}}
-                                    <button type="button" disabled
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
+                                {{-- Keterangan --}}
+                                <div class="lg:col-span-8">
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                    <textarea readonly name="fket" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
+                                    <input type="hidden" name="fket" value="{{ old('fket', $pemakaianbarang->fket) }}">
                                 </div>
                             </div>
-
-                            <div class="lg:col-span-12">
-                                <label class="text-xs font-bold mb-1">Keterangan</label>
-                                <textarea readonly name="fket" rows="3"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
                         </div>
                     </div>
 
                     {{-- ─── CARD 2: Detail Item ─────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                            <x-heroicon-o-list-bullet class="w-5 h-5 text-blue-600" />
-                            <h2 class="font-semibold text-gray-800">Detail Item</h2>
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
 
@@ -511,123 +488,24 @@
 
                     {{-- ============================================ --}}
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
-                    {{-- ============================================ --}}
-            @else
-                <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
-                    class="mt-6" data-form-draft="true"
-                    data-draft-key="pemakaianbarang:edit:{{ $pemakaianbarang->fstockmtid }}"
-                    @submit="window.pemakaianBarangEditItemsState?.onSubmit($event)" x-data="{ showNoItems: false }">
-                    @csrf
-                    @method('PATCH')
-
-                    {{-- ─── CARD 1: Identitas ────────────────────── --}}
-                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                            <x-heroicon-o-identification class="w-5 h-5 text-blue-600" />
-                            <h2 class="font-semibold text-gray-800">Identitas Pemakaian Barang</h2>
-                        </div>
-                        <div class="p-4">
-
-                        {{-- HEADER FORM --}}
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Cabang</label>
-                                <input type="text"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="text-xs font-bold mb-1">
-                                    Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
-                                </label>
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno"
-                                        value="{{ strtoupper(old('fstockmtno', $pemakaianbarang->fstockmtno ?? '')) }}"
-                                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        :disabled="autoCode"
-                                        :required="!autoCode"
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
-                                        :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
-                                        oninput="this.value = this.value.toUpperCase()">
-                                    <label class="inline-flex items-center select-none cursor-pointer">
-                                        <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
+                                    <textarea name="fket" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
+                                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
+                                    @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
-
-                            <input type="hidden" name="fstockmtid" value="fstockmtid">
-
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Tanggal</label>
-                                <input type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Field FROM -->
-                            <div class="lg:col-span-4">
-                                <label class="text-xs font-bold mb-1">Gudang</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-
-                                        <select id="warehouseSelectFrom"
-                                            class="w-full border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-
-                                        {{-- Overlay untuk buka browser gudang --}}
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
-                                    </div>
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
-
-                                    {{-- Tombol-tombol Anda --}}
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="lg:col-span-12">
-                                <label class="text-xs font-bold mb-1">Keterangan</label>
-                                <textarea name="fket" rows="3"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
                         </div>
                     </div>
 
                     {{-- ─── CARD 2: Detail Item ─────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
-                            <x-heroicon-o-list-bullet class="w-5 h-5 text-blue-600" />
-                            <h2 class="font-semibold text-gray-800">Detail Item</h2>
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
 

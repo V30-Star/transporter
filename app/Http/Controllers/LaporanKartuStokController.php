@@ -426,7 +426,8 @@ class LaporanKartuStokController extends Controller
                 'Saldo Awal',
                 'Mutasi (Masuk)',
                 'Mutasi (Keluar)',
-                'Saldo Akhir',
+                'Saldo Akhir (Qty)',
+                'Saldo Akhir (Satuan)',
                 'Gudang'
             ], $styleHeader));
 
@@ -469,7 +470,8 @@ class LaporanKartuStokController extends Controller
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            $this->formatQtyUnit($row->qtysaldokecil, $row),
+                            (float) $row->qtysaldokecil,
+                            $row->fsatuan,
                             $row->fwhcode
                         ]));
                     }
@@ -486,7 +488,8 @@ class LaporanKartuStokController extends Controller
                 'Saldo Awal',
                 'Mutasi (Masuk)',
                 'Mutasi (Keluar)',
-                'Saldo Akhir',
+                'Saldo Akhir (Qty)',
+                'Saldo Akhir (Satuan)',
                 'Gudang'
             ], $styleHeader));
 
@@ -494,6 +497,7 @@ class LaporanKartuStokController extends Controller
             foreach ($groupedWh as $whcode => $whRows) {
                 $writer->addRow($makeRow([
                     'Gudang: ' . $whcode,
+                    '',
                     '',
                     '',
                     '',
@@ -519,6 +523,7 @@ class LaporanKartuStokController extends Controller
                         '',
                         '',
                         '',
+                        '',
                         ''
                     ], $styleSubgroup));
 
@@ -533,7 +538,8 @@ class LaporanKartuStokController extends Controller
                             (float) $row->qtyawalkecil,
                             (float) $row->qtymasukkecil,
                             (float) $row->qtykeluarkecil,
-                            $this->formatQtyUnit($row->qtysaldokecil, $row),
+                            (float) $row->qtysaldokecil,
+                            $row->fsatuan,
                             $row->fwhcode
                         ]));
                     }

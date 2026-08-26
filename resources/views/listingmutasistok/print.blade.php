@@ -134,7 +134,7 @@
         .mt-detail-labels,
         .mt-detail {
             display: grid;
-            grid-template-columns: 30mm 1fr 24mm;
+            grid-template-columns: 30mm 1fr 20mm 24mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 30px;
@@ -176,6 +176,11 @@
 
         .mt-detail-labels > div:nth-child(3),
         .mt-detail > div:nth-child(3) {
+            text-align: left;
+        }
+
+        .mt-detail-labels > div:nth-child(4),
+        .mt-detail > div:nth-child(4) {
             text-align: right;
         }
 
@@ -536,6 +541,7 @@
             <div class="mt-detail-labels">
                 <div>Kode Produk</div>
                 <div>Nama Barang</div>
+                <div>Satuan</div>
                 <div>Quantity</div>
             </div>
         @endif
@@ -564,6 +570,7 @@
                         <div class="mt-detail">
                             <div class="truncate">{{ $d->fprdcode }}</div>
                             <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
+                            <div class="truncate">{{ $d->fsatuan }}</div>
                             <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->fsatuan }}</div>
                         </div>
                     @endforeach

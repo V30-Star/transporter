@@ -263,20 +263,19 @@
                             </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Pemakaian</p>
                         </div>
-                        <div class="p-4 space-y-3">
-
-                            <div class="grid grid-cols-3 gap-3">
+                        <div class="p-4">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                                 {{-- Cabang --}}
-                                <div>
+                                <div class="lg:col-span-4">
                                     <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                 </div>
 
                                 {{-- Transaksi# --}}
-                                <div x-data="{ autoCode: true }">
+                                <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                     <label class="block text-xs font-bold mb-1">
                                         Transaksi# <span class="text-red-500" x-show="!autoCode">*</span>
                                     </label>
@@ -297,7 +296,7 @@
                                 </div>
 
                                 {{-- Tanggal --}}
-                                <div>
+                                <div class="lg:col-span-4">
                                     <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                                     <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
@@ -305,14 +304,12 @@
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-                            </div>
 
-                            <div class="grid grid-cols-3 gap-3">
                                 @php
                                     $defaultWarehouse = old('ffrom', $lastWarehouse ?? '');
                                 @endphp
                                 {{-- Gudang --}}
-                                <div>
+                                <div class="lg:col-span-4">
                                     <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                                     <div class="flex">
                                         <div class="relative flex-1">
@@ -352,7 +349,7 @@
                                 </div>
 
                                 {{-- Keterangan --}}
-                                <div class="col-span-2">
+                                <div class="lg:col-span-8">
                                     <label class="block text-xs font-bold mb-1">Keterangan</label>
                                     <textarea name="fket" rows="2"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"

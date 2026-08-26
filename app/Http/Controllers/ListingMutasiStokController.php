@@ -69,7 +69,7 @@ class ListingMutasiStokController extends Controller
 
         $header = ['Cab.', 'No.Transaksi', 'Tanggal', 'Dari', 'Ke', 'Keterangan', 'User-Id'];
         if ($type === 'detail') {
-            $header = array_merge($header, ['Kode Produk', 'Nama Barang', 'Quantity']);
+            $header = array_merge($header, ['Kode Produk', 'Nama Barang', 'Satuan', 'Quantity']);
         }
         $makeRow($header, $styleHeader);
 
@@ -82,7 +82,7 @@ class ListingMutasiStokController extends Controller
                 $h->ffrom,
                 $h->fto,
                 $h->fket,
-                $h->fuserid,
+                $h->fusercreate ?? '',
             ];
 
             if ($type === 'detail') {
@@ -90,6 +90,7 @@ class ListingMutasiStokController extends Controller
                     $makeRow(array_merge($headerValues, [
                         $detail->fprdcode,
                         $detail->fprdname,
+                        $detail->fsatuan,
                         (float) $detail->fqty,
                     ]));
                 }

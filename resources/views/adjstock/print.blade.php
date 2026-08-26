@@ -297,7 +297,7 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                    @if(!empty($company_city))<div style="font-size: 12px; font-weight: bold;">{{ strtoupper($company_city) }}</div>@endif
                 </div>
                 <div>
                     <div class="title-so">Adjustment Stok</div>
@@ -306,15 +306,8 @@
             </div>
 
             <div class="customer-container">
-                <span class="customer-label">Supplier</span>
-                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
-                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) && $hdr->fsupplier !== '0' ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier && $hdr->fsupplier !== '0' ? $hdr->fsupplier : '-') }}</div>
-                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
-                            {{ $hdr->supplier_address ?? '-' }}
-                        </div>
-                    </div>
-                    <div style="width: 320px;">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 20px;">
+                    <div style="flex: 1;">
                         <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
                                 <td style="width: 75px;">Tanggal</td>
@@ -322,19 +315,23 @@
                                 <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                             </tr>
                             <tr>
-                                <td>Gudang</td>
+                                <td>Type</td>
                                 <td>:</td>
+                                <td style="font-weight: bold;">{{ $isMasuk ? 'Masuk' : 'Keluar' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="flex: 1;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
+                            <tr>
+                                <td style="width: 75px;">Gudang</td>
+                                <td style="width: 10px;">:</td>
                                 <td>{{ !empty($hdr->fwhnamen) ? $hdr->fwhnamen : ($hdr->ffrom ?: '-') }}</td>
                             </tr>
                             <tr>
                                 <td>Account</td>
                                 <td>:</td>
                                 <td>{{ !empty($hdr->fprdjadi) ? $hdr->fprdjadi . (!empty($hdr->account_name) ? ' - ' . $hdr->account_name : '') : '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td>Type</td>
-                                <td>:</td>
-                                <td>{{ $isMasuk ? 'Masuk' : 'Keluar' }}</td>
                             </tr>
                         </table>
                     </div>

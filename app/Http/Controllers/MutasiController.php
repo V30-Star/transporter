@@ -549,7 +549,7 @@ class MutasiController extends Controller
             'dt' => $dt,
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => company_setting()->fcity ?? '',
         ]);
     }
 

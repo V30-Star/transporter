@@ -115,7 +115,7 @@
         .rekap-header-labels,
         .rekap-row {
             display: grid;
-            grid-template-columns: 8mm 32mm 1fr 28mm 28mm 32mm;
+            grid-template-columns: 8mm 28mm 1fr 18mm 24mm 24mm 30mm;
             gap: 1px;
             font-size: 8.5px;
             padding: 2px 6px;
@@ -126,7 +126,7 @@
         .detail-header-labels,
         .detail-row {
             display: grid;
-            grid-template-columns: 42mm 20mm 24mm 32mm 1fr 28mm 28mm 30mm;
+            grid-template-columns: 36mm 18mm 20mm 26mm 1fr 16mm 22mm 22mm 28mm;
             gap: 1px;
             font-size: 8.5px;
             padding: 2px 6px;
@@ -160,23 +160,25 @@
             line-height: 1.2;
         }
 
-        .rekap-mutasi { grid-column: 4 / 6; }
-        .rekap-saldo-akhir { grid-column: 6; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
-        .rekap-masuk { grid-column: 4; grid-row: 2; text-align: center; }
-        .rekap-keluar { grid-column: 5; grid-row: 2; text-align: center; }
+        .rekap-mutasi { grid-column: 5 / 7; }
+        .rekap-saldo-akhir { grid-column: 7; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
+        .rekap-masuk { grid-column: 5; grid-row: 2; text-align: center; }
+        .rekap-keluar { grid-column: 6; grid-row: 2; text-align: center; }
         .rekap-col-1 { grid-column: 1; justify-content: center; text-align: center; }
         .rekap-col-2 { grid-column: 2; justify-content: flex-start; text-align: left; }
         .rekap-col-3 { grid-column: 3; justify-content: flex-start; text-align: left; }
+        .rekap-col-satuan { grid-column: 4; grid-row: 1 / span 2; justify-content: flex-start; text-align: left; }
 
-        .detail-mutasi { grid-column: 6 / 8; }
-        .detail-saldo-akhir { grid-column: 8; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
-        .detail-masuk { grid-column: 6; grid-row: 2; text-align: center; }
-        .detail-keluar { grid-column: 7; grid-row: 2; text-align: center; }
+        .detail-mutasi { grid-column: 7 / 9; }
+        .detail-saldo-akhir { grid-column: 9; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
+        .detail-masuk { grid-column: 7; grid-row: 2; text-align: center; }
+        .detail-keluar { grid-column: 8; grid-row: 2; text-align: center; }
         .detail-col-1 { grid-column: 1; justify-content: flex-start; text-align: left; }
         .detail-col-2 { grid-column: 2; justify-content: center; text-align: center; }
         .detail-col-3 { grid-column: 3; justify-content: center; text-align: center; }
         .detail-col-4 { grid-column: 4; justify-content: flex-start; text-align: left; }
         .detail-col-5 { grid-column: 5; justify-content: flex-start; text-align: left; }
+        .detail-col-satuan { grid-column: 6; grid-row: 1 / span 2; justify-content: flex-start; text-align: left; }
 
         .rekap-row,
         .detail-row {
@@ -190,9 +192,10 @@
         .rekap-row > div:nth-child(1) { text-align: center; }
         .rekap-row > div:nth-child(2) { text-align: left; }
         .rekap-row > div:nth-child(3) { text-align: left; }
-        .rekap-row > div:nth-child(4) { text-align: right; }
+        .rekap-row > div:nth-child(4) { text-align: left; }
         .rekap-row > div:nth-child(5) { text-align: right; }
         .rekap-row > div:nth-child(6) { text-align: right; }
+        .rekap-row > div:nth-child(7) { text-align: right; }
 
         /* Alignment for Detail Rows */
         .detail-row > div:nth-child(1) { text-align: left; }
@@ -200,15 +203,16 @@
         .detail-row > div:nth-child(3) { text-align: center; }
         .detail-row > div:nth-child(4) { text-align: left; }
         .detail-row > div:nth-child(5) { text-align: left; }
-        .detail-row > div:nth-child(6) { text-align: right; }
+        .detail-row > div:nth-child(6) { text-align: left; }
         .detail-row > div:nth-child(7) { text-align: right; }
         .detail-row > div:nth-child(8) { text-align: right; }
+        .detail-row > div:nth-child(9) { text-align: right; }
 
         /* Fonts for Numbers & System Codes */
         .rekap-row > div:nth-child(2),
-        .rekap-row > div:nth-child(4),
         .rekap-row > div:nth-child(5),
-        .rekap-row > div:nth-child(6) {
+        .rekap-row > div:nth-child(6),
+        .rekap-row > div:nth-child(7) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -608,6 +612,7 @@
                 <div class="header-span-rows rekap-col-1">No.</div>
                 <div class="header-span-rows rekap-col-2">Kode Prd</div>
                 <div class="header-span-rows rekap-col-3">Nama Produk</div>
+                <div class="header-span-rows rekap-col-satuan">Satuan</div>
                 <div class="header-mutasi rekap-mutasi">Mutasi</div>
                 <div class="header-span-rows rekap-saldo-akhir">Saldo Akhir</div>
                 <div class="rekap-masuk">Masuk</div>
@@ -620,6 +625,7 @@
                 <div class="header-span-rows detail-col-3">Tanggal</div>
                 <div class="header-span-rows detail-col-4">No.Ref</div>
                 <div class="header-span-rows detail-col-5">Supplier/Customer</div>
+                <div class="header-span-rows detail-col-satuan">Satuan</div>
                 <div class="header-mutasi detail-mutasi">Mutasi</div>
                 <div class="header-span-rows detail-saldo-akhir">Saldo Akhir</div>
                 <div class="detail-masuk">Masuk</div>
@@ -641,9 +647,10 @@
                                     <div>{{ $loop->iteration }}</div>
                                     <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
                                     <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                                    <div class="truncate">{{ $row->fsatuan }}</div>
                                     <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                     <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                    <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
+                                    <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan }}</div>
                                 </div>
                             </div>
                         @endforeach
@@ -698,9 +705,10 @@
                                         <div>{{ $row->fstockdate ? \Carbon\Carbon::parse($row->fstockdate)->format('d-m-Y') : '' }}</div>
                                         <div class="truncate" title="{{ $row->frefno }}">{{ $row->frefno }}</div>
                                         <div class="truncate" title="{{ $row->fsuppliername }}">{{ $row->fsuppliername }}</div>
+                                        <div class="truncate">{{ $row->fsatuan }}</div>
                                         <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                         <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
-                                        <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }}</div>
+                                        <div>{{ number_format((float) $row->qtysaldokecil, 2, ',', '.') }} {{ $row->fsatuan }}</div>
                                     </div>
                                 </div>
                             @endif

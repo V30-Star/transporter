@@ -277,40 +277,40 @@
         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stok</p>
     </div>
     <div class="p-4">
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Cabang</label>
                 <input type="text"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
             </div>
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Transaksi#</label>
                 <input type="text"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-800 font-medium cursor-not-allowed font-mono"
                     value="{{ strtoupper(old('fstockmtno', $mutasi->fstockmtno ?? '')) }}" disabled>
                 <input type="hidden" name="fstockmtno" value="{{ old('fstockmtno', $mutasi->fstockmtno) }}">
             </div>
 
             <input type="hidden" name="fstockmtid" value="{{ $mutasi->fstockmtid }}">
 
-            <!-- Tanggal - styled like Cabang (assembling) -->
+            <!-- Tanggal -->
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Tanggal</label>
                 <input type="date"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}" disabled>
-                <input type="hidden" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
+                    value="{{ old('fstockmtdate', $mutasi->fstockmtdate ? (\Carbon\Carbon::parse($mutasi->fstockmtdate)->format('Y-m-d')) : date('Y-m-d')) }}" disabled>
+                <input type="hidden" name="fstockmtdate" value="{{ old('fstockmtdate', $mutasi->fstockmtdate ? (\Carbon\Carbon::parse($mutasi->fstockmtdate)->format('Y-m-d')) : date('Y-m-d')) }}">
             </div>
 
-            <!-- Field FROM - styled like Cabang (assembling) -->
+            <!-- Field FROM -->
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Gudang (Dari)</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectFrom"
-                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
                             disabled>
                             <option value=""></option>
                             @foreach (($fromWarehouses ?? $warehouses) as $wh)
@@ -327,23 +327,23 @@
                         value="{{ old('ffrom', $mutasi->ffrom) }}">
 
                     <button type="button" disabled
-                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed rounded-r-lg"
+                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-400 cursor-not-allowed rounded-r-lg"
                         title="Browse Gudang">
                         <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
-            <!-- Field TO - styled like Cabang (assembling) -->
+            <!-- Field TO -->
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Gudang (Tujuan)</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectTo"
-                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
                             disabled>
                             <option value=""></option>
-                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
+                            @foreach ($warehouses as $wh)
                                 <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                     data-branch="{{ $wh->fbranchcode }}"
                                     {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
@@ -357,18 +357,18 @@
                         value="{{ old('fto', $mutasi->fto) }}">
 
                     <button type="button" disabled
-                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed rounded-r-lg"
+                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-400 cursor-not-allowed rounded-r-lg"
                         title="Browse Gudang">
                         <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
-            <!-- Keterangan - styled like Cabang (assembling) -->
+            <!-- Keterangan -->
             <div class="lg:col-span-12">
                 <label class="block text-xs font-bold mb-1">Keterangan</label>
                 <textarea rows="3"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
                     disabled>{{ old('fket', $mutasi->fket) }}</textarea>
                 <input type="hidden" name="fket" value="{{ old('fket', $mutasi->fket) }}">
             </div>
@@ -410,17 +410,17 @@
                                     </thead>
                                     <tbody>
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <tr class="border-t align-top hover:bg-gray-55">
-                                                <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                            <tr class="border-t align-top hover:bg-gray-50">
+                                                <td class="p-2 text-gray-500 font-medium" x-text="i + 1"></td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded font-mono font-medium" x-text="it.fitemcode"></div>
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-650 whitespace-normal break-words"
+                                                        <div class="min-w-0 flex-1 rounded-l border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-900 font-medium whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it, true)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 border-gray-300 rounded-r px-2 py-1 transition-colors"
                                                             :class="it.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
@@ -428,10 +428,10 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded font-medium" x-text="it.fsatuan"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded text-right font-semibold" x-text="fmt(it.fqty)"></div>
                                                 </td>
                                             </tr>
                                         </template>
@@ -701,7 +701,7 @@
         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stok</p>
     </div>
     <div class="p-4">
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Cabang</label>
                 <input type="text"
@@ -735,8 +735,8 @@
             <div class="lg:col-span-4">
                 <label class="block text-xs font-bold mb-1">Tanggal</label>
                 <input type="date" name="fstockmtdate"
-                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm @error('fstockmtdate') border-red-500 @enderror">
+                    value="{{ old('fstockmtdate', $mutasi->fstockmtdate ? (\Carbon\Carbon::parse($mutasi->fstockmtdate)->format('Y-m-d')) : date('Y-m-d')) }}"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-500 @enderror">
                 @error('fstockmtdate')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -748,10 +748,10 @@
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectFrom"
-                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             disabled>
                             <option value=""></option>
-                            @foreach ($warehouses as $wh)
+                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
                             <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                 data-branch="{{ $wh->fbranchcode }}"
                                 {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
@@ -793,7 +793,7 @@
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectTo"
-                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             disabled>
                             <option value=""></option>
                             @foreach ($warehouses as $wh)
@@ -836,13 +836,12 @@
             <div class="lg:col-span-12">
                 <label class="block text-xs font-bold mb-1">Keterangan</label>
                 <textarea name="fket" rows="3"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm @error('fket') border-red-500 @enderror"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
                 @error('fket')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
-        </div>
     </div>
 </div>
 

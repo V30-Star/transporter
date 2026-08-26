@@ -285,7 +285,7 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                    @if(!empty($company_city))<div style="font-size: 12px; font-weight: bold;">{{ strtoupper($company_city) }}</div>@endif
                 </div>
                 <div>
                     <div class="title-so">Mutasi Stok</div>
@@ -294,18 +294,11 @@
             </div>
 
             <div class="customer-container">
-                <span class="customer-label">Supplier</span>
-                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
-                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold;">{{ !empty($hdr->supplier_name) ? $hdr->supplier_name . (!empty($hdr->fsupplier) && $hdr->fsupplier !== '0' ? ' (' . $hdr->fsupplier . ')' : '') : ($hdr->fsupplier && $hdr->fsupplier !== '0' ? $hdr->fsupplier : '-') }}</div>
-                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
-                            {{ $hdr->supplier_address ?? '-' }}
-                        </div>
-                    </div>
-                    <div style="width: 290px;">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 20px;">
+                    <div style="flex: 1;">
                         <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
-                                <td style="width: 100px;">Tanggal</td>
+                                <td style="width: 80px;">Tanggal</td>
                                 <td style="width: 10px;">:</td>
                                 <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                             </tr>
@@ -314,9 +307,13 @@
                                 <td>:</td>
                                 <td>{{ !empty($hdr->wh_from_name) ? $hdr->wh_from_name : ($hdr->ffrom ?: '-') }}</td>
                             </tr>
+                        </table>
+                    </div>
+                    <div style="flex: 1;">
+                        <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
-                                <td>Gudang Tujuan</td>
-                                <td>:</td>
+                                <td style="width: 90px;">Gudang Tujuan</td>
+                                <td style="width: 10px;">:</td>
                                 <td>{{ !empty($hdr->wh_to_name) ? $hdr->wh_to_name : ($hdr->fto ?: '-') }}</td>
                             </tr>
                         </table>
@@ -367,7 +364,7 @@
                         </div>
                     </div>
                     <div style="width: 160px; min-width: 140px; text-align: center;">
-                        <div style="font-size: 11px;">Disetujui,</div>
+                        <div style="font-size: 11px;">Diterima,</div>
                         <div style="margin-top: 55px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                             ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                         </div>
