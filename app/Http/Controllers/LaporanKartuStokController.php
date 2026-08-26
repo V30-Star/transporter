@@ -375,7 +375,7 @@ class LaporanKartuStokController extends Controller
 
     private function matchStatus($row, Request $request): bool
     {
-        $status = (string) $request->input('stock_status', 'all');
+        $status = (string) $request->input('stock_status', 'not_zero');
         $saldo = (float) ($row->qtysaldokecil ?? 0);
         $min = (float) ($row->fminstock ?? 0);
 

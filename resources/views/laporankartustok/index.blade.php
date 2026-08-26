@@ -120,7 +120,7 @@
                         <label class="block text-xs font-bold uppercase mb-1">Status Stok</label>
                         <select name="stock_status" class="w-full border rounded px-3 py-2 text-sm">
                             <option value="all">&lt; S e m u a &gt;</option>
-                            <option value="not_zero">Hanya Stok &lt;&gt; 0</option>
+                            <option value="not_zero" selected>Hanya Stok &lt;&gt; 0</option>
                             <option value="positive">Hanya Stok &gt; 0</option>
                             <option value="negative">Hanya Stok &lt; 0</option>
                             <option value="zero">Hanya Stok = 0</option>
