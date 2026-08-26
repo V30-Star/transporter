@@ -165,9 +165,12 @@ class WhController extends Controller
             $gudang = Wh::findOrFail($fwhid);
             $isTransactionLocked = $this->hasTransactionUsage($gudang);
 
-            $request->merge([
-                'fwhcode' => strtoupper($isTransactionLocked ? $gudang->fwhcode : $request->fwhcode),
-            ]);
+            if ($isTransactionLocked) {
+                $request->merge([
+                    'fwhcode' => $gudang->fwhcode,
+                    'fbranchcode' => $gudang->fbranchcode,
+                ]);
+            }
 
             $validated = $request->validate(
                 [
@@ -196,6 +199,8 @@ class WhController extends Controller
 
             if ($isTransactionLocked) {
                 $validated['fwhcode'] = $gudang->fwhcode;
+                $validated['fbranchcode'] = $gudang->fbranchcode;
+                $validated['fstokpenjualan'] = $gudang->fstokpenjualan ?? '0';
             }
 
             $gudang->update($validated);

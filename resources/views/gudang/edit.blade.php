@@ -27,7 +27,7 @@
                             <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Cabang <span class="text-red-500">*</span>
                             </label>
-                            <select name="fbranchcode" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fbranchcode') border-red-400 @enderror">
+                            <select name="fbranchcode" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fbranchcode') border-red-400 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : '' }}" {{ !empty($isTransactionLocked) ? 'disabled' : '' }}>
                                 <option value="">Pilih Cabang</option>
                                 @foreach ($cabangOptions as $cabang)
                                     <option value="{{ $cabang->fbranchcode }}" {{ old('fbranchcode', $gudang->fbranchcode) == $cabang->fbranchcode ? 'selected' : '' }}>
@@ -35,6 +35,10 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @if (!empty($isTransactionLocked))
+                                <input type="hidden" name="fbranchcode" value="{{ $gudang->fbranchcode }}">
+                                <p class="text-[11px] text-amber-600 mt-1 font-medium">Cabang dikunci karena sudah direferensi di transaksi.</p>
+                            @endif
                             @error('fbranchcode')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -90,7 +94,10 @@
 
             {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
-                x-data="{ active: {{ old('fnonactive', $gudang->fnonactive) == '1' ? 'false' : 'true' }} }">
+                x-data="{
+                    active: {{ old('fnonactive', $gudang->fnonactive) == '1' ? 'false' : 'true' }},
+                    stokPenjualan: {{ old('fstokpenjualan', $gudang->fstokpenjualan) == '1' ? 'true' : 'false' }}
+                }">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -104,7 +111,7 @@
                         <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
                             @click="active = !active; $el.querySelector('input[name=fnonactive]').value = active ? '0' : '1'">
                             <div>
-                                <p class="text-sm text-gray-800">Gudang aktif</p>
+                                <p class="text-sm text-gray-800 font-medium">Gudang aktif</p>
                                 <p class="text-xs text-gray-400 mt-0.5">Non-aktif menyembunyikan gudang dari transaksi baru</p>
                             </div>
                             <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
@@ -118,19 +125,33 @@
 
                     {{-- Status Stok Penjualan --}}
                     <div>
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
-                            @click="active = !active; $el.querySelector('input[name=fstokpenjualan]').value = active ? '0' : '1'">
-                            <div>
-                                <p class="text-sm text-gray-800">Stok Penjualan</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Gudang yang dipakai untuk menyimpan stok penjualan</p>
+                        @if (!empty($isTransactionLocked))
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-100 cursor-not-allowed">
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium">Stok Penjualan</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Gudang yang dipakai untuk menyimpan stok penjualan</p>
+                                    <p class="text-[11px] text-amber-600 mt-1 font-medium">Stok penjualan dikunci karena sudah direferensi di transaksi.</p>
+                                </div>
+                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 opacity-60 {{ ($gudang->fstokpenjualan == '1') ? 'bg-blue-500' : 'bg-gray-300' }}">
+                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ ($gudang->fstokpenjualan == '1') ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                                </div>
                             </div>
-                            <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
-                                :class="active ? 'bg-blue-500' : 'bg-gray-300'">
-                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
-                                    :class="active ? 'translate-x-4 left-0.5' : 'left-0.5'"></div>
+                            <input type="hidden" name="fstokpenjualan" value="{{ $gudang->fstokpenjualan ?? '0' }}">
+                        @else
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
+                                @click="stokPenjualan = !stokPenjualan; $el.querySelector('input[name=fstokpenjualan]').value = stokPenjualan ? '1' : '0'">
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium">Stok Penjualan</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Gudang yang dipakai untuk menyimpan stok penjualan</p>
+                                </div>
+                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                    :class="stokPenjualan ? 'bg-blue-500' : 'bg-gray-300'">
+                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                        :class="stokPenjualan ? 'translate-x-4 left-0.5' : 'left-0.5'"></div>
+                                </div>
                             </div>
-                        </div>
-                        <input type="hidden" name="fstokpenjualan" :value="active ? '0' : '1'">
+                            <input type="hidden" name="fstokpenjualan" :value="stokPenjualan ? '1' : '0'">
+                        @endif
                     </div>
 
                 </div>
