@@ -478,8 +478,14 @@
         $whText = request('warehouse') ?: 'Semua';
         $groupText = request('group_code') ?: 'Semua';
         $merekText = request('merek') ?: 'Semua';
-        $productRange = (request('product_from') ?: 'Awal') . ' s/d ' . (request('product_to') ?: 'Akhir');
-        if (!request('product_from') && !request('product_to')) $productRange = 'Semua';
+        $selectedProductsRaw = trim((string) request('selected_products', ''));
+        if ($selectedProductsRaw !== '') {
+            $productRange = $selectedProductsRaw;
+        } elseif (request('product_from') || request('product_to')) {
+            $productRange = (request('product_from') ?: 'Awal') . ' s/d ' . (request('product_to') ?: 'Akhir');
+        } else {
+            $productRange = 'Semua';
+        }
 
         $stockStatusText = match (request('stock_status', 'all')) {
             'not_zero' => 'Stok <> 0',

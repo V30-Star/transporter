@@ -314,11 +314,16 @@ class LaporanKartuStokController extends Controller
         if ($request->filled('merek')) {
             $query->where("{$alias}.fmerek", $request->input('merek'));
         }
-        if ($request->filled('product_from')) {
-            $query->where("{$alias}.fprdcode", '>=', $request->input('product_from'));
-        }
-        if ($request->filled('product_to')) {
-            $query->where("{$alias}.fprdcode", '<=', $request->input('product_to'));
+        $selectedProducts = trim((string) $request->input('selected_products', ''));
+        if ($selectedProducts !== '') {
+            $query->whereIn("{$alias}.fprdcode", array_values(array_filter(explode(',', $selectedProducts))));
+        } elseif ($request->filled('product_from') || $request->filled('product_to')) {
+            if ($request->filled('product_from')) {
+                $query->where("{$alias}.fprdcode", '>=', $request->input('product_from'));
+            }
+            if ($request->filled('product_to')) {
+                $query->where("{$alias}.fprdcode", '<=', $request->input('product_to'));
+            }
         }
     }
 
