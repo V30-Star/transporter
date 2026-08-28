@@ -2413,8 +2413,9 @@ class InvoiceController extends Controller
         try {
             $ftranmtid = null;
             $fprdoutVal = '0'; // default sebelum transaksi
+            $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, &$fprdoutVal, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, $isApproved, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, &$fprdoutVal, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
 
                 // Penomoran Otomatis
                 if (empty($fsono)) {
@@ -2503,7 +2504,9 @@ class InvoiceController extends Controller
                     'fprdout' => $fprdoutVal,
                     'fneedacc' => '0',
                     'fuseracc' => mb_substr($userid, 0, 30),
-                    'fapproval' => $headerRefNo !== '' ? 1 : 0,
+                    'fapproval' => $isApproved ? 1 : 0,
+                    'fuserapproved' => $isApproved ? (Auth::user()->fname ?? $userid ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                     'fprint' => 0,
                     'ftunai' => 0,
                     'fjatuhtempo' => $fjatuhtempo,
@@ -2533,14 +2536,14 @@ class InvoiceController extends Controller
                 ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
                 : null;
 
-            $isApprovedInv = (int) ($headerInsert['fapproval'] ?? 0) === 1;
-            $successPrompt = [
+            $successPrompt = $isApproved ? [
                 'type' => 'invoice_create',
-                'redirect_url' => $isApprovedInv ? route('invoice.print', $fsono) : null,
-            ];
-            if ($suratjalanUrl) {
-                $successPrompt['suratjalan_url'] = $suratjalanUrl;
-            }
+                'redirect_url' => route('invoice.print', $fsono),
+                'suratjalan_url' => $suratjalanUrl,
+            ] : ($suratjalanUrl ? [
+                'type' => 'invoice_create_suratjalan',
+                'redirect_url' => $suratjalanUrl,
+            ] : null);
 
             $successMessage = "Faktur Penjualan {$fsono} berhasil disimpan.";
 

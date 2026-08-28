@@ -1847,6 +1847,7 @@ class ReturPenjualanController extends Controller
                 $fincludeppn,
                 $userid,
                 $now,
+                $isApproved,
                 $detailRows,
                 $stockDetailRows,
                 $totalGross,
@@ -1933,6 +1934,9 @@ class ReturPenjualanController extends Controller
                     'fprint' => 0,
                     'fjatuhtempo' => $this->resolveReturFjatuhtempo($detailRows),
                     'fbranchcode' => $request->fbranchcode,
+                    'fapproval' => $isApproved ? 1 : 0,
+                    'fuserapproved' => $isApproved ? ($userid ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ];
 
                 $ftranmtid = DB::table('tranmt')->insertGetId($headerData, 'ftranmtid');
@@ -1966,6 +1970,9 @@ class ReturPenjualanController extends Controller
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                     'fbranchcode' => $request->fbranchcode ?? 'BG', // Use request branch
+                    'fapproval' => $isApproved ? '1' : '0',
+                    'fuserapproved' => $isApproved ? ($userid ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ];
 
                 $newStockId = DB::table('trstockmt')->insertGetId($masterStockData, 'fstockmtid');
@@ -2000,24 +2007,28 @@ class ReturPenjualanController extends Controller
             ];
             session()->flash('last_header', $lastHeader);
 
+            $successPrompt = $isApproved ? [
+                'type' => 'returpenjualan_create',
+                'redirect_url' => route('returpenjualan.print', $savedFsono),
+            ] : null;
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => "Retur Penjualan {$savedFsono} berhasil disimpan.",
                     'redirect_url' => route('returpenjualan.create'),
-                    'success_prompt' => [
-                        'type' => 'returpenjualan_create',
-                        'redirect_url' => route('returpenjualan.print', $savedFsono),
-                    ]
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
-            return redirect()->route('returpenjualan.create')
+            $redirect = redirect()->route('returpenjualan.create')
                 ->with('last_header', $lastHeader)
-                ->with('success', "Retur Penjualan {$savedFsono} berhasil disimpan.")
-                ->with('success_prompt', [
-                    'type' => 'returpenjualan_create',
-                    'redirect_url' => route('returpenjualan.print', $savedFsono),
-                ]);
+                ->with('success', "Retur Penjualan {$savedFsono} berhasil disimpan.");
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
