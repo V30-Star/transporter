@@ -1841,6 +1841,7 @@ class ReturPenjualanController extends Controller
         // DATABASE TRANSACTION
         try {
             $savedFsono = null;
+            $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
             DB::transaction(function () use (
                 $request,
                 $fsodate,
