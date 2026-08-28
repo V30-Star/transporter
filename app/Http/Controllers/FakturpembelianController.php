@@ -20,6 +20,13 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
+    protected function canApproveFakturPembelian(): bool
+    {
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvefakturpembelian', $permissions, true)
+            || in_array('approvebuy', $permissions, true);
+    }
+
     private const DAILY_CREATE_LIMIT = 15;
 
     private function todayCreateCount(): int
@@ -1495,6 +1502,7 @@ class FakturpembelianController extends Controller
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
+            'canApproval' => $this->canApproveFakturPembelian(),
         ]);
     }
 
@@ -2044,6 +2052,9 @@ class FakturpembelianController extends Controller
                     'fprice' => $message,
                 ]);
             }
+
+            $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
+
             // 5) TRANSACTION
             DB::transaction(function () use (
                 $request,
@@ -2065,6 +2076,7 @@ class FakturpembelianController extends Controller
                 $fcurrency,
                 $faccid,
                 $fprdjadi,
+                $isApproved,
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
@@ -2168,6 +2180,9 @@ class FakturpembelianController extends Controller
                     'fprdout' => '0',
                     'fsudahtagih' => '0',
                     'fprint' => 0,
+                    'fapproval' => $isApproved ? '1' : '0',
+                    'fuserapproved' => $isApproved ? $userid : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ], 'fstockmtid');
 
                 // D. Insert Details
@@ -2192,24 +2207,27 @@ class FakturpembelianController extends Controller
             });
 
             $successMessage = "Faktur pembelian {$fstockmtno} berhasil disimpan.";
+            $successPrompt = $isApproved ? [
+                'type' => 'fakturpembelian_create',
+                'redirect_url' => route('fakturpembelian.print', $fstockmtno),
+            ] : null;
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $successMessage,
                     'redirect_url' => route('fakturpembelian.create'),
-                    'success_prompt' => [
-                        'type' => 'fakturpembelian_create',
-                        'redirect_url' => route('fakturpembelian.print', $fstockmtno),
-                    ],
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
-            return redirect()->route('fakturpembelian.create')
-                ->with('success', $successMessage)
-                ->with('success_prompt', [
-                    'type' => 'fakturpembelian_create',
-                    'redirect_url' => route('fakturpembelian.print', $fstockmtno),
-                ]);
+            $redirect = redirect()->route('fakturpembelian.create')
+                ->with('success', $successMessage);
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('FakturPembelian@store VALIDATION ERROR: ' . $e->getMessage(), [
                 'errors' => $e->errors(),

@@ -686,6 +686,7 @@
                                         'PR' => ['view' => 'tr_prh.view', 'edit' => 'tr_prh.edit'],
                                         'PO' => ['view' => 'tr_poh.view', 'edit' => 'tr_poh.edit'],
                                         'PB' => ['view' => 'penerimaanbarang.view', 'edit' => 'penerimaanbarang.edit'],
+                                        'TER' => ['view' => 'penerimaanbarang.view', 'edit' => 'penerimaanbarang.edit'],
                                         'BUY' => ['view' => 'fakturpembelian.view', 'edit' => 'fakturpembelian.edit'],
                                         'REB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],
                                         'RUB' => ['view' => 'returpembelian.view', 'edit' => 'returpembelian.edit'],

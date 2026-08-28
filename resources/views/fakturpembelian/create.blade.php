@@ -263,6 +263,7 @@
                     data-draft-key="fakturpembelian:create" x-data="itemsTable()" x-init="init()"
                     @submit.prevent="submitForm($el)">
                     @csrf
+                    <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
                     {{-- ─── CARD 1: Identitas Faktur Pembelian ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -2582,9 +2583,41 @@
                 const validRowsToSubmit = this.pendingValidRows.slice();
                 const form = this.pendingSubmitForm;
                 this.closeWarning();
-                this.$nextTick(() => {
-                    this.syncDetailPayload(form, validRowsToSubmit);
-                    window.submitFormWithStockMinusConfirmation?.(form);
+                this.proceedSubmit(form, validRowsToSubmit);
+            },
+
+            proceedSubmit(form, validRows) {
+                const doSubmit = () => {
+                    this.$nextTick(() => {
+                        this.syncDetailPayload(form, validRows);
+                        window.submitFormWithStockMinusConfirmation?.(form);
+                    });
+                };
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Konfirmasi Approval',
+                    text: 'Apakah faktur pembelian ini mau langsung di Approve ?',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Yes',
+                    showDenyButton: true,
+                    denyButtonText: 'No',
+                    showCancelButton: true,
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#2563eb',
+                    denyButtonColor: '#4b5563',
+                    cancelButtonColor: '#9ca3af',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                }).then((result) => {
+                    const approveInput = document.getElementById('approveNowInput');
+                    if (result.isConfirmed) {
+                        if (approveInput) approveInput.value = '1';
+                        doSubmit();
+                    } else if (result.isDenied) {
+                        if (approveInput) approveInput.value = '0';
+                        doSubmit();
+                    }
                 });
             },
 
@@ -2982,10 +3015,7 @@
                     return;
                 }
 
-                this.$nextTick(() => {
-                    this.syncDetailPayload(form, validRows);
-                    window.submitFormWithStockMinusConfirmation?.(form);
-                });
+                this.proceedSubmit(form, validRows);
             },
 
             openBrowseFor(where, index = null) {

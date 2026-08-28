@@ -1744,7 +1744,14 @@
                     return;
                 }
 
-                window.showAppSuccessToast(successMessage);
+                Swal.fire({
+                    icon: 'success',
+                    title: successMessage,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#2563eb',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                });
             });
         </script>
     @endif
@@ -1911,7 +1918,14 @@
                     return;
                 }
 
-                window.showAppSuccessToast(successMessage);
+                Swal.fire({
+                    icon: 'success',
+                    title: successMessage,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#2563eb',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                });
             });
         </script>
     @endif
