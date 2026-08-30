@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Google Drive credentials (jangan pernah commit)
+storage/app/google-oauth-credentials.json
+storage/app/google-drive-credentials.json
+storage/app/google-token.json
