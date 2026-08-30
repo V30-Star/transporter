@@ -64,7 +64,7 @@ class PenerimaanKasController extends Controller
             'records' => $records,
             'canCreate' => $this->hasPermission('createPenerimaanKas'),
             'canEdit' => $this->hasPermission('updatePenerimaanKas'),
-            'canDelete' => $this->hasPermission('deletePenerimaanKas'),
+        'canDelete' => $this->hasPermission('deletePenerimaanKas'),
         ]);
     }
 
