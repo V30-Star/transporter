@@ -1034,6 +1034,7 @@ class SuratJalanController extends Controller
         // =========================
         try {
             $newStockMasterId = null;
+            $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
 
             DB::transaction(function () use (
                 $fstockmtdate,
@@ -1047,6 +1048,7 @@ class SuratJalanController extends Controller
                 $frate,
                 $userid,
                 $now,
+                $isApproved,
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
@@ -1155,6 +1157,9 @@ class SuratJalanController extends Controller
                     'fsudahtagih' => '0',
                     'fbranchcode' => $kodeCabang,
                     'fdiscount' => 0,
+                    'fapproval' => $isApproved ? '1' : '0',
+                    'fuserapproved' => $isApproved ? (Auth::user()->fname ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ];
 
                 $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
@@ -1177,11 +1182,14 @@ class SuratJalanController extends Controller
             ? route('invoice.create', ['surat_jalan_id' => $newStockMasterId ?: $fstockmtno])
             : null;
 
-        $successPrompt = [
+        $successPrompt = $isApproved ? [
             'type' => 'suratjalan_create',
             'redirect_url' => route('suratjalan.print', $fstockmtno),
             'invoice_url' => $invoiceUrl,
-        ];
+        ] : ($invoiceUrl ? [
+            'type' => 'suratjalan_create_invoice',
+            'redirect_url' => $invoiceUrl,
+        ] : null);
 
         if ($request->expectsJson()) {
             return response()->json([

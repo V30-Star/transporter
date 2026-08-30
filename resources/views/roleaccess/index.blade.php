@@ -388,8 +388,16 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveSalesOrder" {{ in_array('approveSalesOrder', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Surat Jalan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveSuratJalan" {{ in_array('approveSuratJalan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Faktur Penjualan</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveFakturPenjualan" {{ in_array('approveFakturPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Retur Penjualan</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveReturPenjualan" {{ in_array('approveReturPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve PR (Permintaan Pembelian)</td>
@@ -398,6 +406,14 @@
                             <tr>
                                 <td class="px-3 py-2 font-semibold">Boleh Approve PO (Order Pembelian)</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approvePO" {{ in_array('approvePO', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Faktur Pembelian</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveFakturPembelian" {{ in_array('approveFakturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Retur Pembelian</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="approveReturPembelian" {{ in_array('approveReturPembelian', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Produk</td>

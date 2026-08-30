@@ -340,6 +340,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::patch('/tr_prh/{fprhid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
         Route::delete('/tr_prh/{fprhid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
         Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
+            ->where('fprno', '.*')
             ->name('tr_prh.print');
 
         Route::get('/tr_poh', [Tr_pohController::class, 'index'])->name('tr_poh.index');
@@ -362,15 +363,24 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/penerimaanbarang', [PenerimaanBarangController::class, 'index'])->name('penerimaanbarang.index');
         Route::post('/penerimaanbarang', [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');
         Route::get('/penerimaanbarang/create', [PenerimaanBarangController::class, 'create'])->name('penerimaanbarang.create');
-        Route::get('/penerimaanbarang/{fstockmtid}/view', [PenerimaanBarangController::class, 'view'])->name('penerimaanbarang.view');
-        Route::get('/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->name('penerimaanbarang.edit');
-        Route::get('/penerimaanbarang/{fstockmtid}/delete', [PenerimaanBarangController::class, 'delete'])->name('penerimaanbarang.delete');
-        Route::patch('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'update'])->name('penerimaanbarang.update');
-        Route::delete('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'destroy'])->name('penerimaanbarang.destroy');
+        Route::get('/penerimaanbarang/{fstockmtid}/view', [PenerimaanBarangController::class, 'view'])->where('fstockmtid', '.*')->name('penerimaanbarang.view');
+        Route::get('/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->where('fstockmtid', '.*')->name('penerimaanbarang.edit');
+        Route::get('/penerimaanbarang/{fstockmtid}/delete', [PenerimaanBarangController::class, 'delete'])->where('fstockmtid', '.*')->name('penerimaanbarang.delete');
+        Route::patch('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'update'])->where('fstockmtid', '.*')->name('penerimaanbarang.update');
+        Route::delete('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'destroy'])->where('fstockmtid', '.*')->name('penerimaanbarang.destroy');
         Route::get('/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])
+            ->where('fstockmtno', '.*')
             ->name('penerimaanbarang.print');
         Route::get('/penerimaan-barang/pickable', [PenerimaanBarangController::class, 'pickable'])->name('penerimaanbarang.pickable');
         Route::get('/penerimaan-barang/{id}/items', [PenerimaanBarangController::class, 'items'])->name('penerimaanbarang.items');
+
+        // Alias master prefix routes for penerimaanbarang
+        Route::get('/master/penerimaanbarang', [PenerimaanBarangController::class, 'index']);
+        Route::get('/master/penerimaanbarang/create', [PenerimaanBarangController::class, 'create']);
+        Route::get('/master/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])->where('fstockmtno', '.*');
+        Route::get('/master/penerimaanbarang/{fstockmtid}/view', [PenerimaanBarangController::class, 'view'])->where('fstockmtid', '.*');
+        Route::get('/master/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->where('fstockmtid', '.*');
+        Route::get('/master/penerimaanbarang/{fstockmtid}/delete', [PenerimaanBarangController::class, 'delete'])->where('fstockmtid', '.*');
 
         Route::get('/fakturpembelian', [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
         Route::post('/fakturpembelian', [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');

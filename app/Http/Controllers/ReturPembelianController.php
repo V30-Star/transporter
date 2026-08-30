@@ -16,6 +16,14 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPembelianController extends Controller
 {
+    protected function canApproveReturPembelian(): bool
+    {
+        $permissions = array_map(fn($p) => strtolower(trim((string) $p)), explode(',', (string) session('user_restricted_permissions', '')));
+        return in_array('approvereturpembelian', $permissions, true)
+            || in_array('approvereb', $permissions, true)
+            || in_array('approverub', $permissions, true);
+    }
+
     private const DAILY_CREATE_LIMIT = 15;
 
     private function todayCreateCount(): int
@@ -972,6 +980,7 @@ class ReturPembelianController extends Controller
             'supplierAdvanceWarnings' => $this->getSupplierAdvanceWarningMap(),
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'canApproval' => $this->canApproveReturPembelian(),
         ]);
     }
 
@@ -1219,6 +1228,8 @@ class ReturPembelianController extends Controller
 
             $grandTotal = $subtotal + $ppnAmount;
 
+            $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
+
             // DATABASE TRANSACTION
             DB::transaction(function () use (
                 $request,
@@ -1231,6 +1242,7 @@ class ReturPembelianController extends Controller
                 $now,
                 $frefno,
                 $frefpo,
+                $isApproved,
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
@@ -1325,6 +1337,9 @@ class ReturPembelianController extends Controller
                     'fppnpersen' => $fppnpersen,
                     'famountpajak' => round($ppnAmount, 2),
                     'famountpajak_rp' => round($ppnAmount, 2),
+                    'fapproval' => $isApproved ? '1' : '0',
+                    'fuserapproved' => $isApproved ? (Auth::user()->fname ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ];
 
                 $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
@@ -1349,24 +1364,29 @@ class ReturPembelianController extends Controller
                 );
             });
 
+            $successMessage = "Retur pembelian {$fstockmtno} berhasil disimpan.";
+            $successPrompt = $isApproved ? [
+                'type' => 'returpembelian_create',
+                'redirect_url' => route('returpembelian.print', $fstockmtno),
+            ] : null;
+
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => "Retur pembelian {$fstockmtno} berhasil disimpan.",
+                    'message' => $successMessage,
                     'redirect_url' => route('returpembelian.create'),
-                    'success_prompt' => [
-                        'type' => 'returpembelian_create',
-                        'redirect_url' => route('returpembelian.print', $fstockmtno),
-                    ],
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
-            return redirect()
+            $redirect = redirect()
                 ->route('returpembelian.create')
-                ->with('success', "Retur pembelian {$fstockmtno} berhasil disimpan.")
-                ->with('success_prompt', [
-                    'type' => 'returpembelian_create',
-                    'redirect_url' => route('returpembelian.print', $fstockmtno),
-                ]);
+                ->with('success', $successMessage);
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
             if (request()->expectsJson()) {
