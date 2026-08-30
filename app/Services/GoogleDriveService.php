@@ -8,7 +8,6 @@ use Google\Service\Exception as GoogleServiceException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-
 class GoogleDriveService
 {
     protected Client $client;
@@ -17,22 +16,36 @@ class GoogleDriveService
 
     public function __construct()
     {
-    $this->client = new Client;
+        $this->client = new Client;
 
-    $httpClient = new \GuzzleHttp\Client();
-    $this->client->setHttpClient($httpClient);
+        $httpClient = new \GuzzleHttp\Client();
+        $this->client->setHttpClient($httpClient);
 
-    // Service Account credentials - tidak perlu token/refresh terpisah
-    $credentialsPath = storage_path('app/google-oauth-credentials.json');
-    if (!file_exists($credentialsPath)) {
-        throw new \Exception("Kredensial tidak ditemukan.");
+        $oauthPath = storage_path('app/google-oauth-credentials.json');
+        if (!file_exists($oauthPath)) {
+            throw new \Exception("Kredensial tidak ditemukan.");
+        }
+
+        $this->client->setAuthConfig($oauthPath);
+        $this->client->setScopes(Drive::DRIVE);
+        $this->client->setAccessType('offline');
+
+        $tokenPath = storage_path('app/google-token.json');
+        if (!file_exists($tokenPath)) {
+            throw new \Exception("Token tidak ditemukan. Jalankan get_google_token.php dulu.");
+        }
+
+        $token = json_decode(file_get_contents($tokenPath), true);
+        $this->client->setAccessToken($token);
+
+        if ($this->client->isAccessTokenExpired()) {
+            $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
+            file_put_contents($tokenPath, json_encode($this->client->getAccessToken()));
+        }
+
+        $this->drive = new Drive($this->client);
     }
 
-    $this->client->setAuthConfig($credentialsPath);
-    $this->client->setScopes(Drive::DRIVE);
-
-    $this->drive = new Drive($this->client);
-    }
     public function uploadImage(Request $request, string $fileInputName = 'image'): ?string
     {
         if (! $request->hasFile($fileInputName)) {
@@ -73,7 +86,6 @@ class GoogleDriveService
 
             return $uploadedFile->getId();
         } catch (\Exception $e) {
-            // Log ini akan sangat membantu kita tahu titik gagalnya
             \Log::error('Google Drive Detail Error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -85,9 +97,9 @@ class GoogleDriveService
 
     protected function getOrCreateProductFolder(): string
     {
-        return env('GOOGLE_DRIVE_FOLDER_ID', '155oOIQKOmTkyOvtoyvPVw2RVQU16_eHy');
+        return config('services.google_drive.folder_id', '155oOIQKOmTkyOvtoyvPVw2RVQU16_eHy');
     }
-    
+
     protected function setFilePublic(string $fileId): void
     {
         try {
