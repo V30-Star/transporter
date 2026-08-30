@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if (config('app.url')) {
             \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
+            \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {

@@ -471,10 +471,11 @@ class ProductController extends Controller
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-            $googleDriveService = new \App\Services\GoogleDriveService;
+            $googleDriveService = null;
             foreach ($enabledImageFields as $imageField) {
                 if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                     try {
+                        $googleDriveService ??= new \App\Services\GoogleDriveService;
                         $fileId = $googleDriveService->uploadImage($request, $imageField);
                         if ($fileId) {
                             $validated[$imageField] = $fileId;
@@ -500,6 +501,8 @@ class ProductController extends Controller
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
+            Log::error('Product create failed: ' . $e->getMessage(), ['exception' => $e]);
+
             return redirect()->back()->with('error', 'Produk belum bisa disimpan. Cek data.');
         }
     }
@@ -750,10 +753,11 @@ class ProductController extends Controller
                 $validated['fdateapproved'] = null;
             }
 
-            $googleDriveService = new GoogleDriveService;
+            $googleDriveService = null;
             foreach ($enabledImageFields as $imageField) {
                 if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                     try {
+                        $googleDriveService ??= new GoogleDriveService;
                         if (! empty($product->{$imageField})) {
                             $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
                             if ($oldFileId) {
