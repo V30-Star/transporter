@@ -353,7 +353,7 @@ class SuratJalanController extends Controller
                     ->from('trstockdt as srj_dt')
                     ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
                     ->whereColumn('srj_dt.fstockmtno', 'trstockmt.fstockmtno')
-                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'");
+                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fapproval AS TEXT)), '0') = '0'");
             })
             ->select(
                 'trstockmt.fstockmtid',
@@ -411,7 +411,7 @@ class SuratJalanController extends Controller
                     ->from('trstockdt as srj_dt')
                     ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
                     ->whereColumn('srj_dt.fstockmtno', 'trstockmt.fstockmtno')
-                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'");
+                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fapproval AS TEXT)), '0') = '0'");
             })
             ->count();
         $recordsFiltered = $query->count();
@@ -459,7 +459,7 @@ class SuratJalanController extends Controller
         $hasBlockedSoReference = DB::table('trstockdt as srj_dt')
             ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
             ->where('srj_dt.fstockmtno', $header->fstockmtno)
-            ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'")
+            ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fapproval AS TEXT)), '0') = '0'")
             ->exists();
 
         if ($hasBlockedSoReference) {

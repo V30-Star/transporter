@@ -624,8 +624,9 @@ class SalesOrderController extends Controller
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
         $onlyRemaining = $request->boolean('only_remaining');
 
-        $query = SalesOrderHeader::leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
-            ->leftJoin('mscabang', 'trsomt.fbranchcode', '=', 'mscabang.fcabangkode')
+        $query = SalesOrderHeader::query()
+            ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
+            ->leftJoin('mscabang', 'trsomt.fbranchcode', '=', 'mscabang.fcabangid')
             ->select(
                 'trsomt.ftrsomtid',
                 'trsomt.fsono',
@@ -636,11 +637,7 @@ class SalesOrderController extends Controller
                 'mscabang.fcabangname',
                 'mscustomer.fcustomername',
                 'mscustomer.faddress'
-            )
-            ->where(function ($q) {
-                $q->whereNull('trsomt.fneedacc')
-                    ->orWhereRaw("COALESCE(TRIM(CAST(trsomt.fneedacc AS TEXT)), '0') = '0'");
-            });
+            );
         ApprovalState::applyApprovedFilter($query, 'trsomt.');
 
         if ($customerCode !== '') {
@@ -656,11 +653,7 @@ class SalesOrderController extends Controller
             });
         }
 
-        $recordsTotal = SalesOrderHeader::query()
-            ->where(function ($q) {
-                $q->whereNull('trsomt.fneedacc')
-                    ->orWhereRaw("COALESCE(TRIM(CAST(trsomt.fneedacc AS TEXT)), '0') = '0'");
-            })
+        $recordsTotalQuery = SalesOrderHeader::query()
             ->when($customerCode !== '', function ($q) use ($customerCode) {
                 $q->whereRaw('TRIM(COALESCE(trsomt.fcustno, \'\')) = ?', [$customerCode]);
             })
@@ -671,8 +664,9 @@ class SalesOrderController extends Controller
                         ->whereColumn('d.fsono', 'trsomt.fsono')
                         ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
                 });
-            })
-            ->count();
+            });
+        ApprovalState::applyApprovedFilter($recordsTotalQuery, 'trsomt.');
+        $recordsTotal = $recordsTotalQuery->count();
 
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
@@ -728,7 +722,6 @@ class SalesOrderController extends Controller
         $allowPending = request()->boolean('allow_pending', true);
         $header = $this->resolveSalesOrderHeader($id);
         abort_if(! $header, 404);
-        abort_if(! $allowPending && trim((string) ($header->fneedacc ?? '0')) === '1', 404);
         abort_if(! $allowPending && ! ApprovalState::isApprovedRecord($header), 404);
         $remainMap = $this->getSoRemainByIds(
             DB::table('trsodt')->where('fsono', $header->fsono)->pluck('ftrsodtid')->all()
