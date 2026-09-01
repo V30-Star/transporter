@@ -186,6 +186,7 @@
             init()"
             @submit.prevent="submitForm($el)">
             @csrf
+            <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
             @if ($errors->any())
                 <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
@@ -1238,7 +1239,7 @@
                     }));
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
-                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
+                    this.promptApprovalAndSubmit(form);
                 },
                 removeSaved(i) {
                     if (this.savedItems.length === 1) {
@@ -1398,7 +1399,38 @@
                     this.savedItems = validRows.map((row) => ({
                         ...row
                     }));
-                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
+                    this.promptApprovalAndSubmit(form);
+                },
+                promptApprovalAndSubmit(form) {
+                    const doSubmit = () => {
+                        this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
+                    };
+
+                    Swal.fire({
+                        icon: 'question',
+                        title: 'Konfirmasi Approval',
+                        text: 'Apakah penerimaan barang ini di Approve ?',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Yes',
+                        showDenyButton: true,
+                        denyButtonText: 'No',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#2563eb',
+                        denyButtonColor: '#4b5563',
+                        cancelButtonColor: '#9ca3af',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then((result) => {
+                        const approveInput = document.getElementById('approveNowInput');
+                        if (result.isConfirmed) {
+                            if (approveInput) approveInput.value = '1';
+                            doSubmit();
+                        } else if (result.isDenied) {
+                            if (approveInput) approveInput.value = '0';
+                            doSubmit();
+                        }
+                    });
                 },
                 init() {
                     this.syncSupplierDisplay(@js(old('fsupplier', '')));
