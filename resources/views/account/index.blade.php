@@ -106,7 +106,7 @@
                             {{ $account->fnormal == 'D' ? 'Debit' : ($account->fnormal == 'K' ? 'Kredit' : '-') }}
                         </td>
                         <td class="border px-2 py-1">{{ $account->finitjurnal ?? '-' }}</td>
-                        <td class="border px-2 py-1">{{ $account->fhavesubaccount == 1 ? 'Yes' : 'No' }}</td>
+                        <td class="border px-2 py-1">{{ (int) ($account->fhavesubaccount ?? 0) === 1 ? 'Yes' : 'No' }}</td>
 
                         {{-- Tampilan badge Status --}}
                         <td class="border px-2 py-1">

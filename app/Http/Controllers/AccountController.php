@@ -19,6 +19,7 @@ class AccountController extends Controller
                 'fnormal',
                 'fend',
                 'finitjurnal',
+                'fhavesubaccount',
                 'ftypesubaccount',
                 'fnonactive',
                 'fcreatedat',

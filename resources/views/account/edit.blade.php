@@ -284,7 +284,7 @@
                                         ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed shadow-inner'
                                         : 'bg-white border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-gray-800'"
                                     class="w-24 border rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest focus:outline-none @error('finitjurnal') border-red-400 @enderror"
-                                    maxlength="2" placeholder="KS">
+                                    maxlength="2">
 
                                 {{-- Info Alert --}}
                                 <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors"
