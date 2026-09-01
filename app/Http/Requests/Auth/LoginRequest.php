@@ -29,6 +29,15 @@ class LoginRequest extends FormRequest
         return [
             'fsysuserid' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'captcha' => ['required', 'string', 'size:4'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'captcha.required' => 'Kode captcha wajib diisi.',
+            'captcha.size' => 'Kode captcha harus 4 karakter.',
         ];
     }
 
@@ -40,6 +49,20 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+
+        $sessionCaptcha = (string) session('captcha_code', '');
+        $inputCaptcha = strtolower(trim((string) $this->input('captcha', '')));
+
+        // Invalidate session captcha immediately after attempt
+        session()->forget('captcha_code');
+
+        if ($sessionCaptcha === '' || $inputCaptcha !== $sessionCaptcha) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'captcha' => 'Kode captcha salah.',
+            ]);
+        }
 
         if (! Auth::attempt($this->only('fsysuserid', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());

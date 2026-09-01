@@ -16,7 +16,7 @@
         </div>
 
         <!-- Password Field -->
-        <div class="mb-6">
+        <div class="mb-5">
             <x-input-label class="block text-sm font-medium text-gray-700" for="password" :value="__('Password')" />
             <input id="password"
                 class="w-full px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200 ease-in-out"
@@ -25,13 +25,25 @@
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600" />
         </div>
 
-        <!-- Forgot Password Link -->
-        <div class="flex justify-between items-center mb-6">
-            @if (Route::has('password.request'))
-                <a class="text-sm text-indigo-600 hover:text-indigo-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+        <!-- Captcha Field (4 Karakter) -->
+        <div class="mb-6">
+            <label for="captcha" class="block text-sm font-medium text-gray-700 mb-1">Captcha</label>
+            <div class="flex items-center gap-3">
+                <input id="captcha"
+                    class="w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg uppercase tracking-widest text-center font-bold text-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200 ease-in-out"
+                    type="text" name="captcha" maxlength="4" required autocomplete="off"
+                    placeholder="4 digit">
+                <div class="flex items-center gap-1.5 border border-gray-300 rounded-lg bg-gray-50 px-2 py-1">
+                    <img src="{{ route('captcha') }}" id="captcha-img" alt="Captcha" class="h-8 rounded select-none cursor-pointer" onclick="refreshCaptcha()" title="Klik untuk ganti captcha">
+                    <button type="button" onclick="refreshCaptcha()" title="Ganti Captcha"
+                        class="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-200 rounded transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <x-input-error :messages="$errors->get('captcha')" class="mt-2 text-red-600" />
         </div>
 
         <!-- Submit Button -->
@@ -42,4 +54,18 @@
             </x-primary-button>
         </div>
     </form>
+
+    <script>
+        function refreshCaptcha() {
+            const img = document.getElementById('captcha-img');
+            if (img) {
+                img.src = '{{ route('captcha') }}?' + Date.now();
+            }
+            const input = document.getElementById('captcha');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        }
+    </script>
 </x-guest-layout>
