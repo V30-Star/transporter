@@ -513,21 +513,16 @@ class LembarPenagihanController extends Controller
 
         DB::table('trtagihanmt')->where('ftagihanno', $hdr->ftagihanno)->update(['fprint' => 1]);
 
-        if (empty($hdr->cabang_name) || empty($hdr->falamatkirim)) {
+        if (empty($hdr->cabang_name)) {
             $firstRef = DB::table('trtagihandt as d')
                 ->leftJoin('tranmt as i', 'i.fsono', '=', 'd.frefsono')
                 ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'i.fbranchcode')
                 ->where('d.ftagihanno', $hdr->ftagihanno)
-                ->first(['i.fbranchcode', 'cb.fcabangname as cabang_name', 'i.falamatkirim as falamatkirim']);
+                ->first(['i.fbranchcode', 'cb.fcabangname as cabang_name']);
 
             if ($firstRef) {
-                if (empty($hdr->cabang_name)) {
-                    $hdr->fbranchcode = $firstRef->fbranchcode;
-                    $hdr->cabang_name = $firstRef->cabang_name;
-                }
-                if (empty($hdr->falamatkirim) && !empty($firstRef->falamatkirim)) {
-                    $hdr->falamatkirim = $firstRef->falamatkirim;
-                }
+                $hdr->fbranchcode = $firstRef->fbranchcode;
+                $hdr->cabang_name = $firstRef->cabang_name;
             }
         }
 

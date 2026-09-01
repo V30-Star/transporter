@@ -1065,6 +1065,7 @@ class PenerimaanBarangController extends Controller
         $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
 
         $grandTotal = $subtotal + $ppnAmount;
+        $isApproved = $request->boolean('approve_now') || $request->input('approve_now') === '1';
 
         // 5) TRANSACTION
         try {
@@ -1078,6 +1079,7 @@ class PenerimaanBarangController extends Controller
                 $frate,
                 $userid,
                 $now,
+                $isApproved,
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
@@ -1127,6 +1129,9 @@ class PenerimaanBarangController extends Controller
                     'fprdout' => '0',
                     'fsudahtagih' => '0',
                     'fprint' => 0,
+                    'fapproval' => $isApproved ? '1' : '0',
+                    'fuserapproved' => $isApproved ? (auth('sysuser')->user()->fsysuserid ?? Auth::user()->fname ?? $userid ?? 'system') : null,
+                    'fdateapproved' => $isApproved ? $now : null,
                 ], 'fstockmtid');
 
                 // D. Insert Details
@@ -1162,23 +1167,28 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
         }
 
+        $successPrompt = $isApproved ? [
+            'type' => 'penerimaanbarang_create',
+            'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
+        ] : null;
+
         if ($request->expectsJson()) {
-            return response()->json([
+            $payload = [
                 'message' => 'Penerimaan barang berhasil disimpan.',
                 'redirect_url' => route('penerimaanbarang.create'),
-                'success_prompt' => [
-                    'type' => 'penerimaanbarang_create',
-                    'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
-                ],
-            ]);
+            ];
+            if ($successPrompt) {
+                $payload['success_prompt'] = $successPrompt;
+            }
+            return response()->json($payload);
         }
 
-        return redirect()->route('penerimaanbarang.create')
-            ->with('success', "Penerimaan Barang {$fstockmtno} berhasil disimpan.")
-            ->with('success_prompt', [
-                'type' => 'penerimaanbarang_create',
-                'redirect_url' => route('penerimaanbarang.print', $fstockmtno),
-            ]);
+        $redirect = redirect()->route('penerimaanbarang.create')
+            ->with('success', "Penerimaan Barang {$fstockmtno} berhasil disimpan.");
+        if ($successPrompt) {
+            $redirect->with('success_prompt', $successPrompt);
+        }
+        return $redirect;
     }
 
     public function edit(Request $request, $fstockmtid)
