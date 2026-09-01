@@ -27,16 +27,16 @@
 
         <!-- Captcha Field (4 Karakter) -->
         <div class="mb-6">
-            <label for="captcha" class="block text-sm font-medium text-gray-700 mb-1">Captcha</label>
+            <label for="captcha" class="block text-sm font-medium text-gray-700 mb-1.5">Kode Captcha</label>
             <div class="flex items-center gap-3">
                 <input id="captcha"
-                    class="w-1/2 px-4 py-2.5 border border-gray-300 rounded-lg uppercase tracking-widest text-center font-bold text-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200 ease-in-out"
+                    class="w-1/2 h-12 px-4 border border-gray-300 rounded-lg uppercase tracking-widest text-center font-bold text-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200 ease-in-out shadow-sm"
                     type="text" name="captcha" maxlength="4" required autocomplete="off"
                     placeholder="4 digit">
-                <div class="flex items-center gap-1.5 border border-gray-300 rounded-lg bg-gray-50 px-2 py-1">
-                    <img src="{{ route('captcha') }}" id="captcha-img" alt="Captcha" class="h-8 rounded select-none cursor-pointer" onclick="refreshCaptcha()" title="Klik untuk ganti captcha">
+                <div class="flex items-center gap-2 border border-gray-300 rounded-lg bg-gray-50 px-2 py-1 shadow-sm h-12">
+                    <img src="{{ route('captcha') }}" id="captcha-img" alt="Captcha" class="h-10 w-36 rounded select-none cursor-pointer" onclick="refreshCaptcha()" title="Klik untuk ganti captcha">
                     <button type="button" onclick="refreshCaptcha()" title="Ganti Captcha"
-                        class="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-200 rounded transition-colors">
+                        class="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-200 rounded transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>

@@ -23,7 +23,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Generate 4-character captcha image.
+     * Generate 4-character captcha image (large and clear SVG).
      */
     public function captcha()
     {
@@ -35,50 +35,56 @@ class AuthenticatedSessionController extends Controller
 
         session(['captcha_code' => strtolower($code)]);
 
-        $width = 110;
-        $height = 38;
-        $image = imagecreatetruecolor($width, $height);
+        $width = 150;
+        $height = 50;
 
-        // Background color (light gray #f3f4f6)
-        $bgColor = imagecolorallocate($image, 243, 244, 246);
-        imagefilledrectangle($image, 0, 0, $width, $height, $bgColor);
+        $colors = ['#1e40af', '#4338ca', '#047857', '#b45309', '#be123c', '#6d28d9'];
+        shuffle($colors);
 
-        // Noise lines
+        $svgLines = '';
+        // Subtle background grid / decorative lines
         for ($i = 0; $i < 4; $i++) {
-            $lineColor = imagecolorallocate($image, random_int(180, 215), random_int(180, 215), random_int(180, 215));
-            imageline($image, random_int(0, $width), random_int(0, $height), random_int(0, $width), random_int(0, $height), $lineColor);
+            $x1 = random_int(5, 30);
+            $y1 = random_int(5, 45);
+            $x2 = random_int(120, 145);
+            $y2 = random_int(5, 45);
+            $stroke = $colors[$i % count($colors)];
+            $svgLines .= "<line x1='{$x1}' y1='{$y1}' x2='{$x2}' y2='{$y2}' stroke='{$stroke}' stroke-width='1.5' stroke-opacity='0.25' stroke-dasharray='4 3' />";
         }
 
         // Noise dots
-        for ($i = 0; $i < 40; $i++) {
-            $dotColor = imagecolorallocate($image, random_int(160, 200), random_int(160, 200), random_int(160, 200));
-            imagesetpixel($image, random_int(0, $width), random_int(0, $height), $dotColor);
+        $svgDots = '';
+        for ($i = 0; $i < 25; $i++) {
+            $cx = random_int(5, 145);
+            $cy = random_int(5, 45);
+            $r = random_int(1, 2);
+            $svgDots .= "<circle cx='{$cx}' cy='{$cy}' r='{$r}' fill='#94a3b8' opacity='0.35' />";
         }
 
-        // Text colors
-        $textColors = [
-            imagecolorallocate($image, 37, 99, 235),  // blue
-            imagecolorallocate($image, 79, 70, 229),  // indigo
-            imagecolorallocate($image, 13, 148, 136), // teal
-            imagecolorallocate($image, 217, 119, 6),  // amber
-            imagecolorallocate($image, 220, 38, 38),  // red
-        ];
-
+        // 4 large, clear characters with slight random angle
+        $svgText = '';
+        $positions = [24, 58, 92, 126];
         for ($i = 0; $i < 4; $i++) {
             $char = $code[$i];
-            $color = $textColors[array_rand($textColors)];
-            $x = 16 + ($i * 22);
-            $y = random_int(9, 13);
-            imagestring($image, 5, $x, $y, $char, $color);
+            $color = $colors[$i % count($colors)];
+            $angle = random_int(-10, 10);
+            $x = $positions[$i];
+            $y = 35 + random_int(-2, 2);
+            $svgText .= "<text x='{$x}' y='{$y}' fill='{$color}' font-size='28' font-weight='800' font-family='ui-monospace, Consolas, Monaco, monospace' text-anchor='middle' transform='rotate({$angle}, {$x}, {$y})'>{$char}</text>";
         }
 
-        ob_start();
-        imagepng($image);
-        $imageData = ob_get_clean();
-        imagedestroy($image);
+        $svg = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="{$width}" height="{$height}" viewBox="0 0 {$width} {$height}">
+    <rect width="100%" height="100%" fill="#f8fafc" rx="8" />
+    <rect width="100%" height="100%" fill="none" stroke="#e2e8f0" stroke-width="1" rx="8" />
+    {$svgLines}
+    {$svgDots}
+    {$svgText}
+</svg>
+SVG;
 
-        return response($imageData, 200, [
-            'Content-Type' => 'image/png',
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
