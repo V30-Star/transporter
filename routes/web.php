@@ -199,6 +199,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::post('/groupproduct', [GroupproductController::class, 'store'])->name('groupproduct.store');
         Route::get('/groupproduct/create', [GroupproductController::class, 'create'])->name('groupproduct.create');
         Route::get('/groupproduct/{fgroupid}/edit', [GroupproductController::class, 'edit'])->name('groupproduct.edit');
+        Route::get('/groupproduct/{fgroupid}/view', [GroupproductController::class, 'view'])->name('groupproduct.view');
         Route::get('/groupproduct/{fgroupid}/delete', [GroupproductController::class, 'delete'])->name('groupproduct.delete');
         Route::patch('/groupproduct/{fgroupid}', [GroupproductController::class, 'update'])->name('groupproduct.update');
         Route::delete('/groupproduct/{fgroupid}', [GroupproductController::class, 'destroy'])->name('groupproduct.destroy');
