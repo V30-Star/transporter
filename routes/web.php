@@ -182,6 +182,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::post('/merek', [MerekController::class, 'store'])->name('merek.store');
         Route::get('/merek/create', [MerekController::class, 'create'])->name('merek.create');
         Route::get('/merek/{fmerekid}/edit', [MerekController::class, 'edit'])->name('merek.edit');
+        Route::get('/merek/{fmerekid}/view', [MerekController::class, 'view'])->name('merek.view');
         Route::get('/merek/{fmerekid}/delete', [MerekController::class, 'delete'])->name('merek.delete');
         Route::patch('/merek/{fmerekid}', [MerekController::class, 'update'])->name('merek.update');
         Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');

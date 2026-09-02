@@ -7,7 +7,7 @@
         $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
-        $showActionsColumn = $canEdit || $canDelete;
+        $showActionsColumn = true;
     @endphp
 
     <div class="bg-white rounded shadow p-4">
@@ -69,6 +69,11 @@
 
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-1.5 text-right">
+                                <a href="{{ route('merek.view', $item->fmerekid) }}">
+                                    <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> View
+                                    </button>
+                                </a>
                                 @if ($canEdit)
                                     <a href="{{ route('merek.edit', $item->fmerekid) }}">
                                         <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
