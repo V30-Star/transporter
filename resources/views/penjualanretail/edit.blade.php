@@ -450,6 +450,18 @@
                             @enderror
                         </div>
 
+                        {{-- Barcode --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Barcode</label>
+                            <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                                @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
+                                @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
+                                @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
+                                @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
+                        </div>
+
                            <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
@@ -2684,6 +2696,7 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
+                fbarcode: @json(trim($p->fbarcode ?? '')),
                 default_unit: @json($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil),
                 units: @json(
                     $productMap[$p->fprdcode]['units'] ??
@@ -2700,6 +2713,14 @@
                     satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
                 },
             },
+        @endforeach
+    };
+
+    window.BARCODE_MAP = {
+        @foreach ($products as $p)
+            @if (!empty(trim($p->fbarcode ?? '')))
+                @json(trim($p->fbarcode)): @json($p->fprdcode),
+            @endif
         @endforeach
     };
     window.INVOICE_PRICE_INFO_URL = @json(route('penjualanretail.price-info'));
@@ -3329,6 +3350,90 @@
                 }
             },
 
+            getFirstEmptyRowIndex() {
+                return this.savedItems.findIndex((row) => !this.rowHasContent(row));
+            },
+
+            async addProductByBarcode(rawBarcode, inputElement = null) {
+                if (this.action === 'view' || this.action === 'delete') return;
+
+                const barcode = (rawBarcode || '').toString().trim();
+                if (!barcode) return;
+
+                if (!this.requireCustomerBeforeManualProduct()) {
+                    if (inputElement) {
+                        inputElement.value = '';
+                    }
+                    return;
+                }
+
+                // Cari kode produk dari BARCODE_MAP atau fbarcode di PRODUCT_MAP
+                let matchedCode = window.BARCODE_MAP?.[barcode] || null;
+
+                if (!matchedCode && window.PRODUCT_MAP) {
+                    for (const [code, meta] of Object.entries(window.PRODUCT_MAP)) {
+                        if (String(meta.fbarcode || '').trim().toUpperCase() === barcode.toUpperCase() ||
+                            code.toUpperCase() === barcode.toUpperCase()) {
+                            matchedCode = code;
+                            break;
+                        }
+                    }
+                }
+
+                if (!matchedCode) {
+                    this.showAlert(`Produk dengan Barcode "${barcode}" tidak ditemukan.`);
+                    if (inputElement) {
+                        inputElement.value = '';
+                        inputElement.focus();
+                    }
+                    return;
+                }
+
+                const meta = this.productMeta(matchedCode);
+
+                let targetIndex = this.savedItems.findIndex(r =>
+                    String(r.fitemcode || '').toUpperCase().trim() === matchedCode.toUpperCase().trim() &&
+                    !r.frefso && !r.frefsrj && !r.frefdtno
+                );
+
+                if (targetIndex >= 0) {
+                    const targetRow = this.savedItems[targetIndex];
+                    targetRow.fqty = (Number(targetRow.fqty) || 0) + 1;
+                    targetRow.fqtyInput = this.fmt(targetRow.fqty);
+                    this.enforceQtyRow(targetRow);
+                    this.recalc(targetRow);
+                } else {
+                    const emptyIndex = this.getFirstEmptyRowIndex();
+                    let targetRow;
+                    if (emptyIndex >= 0) {
+                        targetRow = this.savedItems[emptyIndex];
+                        targetIndex = emptyIndex;
+                    } else {
+                        targetRow = this.createRow();
+                        this.savedItems.push(targetRow);
+                        targetIndex = this.savedItems.length - 1;
+                    }
+
+                    targetRow.fitemcode = matchedCode;
+                    this.hydrateRowFromMeta(targetRow, meta, true);
+                    targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(targetRow.uid);
+                    targetRow.fqty = 1;
+                    targetRow.fqtyInput = this.fmt(1);
+                    await this.applyInvoicePrice(targetRow);
+                }
+
+                this.onRowUpdated(targetIndex);
+
+                if (typeof window.toast?.success === 'function') {
+                    window.toast.success(`Produk "${meta.name || matchedCode}" berhasil ditambahkan.`);
+                }
+
+                if (inputElement) {
+                    inputElement.value = '';
+                    inputElement.focus();
+                }
+            },
+
             isUangMuka() {
                 const selectVal = (document.getElementById('ftypesales')?.value || document.querySelector('select[name="ftypesales"]')?.value || '').toString().trim();
                 const modelVal = (this.ftypesales ?? '').toString().trim();
@@ -3693,6 +3798,11 @@
                     this.ensureMinimumRows();
                     this.ensureTrailingRow();
                 }
+                window.addEventListener('scan-barcode', async (e) => {
+                    const rawBarcode = (e.detail?.barcode || '').toString().trim();
+                    if (!rawBarcode) return;
+                    await this.addProductByBarcode(rawBarcode, e.detail?.input);
+                });
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
                     passive: true
                 });

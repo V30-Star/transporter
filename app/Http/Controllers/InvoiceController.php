@@ -180,7 +180,9 @@ class InvoiceController extends Controller
             return [
                 $product->fprdcode => [
                     'fprdid' => $product->fprdid,
+                    'fprdcode' => $product->fprdcode,
                     'name' => $product->fprdname,
+                    'fbarcode' => trim((string) ($product->fbarcode ?? '')),
                     'default_unit' => $defaultUnit,
                     'units' => $units,
                     'stock' => $product->fminstock ?? 0,
@@ -206,12 +208,13 @@ class InvoiceController extends Controller
         return ($val !== null && is_numeric($val) && (float) $val > 0) ? (float) $val : 11.0;
     }
 
-    private function productSelectColumns(): array
+    protected function productSelectColumns(): array
     {
         return [
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fbarcode',
             'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',

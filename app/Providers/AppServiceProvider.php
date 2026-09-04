@@ -20,9 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (config('app.url')) {
-            \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        if ($url = config('app.url')) {
+            \Illuminate\Support\Facades\URL::forceRootUrl($url);
+            if (str_starts_with((string) $url, 'https://') || app()->environment('production')) {
+                \Illuminate\Support\Facades\URL::forceScheme('https');
+            }
         }
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
