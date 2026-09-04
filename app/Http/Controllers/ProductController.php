@@ -37,6 +37,30 @@ class ProductController extends Controller
         return in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
     }
 
+    protected function sanitizeNumeric($value): float
+    {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        $clean = preg_replace('/[^0-9,.-]/', '', (string) $value) ?? '';
+        if ($clean === '') {
+            return 0.0;
+        }
+
+        if (str_contains($clean, ',')) {
+            $clean = str_replace('.', '', $clean);
+            $clean = str_replace(',', '.', $clean);
+        } elseif (substr_count($clean, '.') > 1 || preg_match('/^\d{1,3}(\.\d{3})+$/', $clean)) {
+            $clean = str_replace('.', '', $clean);
+        }
+
+        return is_numeric($clean) ? (float) $clean : 0.0;
+    }
+
     protected function resolveProductDefaultHpp(Product $product): float
     {
         return match ((string) ($product->fsatuandefault ?? '1')) {
@@ -428,15 +452,6 @@ class ProductController extends Controller
                 $validated['fprdcode'] = $request->fprdcode;
             }
 
-            $sanitizeNumeric = function ($value) {
-                if ($value === null || $value === '') {
-                    return 0;
-                }
-                $clean = preg_replace('/[^0-9.]/', '', $value);
-
-                return (is_numeric($clean)) ? (float) $clean : 0;
-            };
-
             $numericFields = [
                 'fhpp',
                 'fhargajuallevel1',
@@ -448,10 +463,13 @@ class ProductController extends Controller
                 'fhargajual3level1',
                 'fhargajual3level2',
                 'fhargajual3level3',
+                'fqtykecil',
+                'fqtykecil2',
+                'fminstock',
             ];
 
             foreach ($numericFields as $field) {
-                $validated[$field] = $sanitizeNumeric($request->input($field));
+                $validated[$field] = $this->sanitizeNumeric($request->input($field));
             }
 
             $user = auth('sysuser')->user();
@@ -665,15 +683,6 @@ class ProductController extends Controller
             $validated['fprdcode'] = strtoupper($validated['fprdcode']);
             $validated['fprdname'] = strtoupper($validated['fprdname']);
 
-            $sanitizeNumeric = function ($value) {
-                if ($value === null || $value === '') {
-                    return 0;
-                }
-                $clean = preg_replace('/[^0-9.]/', '', $value);
-
-                return (is_numeric($clean)) ? (float) $clean : 0;
-            };
-
             $numericFields = [
                 'fhpp',
                 'fhargajuallevel1',
@@ -691,7 +700,7 @@ class ProductController extends Controller
             ];
 
             foreach ($numericFields as $field) {
-                $validated[$field] = $sanitizeNumeric($request->input($field));
+                $validated[$field] = $this->sanitizeNumeric($request->input($field));
             }
 
             if ($usageInfo['is_used']) {
