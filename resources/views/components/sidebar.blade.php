@@ -396,6 +396,21 @@
                     @endif
                 </ul>
 
+                {{-- Penjualan Retail --}}
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+
+                    @if ($hasSidebarPermission('createPenjualanRetail', 'updatePenjualanRetail', 'deletePenjualanRetail', 'viewPenjualanRetail'))
+                        <li>
+                            <a href="{{ route('penjualanretail.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-cart-shopping w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Penjualan Retail' }}</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+
                 {{-- Retur Penjualan --}}
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>

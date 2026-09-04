@@ -20,6 +20,7 @@ use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PenjualanRetailController;
 use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\LembarPenagihanController;
 use App\Http\Controllers\ListingFakturPembelianController;
@@ -542,6 +543,25 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
             ->name('invoice.items');
         Route::get('/invoice/pickable', [InvoiceController::class, 'pickable'])
             ->name('invoice.pickable');
+
+        Route::get('/penjualanretail', [PenjualanRetailController::class, 'index'])->name('penjualanretail.index');
+        Route::post('/penjualanretail', [PenjualanRetailController::class, 'store'])->name('penjualanretail.store');
+        Route::get('/penjualanretail/create', [PenjualanRetailController::class, 'create'])->name('penjualanretail.create');
+        Route::get('/penjualanretail/product-history', [PenjualanRetailController::class, 'productHistory'])->name('penjualanretail.product-history');
+        Route::get('/penjualanretail/price-info', [PenjualanRetailController::class, 'priceInfo'])->name('penjualanretail.price-info');
+        Route::post('/penjualanretail/credit-check', [PenjualanRetailController::class, 'creditCheck'])->name('penjualanretail.credit-check');
+        Route::get('/penjualanretail/{ftranmtid}/view', [PenjualanRetailController::class, 'view'])->where('ftranmtid', '.*')->name('penjualanretail.view');
+        Route::get('/penjualanretail/{ftranmtid}/edit', [PenjualanRetailController::class, 'edit'])->where('ftranmtid', '.*')->name('penjualanretail.edit');
+        Route::get('/penjualanretail/{ftranmtid}/delete', [PenjualanRetailController::class, 'delete'])->name('penjualanretail.delete');
+        Route::patch('/penjualanretail/{ftranmtid}', [PenjualanRetailController::class, 'update'])->name('penjualanretail.update');
+        Route::delete('/penjualanretail/{ftranmtid}', [PenjualanRetailController::class, 'destroy'])->name('penjualanretail.destroy');
+        Route::get('/penjualanretail/{fstockmtno}/print', [PenjualanRetailController::class, 'print'])
+            ->where('fstockmtno', '.*')
+            ->name('penjualanretail.print');
+        Route::get('/penjualanretail/{id}/items', [PenjualanRetailController::class, 'items'])
+            ->name('penjualanretail.items');
+        Route::get('/penjualanretail/pickable', [PenjualanRetailController::class, 'pickable'])
+            ->name('penjualanretail.pickable');
 
         Route::get('/lembarpenagihan', [LembarPenagihanController::class, 'index'])->name('lembarpenagihan.index');
         Route::post('/lembarpenagihan', [LembarPenagihanController::class, 'store'])->name('lembarpenagihan.store');

@@ -1,0 +1,4199 @@
+@extends('layouts.app')
+
+@section('title', $action === 'delete' ? 'Faktur Penjualan - Delete' : ($action === 'view' ? 'Faktur Penjualan - View' :
+    'Penjualan Retail - Edit'))
+
+@section('content')
+    @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updateInvoice', $permissions, true);
+        $canDeletePermission = in_array('deleteInvoice', $permissions, true);
+    @endphp
+    <style>
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #ccc;
+            transition: .4s;
+            border-radius: 34px
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 26px;
+            width: 26px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background: #fff;
+            transition: .4s
+        }
+
+        input:checked+.slider {
+            background: #4CAF50
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px)
+        }
+
+        [x-cloak] {
+            display: none !important
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Hilangkan panah di input number (Firefox) */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .invoice-detail-table th,
+        .invoice-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .invoice-detail-table input:not([type="hidden"]),
+        .invoice-detail-table select,
+        .invoice-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .invoice-detail-table .rounded-l.border,
+        .invoice-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .invoice-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        .btn-desc-filled {
+            background-color: #16a34a !important;
+            color: #ffffff !important;
+            border-color: #15803d !important;
+        }
+
+        .btn-desc-filled:hover {
+            background-color: #15803d !important;
+            color: #ffffff !important;
+        }
+
+        .btn-desc-filled svg {
+            color: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .btn-desc-empty {
+            background-color: #ffffff !important;
+            color: #6b7280 !important;
+            border-color: #d1d5db !important;
+        }
+
+        .btn-desc-empty:hover {
+            background-color: #f9fafb !important;
+        }
+    </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">{{ 'Data Belum Bisa Disimpan' }}</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ 'Tolong perbaiki bagian ini dulu:' }}
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+    @php
+        $usageLocked = !empty($isUsageLocked);
+        $oldInvoiceItemCodes = old('fitemcode', []);
+        $oldInvoiceItemNames = old('fitemname', []);
+        $oldInvoiceUnits = old('fsatuan', []);
+        $oldInvoiceRefCodes = old('frefcode', []);
+        $oldInvoiceRefNos = old('frefdtno', []);
+        $oldInvoiceNouRefs = old('fnouref', []);
+        $oldInvoiceRefPrs = old('frefpr', []);
+        $oldInvoiceRefSos = old('frefso', []);
+        $oldInvoiceRefSrjs = old('frefsrj', []);
+        $oldInvoiceNoAcaks = old('fnoacak', []);
+        $oldInvoiceRefNoAcaks = old('frefnoacak', []);
+        $oldInvoiceQtys = old('fqty', []);
+        $oldInvoiceTerimas = old('fterima', []);
+        $oldInvoicePrices = old('fprice', []);
+        $oldInvoiceDiscs = old('fdisc', []);
+        $oldInvoiceTotals = old('ftotal', []);
+        $oldInvoiceDescs = old('fdesc', []);
+        $oldInvoiceKetdts = old('fketdt', []);
+        $oldInvoiceMaxQtys = old('fmaxqty', []);
+        $initialEditInvoiceItems = [];
+
+        $oldInvoiceIndexes = array_keys(is_array($oldInvoiceItemCodes) ? $oldInvoiceItemCodes : []);
+
+        foreach ($oldInvoiceIndexes as $index) {
+            $itemCode = $oldInvoiceItemCodes[$index] ?? '';
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldInvoiceItemNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldInvoiceUnits[$index] ?? ''));
+            $refSo = trim((string) ($oldInvoiceRefSos[$index] ?? ''));
+            $refSrj = trim((string) ($oldInvoiceRefSrjs[$index] ?? ''));
+            $refDtNo = trim((string) ($oldInvoiceRefNos[$index] ?? ''));
+
+            $price = (float) ($oldInvoicePrices[$index] ?? 0);
+
+            $initialEditInvoiceItems[] = [
+                'uid' => 'old-invoice-edit-' . $index,
+                'formIndex' => (int) $index,
+                'is_restored_old' => true,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'frefcode' => trim((string) ($oldInvoiceRefCodes[$index] ?? '')),
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefdtno' => $refDtNo,
+                'frefno_display' => $refSrj !== '' ? $refSrj : ($refSo !== '' ? $refSo : $refDtNo),
+                'fnouref' => trim((string) ($oldInvoiceNouRefs[$index] ?? '')),
+                'frefpr' => trim((string) ($oldInvoiceRefPrs[$index] ?? '')),
+                'frefso' => $refSo,
+                'frefsrj' => $refSrj,
+                'fnoacak' => trim((string) ($oldInvoiceNoAcaks[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldInvoiceRefNoAcaks[$index] ?? '')),
+                'fqty' => (float) ($oldInvoiceQtys[$index] ?? 0),
+                'fterima' => (float) ($oldInvoiceTerimas[$index] ?? 0),
+                'fprice' => $price,
+                'ref_price' => (float) (old('fref_price', [])[$index] ?? $price),
+                'maxprice' => (float) (old('fmaxprice', [])[$index] ?? $price),
+                'source_price' => (float) (old('fsource_price', [])[$index] ?? $price),
+                'fpriceInput' => number_format($price, 2, ',', '.'),
+                'fdisc' => $oldInvoiceDiscs[$index] ?? 0,
+                'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
+                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? ($oldInvoiceQtys[$index] ?? 0))),
+                'maxqty_unit' => 'kecil',
+            ];
+        }
+
+        $nextInvoiceItemIndex = empty($oldInvoiceIndexes)
+            ? count($savedItems ?? [])
+            : max(array_map('intval', $oldInvoiceIndexes)) + 1;
+
+        $invoiceTempoDays = old('ftempohr');
+        if ($invoiceTempoDays === null) {
+            $invoiceDate = old('fsodate', $invoice->fsodate ?? null);
+            $invoiceDueDate = old('fjatuhtempo', $invoice->fjatuhtempo ?? null);
+
+            if ($invoiceDate && $invoiceDueDate) {
+                try {
+                    $invoiceTempoDays = (int) \Carbon\Carbon::parse($invoiceDate)
+                        ->startOfDay()
+                        ->diffInDays(\Carbon\Carbon::parse($invoiceDueDate)->startOfDay(), false);
+                    $invoiceTempoDays = max(0, $invoiceTempoDays);
+                } catch (\Throwable $e) {
+                    $invoiceTempoDays = max(0, (int) ($invoice->ftempohr ?? 0));
+                }
+            } else {
+                $invoiceTempoDays = max(0, (int) ($invoice->ftempohr ?? 0));
+            }
+        }
+    @endphp
+    @if ($usageLocked)
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+            x-transition.opacity>
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div class="relative bg-white w-[92vw] max-w-xl rounded-2xl shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-bold text-orange-700">
+                            {{ 'Faktur Penjualan' }}
+                            {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
+                        </h3>
+                        <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
+                    </div>
+                    <button type="button" @click="open = false"
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
+                        title="{{ 'Tutup' }}">
+                        <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
+                    </button>
+                </div>
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end">
+                    <button type="button" @click="open = false"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
+                        <x-heroicon-o-arrow-left class="w-5 h-5" />
+                        {{ 'Tutup' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+    <div>
+        @if ($action === 'delete')
+            {{-- ─── CARD 1: Identitas (Delete/View) ──────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
+
+                        {{-- SO# --}}
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-bold mb-1">
+                                Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="fsono"
+                                    value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase"
+                                    :disabled="autoCode"
+                                    :required="!autoCode"
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                    :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                    oninput="this.value = this.value.toUpperCase()">
+
+                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
+                                    <span class="ml-1.5">Auto</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div x-data="{ autoTax: {{ trim((string) $invoice->ftaxno) === trim((string) $invoice->fsono) ? 'true' : 'false' }} }">
+                            <label class="block text-xs font-bold mb-1">Faktur Pajak#</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+
+                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600">
+                                    <input type="checkbox" x-model="autoTax" disabled>
+                                    <span class="ml-1.5">Auto</span>
+                                </label>
+                            </div>
+                            @error('ftaxno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Type</label>
+                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales ?? 0) }}"
+                                disabled
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftypesales') border-red-500 @enderror">
+                                <option value="0">Penjualan</option>
+                                <option value="1">Uang Muka</option>
+                            </select>
+                            <input type="hidden" name="ftypesales" :value="ftypesales">
+                            @error('ftypesales')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Tanggal --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Tanggal</label>
+                            <input disabled type="date" name="fsodate"
+                                value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
+                            @error('fsodate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Customer --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Customer</label>
+                            <div class="flex">
+                                <div class="relative flex-1" for="modal_filter_customer_id_readonly">
+                                    <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($customers as $customer)
+                                            <option value="{{ $customer->fcustomercode }}"
+                                                data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
+                                                {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
+                                    value="{{ old('fcustno', $invoice->fcustno) }}">
+                            </div>
+                            @error('fcustno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                                                    <div>
+                                <label class="block text-xs font-bold mb-1">Ref.PO</label>
+                                <input type="text" name="frefno" id="invoiceFrefno"
+                                    value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+                                @error('frefno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                           {{-- Salesman --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Salesman</label>
+                            <div class="flex">
+                                <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
+                                    <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($salesmans as $salesman)
+                                            <option value="{{ $salesman->fsalesmancode }}"
+                                                {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                        @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
+                                    value="{{ old('fsalesman', $invoice->fsalesman) }}">
+                            </div>
+                            @error('fsalesman')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                           <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                readonly
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                         <div>
+                                <label class="block text-xs font-bold mb-1">Kode FP</label>
+                                <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                    value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+                                @error('fkodefp')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                function calculateDueDate() {
+                                    const poDate = document.getElementById('fsodate').value;
+                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                    if (poDate) {
+                                        const date = new Date(poDate);
+                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                        date.setDate(date.getDate() + tempoDays);
+
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+
+                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                    } else {
+                                        document.getElementById('fjatuhtempo').value = '';
+                                    }
+                                }
+
+                                // Event listeners
+                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                if (!@json(old('fjatuhtempo') !== null)) {
+                                    calculateDueDate();
+                                }
+                            });
+                        </script>
+                                <div class="flex flex-col">
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                    <textarea name="fket" rows="3"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                    @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <label class="block text-xs font-bold mb-1">Catatan Internal</label>
+                                    <textarea name="fketinternal" id="fketinternal" rows="3"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
+                                        placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                    @error('fketinternal')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ─── CARD 2: Detail Item (Delete/View) ──────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+
+                        <div class="overflow-auto border rounded">
+                            <table class="invoice-detail-table min-w-full text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2 text-left w-10">#</th>
+                                        <th class="p-2 text-left w-42">Kode Produk</th>
+                                        <th class="p-2 text-left w-96">Nama Produk</th>
+                                        <th class="p-2 text-left w-36">Satuan</th>
+                                        <th class="p-2 text-left w-36">No.Ref</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                    </tr>
+                                </thead>
+
+                                <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                    <tbody>
+                                        <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
+                                        <tr class="border-t border-b align-top">
+                                            <td class="p-2" x-text="i + 1"></td>
+                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2 text-gray-800">
+                                                <div x-text="it.fitemname"></div>
+                                                <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
+                                                <div x-show="it.fdesc" class="mt-1 text-xs">
+                                                    <span
+                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
+                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <template x-if="it.units && it.units.length > 1">
+                                                    <select
+                                                        class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                        x-model="it.fsatuan" @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)">
+                                                        <template x-for="u in it.units" :key="u">
+                                                            <option :value="u" :selected="u === it.fsatuan"
+                                                                x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="!(it.units && it.units.length > 1)">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                        x-text="it.fsatuan || '-'"></div>
+                                                </template>
+                                            </td>
+                                            <td class="p-2" x-text="it.frefno_display || it.frefcode || '-'"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
+                                            <td class="p-2 text-right"
+                                                x-text="it.fdisc && it.fdisc.toString().includes('+') ? it.fdisc : fmt(it.fdisc)">
+                                            </td>
+                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+                                        </tr>
+
+                                        <!-- Hidden inputs row -->
+                                        <tr class="hidden">
+                                            <td colspan="9">
+                                                <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
+                                                    :value="it.fitemcode">
+                                                <input type="hidden" :name="`fitemname[${it.formIndex}]`"
+                                                    :value="it.fitemname">
+                                                <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
+                                                    :value="it.fsatuan">
+                                                <input type="hidden" :name="`frefcode[${it.formIndex}]`"
+                                                    :value="it.frefcode">
+                                                <input type="hidden" :name="`fnouref[${it.formIndex}]`"
+                                                    :value="it.fnouref">
+                                                <input type="hidden" :name="`frefpr[${it.formIndex}]`"
+                                                    :value="it.frefpr">
+                                                <input type="hidden" :name="`frefso[${it.formIndex}]`"
+                                                    :value="it.frefso">
+                                                <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
+                                                    :value="it.frefsrj">
+                                                <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
+                                                    :value="it.fnoacak">
+                                                <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
+                                                    :value="it.frefnoacak">
+                                                <input type="hidden" :name="`fqty[${it.formIndex}]`"
+                                                    :value="it.fqty">
+                                                <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
+                                                    :value="it.maxqty">
+                                                <input type="hidden" :name="`fref_price[${it.formIndex}]`"
+                                                    :value="it.ref_price || it.maxprice || it.source_price || 0">
+                                                <input type="hidden" :name="`fterima[${it.formIndex}]`"
+                                                    :value="it.fterima">
+                                                <input type="hidden" :name="`fprice[${it.formIndex}]`"
+                                                    :value="it.fprice">
+                                                <input type="hidden" :name="`fdisc[${it.formIndex}]`"
+                                                    :value="it.fdisc">
+                                                <input type="hidden" :name="`ftotal[${it.formIndex}]`"
+                                                    :value="it.ftotal">
+                                                <input type="hidden" :name="`fdesc[${it.formIndex}]`"
+                                                    :value="it.fdesc">
+                                                <input type="hidden" :name="`fketdt[${it.formIndex}]`"
+                                                    :value="it.fketdt">
+                                            </td>
+                                        </tr>
+
+                                        <!-- TIDAK ADA TEXTAREA DI SINI! -->
+                                    </tbody>
+                                </template>
+                                <!-- ROW EDIT UTAMA -->
+                                <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
+                                    <!-- # -->
+                                    <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
+
+                                    <!-- Kode Produk -->
+                                    <td class="p-2">
+                                        <div class="flex">
+                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                x-ref="editCode" x-model.trim="editRow.fitemcode"
+                                                @input="onCodeTypedRow(editRow)"
+                                                @keydown.enter.prevent="handleEnterOnCode('edit')">
+                                        </div>
+                                    </td>
+
+                                    <!-- Nama Produk (readonly) -->
+                                    <td class="p-2">
+                                        <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                            x-text="editRow.fitemname"></div>
+                                    </td>
+
+                                    <!-- Satuan -->
+                                    <td class="p-2">
+                                        <template x-if="editRow.units.length > 1">
+                                            <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
+                                                x-model="editRow.fsatuan"
+                                                @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                <template x-for="u in editRow.units" :key="u">
+                                                    <option :value="u" :selected="u === editRow.fsatuan"
+                                                        x-text="u"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                        <template x-if="editRow.units.length <= 1">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="editRow.fsatuan || '-'" disabled>
+                                        </template>
+                                    </td>
+
+                                    <!-- Ref.PR# -->
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            :value="editRow.frefcode" disabled placeholder="Ref PR">
+                                    </td>
+
+                                    <!-- Qty -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            x-ref="editQty" x-model.number="editRow.fqty"
+                                            @input="
+                                                        recalc(editRow);
+                                                    "
+                                            @blur="
+                                                        enforceQtyRow(editRow);
+                                                        recalc(editRow);
+                                                    "
+                                            @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                            <span x-show="editRow.fitemcode" x-html="formatStockLimit(editRow)"></span>
+                                        </div>
+                                    </td>
+
+                                    <!-- @ Harga -->
+                                    <td class="p-2 text-right">
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-28 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" x-ref="editPrice"
+                                            x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
+                                            @blur="blurPriceInput(editRow)"
+                                            @keydown.enter.prevent="$refs.editDisc?.focus()"
+                                            :disabled="isPriceDisabled(editRow) || '{{ $action }}' === 'view'">
+                                    </td>
+
+                                    <!-- Disc.% -->
+                                    <td class="p-2 text-right">
+                                        <input type="text"
+                                            class="border rounded px-2 py-1 w-24 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                            x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
+                                            @keydown.enter.prevent="applyEdit()" placeholder="10+2"
+                                            {{ $action === 'view' ? 'disabled' : '' }}>
+                                    </td>
+
+                                    <!-- Total Harga (readonly) -->
+                                    <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
+                                </tr>
+
+                                <!-- ROW EDIT DESC -->
+                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                </tr>
+
+                                <!-- ROW DRAFT DESC -->
+                                <tr class="border-b">
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
+                        <div x-data="prhFormModal()">
+                            <!-- Trigger: Add PR dari panel kanan -->
+                            <div class="mt-3 flex justify-between items-start gap-4">
+                                <div class="w-full flex justify-start mb-3">
+                                </div>
+                                <!-- Kanan: Panel Totals -->
+                                <div class="w-1/2">
+                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Harga</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                            </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-gray-800">Discount</span>
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="fdiscpersen" x-model.number="headerDiscPercent" disabled
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                 <span class="text-gray-500">%</span>
+                                                <span class="flex-1"></span>
+                                                <span class="font-bold text-right"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
+
+                                        <div class="flex items-center justify-between gap-6">
+                                            <!-- Checkbox -->
+                                            <div class="flex items-center">
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                    x-model="includePPN" disabled
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                    <span class="font-bold">PPN</span>
+                                                </label>
+                                            </div>
+
+                                            <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                            <input type="hidden" name="fincludeppn" value="0">
+
+                                            <!-- Input Rate + Nominal (kanan) -->
+                                                <input disabled type="number" min="0" max="100"
+                                                    step="0.01" x-model.number="ppnRate" readonly
+                                                    :disabled="!(includePPN || fapplyppn)"
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                 <span class="text-gray-500">%</span>
+                                                        <span class="flex-1"></span>
+                                                        <span class="font-bold"
+                                                            x-text="rupiah(ppnAmount)"></span>
+                                                        </div>
+                                        <div class="border-t my-1"></div>
+
+                                        <div class="flex items-center justify-between text-base">
+                                                <span class="font-extrabold text-gray-900">Grand Total</span>
+                                                <span class="font-extrabold text-blue-700 text-lg"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
+                                    </div>
+
+                                    <!-- Hidden inputs for submit -->
+                                    <input type="hidden" name="famountgross" :value="totalHarga">
+                                    <input type="hidden" name="" :value="ppnAmount">
+                                    <input type="hidden" name="famountso" :value="grandTotal">
+                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <input type="hidden" name="fdiscpersen" :value="headerDiscPercent">
+                                </div>
+                            </div>
+
+                            <!-- MODAL DESC (di dalam itemsTable) -->
+                            <div x-show="showDescModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                    </div>
+
+                                    <div class="px-5 py-4 space-y-4">
+                                        <div>
+                                            <div class="mb-1 flex items-center justify-between gap-3">
+                                                <div class="text-sm text-gray-700">Nama Produk</div>
+                                                <button type="button" @click="copyDescName()"
+                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                x-text="descItemName || '-'"></div>
+                                        </div>
+                                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                            placeholder="Tulis deskripsi item di sini..."></textarea>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeDesc()"
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            Batal
+                                        </button>
+                                        <button type="button" @click="applyDesc()"
+                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                            Simpan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="itemsCount" :value="savedItems.length">
+                    </div> {{-- End itemsTable --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
+
+                        {{-- MODAL ERROR: belum ada item --}}
+                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
+                                </div>
+
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
+                                        Item” terlebih dahulu.
+                                    </p>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="showNoItems=false"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    @php
+                        $canApproval = in_array(
+                            'approveFakturPenjualan',
+                            explode(',', session('user_restricted_permissions', '')),
+                        );
+                    @endphp
+
+                    @if ($canApproval)
+                        <div class="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                            <div class="font-semibold">Status Persetujuan Kredit</div>
+                            <div class="mt-1">
+                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: ' . $invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
+                            </div>
+                        </div>
+                    @endif
+
+            {{-- ─── CARD 3: Aksi (Delete/View) ──────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 flex items-center justify-end gap-3">
+                        @if ($canDeletePermission)
+                            @if ($usageLocked)
+                                <button type="button" disabled title="{{ $usageLockMessage }}"
+                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                    <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" />
+                                    Hapus
+                                </button>
+                            @else
+                                <button type="button" onclick="showDeleteModal()"
+                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                    Hapus
+                                </button>
+                            @endif
+                        @endif
+                        <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
+                            class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Kembali
+                        </button>
+                </div>
+            </div>
+
+        {{-- ============================================ --}}
+        {{-- MODE EDIT / VIEW: FORM                      --}}
+        {{-- ============================================ --}}
+        @else
+            <form id="invoiceForm" action="{{ route('penjualanretail.update', parameters: $invoice->ftranmtid) }}"
+                method="POST" data-form-draft="true"
+                data-draft-key="penjualanretail:edit:{{ $invoice->ftranmtid }}"
+                data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+                x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, '{{ $action }}' === 'view')">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
+                    value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
+                <input type="hidden" name="fuseracc" id="invoiceUserAcc"
+                    value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
+
+                {{-- ─── CARD 1: Identitas Penjualan Retail (Edit/View) ─ --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
+                        <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                        disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
+
+                                {{-- SO# --}}
+                                <div x-data="{ autoCode: true }">
+                                    <label class="block text-xs font-bold mb-1">
+                                        Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
+                                    </label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" name="fsono"
+                                            value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
+                                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            :disabled="autoCode || '{{ $action }}' === 'view'"
+                                            :required="!autoCode"
+                                            :class="(autoCode || '{{ $action }}' === 'view') ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                            :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                            oninput="this.value = this.value.toUpperCase()">
+
+                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
+                                            <span class="ml-1.5">Auto</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                @php
+                                    $isAutoTax =
+                                        trim((string) ($invoice->ftaxno ?? '')) ===
+                                        trim((string) ($invoice->fsono ?? ''));
+                                @endphp
+                                <div x-data="{ autoTax: {{ old('_token') !== null ? (old('ftax_auto') == '1' ? 'true' : 'false') : ($isAutoTax ? 'true' : 'false') }} }">
+                                    <label class="block text-xs font-bold mb-1">Faktur Pajak#</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" id="ftaxno" name="ftaxno"
+                                            value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                            :disabled="autoTax || '{{ $action }}'
+                                            === 'view'"
+                                            :class="(autoTax || '{{ $action }}'
+                                                === 'view') ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
+                                            'bg-white'"
+                                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftaxno') border-red-500 @enderror">
+
+                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                            <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
+                                                x-model="autoTax"
+                                                @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()"
+                                                :disabled="'{{ $action }}'
+                                                === 'view'">
+                                            <span class="ml-1.5">Auto</span>
+                                        </label>
+                                    </div>
+                                    @error('ftaxno')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Type</label>
+                                    <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
+                                        x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftypesales') border-red-500 @enderror">
+                                        <option value="0">Penjualan</option>
+                                        <option value="1">Uang Muka</option>
+                                    </select>
+                                    @error('ftypesales')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Tanggal --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
+                                    <input type="date" id="fsodate" name="fsodate"
+                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
+                                    @error('fsodate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Customer --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Customer</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1">
+                                            <select id="modal_filter_customer_id" name="filter_customer_id"
+                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                                disabled>
+                                                <option value=""></option>
+                                                @foreach ($customers as $customer)
+                                                    <option value="{{ $customer->fcustomercode }}"
+                                                        data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
+                                                        data-fkodefp="{{ $customer->fkodefp }}"
+                                                        data-fsalesman="{{ $customer->fsalesman }}"
+                                                        {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if ($action !== 'view')
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                    aria-label="Browse Customer"
+                                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                            value="{{ old('fcustno', $invoice->fcustno) }}">
+                                        @if ($action !== 'view')
+                                            <button type="button"
+                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                title="Browse Customer">
+                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            </button>
+                                            @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                                <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Tambah Customer">
+                                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                                </a>
+                                            @endif
+                                        @endif
+                                    </div>
+                                    @if (($action ?? '') !== 'view')
+                                    <div id="customerAdvanceWarningBox" class="hidden my-2">
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-yellow-700" id="customerAdvanceWarningText"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @error('fcustno')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+ <div>
+                                        <label class="block text-xs font-bold mb-1">Ref.PO</label>
+                                        <input type="text" name="frefno" id="invoiceFrefno"
+                                            value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefno') border-red-500 @enderror">
+                                        @error('frefno')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                              
+                                {{-- Salesman --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Salesman</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1">
+                                            <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                                disabled>
+                                                <option value=""></option>
+                                                @foreach ($salesmans as $salesman)
+                                                    <option value="{{ $salesman->fsalesmancode }}"
+                                                        {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                        {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if ($action !== 'view')
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                    aria-label="Browse Salesman"
+                                                    @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                            value="{{ old('fsalesman', $invoice->fsalesman) }}">
+                                        @if ($action !== 'view')
+                                            <button type="button"
+                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                title="Browse Salesman">
+                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            </button>
+                                            @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
+                                                <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Tambah Salesman">
+                                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                                </a>
+                                            @endif
+                                        @endif
+                                    </div>
+                                    @error('fsalesman')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Barcode --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Barcode</label>
+                                    <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed"
+                                        placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                                        {{ $action === 'view' ? 'disabled' : '' }}>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                        <input type="number" id="ftempohr" name="ftempohr"
+                                            value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                            placeholder="Masukkan jumlah hari">
+                                        @error('ftempohr')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                            value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                            readonly
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                        @error('fjatuhtempo')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                                                    <div>
+                                        <label class="block text-xs font-bold mb-1">Kode FP</label>
+                                        <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                            value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
+                                        @error('fkodefp')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        function calculateDueDate() {
+                                            const poDate = document.getElementById('fsodate').value;
+                                            const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                            if (poDate) {
+                                                const date = new Date(poDate);
+                                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                                date.setDate(date.getDate() + tempoDays);
+
+                                                const year = date.getFullYear();
+                                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                const day = String(date.getDate()).padStart(2, '0');
+
+                                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                            } else {
+                                                document.getElementById('fjatuhtempo').value = '';
+                                            }
+                                        }
+
+                                        // Event listeners
+                                        document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                        document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                        if (!@json(old('fjatuhtempo') !== null)) {
+                                            calculateDueDate();
+                                        }
+                                    });
+                                </script>
+
+                                        <div class="flex flex-col">
+                                            <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                            <textarea name="fket" rows="3"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                            @error('fket')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="flex flex-col">
+                                            <label class="block text-xs font-bold mb-1">Catatan Internal</label>
+                                            <textarea name="fketinternal" id="fketinternal" rows="3"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
+                                                placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                            @error('fketinternal')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+
+                {{-- ─── CARD 2: Detail Item (Edit/View) ────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                    </div>
+                    <div class="p-4">
+                        <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+
+                                <div class="overflow-auto border rounded">
+                                    <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
+                                        data-skip-auto-detail-style="true">
+                                        <colgroup>
+                                            <col style="width:2%;">
+                                            <col style="width:16%;">
+                                            <col style="width:{{ $action === 'view' ? '28%' : '25%' }};">
+                                            <col style="width:8%;">
+                                            <col style="width:13%;">
+                                            <col style="width:8%;">
+                                            <col style="width:9%;">
+                                            <col style="width:6%;">
+                                            <col style="width:10%;">
+                                            @if ($action !== 'view')
+                                                <col style="width:3%;">
+                                            @endif
+                                        </colgroup>
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="p-2 text-left w-10">#</th>
+                                                <th class="p-2 text-left w-42">Kode Produk</th>
+                                                <th class="p-2 text-left w-96">Nama Produk</th>
+                                                <th class="p-2 text-left w-36">Satuan</th>
+                                                <th class="p-2 text-left w-36">No.Ref</th>
+                                                <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                                <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
+                                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                                @if ($action !== 'view')
+                                                    <th class="p-2 text-center w-28">Aksi</th>
+                                                @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(it, i) in savedItems" :key="it.uid">
+                                                <tr class="border-t align-top">
+                                                    <td class="p-2" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                                x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)"
+                                                                {{ $action === 'view' ? 'disabled' : '' }}>
+                                                            @if ($action !== 'view')
+                                                                <button type="button" @click="openBrowseFor(i)"
+                                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                    title="Cari Produk">
+                                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc(i)"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                                :class="it.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
+                                                                title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <template x-if="it.units && it.units.length > 1">
+                                                            <select
+                                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                                :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                                @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)"
+                                                                {{ $action === 'view' ? 'disabled' : '' }}>
+                                                                <template x-for="u in it.units" :key="u">
+                                                                    <option :value="u"
+                                                                        :selected="u === it.fsatuan" x-text="u">
+                                                                    </option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="!(it.units && it.units.length > 1)">
+                                                            <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                                x-text="it.fsatuan || '-'"></div>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <input type="text"
+                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
+                                                                :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || it.frefcode || '')"
+                                                                disabled>
+                                                            @if ($action !== 'view')
+                                                                <button type="button" @click="openProductHistory(it)"
+                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                    title="Riwayat produk / Uang Muka">
+                                                                    <x-heroicon-o-clock class="w-4 h-4" />
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text" inputmode="decimal"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                            :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                            @focus="activeRow = it.uid; focusQtyInput(it); $event.target.select()"
+                                                            @input="onQtyInput(it); onRowUpdated(i)"
+                                                            @blur="blurQtyInput(it); onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowPrice(i)"
+                                                            {{ $action === 'view' ? 'disabled' : '' }}>
+                                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                            <span x-show="it.fitemcode"
+                                                                x-html="formatStockLimit(it)"></span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                         <input type="text" inputmode="decimal"
+                                                             class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                             :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                                             @blur="activeRow = null; blurPriceInput(it)"
+                                                             @input="onPriceInput(it); onRowUpdated(i)"
+                                                             @keydown.enter.prevent="focusRowDisc(i)"
+                                                             :disabled="isPriceDisabled(it) || '{{ $action }}' === 'view'">
+                                                     </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                            :id="'disc_row_' + i"
+                                                            :value="normalizeDiscountValue(it.fdisc)"
+                                                            @focus="activeRow = it.uid; $event.target.select()"
+                                                            @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                            @input="it.fdisc = $event.target.value; onRowUpdated(i)"
+                                                            @keydown.enter.prevent="$event.target.blur()"
+                                                            {{ $action === 'view' ? 'disabled' : '' }}>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                            :value="fmt(it.ftotal)" disabled>
+                                                    </td>
+                                                    @if ($action !== 'view')
+                                                        <td class="p-2 text-center">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                                title="Hapus baris">-</button>
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="hidden">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                        <div>
+                                            <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
+                                                :value="it.fitemcode">
+                                            <input type="hidden" :name="`fitemname[${it.formIndex}]`"
+                                                :value="it.fitemname">
+                                            <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
+                                                :value="it.fsatuan">
+                                            <input type="hidden" :name="`frefdtno[${it.formIndex}]`"
+                                                :value="it.frefdtno">
+                                            <input type="hidden" :name="`frefcode[${it.formIndex}]`"
+                                                :value="it.frefcode">
+                                            <input type="hidden" :name="`fnouref[${it.formIndex}]`"
+                                                :value="it.fnouref">
+                                            <input type="hidden" :name="`frefpr[${it.formIndex}]`"
+                                                :value="it.frefpr">
+                                            <input type="hidden" :name="`frefso[${it.formIndex}]`"
+                                                :value="it.frefso">
+                                            <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
+                                                :value="it.frefsrj">
+                                            <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
+                                                :value="it.fnoacak">
+                                            <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
+                                                :value="it.frefnoacak">
+                                            <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
+                                            <input type="hidden" :name="`fterima[${it.formIndex}]`"
+                                                :value="it.fterima">
+                                            <input type="hidden" :name="`fprice[${it.formIndex}]`"
+                                                :value="it.fprice">
+                                            <input type="hidden" :name="`fdisc[${it.formIndex}]`"
+                                                :value="it.fdisc">
+                                            <input type="hidden" :name="`ftotal[${it.formIndex}]`"
+                                                :value="it.ftotal">
+                                            <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
+                                                :value="it.maxqty">
+                                            <input type="hidden" :name="`fref_price[${it.formIndex}]`"
+                                                :value="it.ref_price || it.maxprice || it.source_price || 0">
+                                            <input type="hidden" :name="`fdesc[${it.formIndex}]`"
+                                                :value="it.fdesc">
+                                            <input type="hidden" :name="`fketdt[${it.formIndex}]`"
+                                                :value="it.fketdt">
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="mt-3 flex justify-between items-start gap-4">
+                                    <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                                        @if ($action !== 'view')
+                                            <div x-data="srjFormModal()" class="mt-3">
+                                                <button type="button" @click="openSrjModal()"
+                                                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    Add SRJ
+                                                </button>
+
+                                                <div x-show="showSrjModal" x-cloak x-transition.opacity
+                                                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                        @click="closeSrjModal()">
+                                                    </div>
+
+                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-[100rem] flex flex-col overflow-hidden"
+                                                        style="height: 82vh;">
+                                                        <div
+                                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
+                                                            <div>
+                                                                <h3 class="text-xl font-bold text-gray-800">
+                                                                    {{ 'Pilih Surat Jalan' }}</h3>
+                                                            </div>
+                                                            <button type="button" @click="closeSrjModal()"
+                                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                                {{ 'Tutup' }}
+                                                            </button>
+                                                        </div>
+
+                                                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                            <div id="srjTableControls"></div>
+                                                        </div>
+
+                                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                            style="min-height: 0;">
+                                                            <div class="bg-white">
+                                                                <table id="srjTable"
+                                                                    class="min-w-full text-sm display nowrap stripe hover"
+                                                                    style="width:100%">
+                                                                    <thead class="sticky top-0 z-10">
+                                                                        <tr
+                                                                            class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Cabang' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'No. SRJ' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Tanggal' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Customer' }}</th>
+                                                                            <th
+                                                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Aksi' }}</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                            <div id="srjTablePagination"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                    <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
+                                                    </div>
+                                                    <div
+                                                        class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                        <div
+                                                            class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                                {{ 'Item Duplikat Surat Jalan' }}</h3>
+                                                        </div>
+                                                        <div class="px-5 py-4">
+                                                            <p class="text-sm text-gray-700 mb-3">
+                                                                {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
+                                                                    x-text="dupCount"
+                                                                    class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
+                                                            </p>
+                                                            <div
+                                                                class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
+                                                                <template x-for="d in dupSample">
+                                                                    <div class="p-2 text-xs border-b border-amber-100">
+                                                                        <span x-text="d.fitemcode"
+                                                                            class="font-bold"></span> -
+                                                                        <span x-text="d.fitemname"></span>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                        <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
+                                                            <button type="button" @click="closeDupModal()"
+                                                                class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
+                                                            <button type="button" @click="confirmAddUniques()"
+                                                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div x-data="soFormModal()" class="mt-3">
+                                                <button type="button" @click="openModal()"
+                                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    {{ 'Add SO' }}
+                                                </button>
+
+                                                <div x-show="show" x-cloak x-transition.opacity
+                                                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                        @click="closeModal()">
+                                                    </div>
+
+                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                                        style="height: 85vh;">
+                                                        <div
+                                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
+                                                            <div>
+                                                                <h3 class="text-xl font-bold text-gray-800">
+                                                                    {{ 'Pilih Sales Order' }}</h3>
+                                                                <p class="text-sm text-gray-500 mt-0.5">
+                                                                    {{ 'Pilih Sales Order yang diinginkan' }}</p>
+                                                            </div>
+                                                            <button type="button" @click="closeModal()"
+                                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                                {{ 'Tutup' }}
+                                                            </button>
+                                                        </div>
+
+                                                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                            <div id="poTableControls"></div>
+                                                        </div>
+
+                                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                            style="min-height: 0;">
+                                                            <div class="bg-white">
+                                                                <table id="poTable"
+                                                                    class="min-w-full text-sm display nowrap stripe hover"
+                                                                    style="width:100%">
+                                                                    <thead class="sticky top-0 z-10">
+                                                                        <tr
+                                                                            class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Cab' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'No. SO' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Tanggal' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Customer' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'No. PO' }}</th>
+                                                                            <th
+                                                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Aksi' }}</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                            <div id="poTablePagination"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                    <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
+                                                    </div>
+
+                                                    <div
+                                                        class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                        <div
+                                                            class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                            <svg class="w-6 h-6 text-amber-600" fill="none"
+                                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                            </svg>
+                                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                                {{ 'Item Duplikat Ditemukan' }}</h3>
+                                                        </div>
+
+                                                        <div class="px-5 py-4 space-y-3">
+                                                            <p class="text-sm text-gray-700">
+                                                                Ditemukan <span class="font-semibold text-amber-600"
+                                                                    x-text="dupCount"></span>
+                                                                item duplikat.
+                                                                Item duplikat <span class="font-semibold">tidak akan
+                                                                    ditambahkan</span>.
+                                                            </p>
+
+                                                            <div class="rounded-lg border border-amber-200 bg-amber-50">
+                                                                <div
+                                                                    class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
+                                                                    {{ 'Preview Item Duplikat' }}
+                                                                </div>
+                                                                <ul
+                                                                    class="max-h-40 overflow-auto divide-y divide-amber-100">
+                                                                    <template x-for="d in dupSample"
+                                                                        :key="`${d.fitemcode}::${d.fitemname}`">
+                                                                        <li
+                                                                            class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
+                                                                            <span
+                                                                                class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
+                                                                            <span class="font-mono font-bold text-gray-700"
+                                                                                x-text="d.fitemcode || '-'"></span>
+                                                                            <span class="text-gray-400">â€¢</span>
+                                                                            <span class="text-gray-600 truncate"
+                                                                                x-text="d.fitemname || '-'"></span>
+                                                                        </li>
+                                                                    </template>
+                                                                    <template x-if="dupCount === 0">
+                                                                        <li
+                                                                            class="px-3 py-2 text-sm text-gray-500 text-center">
+                                                                            {{ 'Tidak ada contoh.' }}</li>
+                                                                    </template>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                                            <button type="button" @click="closeDupModal()"
+                                                                class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
+                                                                {{ 'Batal' }}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
+                                <div>
+                                    <!-- Trigger: Add PR dari panel kanan -->
+                                    <div class="mt-3 flex justify-between items-start gap-4">
+                                        <div class="w-full flex justify-start mb-3">
+                                        </div>
+                                        <!-- Kanan: Panel Totals -->
+                                        <div class="w-1/2">
+                                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Harga</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-gray-800">Discount</span>
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    {{ $action === 'view' ? 'disabled' : '' }}>
+                                                <span class="text-gray-500">%</span>
+                                                <span class="flex-1"></span>
+                                                <span class="font-bold text-right"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            </div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
+
+                                                <div class="flex items-center justify-between gap-6">
+                                                    <!-- Checkbox -->
+                                                    <div class="flex items-center">
+                                                        <input id="fincludeppn_input" type="checkbox" name="fapplyppn"
+                                                            value="1" x-model="includePPN"
+                                                            :disabled="action === 'delete' || action === 'view'"
+                                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                        <label for="fincludeppn_input"
+                                                            class="ml-2 text-sm font-medium text-gray-700">
+                                                            <span class="font-bold">PPN</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <!-- Hidden fincludeppn (always Exclude = 0) -->
+                                                    <input type="hidden" name="fincludeppn" value="0">
+
+                                                    <!-- Input Rate + Nominal (kanan) -->
+                                                        <input type="number" min="0" max="100"
+                                                            step="0.01" x-model.number="ppnRate"
+                                                            :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
+                                                                action === 'view'"
+                                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                        <span class="text-gray-500">%</span>
+                                                        <span class="flex-1"></span>
+                                                        <span class="font-bold"
+                                                            x-text="rupiah(ppnAmount)"></span>
+                                                </div>
+
+                                                <div class="border-t my-1"></div>
+
+                                                <div class="flex items-center justify-between text-base">
+                                                <span class="font-extrabold text-gray-900">Grand Total</span>
+                                                <span class="font-extrabold text-blue-700 text-lg"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
+                                            </div>
+
+                                            <!-- Hidden inputs for submit -->
+                                            <input type="hidden" name="famountgross" :value="totalHarga">
+                                            <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                            <input type="hidden" name="famountsonet" :value="netTotal">
+                                            <input type="hidden" name="famountso" :value="grandTotal">
+                                            <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                            <input type="hidden" name="fppnpersen" :value="ppnRate">
+                                            <input type="hidden" name="fdiscount" :value="headerDiscAmount">
+                                        </div>
+                                    </div>
+
+                                    <!-- MODAL DESC (di dalam itemsTable) -->
+                                    <div x-show="showDescModal" x-cloak
+                                        class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                            x-transition.scale>
+                                            <div class="px-5 py-4 border-b flex items-center">
+                                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
+                                                </h3>
+                                            </div>
+
+                                            <div class="px-5 py-4 space-y-4">
+                                                <div>
+                                                    <div class="mb-1 flex items-center justify-between gap-3">
+                                                        <div class="text-sm text-gray-700">Nama Produk</div>
+                                                        <button type="button" @click="copyDescName()"
+                                                            class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                            Copy
+                                                        </button>
+                                                    </div>
+                                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                        x-text="descItemName || '-'"></div>
+                                                </div>
+                                                <label class="block text-sm text-gray-700">Deskripsi</label>
+                                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                                    placeholder="Tulis deskripsi item di sini..."></textarea>
+                                            </div>
+
+                                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                                <button type="button" @click="closeDesc()"
+                                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                                    Batal
+                                                </button>
+                                                <button type="button" @click="applyDesc()"
+                                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                                    Simpan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="showHistoryModal" x-cloak
+                                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                        <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                        <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                            <div class="px-5 py-4 border-b flex items-center justify-between">
+                                                <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
+                                                <button type="button" @click="closeHistory()"
+                                                    class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                            </div>
+                                            <div class="p-5 overflow-auto max-h-[65vh]">
+                                                <template x-if="historyLoading">
+                                                    <div class="text-sm text-gray-500">Memuat data...</div>
+                                                </template>
+                                                <template x-if="!historyLoading">
+                                                    <table class="min-w-full text-sm">
+                                                        <thead class="bg-gray-100">
+                                                            <tr>
+                                                                <th class="p-2 text-left">No. Transaksi</th>
+                                                                <th class="p-2 text-left">Tanggal</th>
+                                                                <th class="p-2 text-right">Qty</th>
+                                                                <th class="p-2 text-right">Harga</th>
+                                                                <th class="p-2 text-right">Total</th>
+                                                                <th class="p-2 text-center">Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
+                                                                <tr class="border-t">
+                                                                    <td class="p-2" x-text="row.fsono"></td>
+                                                                    <td class="p-2" x-text="row.fsodate"></td>
+                                                                    <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                                    <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
+                                                                    <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
+                                                                    <td class="p-2 text-center">
+                                                                        <button type="button" @click="selectHistory(row)"
+                                                                            class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">
+                                                                            Pilih
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </template>
+                                                            <tr x-show="!historyRows.length">
+                                                                <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" id="itemsCount" :value="submitItems.length">
+                                </div>
+                        </fieldset>
+
+                        {{-- MODAL ERROR: belum ada item --}}
+                        <div x-show="showNoItems && submitItems.length === 0" x-cloak
+                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
+                                </div>
+
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris
+                                        â€œDetail
+                                        Itemâ€
+                                        terlebih
+                                        dahulu.
+                                    </p>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="showNoItems=false"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        {{ 'OK' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="showCustomerRequired" x-cloak
+                            class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
+
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Pilih Customer Dulu' }}</h3>
+                                </div>
+
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Customer wajib dipilih sebelum input produk manual. Untuk Add SO atau Add
+                                        SRJ,
+                                        customer tidak wajib dipilih terlebih dahulu.
+                                    </p>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button"
+                                        @click="showCustomerRequired = false; window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        {{ 'OK' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <x-transaction.browse-customer-modal />
+
+                        <x-transaction.browse-salesman-modal />
+
+                        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
+
+                        @php
+                            $canApproval = in_array(
+                                'approveFakturPenjualan',
+                                explode(',', session('user_restricted_permissions', '')),
+                            );
+                        @endphp
+
+                        </div> {{-- End itemsTable --}}
+                    </div> {{-- End CARD 2 body --}}
+                </div> {{-- End CARD 2 --}}
+
+                {{-- ─── CARD 3: Aksi (Edit/View) ────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="p-4 flex items-center justify-end gap-3">
+                            @if ($action !== 'view' && $canEditPermission)
+                                @if ($usageLocked)
+                                    <button type="button" disabled title="{{ $usageLockMessage }}"
+                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Simpan
+                                    </button>
+                                @else
+                                    <button type="submit"
+                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Simpan
+                                    </button>
+                                @endif
+                            @elseif ($action === 'view')
+                                @php
+                                    $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
+                                    $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
+                                @endphp
+                                @if (!$isApproved)
+                                    <button type="button"
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                    </button>
+                                @elseif ($isPrinted)
+                                    <button type="button"
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                    </button>
+                                @else
+                                    <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                    </a>
+                                @endif
+                            @endif
+                            <button type="button" @click="window.location.href='{{ route('penjualanretail.index') }}'"
+                                class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                            </button>
+                    </div>
+                </div>
+            </form>
+
+            {{-- FOOTER INFO --}}
+            @php
+                $lastUpdate = $invoice->fupdatedat ?: $invoice->fcreatedat;
+                $updatedBy = $invoice->fuserupdate ?: ($invoice->fusercreate ?: '—');
+            @endphp
+            <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+                <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+                <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+            </div>
+        @endif
+    </div>
+    {{-- ============================================ --}}
+    {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
+    {{-- ============================================ --}}
+    @if ($action === 'delete' && $canDeletePermission)
+        {{-- Modal Delete --}}
+        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus invoice ini?</h3>
+                <form id="deleteForm" action="{{ route('penjualanretail.destroy', $invoice->ftranmtid) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="button" onclick="confirmDelete()" id="btnYa"
+                            class="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="toast" class="hidden fixed top-5 right-5 z-[60]">
+            <div id="toastContent" class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+                <span id="toastMessage"></span>
+                <button type="button" onclick="closeToast()" class="ml-4 font-bold leading-none">&times;</button>
+            </div>
+        </div>
+
+        <script>
+            function showDeleteModal() {
+                document.getElementById('deleteModal').classList.remove('hidden');
+            }
+
+            function closeDeleteModal() {
+                document.getElementById('deleteModal').classList.add('hidden');
+            }
+
+            function closeToast() {
+                document.getElementById('toast').classList.add('hidden');
+            }
+
+            function showToast(message, isSuccess = true) {
+                const toast = document.getElementById('toast');
+                const toastContent = document.getElementById('toastContent');
+                const toastMessage = document.getElementById('toastMessage');
+
+                toastMessage.textContent = message;
+                toastContent.className = isSuccess ?
+                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
+                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
+
+                toast.classList.remove('hidden');
+            }
+
+            function confirmDelete() {
+                const btnYa = document.getElementById('btnYa');
+                const btnTidak = document.getElementById('btnTidak');
+
+                btnYa.disabled = true;
+                btnTidak.disabled = true;
+                btnYa.textContent = 'Menghapus...';
+
+                fetch('{{ route('penjualanretail.destroy', $invoice->ftranmtid) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        closeDeleteModal();
+                        showToast(data.message || 'Data berhasil dihapus', true);
+
+                        setTimeout(() => {
+                            window.location.href = '{{ route('penjualanretail.index') }}';
+                        }, 500);
+                    })
+                    .catch(error => {
+                        btnYa.disabled = false;
+                        btnTidak.disabled = false;
+                        btnYa.textContent = 'Ya, Hapus';
+                        showToast('Gagal menghapus data.', false);
+                    });
+            }
+        </script>
+    @endif
+@endsection
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+@endpush
+<x-transaction.datatables-length-styles :tables="['productTable', 'supplierTable', 'prTable']" />
+<style>
+    @keyframes slide-in {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-out {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+    }
+
+    .animate-slide-out {
+        animation: slide-out 0.3s ease-in;
+    }
+</style>
+{{-- DATA & SCRIPTS --}}
+<script>
+    // Fallback toast system if not defined
+    if (!window.toast) {
+        window.toast = {
+            success: (msg) => {
+                if (typeof window.showAppSuccessToast === 'function') window.showAppSuccessToast(msg);
+                else console.log('Success:', msg);
+            },
+            error: (msg) => {
+                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert(
+                    'Terjadi Kesalahan', msg);
+                else console.error('Error:', msg);
+            },
+            info: (msg) => {
+                if (typeof window.showAppInfoAlert === 'function') window.showAppInfoAlert('Information', msg);
+                else console.info('Info:', msg);
+            }
+        };
+    }
+
+    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn($customer) => [
+                (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
+            ]));
+
+    window.syncInvoiceCustomerTaxCode = function(payload = null, isInitial = false) {
+        const kodeFpInput = document.getElementById('invoiceFkodefp');
+        if (!kodeFpInput) {
+            return;
+        }
+
+        if (isInitial && kodeFpInput.value.trim() !== '') {
+            return;
+        }
+
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const normalize = (value) => String(value ?? '').trim();
+        const eventCode = typeof payload === 'object' && payload !== null ? normalize(payload.fcustomercode) : '';
+        const eventValue = typeof payload === 'object' && payload !== null ? normalize(payload.fkodefp) : normalize(
+            payload);
+        const customerCode = eventCode || normalize(hidden?.value) || normalize(select?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+                .value) === customerCode) :
+            select?.selectedOptions?.[0];
+        const optionValue = normalize(selectedOption?.dataset?.fkodefp);
+        const mappedValue = customerCode ? (window.INVOICE_CUSTOMER_FP_MAP?.[customerCode] || '') : '';
+
+        kodeFpInput.value = eventValue || optionValue || mappedValue || '';
+    };
+
+    window.syncInvoiceTaxNoFromInvoiceNo = function() {
+        const taxAutoCheckbox = document.getElementById('taxAutoCheckbox');
+        if (taxAutoCheckbox && !taxAutoCheckbox.checked) {
+            return;
+        }
+        const invoiceInput = document.querySelector('input[name="fsono"]');
+        const taxInput = document.getElementById('ftaxno');
+        if (!invoiceInput || !taxInput) return;
+        taxInput.value = String(invoiceInput.value ?? '').trim();
+    };
+
+    window.invoicePreserveOldTempo = @json(old('ftempohr') !== null || old('fjatuhtempo') !== null || isset($invoice));
+
+    window.syncInvoiceTempoFromSource = function(days, options = {}) {
+        if (window.invoicePreserveOldTempo && !options.force) return;
+
+        const tempoInput = document.getElementById('ftempohr');
+        if (!tempoInput) return;
+        const numericDays = Number(days ?? 0);
+        tempoInput.value = Number.isFinite(numericDays) ? String(Math.max(0, numericDays)) : '0';
+        tempoInput.dispatchEvent(new Event('input', {
+            bubbles: true
+        }));
+        tempoInput.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
+    };
+
+    window.syncInvoiceSalesmanFromSource = function(payload = null) {
+        const salesmanCode = String(
+            payload?.fsalesman ?? payload?.fsalesmancode ?? payload?.salesman_code ?? ''
+        ).trim();
+        const salesmanName = String(
+            payload?.fsalesmanname ?? payload?.salesman_name ?? ''
+        ).trim();
+
+        if (!salesmanCode) return;
+
+        window.applyTransactionSalesmanSelection?.({
+            fsalesman: salesmanCode,
+            fsalesmancode: salesmanCode,
+            fsalesmanname: salesmanName,
+        });
+    };
+
+    window.syncInvoicePpnFromSource = function(header = null) {
+        const root = document.querySelector('[x-data*="itemsTable()"]');
+        const component = root && window.Alpine ? Alpine.$data(root) : null;
+        if (!component || !header) return;
+
+        component.includePPN = Number(header.fapplyppn ?? 0) === 1;
+        component.fapplyppn = Number(header.fincludeppn ?? 0) === 1 ? 1 : 0;
+
+        const defaultTarif = Number(@json((float) ($defaultPpnTarif ?? 11)));
+        const rate = Number(header.fppnpersen ?? defaultTarif);
+        component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : defaultTarif;
+    };
+
+    window.syncInvoiceTempoFromCustomer = function(payload = null) {
+        const normalize = (value) => String(value ?? '').trim();
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select
+            ?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+                .value) === customerCode) :
+            select?.selectedOptions?.[0];
+        const eventTempo = normalize(payload?.ftempo);
+        const optionTempo = normalize(selectedOption?.dataset?.ftempo);
+        window.syncInvoiceTempoFromSource(eventTempo || optionTempo || '0');
+    };
+
+    window.syncInvoiceSalesmanFromCustomer = function(payload = null) {
+        const normalize = (value) => String(value ?? '').trim();
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select
+            ?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+            .value) === customerCode) : select?.selectedOptions?.[0];
+
+        const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
+        if (!salesmanCode) return;
+        const salesmanSelect = document.getElementById('modal_filter_salesman_id');
+        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) ===
+            salesmanCode);
+        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(
+            new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
+
+        window.applyTransactionSalesmanSelection?.({
+            fsalesmancode: salesmanCode,
+            fsalesmanname: salesmanName,
+        });
+    };
+
+    document.addEventListener('customer-selected', function(event) {
+        window.syncInvoiceCustomerTaxCode(event.detail || null);
+        window.syncInvoiceTempoFromCustomer(event.detail || null);
+        window.syncInvoiceSalesmanFromCustomer(event.detail || null);
+    });
+
+    window.addEventListener('customer-browse-open', function() {
+        window.invoicePreserveOldTempo = false;
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const select = document.getElementById('modal_filter_customer_id');
+        const invoiceInput = document.querySelector('input[name="fsono"]');
+        if (select) {
+            select.addEventListener('change', function() {
+                window.syncInvoiceCustomerTaxCode();
+                window.syncInvoiceTempoFromCustomer();
+                window.syncInvoiceSalesmanFromCustomer();
+            });
+        }
+        if (invoiceInput) {
+            invoiceInput.addEventListener('input', window.syncInvoiceTaxNoFromInvoiceNo);
+            invoiceInput.addEventListener('change', window.syncInvoiceTaxNoFromInvoiceNo);
+        }
+
+        window.syncInvoiceCustomerTaxCode(null, true);
+        if (!window.invoicePreserveOldTempo) {
+            window.syncInvoiceTempoFromCustomer();
+        }
+        window.syncInvoiceTaxNoFromInvoiceNo();
+    });
+
+    window.validateAndSubmitInvoiceForm = function(form, isViewMode = false) {
+        if (isViewMode) return;
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const validRows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : [];
+        const isUM = String(document.getElementById('ftypesales')?.value || form.querySelector('[name="ftypesales"]')?.value || '0') === '1';
+
+        if (isUM) {
+            const invalidRow = validRows.find(row => {
+                const val = (row.fitemcode || '').toString().trim().toUpperCase();
+                return val !== '' && !val.startsWith('UM');
+            });
+            if (invalidRow) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tipe Uang Muka Invalid',
+                    text: 'Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+        } else {
+            const missingRefRow = validRows.find(row => {
+                const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (!code || !code.startsWith('UM')) return false;
+                const ref = String(row.frefdtno || row.frefno_display || row.frefcode || row.frefso || row.frefsrj || row.frefpr || '').trim();
+                return !ref;
+            });
+            if (missingRefRow) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Referensi Wajib',
+                    text: `Produk Uang Muka (${missingRefRow.fitemcode}) pada Tipe Penjualan wajib menyertakan No Referensi.`,
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+        }
+
+        const duplicateCode = window.getInvoiceDuplicateCode?.(form);
+        if (duplicateCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Produk Duplikat',
+                text: `Kode produk ${duplicateCode} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Penjualan.`,
+                confirmButtonText: 'OK',
+                customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+            });
+            return;
+        }
+
+        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        if (n < 1) {
+            if (alpineData) alpineData.showNoItems = true;
+            return;
+        }
+
+        if (window.invoiceReferenceQtyGuard?.(form) !== false) {
+            window.invoiceCreditApprovalGuard?.(form).then(ok => {
+                if (ok) window.submitFormWithStockMinusConfirmation?.(form);
+            });
+        }
+    };
+
+    window.getInvoiceDuplicateCode = function(form) {
+        const seen = new Set();
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const rows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : null;
+
+        if (rows) {
+            for (const row of rows) {
+                const code = (row?.fitemcode || '').toString().trim().toUpperCase();
+                if (!code) continue;
+                const noAcak = (row?.fnoacak || '').toString().trim();
+                const key = `${code}|${noAcak}`;
+                if (seen.has(key)) {
+                    return code;
+                }
+                seen.add(key);
+            }
+            return '';
+        }
+
+        const inputs = Array.from(form.querySelectorAll('input[name^="fitemcode["]'));
+        for (const input of inputs) {
+            const code = (input.value || '').toString().trim().toUpperCase();
+            if (!code) continue;
+            const noAcak = form.querySelector(`[name="fnoacak[${input.name.match(/\[(\d+)\]/)?.[1] ?? ''}]"]`)?.value?.trim() || '';
+            const key = `${code}|${noAcak}`;
+            if (seen.has(key)) {
+                return code;
+            }
+            seen.add(key);
+        }
+
+        return '';
+    };
+
+    window.invoiceReferenceQtyGuard = function(form) {
+        function parseNum(val) {
+            if (val === null || val === undefined || val === '') return 0;
+            let clean = String(val).replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]+/g, '');
+            return parseFloat(clean) || 0;
+        }
+
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const rows = tableRoot?._x_dataStack?.[0]?.submitItems || [];
+        for (const row of rows) {
+            const inputQty = parseNum(row.qty || row.fqty);
+            const refQty = parseNum(row.po_qty || row.do_qty || row.sj_qty || row.qty_ref || row.ref_qty || row.source_qty || row.maxqty || row.fqtyremain_source || row.fqtysisa_source);
+            if (refQty > 0 && inputQty > refQty) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    text: `Qty (${inputQty}) melebihi Qty Referensi (${refQty}).`
+                });
+                return false;
+            }
+        }
+        return true;
+    };
+
+    window.invoiceCreditApprovalGuard = async function(form) {
+        const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
+        const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;
+        const tranmtId = form.dataset.tranmtid || '';
+        const needAccInput = form.querySelector('#invoiceNeedAcc');
+        const userAccInput = form.querySelector('#invoiceUserAcc');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        if (needAccInput) needAccInput.value = '0';
+        if (userAccInput) userAccInput.value = '';
+
+        if (!customerCode) {
+            return true;
+        }
+
+        try {
+            const response = await fetch('{{ route('penjualanretail.credit-check') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    fcustno: customerCode,
+                    famountso: amountValue,
+                    ftranmtid: tranmtId || null
+                })
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json('Gagal cek limit customer.');
+                await window.showAppErrorAlert(@json('Cek Customer Gagal'), message, {
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`,
+                    text: undefined
+                });
+                return false;
+            }
+
+            const checks = payload.checks || {};
+            const limitCheck = checks.limit_check || {};
+            const overdueCheck = checks.overdue_check || {};
+            const canApprove = !!payload.can_approve;
+            const currentUser = payload.current_user || '';
+
+            if (limitCheck.enabled && limitCheck.exceeded) {
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: @json('Limit Piutang Terlampaui'),
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Limit piutang customer sudah terlampaui.</li>
+                                    <li>Ada nota yang lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `,
+                        text: undefined
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+                return true;
+            }
+
+            if (overdueCheck.enabled && overdueCheck.has_overdue) {
+                const overdueHtml = (overdueCheck.items || []).slice(0, 5).map((item) => `
+                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('id-ID')}</li>
+                `).join('');
+
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: @json('Ada Nota Lewat Jatuh Tempo'),
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
+                            <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Customer punya nota lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `,
+                        text: undefined
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+            }
+
+            return true;
+        } catch (error) {
+            await window.showAppErrorAlert(
+                @json('Pemeriksaan Persetujuan Gagal'),
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."), {
+                    html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
+                    text: undefined
+                }
+            );
+            return false;
+        }
+    };
+
+    // Map produk untuk auto-fill tabel
+    window.PRODUCT_MAP = {
+        @foreach ($products as $p)
+            "{{ $p->fprdcode }}": {
+                name: @json($p->fprdname),
+                default_unit: @json($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil),
+                units: @json(
+                    $productMap[$p->fprdcode]['units'] ??
+                        array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                stock: @json($p->fminstock ?? 0),
+                unit_names: {
+                    satuankecil: @json($p->fsatuankecil),
+                    satuanbesar: @json($p->fsatuanbesar),
+                    satuanbesar2: @json($p->fsatuanbesar2),
+                },
+                unit_ratios: {
+                    satuankecil: 1,
+                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                },
+            },
+        @endforeach
+    };
+    window.INVOICE_PRICE_INFO_URL = @json(route('penjualanretail.price-info'));
+    window.INVOICE_PRICE_FLAGS = @json($priceFlags ?? []);
+    window.INVOICE_CUSTOMER_ADVANCE_WARNINGS = @json($customerAdvanceWarnings ?? []);
+
+    // id unik
+    window.cryptoRandom = function() {
+        try {
+            if (window.crypto?.getRandomValues) {
+                const arr = new Uint32Array(1);
+                window.crypto.getRandomValues(arr);
+                return 'r' + arr[0].toString(16);
+            }
+        } catch (e) {}
+        return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
+    };
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('trsomt', {
+            descPreview: {
+                uid: null,
+                index: null,
+                label: '',
+                text: ''
+            },
+            descList: []
+        });
+    });
+
+    function itemsTable() {
+        return {
+            savedItems: @json(count($initialEditInvoiceItems) ? $initialEditInvoiceItems : $savedItems ?? []),
+            nextFormIndex: @json($nextInvoiceItemIndex),
+            minimumVisibleRows: @json(count($initialEditInvoiceItems) ? count($initialEditInvoiceItems) + 5 : count($savedItems ?? []) + 5),
+            browseTarget: null,
+            editingIndex: null,
+            editRow: newRow(),
+            showDescModal: false,
+            descValue: '',
+            descSavedIndex: null,
+            descItemName: '',
+            showHistoryModal: false,
+            historyLoading: false,
+            historyRows: [],
+            historyTargetRow: null,
+            ftypesales: Number(document.querySelector('select[name="ftypesales"]')?.value || @json((int) old('ftypesales', $invoice->ftypesales ?? 0))),
+
+            totalHarga: 0,
+            headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
+            ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $invoice->fppnpersen ?? ($defaultPpnTarif ?? 11)))),
+
+            initialGrandTotal: @json($invoice->famountso ?? 0),
+            initialPpnAmount: @json($invoice->famountpajak ?? 0),
+
+            includePPN: @json(old('_token') !== null ? old('fapplyppn') == '1' : ($invoice->fapplyppn ?? '0') == '1'),
+            fapplyppn: false,
+            action: @js($action ?? 'edit'),
+
+            get headerDiscAmount() {
+                const total = +this.totalHarga || 0;
+                const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
+                return +(total * (percent / 100)).toFixed(2);
+            },
+
+            get totalSetelahDisc() {
+                const total = +this.totalHarga || 0;
+                return +(total - this.headerDiscAmount).toFixed(2);
+            },
+
+            get ppnIncluded() {
+                return 0;
+            },
+
+            get netFromGross() {
+                return this.totalSetelahDisc;
+            },
+
+            get ppnAdded() {
+                const rate = +this.ppnRate || 0;
+                if (!this.includePPN) return 0;
+                const total = this.totalSetelahDisc;
+                return Math.round(total * (rate / 100));
+            },
+
+            get ppnAmount() {
+                if (!this.includePPN) return 0;
+                return this.ppnAdded;
+            },
+
+            get netTotal() {
+                return this.totalSetelahDisc;
+            },
+
+            get grandTotal() {
+                const total = this.totalSetelahDisc;
+                if (!this.includePPN) {
+                    return total;
+                }
+                return total + this.ppnAdded;
+            },
+
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
+
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            fmtMoney(value) {
+                return this.fmt(value);
+            },
+
+            // âœ… FUNGSI BARU: Parse diskon dengan format "10+2"
+            parseDiscount(discStr) {
+                if (!discStr && discStr !== 0) return 0;
+
+                // Jika sudah berupa angka, langsung return
+                if (typeof discStr === 'number') return discStr;
+
+                const str = String(discStr).trim();
+
+                // Jika string kosong
+                if (!str) return 0;
+
+                // Jika angka biasa (tanpa operator)
+                if (!isNaN(str)) {
+                    return parseFloat(str) || 0;
+                }
+
+                // Parse ekspresi matematika sederhana (10+2, 5+3+2, dll)
+                try {
+                    // Hapus semua spasi
+                    const cleaned = str.replace(/\s/g, '');
+
+                    // Validasi: hanya boleh angka, titik desimal, dan operator + - * /
+                    if (!/^[\d+\-*/.()]+$/.test(cleaned)) {
+                        return 0;
+                    }
+
+                    // Hitung menggunakan Function (lebih aman dari eval)
+                    const result = new Function('return ' + cleaned)();
+
+                    // Return hasil jika valid, batasi maksimal 100%
+                    return isFinite(result) ? Math.min(100, Math.max(0, result)) : 0;
+                } catch (e) {
+                    console.warn('Invalid discount format:', discStr);
+                    return 0;
+                }
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return String(num);
+                    }
+                }
+                return cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdisc);
+                if (row) {
+                    row.fdisc = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
+                }
+            },
+
+            isReferenceRow(row) {
+                return String(row?.frefso ?? '').trim() !== '' || String(row?.frefsrj ?? '').trim() !== '';
+            },
+
+            async applyInvoicePrice(row) {
+                if (this.isReferenceRow(row)) return;
+                const customerCode = this.getSelectedCustomerCode();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                const unit = (row?.fsatuan || '').toString().trim();
+                if (!customerCode || !productCode || !unit || String(productCode).toUpperCase().startsWith('UM')) return;
+
+                const params = new URLSearchParams({
+                    fcustno: customerCode,
+                    fprdcode: productCode,
+                    fsatuan: unit,
+                });
+
+                try {
+                    const response = await fetch(`${window.INVOICE_PRICE_INFO_URL}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!response.ok) return;
+
+                    const payload = await response.json();
+                    if ((row?.fitemcode || '').toString().trim() !== productCode) return;
+                    row.fsatuan = payload.unit || row.fsatuan;
+                    row.fprice = Number(payload.price || 0);
+                    row.fpriceInput = this.fmt(row.fprice);
+                    row.fdisc = payload.discount ?? '0';
+                    this.recalc(row);
+                } catch (error) {
+                    console.warn('Gagal mengambil harga faktur penjualan:', error);
+                }
+            },
+
+            async applyOutstandingDpRef(row) {
+                const productCode = (row?.fitemcode || '').toString().trim().toUpperCase();
+                if (!productCode.startsWith('UM')) return;
+
+                row.frefdtno = '';
+                row.frefno_display = '';
+                row.frefcode = '';
+            },
+
+            hasRowRef(row) {
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
+                return Boolean(ref);
+            },
+
+            focusQtyInput(row) {
+                const qty = +row.fqty || 0;
+                row.fqtyInput = this.fmt(qty);
+            },
+
+            onQtyInput(row) {
+                const parsed = Math.max(0, this.parseMoney(row.fqtyInput));
+                row.fqty = parsed;
+                this.enforceQtyRow(row);
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
+            blurQtyInput(row) {
+                const parsed = Math.max(0, this.parseMoney(row.fqtyInput !== undefined ? row.fqtyInput : row.fqty));
+                row.fqty = parsed;
+                this.enforceQtyRow(row);
+                row.fqtyInput = this.fmt(row.fqty);
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
+            recalc(row) {
+                row.fqty = Math.max(0, +row.fqty || 0);
+                if (typeof row.fqtyInput === 'undefined') {
+                    row.fqtyInput = this.fmt(row.fqty);
+                }
+                
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const isNegative = (row.fpriceInput || '').toString().trim().startsWith('-') || (+row.fprice < 0);
+                let absPrice = Math.abs(+row.fprice || 0);
+                if (typeof row.fpriceInput !== 'undefined' && row.fpriceInput !== '') {
+                    absPrice = Math.abs(this.parseMoney(row.fpriceInput));
+                }
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegative;
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                }
+
+                const discPercent = this.parseDiscount(row.fdisc);
+                const subtotal = row.fqty * row.fprice;
+                const discAmount = subtotal * (discPercent / 100);
+                row.ftotal = +(subtotal - discAmount).toFixed(2);
+                this.recalcTotals();
+            },
+
+            parseMoney(val) {
+                if (val === null || val === undefined || val === '') return 0;
+                let str = val.toString().trim();
+                if (str.includes('.') && str.includes(',')) {
+                    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                        str = str.replace(/,/g, '');
+                    } else {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                } else if (str.includes(',')) {
+                    str = str.replace(',', '.');
+                } else if (str.includes('.')) {
+                    const parts = str.split('.');
+                    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                        str = parts.join('');
+                    }
+                }
+                const num = Number(str.replace(/[^0-9.-]+/g, ''));
+                return Number.isFinite(num) ? num : 0;
+            },
+
+            sanitizePriceValue(value) {
+                return this.parseMoney(value);
+            },
+
+            focusPriceInput(row) {
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const isNegative = (row.fpriceInput || '').toString().trim().startsWith('-') || (+row.fprice < 0);
+                const absPrice = Math.abs(+row.fprice || 0);
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegative;
+                if (shouldBeNegative) {
+                    row.fpriceInput = absPrice > 0 ? ('-' + this.fmt(absPrice)) : '';
+                } else {
+                    row.fpriceInput = absPrice > 0 ? this.fmt(absPrice) : '';
+                }
+            },
+
+            onPriceInput(row) {
+                const isNegativeInput = (row.fpriceInput || '').toString().trim().startsWith('-');
+                let rawPrice = this.parseMoney(row.fpriceInput);
+                let absPrice = Math.abs(rawPrice);
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
+            isPriceDisabled(row) {
+                const code = String(row?.fitemcode || '').toUpperCase().trim();
+                if (!code || code.startsWith('UM')) return false;
+                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
+                return Boolean(ref);
+            },
+
+            blurPriceInput(row) {
+                const isNegativeInput = (row.fpriceInput || '').toString().trim().startsWith('-');
+                let rawPrice = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
+                let absPrice = Math.abs(rawPrice);
+                const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
+                if (refPrice > 0 && absPrice > refPrice) {
+                    absPrice = refPrice;
+                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
+                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                    }
+                }
+                const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
+                row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                this.recalc(row);
+                this.recalcTotals();
+            },
+
+            recalcTotals() {
+                const isUMNotTypeUM = !this.isUangMuka();
+                (this.savedItems || []).forEach(row => {
+                    if (!row || !row.fitemcode) return;
+                    const isUM = String(row.fitemcode || '').toUpperCase().trim().startsWith('UM');
+                    if (isUM && isUMNotTypeUM) {
+                        let absPrice = Math.abs(+row.fprice || 0);
+                        const shouldBeNegative = this.hasRowRef(row);
+                        row.fprice = shouldBeNegative ? -absPrice : absPrice;
+                        const discPercent = this.parseDiscount(row.fdisc);
+                        const subtotal = (row.fqty || 0) * row.fprice;
+                        const discAmount = subtotal * (discPercent / 100);
+                        row.ftotal = +(subtotal - discAmount).toFixed(2);
+                        if (typeof row.fpriceInput !== 'undefined') {
+                            row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
+                        }
+                    }
+                });
+                this.totalHarga = this.savedItems.reduce((sum, item) => {
+                    if (!this.isRowSavable(item)) return sum;
+                    return sum + item.ftotal;
+                }, 0);
+            },
+
+            showToast(message, type = 'success') {
+                if (window.toast) {
+                    if (type === 'error' || type === 'danger') window.toast.error(message);
+                    else if (type === 'warning') window.toast.info(message);
+                    else window.toast.success(message);
+                } else if (typeof window.showAppErrorAlert === 'function' || typeof window.showAppInfoAlert ===
+                    'function' || typeof window.showAppSuccessToast === 'function') {
+                    if (type === 'error' || type === 'danger') window.showAppErrorAlert('Terjadi Kesalahan', message);
+                    else if (type === 'warning') window.showAppWarningAlert('Warning', message);
+                    else window.showAppSuccessToast(message, {
+                        timer: 3000
+                    });
+                } else {
+                    console.info('Toast:', message);
+                }
+            },
+
+            productMeta(code) {
+                const key = (code || '').trim();
+                const meta = window.PRODUCT_MAP?.[key];
+                if (!meta) {
+                    return {
+                        name: '',
+                        units: [],
+                        stock: 0,
+                        unit_names: {
+                            satuankecil: '',
+                            satuanbesar: '',
+                            satuanbesar2: ''
+                        },
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
+                    };
+                }
+                return meta;
+            },
+
+            getUnitRatio(meta, satuan) {
+                const unit = (satuan || '').toString().trim();
+                const names = meta?.unit_names || {};
+                const ratios = meta?.unit_ratios || {};
+
+                if (unit && unit === (names.satuanbesar2 || '').toString().trim() && Number(ratios.satuanbesar2) > 0) {
+                    return Number(ratios.satuanbesar2);
+                }
+
+                if (unit && unit === (names.satuanbesar || '').toString().trim() && Number(ratios.satuanbesar) > 0) {
+                    return Number(ratios.satuanbesar);
+                }
+
+                return 1;
+            },
+
+            qtyKecilToUnit(qtyKecil, satuan, meta) {
+                const qty = Number(qtyKecil ?? 0);
+                if (!Number.isFinite(qty) || qty <= 0) return 0;
+
+                const ratio = this.getUnitRatio(meta, satuan);
+                return ratio > 0 ? qty / ratio : qty;
+            },
+
+            formatStockLimit(row) {
+                return '';
+            },
+
+            rowHasContent(row) {
+                return [
+                    row?.fitemcode,
+                    row?.fitemname,
+                    row?.fsatuan,
+                    row?.frefdtno,
+                    row?.frefno_display,
+                    row?.frefcode,
+                    row?.frefpr,
+                    row?.frefso,
+                    row?.frefsrj,
+                    row?.fqty,
+                    row?.fterima,
+                    row?.fprice,
+                    row?.fdisc,
+                    row?.ftotal,
+                    row?.fdesc,
+                    row?.fketdt,
+                ].some((value) => {
+                    if (typeof value === 'number') return value !== 0;
+                    return String(value ?? '').trim() !== '';
+                });
+            },
+
+            ensureMinimumRows() {
+                if (this.action === 'view') {
+                    return;
+                }
+                while (this.savedItems.length < this.minimumVisibleRows) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
+
+            ensureTrailingRow(index = null) {
+                if (this.action === 'view') {
+                    return;
+                }
+                if (!this.savedItems.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                if (targetIndex !== this.savedItems.length - 1) return;
+
+                if (this.rowHasContent(this.savedItems[targetIndex])) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
+
+            onRowUpdated(index = null) {
+                const row = typeof index === 'number' ? this.savedItems[index] : null;
+                if (row) {
+                    this.recalc(row);
+                }
+                this.recalcTotals();
+                this.ensureTrailingRow(index);
+            },
+
+            getRowQtyLimit(row) {
+                const limitSource = Math.max(0, Number(row?.maxqty ?? 0) || 0);
+                if (row?.maxqty_unit !== 'kecil') return limitSource;
+
+                return this.qtyKecilToUnit(limitSource, row?.fsatuan || '', this.productMeta(row?.fitemcode));
+            },
+
+            validateReferenceQty(row, showToast = true) {
+                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
+                if (!hasRef) return true;
+
+                const limit = this.getRowQtyLimit(row);
+                if (limit <= 0) {
+                    if (showToast) window.toast?.error('Sisa referensi sudah habis.');
+                    return false;
+                }
+
+                const qty = Number(row?.fqty ?? 0);
+                if (qty > limit) {
+                    if (showToast) window.toast?.error(
+                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    return false;
+                }
+
+                return Number(row?.fqty ?? 0) > 0;
+            },
+
+            enforceQtyRow(row) {
+                let n = +row.fqty;
+
+                if (!Number.isFinite(n)) {
+                    row.fqty = 0;
+                    return;
+                }
+                if (n < 0) {
+                    row.fqty = 0;
+                    return;
+                }
+
+                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
+                    String(row?.frefsrj ?? '').trim() !== '' ||
+                    String(row?.frefdtno ?? '').trim() !== '';
+                if (hasRef) {
+                    const limit = this.getRowQtyLimit(row);
+                    if (limit > 0 && n > limit) {
+                        row.fqty = limit;
+                        row.fqtyInput = this.fmt(limit);
+                        const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
+                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
+                        const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
+                        if (typeof window.showAppWarningAlert === 'function') {
+                            window.showAppWarningAlert('WARNING', message);
+                        } else if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
+                        } else {
+                            window.toast?.error(message);
+                        }
+                    }
+                }
+            },
+
+            hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
+                if (!meta) {
+                    row.fitemname = '';
+                    row.units = [];
+                    row.fsatuan = '';
+                    row.maxqty = 0;
+                    return;
+                }
+                row.fitemname = meta.name || '';
+                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const preferredUnit = (row.fsatuan || '').toString().trim();
+                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit
+                    .toLowerCase()) || '');
+                const preservedUnit = matchedUnit || preferredUnit;
+
+                row.units = preservedUnit !== '' ? [preservedUnit, ...units.filter(u => u.toLowerCase() !==
+                        preservedUnit.toLowerCase())] :
+                    units;
+
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
+
+                if (forceDefaultUnit) {
+                    row.fsatuan = resolvedDefaultUnit;
+                } else if (preservedUnit !== '') {
+                    row.fsatuan = preservedUnit;
+                } else if (!row.units.includes(row.fsatuan)) {
+                    row.fsatuan = resolvedDefaultUnit;
+                }
+                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
+            },
+
+            showAlert(message) {
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Informasi', message);
+                } else if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'warning', title: 'Informasi', text: message });
+                } else {
+                    window.toast?.warning?.(message);
+                }
+            },
+
+            isUangMuka() {
+                const selectVal = (document.getElementById('ftypesales')?.value || document.querySelector('select[name="ftypesales"]')?.value || '').toString().trim();
+                const modelVal = (this.ftypesales ?? '').toString().trim();
+                return selectVal === '1' || modelVal === '1';
+            },
+
+            async onCodeTypedRow(row, index = null) {
+                const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
+                if (!typedCode) {
+                    this.clearRow(row);
+                    this.onRowUpdated(index);
+                    return;
+                }
+                if (typedCode !== '' && !this.requireCustomerBeforeManualProduct()) {
+                    this.clearRow(row);
+                    return;
+                }
+                if (this.isUangMuka() && typedCode !== '' && !typedCode.startsWith('UM') && !'UM'.startsWith(typedCode)) {
+                    this.clearRow(row);
+                    this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
+                    return;
+                }
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                await this.applyOutstandingDpRef(row);
+                if (!typedCode.startsWith('UM')) {
+                    this.applyInvoicePrice(row);
+                }
+                this.onRowUpdated(index);
+            },
+
+            onTypeSalesChange() {
+                if (this.isUangMuka()) {
+                    let hasInvalid = false;
+                    (this.savedItems || []).forEach((row) => {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        if (code !== '' && !code.startsWith('UM')) {
+                            hasInvalid = true;
+                            this.clearRow(row);
+                        }
+                    });
+                    if (hasInvalid) {
+                        this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM. Item non-UM telah dihapus.");
+                    }
+                }
+            },
+
+            getSelectedCustomerCode() {
+                return (document.getElementById('customerCodeHidden')?.value || document.getElementById(
+                    'modal_filter_customer_id')?.value || '').trim();
+            },
+
+            requireCustomerBeforeManualProduct() {
+                if (this.getSelectedCustomerCode()) return true;
+                this.showCustomerRequired = true;
+                return false;
+            },
+
+            isRowSavable(row) {
+                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+            },
+
+            onPrPicked(e, source = 'SO') {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+                let pickItems = items;
+                const isUM = String(this.ftypesales || '0') === '1';
+                if (isUM) {
+                    const invalidItems = pickItems.filter(it => !String(it.fprdcode || it.fitemcode || '').trim().toUpperCase().startsWith('UM'));
+                    if (invalidItems.length > 0) {
+                        window.toast?.error('Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.');
+                        pickItems = pickItems.filter(it => String(it.fprdcode || it.fitemcode || '').trim().toUpperCase().startsWith('UM'));
+                    }
+                }
+                this.addManyFromPR(header, pickItems, source);
+            },
+
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            normalizeRefNoAcak(value) {
+                const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
+                return parts[0] ?? '';
+            },
+
+            generateUniqueNoAcak(exceptUid = null) {
+                const used = new Set(
+                    this.savedItems
+                    .filter(item => item.uid !== exceptUid)
+                    .map(item => this.normalizeNoAcak(item.fnoacak))
+                    .filter(Boolean)
+                );
+                let candidate = '';
+                do {
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
+                } while (used.has(candidate));
+                return candidate;
+            },
+
+            addManyFromPR(header, items, source = 'SO') {
+                const existing = new Set(this.getCurrentItemKeys());
+                let added = 0;
+
+                window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? header?.ftempo ?? 0);
+                window.syncInvoiceSalesmanFromSource?.(header);
+                window.syncInvoicePpnFromSource?.(header);
+
+                const internalNoteInput = document.getElementById('fketinternal');
+                if (internalNoteInput) {
+                    const currentValue = String(internalNoteInput.value ?? '').trim();
+                    const sourceValue = String(header?.fketinternal ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        internalNoteInput.value = sourceValue;
+                    }
+                }
+
+                const refNo = source === 'SRJ' ?
+                    (header?.fstockmtno ?? '') :
+                    (header?.fsono ?? '');
+
+                items.forEach(src => {
+                    const itemcode = (src.fitemcode ?? '').toString().trim();
+                    const frefdtno = (src.frefdtno ?? src.frefcode ?? '').toString().trim();
+                    const remainingQty = Math.max(0, Number(src.fqtyremain ?? 0));
+                    const satuan = (src.fsatuan ?? '').toString().trim();
+                    const meta = this.productMeta(itemcode);
+                    const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
+                        Number(src.fqtyremain_dokumen) :
+                        this.qtyKecilToUnit(src.fqtyremain, satuan, meta);
+                    const key = `${itemcode}::${frefdtno}`;
+
+                    if (existing.has(key)) return;
+                    existing.add(key);
+
+                    const row = {
+                        uid: cryptoRandom(),
+                        fitemcode: itemcode,
+                        fitemname: (src.fitemname ?? '').toString().trim(),
+                        fsatuan: satuan,
+                        fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
+                        frefdtno: frefdtno,
+                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
+                        frefno_display: refNo || src.frefcode || '',
+                        frefcode: src.frefcode || '',
+                        frefpr: refNo,
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
+                        fnoacak: this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src
+                            .frefnoacak ?? src.fnoacak ?? '')),
+                        ref_qty: displayQty,
+                        source_qty: displayQty,
+                        sj_qty: source === 'SRJ' ? displayQty : 0,
+                        do_qty: source === 'SRJ' ? displayQty : 0,
+                        so_qty: source === 'SO' ? displayQty : 0,
+                        fqty: displayQty > 0 ? displayQty : 1,
+                        fprice: Number(src.fprice ?? src.fharga ?? 0),
+                        ref_price: Number(src.fprice ?? src.fharga ?? 0),
+                        maxprice: Number(src.fprice ?? src.fharga ?? 0),
+                        source_price: Number(src.fprice ?? src.fharga ?? 0),
+                        fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
+                        ftotal: 0,
+                        fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
+                        units: Array.isArray(src.units) && src.units.length ?
+                            src.units.map(u => (u ?? '').toString().trim()).filter(Boolean) : [(src
+                                .fsatuan ?? '').toString().trim()].filter(Boolean),
+                        maxqty: remainingQty,
+                        maxqty_unit: 'kecil',
+                    };
+
+                    const rowLimit = this.getRowQtyLimit(row);
+                    if (!(rowLimit > 0)) return;
+                    this.recalc(row);
+                    this.savedItems.push({
+                        ...this.createRow(),
+                        ...row,
+                    });
+                    added++;
+                    this.onRowUpdated(this.savedItems.length - 1);
+                });
+
+                if (added > 0) window.toast?.success(@json('Berhasil menambahkan :count item').replace('__COUNT__', added));
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+                this.recalcTotals();
+            },
+
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+                this.recalcTotals();
+            },
+
+            get submitItems() {
+                return this.savedItems.filter(row => this.isRowSavable(row));
+            },
+
+            itemKey(it) {
+                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+            },
+
+            getCurrentItemKeys() {
+                return this.submitItems.map(it => this.itemKey(it));
+            },
+
+            normalizeRestoredRow(item, index = 0) {
+                const keepOldValues = Boolean(item?.is_restored_old);
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`,
+                    formIndex: item?.formIndex ?? this.allocateFormIndex(),
+                };
+                const oldValues = keepOldValues ? {
+                    fitemname: row.fitemname,
+                    fsatuan: row.fsatuan,
+                    frefdtno: row.frefdtno,
+                    frefno_display: row.frefno_display,
+                    fnouref: row.fnouref,
+                    frefpr: row.frefpr,
+                    frefso: row.frefso,
+                    frefsrj: row.frefsrj,
+                } : null;
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak);
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map(u => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                const meta = this.productMeta(row.fitemcode);
+                if (meta?.units?.length) {
+                    row.units = [...new Set([...row.units, ...meta.units])];
+                } else if (row.fsatuan && !row.units.includes(row.fsatuan)) {
+                    row.units.unshift(row.fsatuan);
+                }
+
+                const preferredUnit = (row.fsatuan || '').toString().trim();
+                if (preferredUnit !== '') {
+                    const matchedUnit = row.units.find((u) => (u ?? '').toString().trim().toLowerCase() ===
+                        preferredUnit.toLowerCase()) || preferredUnit;
+                    row.units = [matchedUnit, ...row.units.filter((u) => (u ?? '').toString().trim().toLowerCase() !==
+                        matchedUnit.toLowerCase())];
+                    row.fsatuan = matchedUnit;
+                }
+
+                if (meta?.unit_ratios) {
+                    row.unit_ratios = row.unit_ratios || meta.unit_ratios;
+                }
+
+                if (oldValues) {
+                    Object.assign(row, oldValues);
+                    if (row.fsatuan && !row.units.includes(row.fsatuan)) {
+                        row.units.unshift(row.fsatuan);
+                    }
+                }
+
+                row.fqtyInput = this.fmt(+row.fqty || 0);
+                row.fprice = Number(row.fprice ?? 0) || 0;
+                row.fpriceInput = this.fmt(row.fprice);
+                this.recalc(row);
+                return row;
+            },
+
+            allocateFormIndex() {
+                const index = Number(this.nextFormIndex || 0);
+                this.nextFormIndex = index + 1;
+                return index;
+            },
+
+            createRow(overrides = {}) {
+                const row = {
+                    ...newRow(),
+                    uid: overrides.uid || cryptoRandom(),
+                    formIndex: overrides.formIndex ?? this.allocateFormIndex(),
+                    ...overrides,
+                    fsatuan: (overrides.fsatuan ?? '').toString().trim(),
+                    fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid ||
+                        null),
+                    frefnoacak: this.normalizeRefNoAcak(overrides.frefnoacak),
+                };
+                row.fqtyInput = this.fmt(+row.fqty || 0);
+                row.fpriceInput = this.fmt(row.fprice);
+                return row;
+            },
+
+            clearRow(row) {
+                if (!row) return;
+                Object.assign(row, newRow(), { uid: row.uid, formIndex: row.formIndex });
+                this.recalc(row);
+            },
+
+            pruneEmptyRows() {
+                const filled = this.savedItems.filter(row => this.rowHasContent(row));
+                this.savedItems = filled.length ? filled : [];
+            },
+
+            focusRowUnit(row, index) {
+                if (row.units && row.units.length > 1) {
+                    this.$nextTick(() => document.getElementById(`unit_row_${index}`)?.focus());
+                    return;
+                }
+                this.focusRowQty(index);
+            },
+
+            focusRowQty(index) {
+                this.$nextTick(() => document.getElementById(`qty_row_${index}`)?.focus());
+            },
+
+            focusRowPrice(index) {
+                this.$nextTick(() => document.getElementById(`price_row_${index}`)?.focus());
+            },
+
+            focusRowDisc(index) {
+                this.$nextTick(() => document.getElementById(`disc_row_${index}`)?.focus());
+            },
+
+            init() {
+                const typeSelect = document.getElementById('ftypesales') || document.querySelector('select[name="ftypesales"]');
+                if (typeSelect) {
+                    this.ftypesales = Number(typeSelect.value || 0);
+                    typeSelect.addEventListener('change', (e) => {
+                        this.ftypesales = Number(e.target.value || 0);
+                        this.onTypeSalesChange();
+                    });
+                }
+                this.recalcTotals();
+                this.$watch('includePPN', () => this.recalcTotals());
+                this.$watch('fapplyppn', () => this.recalcTotals());
+                this.$watch('ppnRate', () => this.recalcTotals());
+                this.$watch('headerDiscPercent', (value) => {
+                    const normalized = Math.min(100, Math.max(0, Number(value) || 0));
+                    if (normalized !== Number(value)) {
+                        this.headerDiscPercent = normalized;
+                        return;
+                    }
+                    this.recalcTotals();
+                });
+                window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                this.savedItems = Array.isArray(this.savedItems) ?
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
+                if (this.action === 'view' || this.action === 'delete') {
+                    this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
+                    this.minimumVisibleRows = this.savedItems.length;
+                } else {
+                    this.pruneEmptyRows();
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
+                window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
+                    passive: true
+                });
+                window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), {
+                    passive: true
+                });
+                window.addEventListener('product-chosen', (e) => {
+                    const {
+                        product
+                    } = e.detail || {};
+                    if (!product) return;
+                    const prodCode = (product.fprdcode || '').toString().trim().toUpperCase();
+                    if (this.isUangMuka() && !prodCode.startsWith('UM')) {
+                        this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
+                        return;
+                    }
+                    const index = Number.isInteger(this.browseTarget) ? this.browseTarget : -1;
+                    if (index < 0 || !this.savedItems[index]) return;
+                    const targetRow = this.savedItems[index];
+                    targetRow.fitemcode = (product.fprdcode || '').toString();
+                    this.onCodeTypedRow(targetRow, index);
+                    targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(
+                        targetRow.uid);
+                    this.focusRowQty(index);
+                }, {
+                    passive: true
+                });
+            },
+
+            openBrowseFor(index) {
+                if (!this.requireCustomerBeforeManualProduct()) {
+                    return;
+                }
+                this.browseTarget = index;
+                const isUM = this.isUangMuka();
+                window.dispatchEvent(new CustomEvent('browse-open', {
+                    detail: {
+                        forEdit: false,
+                        codePrefix: isUM ? 'UM' : ''
+                    }
+                }));
+            },
+
+            canOpenHistory(targetRow) {
+                return this.getSelectedCustomerCode() !== '' && (targetRow?.fitemcode || '').toString().trim() !== '';
+            },
+            closeHistory() {
+                this.showHistoryModal = false;
+                this.historyLoading = false;
+                this.historyRows = [];
+                this.historyTargetRow = null;
+            },
+            async openProductHistory(targetRow) {
+                const customerCode = this.getSelectedCustomerCode();
+                const productCode = (targetRow?.fitemcode || '').toString().trim();
+
+                if (!customerCode) {
+                    this.showCustomerRequired = true;
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Customer wajib dipilih terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Customer wajib dipilih terlebih dahulu.' });
+                    }
+                    return;
+                }
+                if (!productCode) {
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', 'Pilih atau isi kode produk terlebih dahulu.');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Pilih atau isi kode produk terlebih dahulu.' });
+                    }
+                    return;
+                }
+
+                this.showHistoryModal = true;
+                this.historyLoading = true;
+                this.historyRows = [];
+                this.historyTargetRow = targetRow;
+
+                try {
+                    const params = new URLSearchParams({
+                        fcustno: customerCode,
+                        fprdcode: productCode,
+                    });
+                    const response = await fetch(`{{ route('penjualanretail.product-history') }}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' },
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload?.message || 'Gagal memuat riwayat produk.');
+                    this.historyRows = Array.isArray(payload?.data) ? payload.data : [];
+                } catch (error) {
+                    this.historyRows = [];
+                    if (typeof window.showAppWarningAlert === 'function') {
+                        window.showAppWarningAlert('WARNING', error.message || 'Gagal memuat riwayat produk.');
+                    } else {
+                        window.toast?.error(error.message || 'Gagal memuat riwayat produk.');
+                    }
+                } finally {
+                    this.historyLoading = false;
+                }
+            },
+            selectHistory(row) {
+                if (this.historyTargetRow && row) {
+                    this.historyTargetRow.frefdtno = row.fsono || row.fstockmtno || '';
+                    this.historyTargetRow.frefno_display = row.fsono || row.fstockmtno || '';
+                    const refQtyVal = Number(row.fqtyremain ?? row.maxqty ?? row.faktur_qty ?? row.qty_faktur ?? row.fqty ?? 0);
+                    if (refQtyVal > 0) {
+                        this.historyTargetRow.maxqty = refQtyVal;
+                        this.historyTargetRow.ref_qty = refQtyVal;
+                        this.historyTargetRow.source_qty = refQtyVal;
+                        this.historyTargetRow.qty_asal = Number(row.qty_asal ?? refQtyVal);
+                    }
+                    if (typeof row.fqty !== 'undefined' && +row.fqty > 0) {
+                        this.historyTargetRow.fqty = Math.min(+row.fqty, refQtyVal > 0 ? refQtyVal : +row.fqty);
+                    }
+                    const priceVal = typeof row.fprice !== 'undefined' ? +row.fprice : (typeof row.fharga !== 'undefined' ? +row.fharga : null);
+                    if (priceVal !== null && priceVal >= 0) {
+                        const absPrice = Math.abs(priceVal);
+                        this.historyTargetRow.ref_price = absPrice;
+                        this.historyTargetRow.maxprice = absPrice;
+                        this.historyTargetRow.source_price = absPrice;
+                        this.historyTargetRow.fsisadp = Number(row.fsisadp ?? absPrice);
+                        this.historyTargetRow.fprice = absPrice;
+                        if (typeof this.historyTargetRow.fpriceInput !== 'undefined' && typeof this.fmt === 'function') {
+                            this.historyTargetRow.fpriceInput = this.fmt(absPrice);
+                        }
+                    }
+                    if (row.fsatuan && Array.isArray(this.historyTargetRow.units) && this.historyTargetRow.units.includes(row.fsatuan)) {
+                        this.historyTargetRow.fsatuan = row.fsatuan;
+                    }
+                    const targetIndex = this.savedItems.indexOf(this.historyTargetRow);
+                    if (targetIndex !== -1) {
+                        if (typeof this.onRowUpdated === 'function') {
+                            this.onRowUpdated(targetIndex);
+                        }
+                        this.savedItems.splice(targetIndex, 1, { ...this.historyTargetRow });
+                    }
+                    if (Array.isArray(this.draftRows)) {
+                        const draftIdx = this.draftRows.indexOf(this.historyTargetRow);
+                        if (draftIdx !== -1) {
+                            this.draftRows.splice(draftIdx, 1, { ...this.historyTargetRow });
+                        }
+                    }
+                    if (this.historyTargetRow === this.editRow) {
+                        this.editRow = { ...this.editRow };
+                    }
+                    this.recalc?.(this.historyTargetRow);
+                    this.recalcTotals?.();
+                }
+                this.closeHistory();
+            },
+
+            openDesc(index = null) {
+                this.descSavedIndex = index;
+                this.descItemName = index !== null ? (this.savedItems[index]?.fitemname || '') : '';
+                this.descValue = index !== null ? (this.savedItems[index]?.fdesc || '') : '';
+                this.showDescModal = true;
+            },
+            copyDescName() {
+                this.descValue = this.descItemName || '';
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descSavedIndex = null;
+                this.descItemName = '';
+                this.descValue = '';
+            },
+            applyDesc() {
+                if (this.descSavedIndex !== null) {
+                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                    this.onRowUpdated(this.descSavedIndex);
+                }
+                this.closeDesc();
+            },
+            showCustomerRequired: false,
+        };
+
+        function newRow() {
+            return {
+                uid: null,
+                formIndex: null,
+                fitemcode: '',
+                fitemname: '',
+                units: [],
+                fsatuan: '',
+                frefdtno: '',
+                frefno_display: '',
+                frefcode: '',
+                frefpr: '',
+                fnoacak: '',
+                frefnoacak: '',
+                fqty: 0,
+                fqtyInput: '0,00',
+                maxqty: 0,
+                fprice: 0,
+                fpriceInput: '0,00',
+                fdisc: 0,
+                ftotal: 0,
+                fdesc: '',
+            };
+        }
+
+        function cryptoRandom() {
+            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+                    .toString(16)).join('') :
+                Math.random().toString(36).slice(2)) + Date.now();
+        }
+
+    }
+</script>
+
+<script>
+    window.prhFormModal = function() {
+        return {
+            show: false,
+            table: null,
+
+            // Duplikasi modal state
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#prTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('tr_poh.pickable') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                // Menambahkan parameter order untuk server-side processing
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir,
+                                customer_code: document.getElementById('customerCodeHidden')?.value ||
+                                    ''
+                            };
+                        },
+                        // Karena kita sudah menggunakan parameter start/length standar DataTables,
+                        // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.
+                        // Jika backend tetap menggunakan pagination Laravel, dataSrc perlu dipertahankan. 
+                        // Kita asumsikan backend sudah disesuaikan untuk server-side DataTables penuh.
+                        // Jika masih menggunakan format pagination Laravel, kita bisa menggunakan:
+                        // dataSrc: function(json) { return json.data; }
+                    },
+                    columns: [{
+                            data: 'fprno',
+                            name: 'fprno',
+                            className: 'font-mono text-sm' // Styling konsisten
+                        },
+                        {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                            className: 'text-sm', // Styling konsisten
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'fprdate',
+                            name: 'fprdate',
+                            className: 'text-sm', // Styling konsisten
+                            render: function(data) {
+                                return formatDate(data);
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                // Menggunakan styling yang lebih seragam
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100], // Menambahkan 100
+                        [10, 25, 50, 100]
+                    ],
+                    // Menggunakan DOM custom yang sudah diseragamkan
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
+                    language: {
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
+                        infoFiltered: @json('(disaring dari _MAX_ total data)'),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
+                        paginate: {
+                            first: @json('Pertama'),
+                            last: @json('Terakhir'),
+                            next: @json('Selanjutnya'),
+                            previous: @json('Sebelumnya')
+                        }
+                    },
+                    order: [
+                        [2, 'desc']
+                    ], // Sort by tanggal terbaru
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Style search input (disamakan dengan Customer)
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '300px', // Menggunakan 300px agar konsisten dengan customerBrowser
+                            padding: '8px 12px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        }).focus();
+
+                        // Style length select (disamakan dengan Customer)
+                        $container.find('.dt-length select, .dataTables_length select').css({
+                            padding: '6px 32px 6px 10px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        });
+                    }
+                });
+
+                // Handle button click (Menggunakan self for consistency)
+                const self = this;
+                $('#prTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.pick(data);
+                });
+            },
+
+            openModal() {
+                this.show = true;
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            },
+
+            closeModal() {
+                this.show = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
+            },
+
+            // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
+            openDupModal(header, duplicates, uniques) {
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+            },
+
+            closeDupModal() {
+                window.transactionReferenceModalHelper.closeDupModal(this);
+            },
+
+            confirmAddUniques() {
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+            },
+
+            async pick(row) {
+                try {
+                    // Tampilkan loading indicator (opsional)
+
+                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? row.fcustno ?? row.fcustomercode ?? '',
+                        fcustomername: row.fcustomername ?? row.fsuppliername ?? '',
+                    });
+
+                    const items = json.items || [];
+                    // Pastikan window.getCurrentItemKeys() tersedia
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(row, duplicates, uniques);
+                        return;
+                    }
+
+                    // Tidak ada duplikat
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: row,
+                            items
+                        }
+                    }));
+
+                    this.closeModal();
+                } catch (e) {
+                    console.error(e);
+                    // Menggunakan custom alert/modal, bukan alert() bawaan browser
+                    // Idealnya: tampilkan notifikasi di UI
+                    console.log(@json('Gagal mengambil detail PR.'));
+                }
+            }
+        };
+    };
+
+    // Helper function untuk format tanggal (ditingkatkan sedikit)
+    function formatDate(s) {
+        if (!s || s === 'No Date') return '-';
+        // Mencoba parsing format standar ISO 8601 atau yang didukung Date
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return '-';
+
+        // Format YYYY-MM-DD HH:MM
+        const pad = n => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+</script>
+
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.browse-customer-script')
+    @include('components.transaction.browse-salesman-script')
+    @include('components.transaction.invoice-so-modal-script')
+    @include('components.transaction.invoice-srj-modal-script')
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
+    @if (($action ?? '') !== 'view')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
+            const warningBox = document.getElementById('customerAdvanceWarningBox');
+            const warningText = document.getElementById('customerAdvanceWarningText');
+            const hiddenInput = document.getElementById('customerCodeHidden');
+            const selectInput = document.getElementById('modal_filter_customer_id');
+            const updateCustomerAdvanceWarning = (customerCode = null) => {
+                if (!warningBox || !warningText) {
+                    return;
+                }
+
+                const code = (customerCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
+                // const warning = customerAdvanceWarnings[code] ?? null;
+
+                if (!warning || !warning.message) {
+                    warningBox.classList.add('hidden');
+                    warningText.textContent = '';
+                    return;
+                }
+
+                warningText.textContent = warning.message;
+                warningBox.classList.remove('hidden');
+            };
+
+            if (hiddenInput) {
+                hiddenInput.addEventListener('change', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value);
+                });
+                hiddenInput.addEventListener('input', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value);
+                });
+            }
+            if (selectInput) {
+                selectInput.addEventListener('change', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value);
+                });
+            }
+
+            // Listen to customer-selected custom event
+            window.addEventListener('customer-selected', (e) => {
+                const code = e.detail?.fcustomercode;
+                updateCustomerAdvanceWarning(code);
+            });
+
+            // Initial check
+            setTimeout(() => {
+                updateCustomerAdvanceWarning();
+            }, 100);
+        });
+    </script>
+    @endif
+@endpush

@@ -30,6 +30,7 @@ class EnsureRoutePermission
         'penerimaankas' => 'PenerimaanKas',
         'pengeluarankas' => 'PengeluaranKas',
         'pelunasancustomer' => 'PelunasanCustomer',
+        'penjualanretail' => 'PenjualanRetail',
         'product' => 'Product',
         'rekening' => 'Rekening',
         'returpembelian' => 'ReturPembelian',

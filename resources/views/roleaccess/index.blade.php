@@ -211,6 +211,13 @@
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="deleteInvoice" {{ in_array('deleteInvoice', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
+                                <td class="px-3 py-2 font-semibold">Penjualan Retail</td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="viewPenjualanRetail" {{ in_array('viewPenjualanRetail', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="createPenjualanRetail" {{ in_array('createPenjualanRetail', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="updatePenjualanRetail" {{ in_array('updatePenjualanRetail', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="deletePenjualanRetail" {{ in_array('deletePenjualanRetail', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Retur Penjualan</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewReturPenjualan" {{ in_array('viewReturPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createReturPenjualan" {{ in_array('createReturPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>

@@ -23,7 +23,32 @@ use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
-    private const DAILY_CREATE_LIMIT = 15;
+    protected string $routeNamePrefix = 'invoice';
+    protected string $viewNamePrefix = 'invoice';
+    protected string $permissionPrefix = 'Invoice';
+    protected string $moduleTitle = 'Faktur Penjualan';
+
+    protected function getRoutePrefix(): string
+    {
+        return $this->routeNamePrefix;
+    }
+
+    protected function getViewPrefix(): string
+    {
+        return $this->viewNamePrefix;
+    }
+
+    protected function getPermissionPrefix(): string
+    {
+        return $this->permissionPrefix;
+    }
+
+    protected function getModuleTitle(): string
+    {
+        return $this->moduleTitle;
+    }
+
+    protected const DAILY_CREATE_LIMIT = 15;
 
     private function todayCreateCount(): int
     {
@@ -739,9 +764,9 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $canCreate = in_array('createInvoice', explode(',', session('user_restricted_permissions', '')));
-        $canEdit = in_array('updateInvoice', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deleteInvoice', explode(',', session('user_restricted_permissions', '')));
+        $canCreate = in_array('create' . $this->getPermissionPrefix(), explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('update' . $this->getPermissionPrefix(), explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('delete' . $this->getPermissionPrefix(), explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
         $year = $request->query('year');
@@ -914,7 +939,7 @@ class InvoiceController extends Controller
             ]);
         }
 
-        return view('invoice.index', compact(
+        return view($this->getViewPrefix() . '.index', compact(
             'canCreate',
             'canEdit',
             'canDelete',
@@ -1319,7 +1344,7 @@ class InvoiceController extends Controller
 
         log_print_transaction($hdr->fsono);
 
-        return view('invoice.print', [
+        return view($this->getViewPrefix() . '.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
@@ -1333,7 +1358,7 @@ class InvoiceController extends Controller
     {
         if ($this->hasReachedDailyCreateLimit()) {
             return redirect()
-                ->route('invoice.index')
+                ->route($this->getRoutePrefix() . '.index')
                 ->with('create_limit_exceeded', true);
         }
 
@@ -1367,7 +1392,7 @@ class InvoiceController extends Controller
 
         $productMap = $this->buildProductMap($products);
 
-        return view('invoice.create', [
+        return view($this->getViewPrefix() . '.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
             'customers' => $customers,
@@ -1926,7 +1951,7 @@ class InvoiceController extends Controller
     {
         if ($this->hasReachedDailyCreateLimit()) {
             return redirect()
-                ->route('invoice.index')
+                ->route($this->getRoutePrefix() . '.index')
                 ->with('create_limit_exceeded', true);
         }
 
@@ -2538,24 +2563,24 @@ class InvoiceController extends Controller
 
             $successPrompt = $isApproved ? [
                 'type' => 'invoice_create',
-                'redirect_url' => route('invoice.print', $fsono),
+                'redirect_url' => route($this->getRoutePrefix() . '.print', $fsono),
                 'suratjalan_url' => $suratjalanUrl,
             ] : ($suratjalanUrl ? [
                 'type' => 'invoice_create_suratjalan',
                 'redirect_url' => $suratjalanUrl,
             ] : null);
 
-            $successMessage = "Faktur Penjualan {$fsono} berhasil disimpan.";
+            $successMessage = "{$this->getModuleTitle()} {$fsono} berhasil disimpan.";
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $successMessage,
-                    'redirect_url' => route('invoice.create'),
+                    'redirect_url' => route($this->getRoutePrefix() . '.create'),
                     'success_prompt' => $successPrompt,
                 ]);
             }
             return redirect()
-                ->route('invoice.create')
+                ->route($this->getRoutePrefix() . '.create')
                 ->with('success', $successMessage)
                 ->with('success_prompt', $successPrompt);
         } catch (\Exception $e) {
@@ -3033,7 +3058,7 @@ class InvoiceController extends Controller
         })->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
@@ -3049,7 +3074,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -3135,7 +3160,7 @@ class InvoiceController extends Controller
         $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
-        return view('invoice.edit', [
+        return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -3241,7 +3266,7 @@ class InvoiceController extends Controller
         $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
-        return view('invoice.edit', [
+        return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -3357,11 +3382,11 @@ class InvoiceController extends Controller
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.edit', $ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
-            return redirect()->route('invoice.index')->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
         }
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
@@ -3941,15 +3966,15 @@ class InvoiceController extends Controller
                 );
             });
 
-            $successMessage = "Faktur Penjualan {$header->fsono} berhasil diupdate.";
+            $successMessage = "{$this->getModuleTitle()} {$header->fsono} berhasil diupdate.";
 
-            $redirect = redirect()->route('invoice.index')->with('success', $successMessage);
+            $redirect = redirect()->route($this->getRoutePrefix() . '.index')->with('success', $successMessage);
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => $successMessage,
-                        'redirect_url' => route('invoice.index'),
+                        'redirect_url' => route($this->getRoutePrefix() . '.index'),
                     ]);
                 }
                 return $redirect;
@@ -4023,7 +4048,7 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
@@ -4039,7 +4064,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -4084,7 +4109,7 @@ class InvoiceController extends Controller
         $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
-        return view('invoice.edit', [
+        return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -4233,20 +4258,20 @@ class InvoiceController extends Controller
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan berhasil dihapus.',
-                    'redirect_url' => route('invoice.index'),
+                    'message' => "{$this->getModuleTitle()} berhasil dihapus.",
+                    'redirect_url' => route($this->getRoutePrefix() . '.index'),
                 ]);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan berhasil dihapus.');
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('success', "{$this->getModuleTitle()} berhasil dihapus.");
         } catch (\Exception $e) {
             report($e);
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => 'Faktur penjualan belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                    'message' => "{$this->getModuleTitle()} belum bisa dihapus. Coba lagi: " . $e->getMessage(),
                 ], 500);
             }
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Faktur penjualan belum bisa dihapus. Coba lagi.');
+            return redirect()->route($this->getRoutePrefix() . '.delete', $ftranmtid)->with('error', "{$this->getModuleTitle()} belum bisa dihapus. Coba lagi.");
         }
     }
 
