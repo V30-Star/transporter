@@ -71,7 +71,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Customer From</label>
-                                <select name="cust_from" class="select2 w-full border rounded px-3 py-2 text-sm">
+                                <select name="cust_from" id="cust_from" class="select2 w-full border rounded px-3 py-2 text-sm">
                                     <option value="">-- Semua / Mulai --</option>
                                     @foreach ($customers as $c)
                                         <option value="{{ $c->fcustomercode }}">{{ $c->fcustomername }} ({{ $c->fcustomercode }})</option>
@@ -80,7 +80,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Customer To</label>
-                                <select name="cust_to" class="select2 w-full border rounded px-3 py-2 text-sm">
+                                <select name="cust_to" id="cust_to" class="select2 w-full border rounded px-3 py-2 text-sm">
                                     <option value="">-- Semua / Sampai --</option>
                                     @foreach ($customers as $c)
                                         <option value="{{ $c->fcustomercode }}">{{ $c->fcustomername }} ({{ $c->fcustomercode }})</option>
@@ -248,6 +248,9 @@
         $(document).ready(function() {
             $('.select2').select2({
                 width: '100%'
+            });
+            $('#cust_from').on('change', function() {
+                $('#cust_to').val($(this).val()).trigger('change');
             });
             toggleModal(true);
         });
