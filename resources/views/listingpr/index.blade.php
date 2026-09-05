@@ -140,6 +140,9 @@
             $('.select2').select2({
                 width: '100%'
             });
+            $('select[name="sup_from"]').on('change', function() {
+                $('select[name="sup_to"]').val($(this).val()).trigger('change');
+            });
             toggleModal(true);
             $('#all_pr').change(function() {
                 if ($(this).is(':checked')) $('#only_pending').prop('checked', false).prop('disabled',

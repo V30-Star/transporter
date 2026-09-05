@@ -101,6 +101,12 @@
                 },
                 allowClear: true
             });
+            $('#account_from').on('change', function() {
+                $('#account_to').val($(this).val()).trigger('change');
+            });
+            $('#period_from').on('input change', function() {
+                $('#period_to').val($(this).val());
+            });
         });
     </script>
 @endsection

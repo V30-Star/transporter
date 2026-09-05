@@ -126,6 +126,9 @@
                 },
                 allowClear: true
             });
+            $('#product_from').on('change', function() {
+                $('#product_to').val($(this).val()).trigger('change');
+            });
         });
     </script>
 @endsection

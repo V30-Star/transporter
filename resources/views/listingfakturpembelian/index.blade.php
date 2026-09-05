@@ -145,6 +145,9 @@
             $('.select2').select2({
                 width: '100%'
             });
+            $('select[name="sup_from"]').on('change', function() {
+                $('select[name="sup_to"]').val($(this).val()).trigger('change');
+            });
             toggleModal(true);
         });
     </script>

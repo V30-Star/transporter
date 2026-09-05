@@ -250,6 +250,8 @@
                         if (this.activeSupplierField === 'from') {
                             this.supplierFromCode = code;
                             this.supplierFromLabel = label;
+                            this.supplierToCode = code;
+                            this.supplierToLabel = label;
                         }
                         if (this.activeSupplierField === 'to') {
                             this.supplierToCode = code;

@@ -110,6 +110,9 @@
             $('.select2').select2({
                 width: '100%'
             });
+            $('select[name="account_from"]').on('change', function() {
+                $('select[name="account_to"]').val($(this).val()).trigger('change');
+            });
             toggleModal(true);
         });
 

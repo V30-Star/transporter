@@ -140,7 +140,7 @@
                 placeholder: '-- All --',
                 allowClear: true
             });
-            $('#prd_from').on('select2:select', function() {
+            $('#prd_from').on('change', function() {
                 $('#prd_to').val($(this).val()).trigger('change');
             });
             toggleModal(true);

@@ -97,6 +97,9 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2({ width: '100%', allowClear: true });
+        $('select[name="customer_from"]').on('change', function() {
+            $('select[name="customer_to"]').val($(this).val()).trigger('change');
+        });
         toggleModal(true);
     });
     function toggleModal(show) { $('#filterModal').toggleClass('hidden', !show); }

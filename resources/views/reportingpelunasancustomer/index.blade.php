@@ -240,6 +240,8 @@
                         if (this.activeCustomerField === 'from') {
                             this.customerFromCode = code;
                             this.customerFromLabel = label;
+                            this.customerToCode = code;
+                            this.customerToLabel = label;
                         }
                         if (this.activeCustomerField === 'to') {
                             this.customerToCode = code;

@@ -175,6 +175,9 @@
         $('.select2').select2({
             width: '100%'
         });
+        $('select[name="cust_from"]').on('change', function() {
+            $('select[name="cust_to"]').val($(this).val()).trigger('change');
+        });
 
         function selectAllBranches(status) {
             document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
