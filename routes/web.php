@@ -34,6 +34,7 @@ use App\Http\Controllers\ListingPenerimaanKasBankController;
 use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPenjualanHppController;
 use App\Http\Controllers\LogUserController;
+use App\Http\Controllers\DashboardWewenangController;
 
 use App\Http\Controllers\ListingPengeluaranKasBankController;
 use App\Http\Controllers\ListingPiutangPenjualanController;
@@ -840,8 +841,13 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/loguser', [LogUserController::class, 'index'])->name('loguser.index');
         Route::get('/loguser/print', [LogUserController::class, 'print'])->name('loguser.print');
         Route::get('/loguser/excel', [LogUserController::class, 'exportExcel'])->name('loguser.excel');
+
+        Route::get('/dashboard-wewenang', [DashboardWewenangController::class, 'index'])->name('dashboardwewenang.index');
+        Route::get('/dashboard-wewenang/print', [DashboardWewenangController::class, 'print'])->name('dashboardwewenang.print');
+        Route::get('/dashboard-wewenang/excel', [DashboardWewenangController::class, 'exportExcel'])->name('dashboardwewenang.excel');
     });
 });
+
 
 
 Route::get('/approval-page', [ApprovalController::class, 'showApprovalPage'])
