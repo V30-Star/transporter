@@ -165,11 +165,31 @@
             color: var(--app-text-soft) !important;
         }
 
+        /* Global Table Row Hover Animation */
+        table tbody tr {
+            transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+        }
+
+        table tbody tr:not([class*="bg-"]):hover,
+        table tbody tr.hover\:bg-gray-50:hover,
+        table.min-w-full tbody tr:hover,
+        table.dataTable tbody tr:hover,
+        .dataTables_wrapper tbody tr:hover {
+            background-color: #f0f7ff !important;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            box-shadow: inset 3px 0 0 #3b82f6, 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
         html[data-theme="dark"] .hover\:bg-gray-50:hover,
         html[data-theme="dark"] tr.hover\:bg-gray-50:hover,
+        html[data-theme="dark"] table tbody tr:hover,
         html[data-theme="dark"] .transaction-detail-table tbody tr:hover {
-            background-color: #172033 !important;
+            background-color: #172554 !important;
+            box-shadow: inset 3px 0 0 #60a5fa, 0 1px 2px rgba(0, 0, 0, 0.25);
         }
+
 
         html[data-theme="dark"] .bg-black {
             background-color: var(--app-sidebar-bg) !important;
