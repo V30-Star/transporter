@@ -2758,6 +2758,54 @@
             });
         })();
     </script>
+    @auth
+    <script>
+        (() => {
+            const tabId = sessionStorage.getItem('app_tab_id') || ('tab_' + Math.random().toString(36).substring(2) + Date.now());
+            sessionStorage.setItem('app_tab_id', tabId);
+
+            const getTabs = () => {
+                try {
+                    return JSON.parse(localStorage.getItem('app_active_tabs') || '{}');
+                } catch(e) {
+                    return {};
+                }
+            };
+
+            const updateTabHeartbeat = () => {
+                const tabs = getTabs();
+                const now = Date.now();
+                for (const id in tabs) {
+                    if (now - tabs[id] > 30000) {
+                        delete tabs[id];
+                    }
+                }
+                tabs[tabId] = now;
+                try { localStorage.setItem('app_active_tabs', JSON.stringify(tabs)); } catch(e) {}
+            };
+
+            updateTabHeartbeat();
+            setInterval(updateTabHeartbeat, 10000);
+
+            window.addEventListener('pagehide', () => {
+                const tabs = getTabs();
+                delete tabs[tabId];
+                try { localStorage.setItem('app_active_tabs', JSON.stringify(tabs)); } catch(e) {}
+
+                if (Object.keys(tabs).length === 0) {
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    formData.append('account', '{{ Auth::user()->fsysuserid ?? session("fsysuserid") }}');
+                    @if(session('login_log_id'))
+                    formData.append('log_id', '{{ session("login_log_id") }}');
+                    @endif
+                    navigator.sendBeacon('{{ route("loguser.close-tab") }}', formData);
+                }
+            });
+        })();
+    </script>
+    @endauth
 </body>
 
 </html>
+

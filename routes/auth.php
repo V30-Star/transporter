@@ -53,4 +53,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    Route::post('log-user/close-tab', [AuthenticatedSessionController::class, 'closeTab'])
+        ->name('loguser.close-tab');
 });
+

@@ -33,6 +33,8 @@ use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenerimaanKasBankController;
 use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPenjualanHppController;
+use App\Http\Controllers\LogUserController;
+
 use App\Http\Controllers\ListingPengeluaranKasBankController;
 use App\Http\Controllers\ListingPiutangPenjualanController;
 use App\Http\Controllers\ListingPOController;
@@ -834,8 +836,13 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
             ->name('roleaccess.clone');
 
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
+
+        Route::get('/loguser', [LogUserController::class, 'index'])->name('loguser.index');
+        Route::get('/loguser/print', [LogUserController::class, 'print'])->name('loguser.print');
+        Route::get('/loguser/excel', [LogUserController::class, 'exportExcel'])->name('loguser.excel');
     });
 });
+
 
 Route::get('/approval-page', [ApprovalController::class, 'showApprovalPage'])
     ->name('approval.page');

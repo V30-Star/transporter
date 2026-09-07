@@ -1259,7 +1259,17 @@
                         </li>
                     @endif
 
+                    @if ($hasSidebarPermission('viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'))
+                        <li>
+                            <a href="{{ route('loguser.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-user-clock w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Log User Login' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
+
             </li>
 
             <!-- Posting -->

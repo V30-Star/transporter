@@ -118,7 +118,12 @@ SVG;
             'fcabang' => $user->fcabang,
         ]);
 
-        LogUser::create([
+        // Auto close previous unclosed sessions for this account
+        LogUser::where('akun', $user->fsysuserid)
+            ->whereNull('log_out_date')
+            ->update(['log_out_date' => now()]);
+
+        $log = LogUser::create([
             'ip' => $request->ip(),
             'akun' => $user->fsysuserid,
             'komp' => gethostname(),
@@ -126,7 +131,33 @@ SVG;
             'log_out_date' => null,
         ]);
 
+        session(['login_log_id' => $log->floguserid]);
+
         return redirect()->intended(RouteServiceProvider::HOME);
+    }
+
+    /**
+     * Record logout when closing browser/tab.
+     */
+    public function closeTab(Request $request)
+    {
+        $logId = session('login_log_id') ?? $request->input('log_id');
+        $user = Auth::guard('sysuser')->user() ?? Auth::user();
+        $account = $user?->fsysuserid ?? session('fsysuserid') ?? $request->input('account');
+
+        if ($logId) {
+            LogUser::where('floguserid', $logId)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
+        } elseif ($account) {
+            LogUser::where('akun', $account)
+                ->whereNull('log_out_date')
+                ->latest('login_date')
+                ->first()
+                ?->update(['log_out_date' => now()]);
+        }
+
+        return response()->noContent();
     }
 
     /**
@@ -134,15 +165,24 @@ SVG;
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        $logId = session('login_log_id');
+        $user = Auth::guard('sysuser')->user() ?? Auth::user();
+        $account = $user?->fsysuserid ?? session('fsysuserid');
 
-        $user = auth('sysuser')->user();
+        if ($logId) {
+            LogUser::where('floguserid', $logId)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
+        } elseif ($account) {
+            LogUser::where('akun', $account)
+                ->whereNull('log_out_date')
+                ->latest('login_date')
+                ->first()
+                ?->update(['log_out_date' => now()]);
+        }
 
-        LogUser::where('akun', $user->fsysuserid)
-            ->whereNull('log_out_date')
-            ->latest('login_date')
-            ->first()
-            ?->update(['log_out_date' => now()]);
+        Auth::guard('sysuser')->logout();
+        Auth::logout();
 
         $request->session()->invalidate();
 
@@ -151,3 +191,4 @@ SVG;
         return redirect('/');
     }
 }
+
