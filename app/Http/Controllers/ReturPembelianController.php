@@ -960,13 +960,7 @@ class ReturPembelianController extends Controller
             ->orderBy('fprdname')
             ->get();
 
-        $lastWarehouse = DB::table('trstockmt')
-            ->whereIn('fstockmtcode', ['REB', 'RUB'])
-            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
-            ->whereNotNull('ffrom')
-            ->where('ffrom', '!=', '')
-            ->latest('fstockmtid')
-            ->value('ffrom');
+        $lastWarehouse = get_last_global_warehouse($fbranchcode);
 
         return view('returpembelian.create', [
             'newtr_prh_code' => $newtr_prh_code,

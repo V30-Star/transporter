@@ -67,6 +67,12 @@
             }));
         });
 
+        try {
+            if (activeValue) {
+                localStorage.setItem('global_last_warehouse', activeValue);
+            }
+        } catch (e) {}
+
         window.dispatchEvent(new CustomEvent('warehouse-picked', {
             detail: {
                 fwhid: id,

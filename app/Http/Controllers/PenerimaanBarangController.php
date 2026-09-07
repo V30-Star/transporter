@@ -887,13 +887,7 @@ class PenerimaanBarangController extends Controller
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
 
-        $lastWarehouse = DB::table('trstockmt')
-            ->where('fstockmtcode', 'TER')
-            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
-            ->whereNotNull('ffrom')
-            ->where('ffrom', '!=', '')
-            ->latest('fstockmtid')
-            ->value('ffrom');
+        $lastWarehouse = get_last_global_warehouse($fbranchcode);
 
         return view('penerimaanbarang.create', [
             'warehouses' => $warehouses,

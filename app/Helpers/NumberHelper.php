@@ -249,3 +249,15 @@ if (!function_exists('sysuser_name')) {
     return $userNames[$code];
   }
 }
+
+if (!function_exists('get_last_global_warehouse')) {
+  function get_last_global_warehouse(?string $branchCode = null): ?string
+  {
+    return \Illuminate\Support\Facades\DB::table('trstockmt')
+      ->when($branchCode, fn($q) => $q->where('fbranchcode', $branchCode))
+      ->whereNotNull('ffrom')
+      ->where('ffrom', '!=', '')
+      ->latest('fstockmtid')
+      ->value('ffrom');
+  }
+}

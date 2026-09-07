@@ -613,7 +613,7 @@ class MutasiController extends Controller
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
             'fromWarehouses' => $fromWarehouses,
-            'lastFrom' => $lastRecord?->ffrom ?? null,
+            'lastFrom' => get_last_global_warehouse($fbranchcode) ?? ($lastRecord?->ffrom ?? null),
             'lastTo' => $lastRecord?->fto ?? null,
             'accounts' => $accounts,
             'supplier' => $supplier,

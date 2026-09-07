@@ -342,11 +342,6 @@
                                 <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
                             </tr>
                             <tr>
-                                <td>No. Ref / PO</td>
-                                <td>:</td>
-                                <td>{{ $hdr->frefno ?? '-' }}</td>
-                            </tr>
-                            <tr>
                                 <td>Sales</td>
                                 <td>:</td>
                                 <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>

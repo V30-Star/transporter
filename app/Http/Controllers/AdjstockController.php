@@ -470,13 +470,7 @@ class AdjstockController extends Controller
             ->orderBy('fprdname')
             ->get();
 
-        $lastWarehouse = DB::table('trstockmt')
-            ->where('fstockmtcode', 'ADJ')
-            ->when($fbranchcode, fn($q) => $q->where('fbranchcode', $fbranchcode))
-            ->whereNotNull('ffrom')
-            ->where('ffrom', '!=', '')
-            ->latest('fstockmtid')
-            ->value('ffrom');
+        $lastWarehouse = get_last_global_warehouse($fbranchcode);
 
         return view('adjstock.create', [
             'newtr_prh_code' => $newtr_prh_code,

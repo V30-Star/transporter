@@ -2729,6 +2729,32 @@
                         clearDraftKeys(keysToClear);
                     }
                 });
+
+                // Global Warehouse Tracking
+                const isWarehouseField = (el) => {
+                    if (!el) return false;
+                    const name = (el.name || '').toLowerCase();
+                    const id = (el.id || '').toLowerCase();
+                    return id === 'warehouseselect' || id === 'warehouseselectfrom' || id === 'warehousecodehidden' || id === 'warehousecodehiddenfrom' || name === 'ffrom' || name === 'warehouse' || name === 'fwhcode';
+                };
+
+                document.addEventListener('change', (e) => {
+                    if (isWarehouseField(e.target)) {
+                        const val = (e.target.value || '').trim();
+                        if (val) {
+                            try { localStorage.setItem('global_last_warehouse', val); } catch (err) {}
+                        }
+                    }
+                }, true);
+
+                document.addEventListener('input', (e) => {
+                    if (isWarehouseField(e.target)) {
+                        const val = (e.target.value || '').trim();
+                        if (val) {
+                            try { localStorage.setItem('global_last_warehouse', val); } catch (err) {}
+                        }
+                    }
+                }, true);
             });
         })();
     </script>

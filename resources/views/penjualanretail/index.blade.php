@@ -96,7 +96,7 @@
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>Nama Customer</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="4"
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3"
                                 title="Cari Nama Customer">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -107,16 +107,13 @@
                         <div class="col-search-input mt-2 hidden">
                             <input type="text"
                                 class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="4" placeholder="Cari customer...">
+                                data-column="3" placeholder="Cari customer...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">No.Ref</th>
                     <th class="border px-2 py-1">SO#</th>
-                    <th class="border px-2 py-1">Ref.PO</th>
                     <th class="border px-2 py-1">Nilai Faktur</th>
                     <th class="border px-2 py-1">Sisa Piutang</th>                  
                     <th class="border px-2 py-1">Tagih?</th>
-                    <th class="border px-2 py-1">User Id</th>
                     <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -427,16 +424,8 @@
                     name: 'fcustomername'
                 },
                 {
-                    data: 'frefno',
-                    name: 'frefno'
-                },
-                {
                     data: 'fso_refs',
                     name: 'fso_refs'
-                },
-                {
-                    data: 'frefpo',
-                    name: 'frefpo'
                 },
                 {
                     data: 'famountso',

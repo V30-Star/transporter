@@ -296,26 +296,6 @@
                             </div>
                         </div>
 
-                        <div x-data="{ autoTax: {{ old('_token') !== null ? (old('ftax_auto') == '1' ? 'true' : 'false') : 'true' }} }">
-                            <label class="block text-xs font-bold mb-1">Faktur Pajak#</label>
-                            <div class="flex items-center gap-2">
-                                <input type="text" id="ftaxno" name="ftaxno" value="{{ old('ftaxno') }}"
-                                    :disabled="autoTax"
-                                    :class="autoTax ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
-                                        'bg-white'"
-                                    :placeholder="autoTax ? 'Auto Generated' : ''"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftaxno') border-red-500 @enderror">
-                                <label
-                                    class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                    <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
-                                        x-model="autoTax" @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()">
-                                    <span class="ml-1.5">Auto</span>
-                                </label>
-                            </div>
-                            @error('ftaxno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
                         <div>
                             <label class="block text-xs font-bold mb-1">Type</label>
@@ -400,15 +380,6 @@
                             @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Ref.PO</label>
-                            <input type="text" name="frefno" id="invoiceFrefno" value="{{ old('frefno') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefno') border-red-500 @enderror">
-                            @error('frefno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         {{-- Salesman --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Salesman</label>
@@ -460,7 +431,7 @@
                                 @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
                                 @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
                         </div>
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
@@ -476,14 +447,6 @@
                                     value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
                                 @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Kode FP</label>
-                                <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkodefp') border-red-500 @enderror">
-                                @error('fkodefp')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
