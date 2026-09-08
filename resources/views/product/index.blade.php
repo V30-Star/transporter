@@ -29,15 +29,25 @@
             @endif
         </div>
 
-        {{-- Template Filter Status (hidden, akan di-clone ke toolbar DataTables) --}}
+        {{-- Template Filter Status & Approval (hidden, akan di-clone ke toolbar DataTables) --}}
         <div id="statusFilterTemplate" style="display: none;">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
-                </select>
+            <div class="flex items-center gap-3" id="statusFilterWrap">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-700">Status</span>
+                    <select data-role="status-filter" class="border rounded px-2 py-1">
+                        <option value="all">All</option>
+                        <option value="active" selected>Active</option>
+                        <option value="nonactive">Non Active</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-700">Approve</span>
+                    <select data-role="approval-filter" class="border rounded px-2 py-1">
+                        <option value="all" selected>All</option>
+                        <option value="approved">Sudah Approve</option>
+                        <option value="unapproved">Belum Approve</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -912,8 +922,9 @@
                     url: '{{ route('product.index') }}',
                     type: 'GET',
                     data: function(d) {
-                        // Kirim nilai filter status ke server
+                        // Kirim nilai filter status & approval ke server
                         d.status = $('#statusFilterDT').val() || 'active';
+                        d.approval = $('#approvalFilterDT').val() || 'all';
                     }
                 },
                 columns: columns,
@@ -945,18 +956,23 @@
             });
 
             // ------------------------------------------
-            // Clone template filter Status ke toolbar Search
+            // Clone template filter Status & Approval ke toolbar Search
             // ------------------------------------------
             const $container = $(table.table().container());
             const $toolbarSearch = $container.find('.dt-search');
 
             const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-            const $select = $filter.find('select[data-role="status-filter"]');
-            $select.attr('id', 'statusFilterDT');
+            const $statusSelect = $filter.find('select[data-role="status-filter"]');
+            $statusSelect.attr('id', 'statusFilterDT');
+            const $approvalSelect = $filter.find('select[data-role="approval-filter"]');
+            $approvalSelect.attr('id', 'approvalFilterDT');
             $toolbarSearch.after($filter);
 
-            // Event: saat dropdown berubah, reload AJAX dengan status baru
-            $select.on('change', function() {
+            // Event: saat dropdown berubah, reload AJAX
+            $statusSelect.on('change', function() {
+                table.ajax.reload();
+            });
+            $approvalSelect.on('change', function() {
                 table.ajax.reload();
             });
 

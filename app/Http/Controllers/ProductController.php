@@ -61,6 +61,34 @@ class ProductController extends Controller
         return is_numeric($clean) ? (float) $clean : 0.0;
     }
 
+    protected function sanitizeNumericInputs(Request $request): void
+    {
+        $numericFields = [
+            'fhpp',
+            'fhargajuallevel1',
+            'fhargajuallevel2',
+            'fhargajuallevel3',
+            'fhargajual2level1',
+            'fhargajual2level2',
+            'fhargajual2level3',
+            'fhargajual3level1',
+            'fhargajual3level2',
+            'fhargajual3level3',
+            'fqtykecil',
+            'fqtykecil2',
+            'fminstock',
+        ];
+
+        $sanitized = [];
+        foreach ($numericFields as $field) {
+            if ($request->has($field)) {
+                $sanitized[$field] = $this->sanitizeNumeric($request->input($field));
+            }
+        }
+
+        $request->merge($sanitized);
+    }
+
     protected function resolveProductDefaultHpp(Product $product): float
     {
         return match ((string) ($product->fsatuandefault ?? '1')) {
@@ -172,6 +200,19 @@ class ProductController extends Controller
                 $query->where('msprd.fnonactive', '0');
             } elseif ($status === 'nonactive') {
                 $query->where('msprd.fnonactive', '1');
+            }
+
+            $approval = $request->input('approval', 'all');
+            if ($approval === 'approved') {
+                $query->where(function ($q) {
+                    $q->where('msprd.fapproval', '1')
+                      ->orWhere('msprd.fapproval', '2');
+                });
+            } elseif ($approval === 'unapproved') {
+                $query->where(function ($q) {
+                    $q->whereNull('msprd.fapproval')
+                      ->orWhere('msprd.fapproval', '0');
+                });
             }
             $totalRecords = Product::count();
             $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msprd.fsatuankecil', 'msprd.fminstock', 'msmerek.fmerekname'];
@@ -361,6 +402,7 @@ class ProductController extends Controller
         }
 
         try {
+            $this->sanitizeNumericInputs($request);
             $enabledImageFields = $this->getEnabledProductImageFields();
             $validationRules = [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
@@ -421,7 +463,7 @@ class ProductController extends Controller
                         }
                     },
                 ],
-                'fminstock' => 'numeric',
+                'fminstock' => 'nullable|numeric',
                 'fhpp' => 'nullable',
             ];
 
@@ -442,6 +484,7 @@ class ProductController extends Controller
                 'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
                 'fqtykecil.numeric' => 'Satuan 2 harus angka.',
                 'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
+                'fminstock.numeric' => 'Min stock harus angka.',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
@@ -469,7 +512,7 @@ class ProductController extends Controller
             ];
 
             foreach ($numericFields as $field) {
-                $validated[$field] = $this->sanitizeNumeric($request->input($field));
+                $validated[$field] = (float) ($request->input($field) ?? 0);
             }
 
             $user = auth('sysuser')->user();
@@ -587,6 +630,7 @@ class ProductController extends Controller
             if ($message = $this->getApprovalLockMessage($product)) {
                 return redirect()->back()->withInput()->with('error', $message);
             }
+            $this->sanitizeNumericInputs($request);
             $usageInfo = $this->getProductUsageInfo($product);
             $enabledImageFields = $this->getEnabledProductImageFields();
 
@@ -654,7 +698,7 @@ class ProductController extends Controller
                         }
                     },
                 ],
-                'fminstock' => 'numeric',
+                'fminstock' => 'nullable|numeric',
                 'fhpp' => 'nullable',
             ];
 
@@ -677,6 +721,7 @@ class ProductController extends Controller
                     'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
                     'fqtykecil.numeric' => 'Satuan 2 harus angka.',
                     'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
+                    'fminstock.numeric' => 'Min stock harus angka.',
                 ]
             );
 
@@ -700,7 +745,7 @@ class ProductController extends Controller
             ];
 
             foreach ($numericFields as $field) {
-                $validated[$field] = $this->sanitizeNumeric($request->input($field));
+                $validated[$field] = (float) ($request->input($field) ?? 0);
             }
 
             if ($usageInfo['is_used']) {
@@ -751,7 +796,8 @@ class ProductController extends Controller
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
             $alreadyApproved = \App\Support\ApprovalState::isApprovedRecord($product) || (string) ($product->fapproval ?? '') === '1' || !empty($product->fuserapproved);
-            $isApproved = $alreadyApproved || ($this->canApproveProduct() && $request->boolean('approve_now'));
+            $justApproved = !$alreadyApproved && $this->canApproveProduct() && $request->boolean('approve_now');
+            $isApproved = $alreadyApproved || $justApproved;
             if ($isApproved) {
                 $validated['fapproval'] = '1';
                 $validated['fuserapproved'] = $product->fuserapproved ?: ($userLogin->fname ?? 'System');
@@ -826,7 +872,13 @@ class ProductController extends Controller
                 'fdatetimelog'            => now(),
             ]);
 
-            $message = $isApproved ? 'Produk berhasil disimpan' : 'Produk butuh approval';
+            if ($justApproved) {
+                $productName = $product->fprdname ?: ($validated['fprdname'] ?? '');
+                $message = "Produk {$productName} berhasil di Approve";
+            } else {
+                $message = $isApproved ? 'Produk berhasil disimpan' : 'Produk butuh approval';
+            }
+
             return redirect()
                 ->route('product.index')
                 ->with('success', $message);
