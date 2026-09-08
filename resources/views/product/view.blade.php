@@ -409,6 +409,75 @@
                         <p class="text-xs text-gray-400 mt-2">Level 1 = retail &middot; Level 2 = grosir &middot; Level 3 = distributor</p>
                     </div>
 
+                    {{-- ═══ SECTION: Harga & Qty Promosi (finitinvretail = THE) ═══ --}}
+                    @if (!empty($isRetailThe))
+                        <div class="section-card">
+                            <div class="section-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Harga &amp; Qty Promosi
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {{-- Promosi 1 --}}
+                                <div class="border border-emerald-200 bg-emerald-50/40 rounded-lg p-3.5 space-y-3">
+                                    <div class="flex items-center gap-2 font-semibold text-xs text-emerald-800 uppercase tracking-wider">
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-200 text-emerald-800 text-[10px] font-bold">1</span>
+                                        Promosi 1
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="field-label text-emerald-900">Promosi Qty 1</label>
+                                            <div class="flex items-center border border-emerald-300 rounded bg-white">
+                                                <input type="text" disabled
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm font-semibold text-emerald-950"
+                                                    value="{{ $product->fqtypromosi1 ?? 0 }}">
+                                                <span class="satuan-kecil-display text-emerald-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-emerald-200 ml-1 pl-2 uppercase"></span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="field-label text-emerald-900">Harga Jual Promo 1</label>
+                                            <div class="flex items-center border border-emerald-300 rounded bg-white">
+                                                <input type="text" disabled
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm font-semibold text-emerald-950"
+                                                    value="{{ $product->fhargajualpromosi1 ?? 0 }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Promosi 2 --}}
+                                <div class="border border-teal-200 bg-teal-50/40 rounded-lg p-3.5 space-y-3">
+                                    <div class="flex items-center gap-2 font-semibold text-xs text-teal-800 uppercase tracking-wider">
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-200 text-teal-800 text-[10px] font-bold">2</span>
+                                        Promosi 2
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="field-label text-teal-900">Promosi Qty 2</label>
+                                            <div class="flex items-center border border-teal-300 rounded bg-white">
+                                                <input type="text" disabled
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm font-semibold text-teal-950"
+                                                    value="{{ $product->fqtypromosi2 ?? 0 }}">
+                                                <span class="satuan-kecil-display text-teal-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-teal-200 ml-1 pl-2 uppercase"></span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="field-label text-teal-900">Harga Jual Promo 2</label>
+                                            <div class="flex items-center border border-teal-300 rounded bg-white">
+                                                <input type="text" disabled
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm font-semibold text-teal-950"
+                                                    value="{{ $product->fhargajualpromosi2 ?? 0 }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- ═══ SECTION 4: Stok & Info ═══ --}}
                     <div class="section-card">
                         <div class="section-title">

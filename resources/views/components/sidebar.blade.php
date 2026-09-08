@@ -3,6 +3,7 @@
     $sidebarPermissions = array_filter(
         array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))),
     );
+    $finitinvretail = strtoupper(trim((string) \Illuminate\Support\Facades\DB::table('setini')->value('finitinvretail')));
     $hasSidebarPermission = function (...$requiredPermissions) use ($sidebarPermissions) {
         foreach ($requiredPermissions as $permission) {
             if (is_array($permission)) {
@@ -397,19 +398,21 @@
                 </ul>
 
                 {{-- Penjualan Retail --}}
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                @if ($finitinvretail === 'INV')
+                    <ul x-show="open && openSidebar" x-transition
+                        class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createPenjualanRetail', 'updatePenjualanRetail', 'deletePenjualanRetail', 'viewPenjualanRetail'))
-                        <li>
-                            <a href="{{ route('penjualanretail.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-cart-shopping w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Penjualan Retail' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                        @if ($hasSidebarPermission('createPenjualanRetail', 'updatePenjualanRetail', 'deletePenjualanRetail', 'viewPenjualanRetail'))
+                            <li>
+                                <a href="{{ route('penjualanretail.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <i class="fa-solid fa-cart-shopping w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Penjualan Retail' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                @endif
 
                 {{-- Retur Penjualan --}}
                 <ul x-show="open && openSidebar" x-transition
