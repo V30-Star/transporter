@@ -496,7 +496,7 @@
                     <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
                         <div>{{ $index + 1 }}</div>
                         <div>{{ $row->fprdcode }}</div>
-                        <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                        <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                         <div>{{ number_format($rowQty, 2, ',', '.') }} {{ $row->fsatuan ?? '' }}</div>
                         <div>{{ number_format($rowAmount, 2, ',', '.') }}</div>
                     </div>

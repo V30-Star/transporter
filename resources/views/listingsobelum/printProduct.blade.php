@@ -508,9 +508,9 @@
 
             @foreach ($soData as $row)
                 <div class="journal-block">
-                    <div class="prd-group">{{ $rows->first()->fprdname }} ({{ $prdCode }})</div>
+                    <div class="prd-group">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }} ({{ $row->fprdcode }})</div>
                     <div class="grid-row">
-                        <div style="grid-column: span 4;" class="truncate">{{ $rows->first()->fprdname }} ({{ $prdCode }})</div>
+                        <div style="grid-column: span 4;" class="truncate">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }} ({{ $row->fprdcode }})</div>
                         <div class="text-center">{{ $row->fsatuan }}</div>
                         <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
                         <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
@@ -531,7 +531,7 @@
             @foreach ($soData as $prdCode => $rows)
                 <div class="journal-block">
                     <div class="prd-group">
-                        {{ $rows->first()->fprdname }} ({{ $prdCode }})
+                        {{ format_product_name($rows->first()->fprdname, $rows->first()->fspecification ?? null) }} ({{ $prdCode }})
                     </div>
 
                     @foreach ($rows as $row)
@@ -554,7 +554,7 @@
 
                     <div class="prd-subtotal">
                         <div style="grid-column: span 5; text-align:right;">
-                            Total {{ $rows->first()->fprdname }}
+                            Total {{ format_product_name($rows->first()->fprdname, $rows->first()->fspecification ?? null) }}
                         </div>
                         <div class="text-right">{{ number_format((float) $rows->sum('fqty'), 2, ',', '.') }}</div>
                         <div></div>

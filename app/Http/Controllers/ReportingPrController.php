@@ -164,6 +164,7 @@ class ReportingPrController extends Controller
                     ->where('fprdcode', $detail->fprdcode)
                     ->first();
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
+                $detail->fspecification = $product->fspecification ?? null;
             }
         }
 

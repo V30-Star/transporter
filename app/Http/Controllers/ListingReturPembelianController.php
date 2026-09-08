@@ -71,7 +71,8 @@ class ListingReturPembelianController extends Controller
                 'd.fsatuan as funit',
                 'p.fprdcode',
                 'p.fprdname',
-                'p.fprdname as fitemname'
+                'p.fprdname as fitemname',
+                'p.fspecification'
             );
 
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');

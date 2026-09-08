@@ -176,9 +176,13 @@ class ListingPRController extends Controller
                 's.fsuppliername',
                 'd.fprdcode as prd_code_id',
                 'p.fprdcode',
+                'p.fprdcode as fitemcode',
                 'p.fprdname',
+                'p.fprdname as fitemname',
+                'p.fspecification',
                 'd.fqty',
                 'd.fsatuan',
+                'd.fsatuan as funit',
                 DB::raw('COALESCE(o.fqtypo, 0) as fqtypo')
             );
         $this->applyBranchVisibilityScope($query, 'h.fbranchcode');

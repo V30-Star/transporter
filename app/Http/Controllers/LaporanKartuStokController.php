@@ -103,7 +103,7 @@ class LaporanKartuStokController extends Controller
 
         return $query->selectRaw("
                 ? as fwhcode,
-                p.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fsatuandefaultlaporan,
+                p.fprdcode, p.fprdname, p.fspecification, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fsatuandefaultlaporan,
                 COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil,
                 COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2,
                 p.fgroupcode, COALESCE(g.fgroupname, p.fgroupcode) as fgroupname,
@@ -171,6 +171,7 @@ class LaporanKartuStokController extends Controller
                             'fwhcode' => $wh->fwhcode,
                             'fprdcode' => $prdKey,
                             'fprdname' => trim((string) $row->fprdname),
+                            'fspecification' => $row->fspecification ?? null,
                             'fstockmt' => 'Saldo Awal',
                             'fstockmtcode' => '',
                             'fstockdate' => null,
@@ -199,6 +200,7 @@ class LaporanKartuStokController extends Controller
                     'fwhcode' => $wh->fwhcode,
                     'fprdcode' => $prdKey,
                     'fprdname' => trim((string) $row->fprdname),
+                    'fspecification' => $row->fspecification ?? null,
                     'fstockmt' => $row->fstockmt,
                     'fstockmtcode' => $row->fstockmtcode,
                     'fstockdate' => $row->fstockdate,
@@ -230,10 +232,10 @@ class LaporanKartuStokController extends Controller
     private function detailUnionQuery(string $whcode, Request $request, string $dateFrom, string $dateTo)
     {
         $in = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'in')
-            ->selectRaw("d.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, p.fspecification, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, COALESCE(d.fqtykecil,d.fqty,0) as qtymasukkecil, 0 as qtykeluarkecil");
 
         $out = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'out')
-            ->selectRaw("d.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
+            ->selectRaw("d.fprdcode, p.fprdname, p.fspecification, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
 
         $inSql = $in->toSql();
         $outSql = $out->toSql();

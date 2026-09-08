@@ -287,7 +287,7 @@
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>
-                            <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
+                            <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                         </td>
                         <td>{{ !empty($r->frefdtno) ? $r->frefdtno . (!empty($r->account_name) ? ' - ' . $r->account_name : '') : '-' }}</td>
                         <td>{{ !empty($r->frefso) ? $r->frefso . (!empty($r->subaccount_name) ? ' - ' . $r->subaccount_name : '') : '-' }}</td>

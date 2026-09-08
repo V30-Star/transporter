@@ -200,6 +200,13 @@
                                 </select>
                             </div>
 
+                            {{-- Type / Spesifikasi --}}
+                            <div>
+                                <label class="field-label">Type</label>
+                                <input type="text" readonly value="{{ $product->fspecification ?? '-' }}"
+                                    class="field-input bg-gray-100">
+                            </div>
+
                             {{-- Non Aktif --}}
                             <div class="flex items-end pb-0.5">
                                 <label class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 text-sm font-semibold {{ $product->fnonactive == '1' ? 'opacity-100' : 'opacity-40' }}">

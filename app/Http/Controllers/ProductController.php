@@ -225,7 +225,7 @@ class ProductController extends Controller
                 });
             }
             $totalRecords = Product::count();
-            $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msprd.fsatuankecil', 'msprd.fminstock', 'msmerek.fmerekname'];
+            $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msmerek.fmerekname', 'msprd.fspecification', 'msprd.fsatuankecil', 'msprd.fminstock'];
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
@@ -235,11 +235,12 @@ class ProductController extends Controller
             }
 
             $columnFields = [
-                'msprd.fprdcode',
-                'msprd.fprdname',
-                'msmerek.fmerekname',
-                'msprd.fsatuankecil',
-                'msprd.fstok',
+                0 => 'msprd.fprdcode',
+                1 => 'msprd.fprdname',
+                2 => 'msmerek.fmerekname',
+                3 => 'msprd.fspecification',
+                4 => 'msprd.fsatuankecil',
+                5 => 'msprd.fstok',
             ];
             foreach ($columnFields as $index => $field) {
                 $colSearch = $request->input("columns.{$index}.search.value");
@@ -253,12 +254,13 @@ class ProductController extends Controller
             $orderColumnIndex = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
             $columns = [
-                'msprd.fprdcode',
-                'msprd.fprdname',
-                'msmerek.fmerekname',
-                'msprd.fsatuankecil',
-                'msprd.fstok',
-                'msprd.fnonactive',
+                0 => 'msprd.fprdcode',
+                1 => 'msprd.fprdname',
+                2 => 'msmerek.fmerekname',
+                3 => 'msprd.fspecification',
+                4 => 'msprd.fsatuankecil',
+                5 => 'msprd.fstok',
+                6 => 'msprd.fnonactive',
             ];
             if (isset($columns[$orderColumnIndex])) {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
@@ -270,6 +272,7 @@ class ProductController extends Controller
             $products = $query->skip($start)->take($length)->get([
                 'msprd.fprdcode',
                 'msprd.fprdname',
+                'msprd.fspecification',
                 'msprd.fsatuankecil',
                 'msprd.fsatuanbesar',
                 'msprd.fsatuanbesar2',
@@ -297,6 +300,7 @@ class ProductController extends Controller
                     'fprdcode' => $item->fprdcode,
                     'fprdname' => $item->fprdname,
                     'fmerek' => $item->merek_name,
+                    'fspecification' => $item->fspecification,
                     'fsatuankecil' => $this->resolveProductDefaultUnit($item),
                     'fstok' => $this->resolveProductLaporanStock($item),
                     'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
@@ -419,6 +423,7 @@ class ProductController extends Controller
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
+                'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
@@ -665,6 +670,7 @@ class ProductController extends Controller
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
+                'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
@@ -916,6 +922,9 @@ class ProductController extends Controller
                 $logData['fhargajualpromosi1'] = $product->fhargajualpromosi1;
                 $logData['fhargajualpromosi2'] = $product->fhargajualpromosi2;
             }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fspecification')) {
+                $logData['fspecification'] = $product->fspecification;
+            }
             DB::table('logmsprd')->insert($logData);
 
             if ($justApproved) {
@@ -1114,6 +1123,9 @@ class ProductController extends Controller
                 $logData['fqtypromosi2'] = $product->fqtypromosi2;
                 $logData['fhargajualpromosi1'] = $product->fhargajualpromosi1;
                 $logData['fhargajualpromosi2'] = $product->fhargajualpromosi2;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fspecification')) {
+                $logData['fspecification'] = $product->fspecification;
             }
             DB::table('logmsprd')->insert($logData);
 

@@ -235,6 +235,7 @@ class StokDalamRupiahController extends Controller
             wh.fwhname,
             p.fprdcode,
             p.fprdname,
+            p.fspecification,
             COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan,
             COALESCE(NULLIF(p.fqtykecil, 0), 1) as fqtykecil,
             {$hppSelect},

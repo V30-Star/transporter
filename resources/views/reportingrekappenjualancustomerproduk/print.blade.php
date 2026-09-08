@@ -498,7 +498,7 @@
                         @if ($filters['report_type'] === 'DETAIL')
                             <div class="sales-detail">
                                 <div class="truncate">{{ $row->fprdcode }}</div>
-                                <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                                <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                                 <div>{{ number_format((float) $row->fqtybesar, 2, ',', '.') }} {{ $row->fsatuanbesar }}</div>
                                 <div>{{ number_format((float) $row->fqtykecil, 2, ',', '.') }} {{ $row->fsatuankecil }}</div>
                                 <div>{{ number_format((float) $row->totalnota, 2, ',', '.') }}</div>

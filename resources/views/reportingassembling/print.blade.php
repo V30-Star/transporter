@@ -591,8 +591,8 @@
                         @foreach ($bahanBaku as $detail)
                             <div class="po-detail">
                                 <div class="truncate">{{ $detail->fprdcode }}</div>
-                                <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">
-                                    {{ $detail->product_name ?? $detail->fprdcode }}
+                                <div class="truncate" title="{{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}">
+                                    {{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}
                                 </div>
                                 <div>{{ number_format((float) ($detail->fqty ?? 0), 2, ',', '.') }}</div>
                                 <div>{{ isset($detail->fqtyremain) ? number_format((float)$detail->fqtyremain, 2, ',', '.') : '-' }}</div>
@@ -610,8 +610,8 @@
                         @foreach ($barangJadi as $detail)
                             <div class="po-detail">
                                 <div class="truncate">{{ $detail->fprdcode }}</div>
-                                <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">
-                                    {{ $detail->product_name ?? $detail->fprdcode }}
+                                <div class="truncate" title="{{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}">
+                                    {{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}
                                 </div>
                                 <div>{{ number_format((float) ($detail->fqty ?? 0), 2, ',', '.') }}</div>
                                 <div>{{ isset($detail->fqtyremain) ? number_format((float)$detail->fqtyremain, 2, ',', '.') : '-' }}</div>

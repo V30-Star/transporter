@@ -66,7 +66,7 @@ class ReportingRekapPenjualanController extends Controller
             ->leftJoin('msmerek as merek', DB::raw('TRIM(merek.fmerekcode)'), '=', DB::raw('TRIM(p.fmerek)'))
             ->selectRaw("m.ftrcode AS fsource, {$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, 
             SUM(CASE WHEN m.ftrcode = 'INV' THEN ABS((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100))) WHEN m.ftrcode IN ('REJ', 'RUJ') THEN ABS(d.fprice * d.fqty) * -1 ELSE 0 END) AS famount,
-             d.fprdcode, p.fprdname")
+             d.fprdcode, p.fprdname, p.fspecification")
             ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ', 'RUJ'] : ['INV'])
             ->where('m.ftypesales', 0)
             ->whereNotIn('d.fprdcode', ['UM', 'AWAL'])
@@ -76,7 +76,7 @@ class ReportingRekapPenjualanController extends Controller
         $this->applyCommonFilters($query, $request, 'm', 'd', 'p');
 
         return $query
-            ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname, p.fsatuandefaultlaporan, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fqtykecil2")
+            ->groupByRaw("m.ftrcode, {$groupCodeExpr}, d.fprdcode, p.fprdname, p.fspecification, p.fsatuandefaultlaporan, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fqtykecil2")
             ->orderBy('fmerek')
             ->orderBy('d.fprdcode')
             ->orderByRaw("CASE WHEN m.ftrcode IN ('REJ', 'RUJ') THEN 1 ELSE 0 END")

@@ -62,6 +62,7 @@ class ListingPenerimaanBarangController extends Controller
                 'w.fwhname',
                 'p.fprdcode',
                 'p.fprdname',
+                'p.fspecification',
                 'd.frefdtno as frefpo',
                 'd.fqty',
                 'd.fprice',

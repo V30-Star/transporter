@@ -685,8 +685,8 @@
                 @foreach ($mt->details as $dt)
                     <div class="po-detail">
                         <div class="truncate">{{ $dt->fprdcode }}</div>
-                        <div class="truncate" title="{{ $dt->product_name ?? $dt->fprdcode }}">
-                            {{ $dt->product_name ?? $dt->fprdcode }}
+                        <div class="truncate" title="{{ format_product_name($dt->product_name ?? $dt->fprdcode, $dt->fspecification ?? null) }}">
+                            {{ format_product_name($dt->product_name ?? $dt->fprdcode, $dt->fspecification ?? null) }}
                             @if ($showDescription && filled($dt->fdesc ?? null))
                                 <span class="product-description">{{ $dt->fdesc }}</span>
                             @endif

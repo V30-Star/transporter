@@ -1361,6 +1361,8 @@ class ReturPenjualanController extends Controller
                 'trandt.*',
                 'p.fprdcode as product_code',
                 'p.fprdname as product_name',
+                'p.fspecification as fspecification',
+                'p.fspecification as product_specification',
                 'p.fminstock as stock',
             ]);
 

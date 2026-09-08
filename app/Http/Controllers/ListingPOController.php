@@ -194,14 +194,20 @@ class ListingPOController extends Controller
                 'h.famountpopajak as famountpajak',
                 'h.famountponet',
                 'p.fprdcode',
+                'p.fprdcode as fitemcode',
                 'p.fprdname',
+                'p.fprdname as fitemname',
+                'p.fspecification',
                 'p.fqtykecil as p_qtykecil',
                 'd.fqty',
                 'd.fsatuan',
+                'd.fsatuan as funit',
                 'd.fprice',
                 'd.famount',
+                'd.famount as ftotal',
                 'd.fnou',
-                DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima')
+                DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima'),
+                DB::raw('COALESCE(ter.fqtyterima, 0) as fqtylpb')
             );
         $this->applyBranchVisibilityScope($query, 'h.fbranchcode');
 

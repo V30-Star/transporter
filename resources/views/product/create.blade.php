@@ -518,6 +518,17 @@
                                 </select>
                             </div>
 
+                            {{-- Type / Spesifikasi --}}
+                            <div>
+                                <label class="field-label">Type</label>
+                                <input type="text" name="fspecification" id="fspecification"
+                                    value="{{ old('fspecification') }}"
+                                    class="field-input @error('fspecification') border-red-500 @enderror"
+                                    placeholder="Type produk">
+                                @error('fspecification')
+                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 

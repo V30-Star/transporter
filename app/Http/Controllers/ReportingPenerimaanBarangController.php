@@ -147,6 +147,7 @@ class ReportingPenerimaanBarangController extends Controller
                     ->where('fprdid', $detail->fprdcode)
                     ->first();
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
+                $detail->fspecification = $product->fspecification ?? null;
             }
         }
 

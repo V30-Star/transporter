@@ -45,6 +45,15 @@
                 </div>
             @endif
 
+            @if (!empty($product->fspecification))
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-sm font-bold text-gray-700">Type</div>
+                    <div class="col-span-2 text-sm font-semibold text-gray-900">
+                        {{ $product->fspecification }}
+                    </div>
+                </div>
+            @endif
+
             @php
                 $productSatuan = array_values(
                     array_filter(
