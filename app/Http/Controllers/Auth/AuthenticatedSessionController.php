@@ -136,6 +136,33 @@ SVG;
                 ]);
         }
 
+        // Check maximum concurrent active users quota from setini table (fmaxuser)
+        $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
+        $maxUserRaw = trim((string) ($setini->fmaxuser ?? ''));
+        $maxUser = is_numeric($maxUserRaw) && (int) $maxUserRaw > 0 ? (int) $maxUserRaw : null;
+
+        if ($maxUser !== null) {
+            $currentActiveUsers = LogUser::whereNull('log_out_date')
+                ->where('akun', '!=', $user->fsysuserid)
+                ->distinct('akun')
+                ->count('akun');
+
+            if ($currentActiveUsers >= $maxUser) {
+                Auth::guard('sysuser')->logout();
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withInput($request->only('fsysuserid'))
+                    ->with('quota_full', [
+                        'max' => $maxUser,
+                        'active' => $currentActiveUsers,
+                        'message' => "Batas maksimal pengguna aktif ({$maxUser} User) telah tercapai. Harap tunggu hingga ada pengguna lain yang logout.",
+                    ]);
+            }
+        }
+
         // If force_logout or no active session exists:
         // Close any previous sessions for this account
         LogUser::where('akun', $user->fsysuserid)
