@@ -29,14 +29,6 @@
                             <span class="col-span-2 text-gray-900 font-mono font-semibold">{{ $conflict['akun'] }}</span>
                         </div>
                         <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
-                            <span class="text-gray-500 font-medium">IP Address:</span>
-                            <span class="col-span-2 text-gray-900 font-mono">{{ $conflict['ip'] }}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
-                            <span class="text-gray-500 font-medium">Komputer:</span>
-                            <span class="col-span-2 text-gray-900 font-mono">{{ $conflict['komp'] }}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
                             <span class="text-gray-500 font-medium">Waktu Login:</span>
                             <span class="col-span-2 text-gray-900">{{ $conflict['login_date'] }}</span>
                         </div>
@@ -45,16 +37,7 @@
                             <span class="col-span-2 text-red-600 font-semibold">{{ $conflict['log_out_date'] }}</span>
                         </div>
                     </div>
-
-                    <p class="mt-2.5 text-[11px] text-red-600">
-                        Jika perangkat di atas sudah tidak digunakan, Anda dapat mengakhiri sesi lama dan melanjutkan login di perangkat ini.
-                    </p>
                 </div>
-            </div>
-            <div class="mt-3 pt-3 border-t border-red-200 flex justify-end">
-                <button type="button" onclick="submitForceLogout()" class="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
-                    Tutup Sesi Sebelumnya & Masuk
-                </button>
             </div>
         </div>
     @endif
@@ -86,7 +69,6 @@
 
     <form id="loginForm" method="POST" action="{{ route('login') }}">
         @csrf
-        <input type="hidden" name="force_logout" id="force_logout" value="0">
 
         <!-- Username Field -->
         <div class="mb-6">
@@ -149,26 +131,6 @@
                 input.value = '';
                 input.focus();
             }
-        }
-
-        function submitForceLogout() {
-            const passwordInput = document.getElementById('password');
-            const captchaInput = document.getElementById('captcha');
-
-            if (!passwordInput.value) {
-                passwordInput.focus();
-                alert('Silakan masukkan password Anda untuk konfirmasi menutup sesi lama.');
-                return;
-            }
-
-            if (!captchaInput.value) {
-                captchaInput.focus();
-                alert('Silakan masukkan kode captcha.');
-                return;
-            }
-
-            document.getElementById('force_logout').value = '1';
-            document.getElementById('loginForm').submit();
         }
     </script>
 </x-guest-layout>
