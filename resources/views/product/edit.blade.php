@@ -1550,7 +1550,6 @@
                                         || !empty($canApproval);
                                     $needsApproval = !$isApproved;
                                 @endphp
-                                <input type="hidden" name="approve_now" id="approveNowInput" value="0">
 
                                 <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 mb-4">
                                     <div>
