@@ -348,7 +348,7 @@
                             <td class="text-center row-no">{{ $loop->iteration }}</td>
                             <td>{{ $r->product_code ?? '-' }}</td>
                             <td>
-                                <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
+                                <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                             </td>
                             <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                             <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
@@ -367,7 +367,7 @@
                             <td class="text-center row-no">{{ $loop->iteration }}</td>
                             <td>{{ $r->product_code ?? '-' }}</td>
                             <td>
-                                <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</div>
+                                <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                             </td>
                             <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                             <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>

@@ -335,6 +335,8 @@ class Tr_prhController extends Controller
                 'tr_prd.*',
                 'p.fprdname as product_name',
                 'p.fprdcode as product_code',
+                'p.fspecification as fspecification',
+                'p.fspecification as product_specification',
                 'p.fminstock as stock',
             ]);
 

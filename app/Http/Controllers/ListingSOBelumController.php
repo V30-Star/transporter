@@ -366,11 +366,12 @@ class ListingSOBelumController extends Controller
                 return $query->select(
                     'p.fprdcode',
                     'p.fprdname',
+                    'p.fspecification',
                     DB::raw('MAX(d.fsatuan) as fsatuan'),
                     DB::raw("MAX($stockQty) as fstok"),
                     DB::raw("SUM($remainQty) as fqty")
                 )
-                    ->groupBy('p.fprdcode', 'p.fprdname')
+                    ->groupBy('p.fprdcode', 'p.fprdname', 'p.fspecification')
                     ->orderBy('p.fprdcode')
                     ->get();
             }
@@ -394,6 +395,7 @@ class ListingSOBelumController extends Controller
             'c.fcustomername',
             'p.fprdcode',
             'p.fprdname',
+            'p.fspecification',
             'd.fsatuan',
             'd.fpricenet',
             DB::raw($stockQty . ' as fstok'),

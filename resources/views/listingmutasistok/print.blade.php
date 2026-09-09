@@ -569,7 +569,7 @@
                     @foreach ($details as $d)
                         <div class="mt-detail">
                             <div class="truncate">{{ $d->fprdcode }}</div>
-                            <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
+                            <div class="truncate" title="{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}">{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}</div>
                             <div class="truncate">{{ $d->fsatuan }}</div>
                             <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->fsatuan }}</div>
                         </div>

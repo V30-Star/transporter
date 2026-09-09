@@ -333,7 +333,7 @@
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
-                        <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : ($r->product_name ?? '-') }}</td>
+                        <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</td>
                         <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
                         <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
                         <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, ',', '.') }}</td>

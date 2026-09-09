@@ -594,7 +594,7 @@
                     @foreach ($fakturpembelian->details as $detail)
                         <div class="po-detail">
                             <div class="truncate">{{ $detail->fprdcode }}</div>
-                            <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                            <div class="truncate" title="{{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}">{{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}</div>
                             <div class="truncate" title="{{ $detail->fsubaccountname }}">{{ $detail->fsubaccountname }}</div>
                             <div class="truncate" title="{{ $detail->faccname }}">{{ $detail->faccname }}</div>
                             <div>{{ number_format((float) ($detail->fqty ?? 0), 2, ',', '.') }}</div>

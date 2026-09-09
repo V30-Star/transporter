@@ -641,7 +641,7 @@
                 @foreach ($items as $row)
                     <div class="detail-row {{ $isReturn ? 'text-rej' : '' }}">
                         <div class="truncate">{{ $row->fprdcode }}</div>
-                        <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                        <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                         <div>{{ number_format((float) $row->fqty, 2, ',', '.') }} {{ $row->fsatuan }}</div>
                         <div>{{ number_format((float) $row->famountgross, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>

@@ -61,6 +61,12 @@ class ProductController extends Controller
         return is_numeric($clean) ? (float) $clean : 0.0;
     }
 
+    protected function isRetailThe(): bool
+    {
+        $val = DB::table('setini')->value('finitinvretail');
+        return strtoupper(trim((string) $val)) === 'THE';
+    }
+
     protected function sanitizeNumericInputs(Request $request): void
     {
         $numericFields = [
@@ -77,6 +83,10 @@ class ProductController extends Controller
             'fqtykecil',
             'fqtykecil2',
             'fminstock',
+            'fqtypromosi1',
+            'fqtypromosi2',
+            'fhargajualpromosi1',
+            'fhargajualpromosi2',
         ];
 
         $sanitized = [];
@@ -215,7 +225,7 @@ class ProductController extends Controller
                 });
             }
             $totalRecords = Product::count();
-            $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msprd.fsatuankecil', 'msprd.fminstock', 'msmerek.fmerekname'];
+            $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msmerek.fmerekname', 'msprd.fspecification', 'msprd.fsatuankecil', 'msprd.fminstock'];
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
@@ -225,11 +235,12 @@ class ProductController extends Controller
             }
 
             $columnFields = [
-                'msprd.fprdcode',
-                'msprd.fprdname',
-                'msmerek.fmerekname',
-                'msprd.fsatuankecil',
-                'msprd.fstok',
+                0 => 'msprd.fprdcode',
+                1 => 'msprd.fprdname',
+                2 => 'msmerek.fmerekname',
+                3 => 'msprd.fspecification',
+                4 => 'msprd.fsatuankecil',
+                5 => 'msprd.fstok',
             ];
             foreach ($columnFields as $index => $field) {
                 $colSearch = $request->input("columns.{$index}.search.value");
@@ -243,12 +254,13 @@ class ProductController extends Controller
             $orderColumnIndex = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
             $columns = [
-                'msprd.fprdcode',
-                'msprd.fprdname',
-                'msmerek.fmerekname',
-                'msprd.fsatuankecil',
-                'msprd.fstok',
-                'msprd.fnonactive',
+                0 => 'msprd.fprdcode',
+                1 => 'msprd.fprdname',
+                2 => 'msmerek.fmerekname',
+                3 => 'msprd.fspecification',
+                4 => 'msprd.fsatuankecil',
+                5 => 'msprd.fstok',
+                6 => 'msprd.fnonactive',
             ];
             if (isset($columns[$orderColumnIndex])) {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
@@ -260,6 +272,7 @@ class ProductController extends Controller
             $products = $query->skip($start)->take($length)->get([
                 'msprd.fprdcode',
                 'msprd.fprdname',
+                'msprd.fspecification',
                 'msprd.fsatuankecil',
                 'msprd.fsatuanbesar',
                 'msprd.fsatuanbesar2',
@@ -287,6 +300,7 @@ class ProductController extends Controller
                     'fprdcode' => $item->fprdcode,
                     'fprdname' => $item->fprdname,
                     'fmerek' => $item->merek_name,
+                    'fspecification' => $item->fspecification,
                     'fsatuankecil' => $this->resolveProductDefaultUnit($item),
                     'fstok' => $this->resolveProductLaporanStock($item),
                     'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
@@ -391,8 +405,9 @@ class ProductController extends Controller
         $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekcode ?? 1);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $canApproval = $this->canApproveProduct();
+        $isRetailThe = $this->isRetailThe();
 
-        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers', 'canApproval'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers', 'canApproval', 'isRetailThe'));
     }
 
     public function store(Request $request)
@@ -408,6 +423,7 @@ class ProductController extends Controller
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
+                'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
@@ -465,6 +481,10 @@ class ProductController extends Controller
                 ],
                 'fminstock' => 'nullable|numeric',
                 'fhpp' => 'nullable',
+                'fqtypromosi1' => 'nullable|numeric',
+                'fqtypromosi2' => 'nullable|numeric',
+                'fhargajualpromosi1' => 'nullable|numeric',
+                'fhargajualpromosi2' => 'nullable|numeric',
             ];
 
             foreach ($enabledImageFields as $imageField) {
@@ -485,6 +505,10 @@ class ProductController extends Controller
                 'fqtykecil.numeric' => 'Satuan 2 harus angka.',
                 'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
                 'fminstock.numeric' => 'Min stock harus angka.',
+                'fqtypromosi1.numeric' => 'Promosi Qty 1 harus angka.',
+                'fqtypromosi2.numeric' => 'Promosi Qty 2 harus angka.',
+                'fhargajualpromosi1.numeric' => 'Harga Jual Promo 1 harus angka.',
+                'fhargajualpromosi2.numeric' => 'Harga Jual Promo 2 harus angka.',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
@@ -509,6 +533,10 @@ class ProductController extends Controller
                 'fqtykecil',
                 'fqtykecil2',
                 'fminstock',
+                'fqtypromosi1',
+                'fqtypromosi2',
+                'fhargajualpromosi1',
+                'fhargajualpromosi2',
             ];
 
             foreach ($numericFields as $field) {
@@ -584,6 +612,7 @@ class ProductController extends Controller
         $usageInfo = $this->getProductUsageInfo($product);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $canApproval = $this->canApproveProduct();
+        $isRetailThe = $this->isRetailThe();
 
         return view('product.edit', [
             'product' => $product,
@@ -594,6 +623,7 @@ class ProductController extends Controller
             'usageInfo' => $usageInfo,
             'enabledImageNumbers' => $enabledImageNumbers,
             'canApproval' => $canApproval,
+            'isRetailThe' => $isRetailThe,
         ]);
     }
 
@@ -608,6 +638,7 @@ class ProductController extends Controller
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
+        $isRetailThe = $this->isRetailThe();
 
         return view('product.view', [
             'product' => $product,
@@ -616,6 +647,7 @@ class ProductController extends Controller
             'satuan' => $satuan,
             'enabledImageNumbers' => $enabledImageNumbers,
             'approvalLockMessage' => $this->getApprovalLockMessage($product),
+            'isRetailThe' => $isRetailThe,
         ]);
     }
 
@@ -638,6 +670,7 @@ class ProductController extends Controller
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
+                'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
@@ -700,6 +733,10 @@ class ProductController extends Controller
                 ],
                 'fminstock' => 'nullable|numeric',
                 'fhpp' => 'nullable',
+                'fqtypromosi1' => 'nullable|numeric',
+                'fqtypromosi2' => 'nullable|numeric',
+                'fhargajualpromosi1' => 'nullable|numeric',
+                'fhargajualpromosi2' => 'nullable|numeric',
             ];
 
             foreach ($enabledImageFields as $imageField) {
@@ -722,6 +759,10 @@ class ProductController extends Controller
                     'fqtykecil.numeric' => 'Satuan 2 harus angka.',
                     'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
                     'fminstock.numeric' => 'Min stock harus angka.',
+                    'fqtypromosi1.numeric' => 'Promosi Qty 1 harus angka.',
+                    'fqtypromosi2.numeric' => 'Promosi Qty 2 harus angka.',
+                    'fhargajualpromosi1.numeric' => 'Harga Jual Promo 1 harus angka.',
+                    'fhargajualpromosi2.numeric' => 'Harga Jual Promo 2 harus angka.',
                 ]
             );
 
@@ -742,6 +783,10 @@ class ProductController extends Controller
                 'fqtykecil',
                 'fqtykecil2',
                 'fminstock',
+                'fqtypromosi1',
+                'fqtypromosi2',
+                'fhargajualpromosi1',
+                'fhargajualpromosi2',
             ];
 
             foreach ($numericFields as $field) {
@@ -832,7 +877,7 @@ class ProductController extends Controller
 
             $product->update($validated);
 
-            DB::table('logmsprd')->insert([
+            $logData = [
                 'fprdid'                  => $product->fprdid,
                 'fprdcode'                => $product->fprdcode,
                 'fprdname'                => $product->fprdname,
@@ -870,7 +915,17 @@ class ProductController extends Controller
                 'feditmode'               => 'U', // Update
                 'fuseridlog'              => $userLogin->fname ?? null,
                 'fdatetimelog'            => now(),
-            ]);
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fqtypromosi1')) {
+                $logData['fqtypromosi1'] = $product->fqtypromosi1;
+                $logData['fqtypromosi2'] = $product->fqtypromosi2;
+                $logData['fhargajualpromosi1'] = $product->fhargajualpromosi1;
+                $logData['fhargajualpromosi2'] = $product->fhargajualpromosi2;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fspecification')) {
+                $logData['fspecification'] = $product->fspecification;
+            }
+            DB::table('logmsprd')->insert($logData);
 
             if ($justApproved) {
                 $productName = $product->fprdname ?: ($validated['fprdname'] ?? '');
@@ -990,10 +1045,12 @@ class ProductController extends Controller
 
         $product = Product::with(['merek', 'group', 'groupByCode'])->findOrFail($fprdid);
         $usageInfo = $this->getProductUsageInfo($product);
+        $isRetailThe = $this->isRetailThe();
 
         return view('product.delete', [
             'product' => $product,
             'usageInfo' => $usageInfo,
+            'isRetailThe' => $isRetailThe,
         ]);
     }
 
@@ -1018,7 +1075,7 @@ class ProductController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            DB::table('logmsprd')->insert([
+            $logData = [
                 'fprdid'                  => $product->fprdid,
                 'fprdcode'                => $product->fprdcode,
                 'fprdname'                => $product->fprdname,
@@ -1060,7 +1117,17 @@ class ProductController extends Controller
                 'feditmode'               => 'D', // Delete
                 'fuseridlog'              => $userLogin->fname ?? null,
                 'fdatetimelog'            => now(),
-            ]);
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fqtypromosi1')) {
+                $logData['fqtypromosi1'] = $product->fqtypromosi1;
+                $logData['fqtypromosi2'] = $product->fqtypromosi2;
+                $logData['fhargajualpromosi1'] = $product->fhargajualpromosi1;
+                $logData['fhargajualpromosi2'] = $product->fhargajualpromosi2;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('logmsprd', 'fspecification')) {
+                $logData['fspecification'] = $product->fspecification;
+            }
+            DB::table('logmsprd')->insert($logData);
 
             $product->delete();
 

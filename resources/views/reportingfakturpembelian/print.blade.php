@@ -518,7 +518,7 @@
                             @foreach ($fakturpembelian->details as $detail)
                                 <div class="po-detail">
                                     <div>{{ $detail->fprdcode }}</div>
-                                    <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                                    <div>{{ format_product_name($detail->product_name ?? $detail->fprdcode, $detail->fspecification ?? null) }}</div>
                                     <div>{{ blank($detail->frefdtno) ? '-' : $detail->frefdtno }}</div>
                                     <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
                                     <div class="text-right">

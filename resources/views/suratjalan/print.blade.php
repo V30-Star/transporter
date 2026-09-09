@@ -344,7 +344,7 @@
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     @php
-                        $productDisplayName = trim((string)($r->fdesc ?? '')) !== '' ? $r->fdesc : ($r->product_name ?? '-');
+                        $productDisplayName = trim((string)($r->fdesc ?? '')) !== '' ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-');
                     @endphp
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>

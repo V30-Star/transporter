@@ -554,7 +554,7 @@
                 <div class="po-header">
                     <div>{{ $i + 1 }}</div>
                     <div style="overflow: hidden; line-height: 1.3;">
-                        <span class="truncate" style="display: block;">{{ $row->fprdname }}</span>
+                        <span class="truncate" style="display: block;">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</span>
                         <small style="color: #64748b; display: block;" class="truncate">[<span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fprdcode }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fprdcode }}</span>]</small>
                     </div>
                     <div>{{ $row->fsatuan_laporan ?? $row->fsatuankecil }}</div>

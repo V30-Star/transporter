@@ -190,6 +190,7 @@ class ListingFakturPembelianController extends Controller
                 'm.famountmt',
                 'd.fprdcode',
                 'p.fprdname',
+                'p.fspecification',
                 'd.frefdtno',
                 'd.fqty',
                 'd.fqtyremain',

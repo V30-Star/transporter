@@ -161,6 +161,7 @@ class ListingSuratJalanController extends Controller
             m.fusercreate,
             d.fprdcode,
             p.fprdname,
+            p.fspecification,
             d.fqty,
             d.fsatuan,
             d.frefdtno,

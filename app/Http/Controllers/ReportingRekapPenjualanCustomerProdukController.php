@@ -108,7 +108,7 @@ class ReportingRekapPenjualanCustomerProdukController extends Controller
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->selectRaw("m.fcustno, MIN(c.fcustomername) AS customer_name, CAST(MIN({$groupExpr}) AS CHAR(15)) AS fgroupcode")
-            ->selectRaw("d.fprdcode, MIN(p.fprdname) AS fprdname, MIN(p.fsatuanbesar) AS fsatuanbesar, MIN(p.fsatuankecil) AS fsatuankecil")
+            ->selectRaw("d.fprdcode, MIN(p.fprdname) AS fprdname, MIN(p.fspecification) AS fspecification, MIN(p.fsatuanbesar) AS fsatuanbesar, MIN(p.fsatuankecil) AS fsatuankecil")
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric) / NULLIF(CAST(p.fqtykecil AS Numeric), 0)) AS fqtybesar')
             ->selectRaw('SUM(CAST(d.fqtykecil AS Numeric)) AS fqtykecil')
             ->selectRaw("SUM((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100))) AS totalnota")

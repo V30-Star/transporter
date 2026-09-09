@@ -78,6 +78,7 @@ class ListingPenjualanController extends Controller
                 'd.frefso',
                 'd.frefsrj',
                 'p.fprdname',
+                'p.fspecification',
                 's.fsalesmanname',
                 DB::raw('ROUND(m.ftotalsalesnet) as famountgross'),
                 DB::raw('d.fsalesnet * d.fqty as famount')

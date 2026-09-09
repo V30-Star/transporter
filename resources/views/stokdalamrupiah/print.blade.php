@@ -429,7 +429,7 @@
                     <div class="stock-row">
                         <div>{{ $index + 1 }}</div>
                         <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
-                        <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                        <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                         <div>{{ $row->fsatuan }}</div>
                         <div>{{ number_format((float) $row->fsaldo_akhir, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>

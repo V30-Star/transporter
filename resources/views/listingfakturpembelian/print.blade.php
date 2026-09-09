@@ -655,7 +655,7 @@
                     @if (!empty($d->fprdcode))
                         <div class="po-detail">
                             <div class="truncate">{{ $d->fprdcode }}</div>
-                            <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
+                            <div class="truncate" title="{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}">{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}</div>
                             <div class="truncate">{{ $d->frefdtno }}</div>
                             <div>{{ number_format((float) $d->fqty, 2, ',', '.') }}</div>
                             <div style="text-align: center;">{{ $d->fadj }}</div>

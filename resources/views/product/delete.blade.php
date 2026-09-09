@@ -45,6 +45,15 @@
                 </div>
             @endif
 
+            @if (!empty($product->fspecification))
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-sm font-bold text-gray-700">Type</div>
+                    <div class="col-span-2 text-sm font-semibold text-gray-900">
+                        {{ $product->fspecification }}
+                    </div>
+                </div>
+            @endif
+
             @php
                 $productSatuan = array_values(
                     array_filter(
@@ -84,6 +93,24 @@
                     Rp {{ number_format($product->fhargajual ?? 0, 2, ',', '.') }}
                 </div>
             </div>
+
+            @if (!empty($isRetailThe))
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-sm font-bold text-gray-700">Promosi 1</div>
+                    <div class="col-span-2 text-sm font-semibold text-gray-900">
+                        Qty: {{ number_format((float) ($product->fqtypromosi1 ?? 0), 2, ',', '.') }} {{ $product->fsatuankecil ?? '' }} &middot;
+                        Harga Jual: Rp {{ number_format((float) ($product->fhargajualpromosi1 ?? 0), 2, ',', '.') }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-sm font-bold text-gray-700">Promosi 2</div>
+                    <div class="col-span-2 text-sm font-semibold text-gray-900">
+                        Qty: {{ number_format((float) ($product->fqtypromosi2 ?? 0), 2, ',', '.') }} {{ $product->fsatuankecil ?? '' }} &middot;
+                        Harga Jual: Rp {{ number_format((float) ($product->fhargajualpromosi2 ?? 0), 2, ',', '.') }}
+                    </div>
+                </div>
+            @endif
 
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-bold text-gray-700">Status</div>

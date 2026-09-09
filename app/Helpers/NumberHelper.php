@@ -18,6 +18,35 @@ if (!function_exists('format_currency')) {
   }
 }
 
+if (!function_exists('format_product_name')) {
+  function format_product_name($name, $specification = null): string
+  {
+    if (is_object($name)) {
+      $spec = $name->fspecification ?? $name->product_specification ?? $name->product?->fspecification ?? $specification ?? '';
+      $actualName = $name->fprdname ?? $name->fitemname ?? $name->product_name ?? $name->fproductname ?? '';
+    } elseif (is_array($name)) {
+      $spec = $name['fspecification'] ?? $name['product_specification'] ?? $name['product']['fspecification'] ?? $specification ?? '';
+      $actualName = $name['fprdname'] ?? $name['fitemname'] ?? $name['product_name'] ?? $name['fproductname'] ?? '';
+    } else {
+      $actualName = (string) ($name ?? '');
+      $spec = (string) ($specification ?? '');
+    }
+
+    $actualName = trim((string) $actualName);
+    $spec = trim((string) $spec);
+
+    if ($spec === '') {
+      return $actualName;
+    }
+
+    if ($actualName === '') {
+      return $spec;
+    }
+
+    return $actualName . ' ' . $spec;
+  }
+}
+
 if (!function_exists('stock_boleh_minus')) {
   function stock_boleh_minus(): bool
   {

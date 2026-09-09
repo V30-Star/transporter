@@ -811,6 +811,8 @@ class Tr_pohController extends Controller
                 'tr_pod.*',
                 'p.fprdcode as product_code',
                 'p.fprdname as product_name',
+                'p.fspecification as fspecification',
+                'p.fspecification as product_specification',
             ]);
 
         // Hitung totals — jika fincludeppn = 1 baru tambah PPN

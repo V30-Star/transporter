@@ -652,7 +652,7 @@
                                 <div class="rekap-row">
                                     <div>{{ $loop->iteration }}</div>
                                     <div class="truncate" title="{{ $row->fprdcode }}">{{ $row->fprdcode }}</div>
-                                    <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                                    <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                                     <div class="truncate">{{ $row->fsatuan }}</div>
                                     <div>{{ number_format((float) $row->qtymasukkecil, 2, ',', '.') }}</div>
                                     <div>{{ number_format((float) $row->qtykeluarkecil, 2, ',', '.') }}</div>
@@ -664,7 +664,7 @@
                 @else
                     @foreach ($whRows->groupBy('fprdcode') as $prdcode => $items)
                         <div class="journal-block group-title">
-                            {{ $prdcode }} - {{ $items->first()->fprdname ?? '' }}
+                            {{ $prdcode }} - {{ format_product_name($items->first()->fprdname ?? '', $items->first()->fspecification ?? null) }}
                         </div>
 
                         @foreach ($items as $row)

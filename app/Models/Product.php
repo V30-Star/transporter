@@ -65,7 +65,10 @@ class Product extends Model
 
     public function getGroupModelAttribute()
     {
-        return $this->group ?: $this->groupByCode;
+        if (is_numeric($this->fgroupcode)) {
+            return $this->group ?: $this->groupByCode;
+        }
+        return $this->groupByCode;
     }
 
     public function getGroupDisplayAttribute()

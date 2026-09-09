@@ -651,7 +651,7 @@
                         @if (!empty($d->fitemcode))
                             <div class="po-detail">
                                 <div class="truncate">{{ $d->fitemcode }}</div>
-                                <div class="truncate" title="{{ $d->fitemname }}">{{ $d->fitemname }}</div>
+                                <div class="truncate" title="{{ format_product_name($d->fitemname ?? $d->fprdname, $d->fspecification ?? null) }}">{{ format_product_name($d->fitemname ?? $d->fprdname, $d->fspecification ?? null) }}</div>
                                 <div class="truncate" title="{{ $d->frefinvno }}">{{ $d->frefinvno }}</div>
                                 <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->funit }}</div>
                                 <div>{{ number_format((float) $d->fprice, 2, ',', '.') }}</div>

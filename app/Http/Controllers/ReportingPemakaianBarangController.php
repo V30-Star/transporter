@@ -172,6 +172,7 @@ class ReportingPemakaianBarangController extends Controller
                 $grandTotalPrice += $detail->fprice ?? 0;
 
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
+                $detail->fspecification = $product->fspecification ?? null;
 
                 // Sekarang kamu bisa mengakses $detail->account_name hasil dari join di atas
             }

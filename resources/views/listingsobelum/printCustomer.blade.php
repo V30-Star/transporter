@@ -626,7 +626,7 @@
                                 <span class="trx-action-trigger" onclick="openTrxActionModal(event, '{{ $row->fsono }}', '{{ $viewUrl }}', '{{ $editUrl }}')">{{ $row->fsono }}</span>
                             </div>
                             <div class="text-center">{{ date('d-m-Y', strtotime($row->fsodate)) }}</div>
-                            <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                            <div class="truncate" title="{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}">{{ format_product_name($row->fprdname, $row->fspecification ?? null) }}</div>
                             <div class="text-center">{{ $row->fsatuan }}</div>
                             <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>

@@ -116,7 +116,7 @@ class ListingSOController extends Controller
         foreach ($results as $row) {
             $row->details = DB::table('public.trsodt as dt')
                 ->leftJoin('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
-                ->select('dt.*', 'p.fprdname as product_name')
+                ->select('dt.*', 'p.fprdname as product_name', 'p.fspecification')
                 ->where('dt.fsono', $row->fsono)
                 ->get();
             $totalFaktur += (float) $row->famountso;
@@ -218,7 +218,7 @@ class ListingSOController extends Controller
         foreach ($results as $row) {
             $row->details = DB::table('public.trsodt as dt')
             ->leftJoin('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode') // Ambil tabel msprd
-            ->select('dt.*', 'p.fprdname') // Pilih semua kolom detail
+            ->select('dt.*', 'p.fprdname', 'p.fspecification') // Pilih semua kolom detail
             ->where('dt.fsono', $row->fsono)->get();
         }
 
