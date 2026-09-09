@@ -99,8 +99,50 @@ SVG;
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
         $user = Auth::user();
+        $isForceLogout = $request->boolean('force_logout');
+        $sessionLifetime = (int) config('session.lifetime', 120);
+
+        // Auto close stale sessions for this account that exceeded session lifetime
+        LogUser::where('akun', $user->fsysuserid)
+            ->whereNull('log_out_date')
+            ->where('login_date', '<', now()->subMinutes($sessionLifetime))
+            ->update(['log_out_date' => now()]);
+
+        // Check if there is an active online session in log_user
+        $activeLog = LogUser::leftJoin('sysuser', 'log_user.akun', '=', 'sysuser.fsysuserid')
+            ->where('log_user.akun', $user->fsysuserid)
+            ->whereNull('log_user.log_out_date')
+            ->select('log_user.*', 'sysuser.fname')
+            ->latest('log_user.login_date')
+            ->first();
+
+        if ($activeLog && ! $isForceLogout) {
+            // Log out the freshly authenticated attempt
+            Auth::guard('sysuser')->logout();
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withInput($request->only('fsysuserid'))
+                ->with('active_login_conflict', [
+                    'fname' => $activeLog->fname ?? $user->fname ?? '-',
+                    'akun' => $activeLog->akun,
+                    'ip' => $activeLog->ip ?? '-',
+                    'komp' => $activeLog->komp ?? '-',
+                    'login_date' => $activeLog->login_date ? \Carbon\Carbon::parse($activeLog->login_date)->format('d/m/Y H:i:s') : '-',
+                    'log_out_date' => 'Belum Logout (Sedang Online)',
+                ]);
+        }
+
+        // If force_logout or no active session exists:
+        // Close any previous sessions for this account
+        LogUser::where('akun', $user->fsysuserid)
+            ->whereNull('log_out_date')
+            ->update(['log_out_date' => now()]);
+
+        $request->session()->regenerate();
         if ($user && method_exists($user, 'touch')) {
             $user->touch();
         }
@@ -118,10 +160,7 @@ SVG;
             'fcabang' => $user->fcabang,
         ]);
 
-        // Auto close previous unclosed sessions for this account
-        LogUser::where('akun', $user->fsysuserid)
-            ->whereNull('log_out_date')
-            ->update(['log_out_date' => now()]);
+        $deviceToken = \Illuminate\Support\Str::random(64);
 
         $log = LogUser::create([
             'ip' => $request->ip(),
@@ -131,7 +170,13 @@ SVG;
             'log_out_date' => null,
         ]);
 
-        session(['login_log_id' => $log->floguserid]);
+        session([
+            'login_log_id' => $log->floguserid,
+            'session_device_token' => $deviceToken,
+        ]);
+
+        \Illuminate\Support\Facades\Cache::put("user_active_device_token:{$user->fsysuserid}", $deviceToken, now()->addMinutes($sessionLifetime));
+        cookie()->queue(cookie('app_session_device_token', $deviceToken, $sessionLifetime, null, null, false, true));
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }
@@ -144,6 +189,11 @@ SVG;
         $logId = session('login_log_id') ?? $request->input('log_id');
         $user = Auth::guard('sysuser')->user() ?? Auth::user();
         $account = $user?->fsysuserid ?? session('fsysuserid') ?? $request->input('account');
+
+        if ($account) {
+            \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
+        }
+        cookie()->queue(cookie()->forget('app_session_device_token'));
 
         if ($logId) {
             LogUser::where('floguserid', $logId)
@@ -168,6 +218,11 @@ SVG;
         $logId = session('login_log_id');
         $user = Auth::guard('sysuser')->user() ?? Auth::user();
         $account = $user?->fsysuserid ?? session('fsysuserid');
+
+        if ($account) {
+            \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
+        }
+        cookie()->queue(cookie()->forget('app_session_device_token'));
 
         if ($logId) {
             LogUser::where('floguserid', $logId)

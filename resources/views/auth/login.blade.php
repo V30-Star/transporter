@@ -2,8 +2,66 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    @if (session('active_login_conflict'))
+        @php
+            $conflict = session('active_login_conflict');
+        @endphp
+        <div class="mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-4 shadow-sm">
+            <div class="flex items-start gap-3">
+                <div class="p-2 bg-red-100 rounded-lg text-red-600 flex-shrink-0 mt-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-red-800">Otorisasi Login: Akun Sedang Aktif</h3>
+                    <p class="text-xs text-red-700 mt-1 leading-relaxed">
+                        Akun ini sedang aktif di perangkat lain. Sistem membatasi hanya <strong>1 sesi aktif</strong> per akun pengguna (tidak boleh 2 akun user yang sama login secara bersamaan).
+                    </p>
+
+                    <div class="mt-3 bg-white rounded-lg border border-red-200 p-3 text-xs space-y-1.5">
+                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">Nama:</span>
+                            <span class="col-span-2 text-gray-900 font-semibold">{{ $conflict['fname'] }}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">User ID (Akun):</span>
+                            <span class="col-span-2 text-gray-900 font-mono font-semibold">{{ $conflict['akun'] }}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">IP Address:</span>
+                            <span class="col-span-2 text-gray-900 font-mono">{{ $conflict['ip'] }}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">Komputer:</span>
+                            <span class="col-span-2 text-gray-900 font-mono">{{ $conflict['komp'] }}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 py-0.5 border-b border-gray-100">
+                            <span class="text-gray-500 font-medium">Waktu Login:</span>
+                            <span class="col-span-2 text-gray-900">{{ $conflict['login_date'] }}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 py-0.5">
+                            <span class="text-gray-500 font-medium">Status Logout:</span>
+                            <span class="col-span-2 text-red-600 font-semibold">{{ $conflict['log_out_date'] }}</span>
+                        </div>
+                    </div>
+
+                    <p class="mt-2.5 text-[11px] text-red-600">
+                        Jika perangkat di atas sudah tidak digunakan, Anda dapat mengakhiri sesi lama dan melanjutkan login di perangkat ini.
+                    </p>
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-red-200 flex justify-end">
+                <button type="button" onclick="submitForceLogout()" class="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                    Tutup Sesi Sebelumnya & Masuk
+                </button>
+            </div>
+        </div>
+    @endif
+
+    <form id="loginForm" method="POST" action="{{ route('login') }}">
         @csrf
+        <input type="hidden" name="force_logout" id="force_logout" value="0">
 
         <!-- Username Field -->
         <div class="mb-6">
@@ -66,6 +124,26 @@
                 input.value = '';
                 input.focus();
             }
+        }
+
+        function submitForceLogout() {
+            const passwordInput = document.getElementById('password');
+            const captchaInput = document.getElementById('captcha');
+
+            if (!passwordInput.value) {
+                passwordInput.focus();
+                alert('Silakan masukkan password Anda untuk konfirmasi menutup sesi lama.');
+                return;
+            }
+
+            if (!captchaInput.value) {
+                captchaInput.focus();
+                alert('Silakan masukkan kode captcha.');
+                return;
+            }
+
+            document.getElementById('force_logout').value = '1';
+            document.getElementById('loginForm').submit();
         }
     </script>
 </x-guest-layout>
