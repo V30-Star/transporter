@@ -2697,7 +2697,12 @@
                             {
                                 data: 'fprdname',
                                 name: 'fprdname',
-                                className: 'text-sm'
+                                className: 'text-sm',
+                                render: function(data, type, row) {
+                                    const name = data || '';
+                                    const spec = (row && row.fspecification ? String(row.fspecification).trim() : '');
+                                    return spec ? `${name} ${spec}` : name;
+                                }
                             },
                             {
                                 data: 'fsatuanbesar',

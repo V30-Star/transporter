@@ -35,6 +35,7 @@ trait ProductBrowseHelper
                 'fprdid',
                 'fprdcode',
                 'fprdname',
+                'fspecification',
                 'ftype',
                 'fsatuandefault',
                 'fsatuankecil',
@@ -67,8 +68,9 @@ trait ProductBrowseHelper
             return [
                 $key => [
                     'id' => $product->fprdid ?? null,
-                    'name' => $product->fprdname ?? '',
+                    'name' => format_product_name($product->fprdname ?? '', $product->fspecification ?? ''),
                     'code' => $product->fprdcode ?? '',
+                    'fspecification' => $product->fspecification ?? '',
                     'ftype' => trim((string) ($product->ftype ?? '')),
                     'default_unit' => $defaultUnit,
                     'units' => $orderedUnits,

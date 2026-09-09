@@ -62,7 +62,8 @@ class ProductBrowseController extends Controller
             ->when($searchValue !== '', function ($q) use ($searchValue) {
                 $q->where(function ($w) use ($searchValue) {
                     $w->where('msprd.fprdcode', 'ilike', "%{$searchValue}%")
-                        ->orWhere('msprd.fprdname', 'ilike', "%{$searchValue}%");
+                        ->orWhere('msprd.fprdname', 'ilike', "%{$searchValue}%")
+                        ->orWhere('msprd.fspecification', 'ilike', "%{$searchValue}%");
                 });
             });
 
@@ -74,6 +75,7 @@ class ProductBrowseController extends Controller
             ->select([
                 'msprd.fprdcode',
                 'msprd.fprdname',
+                'msprd.fspecification',
                 'msprd.ftype',
                 'msprd.fmerek',
                 'msmerek.fmerekname',
