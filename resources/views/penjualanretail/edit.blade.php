@@ -422,9 +422,28 @@
                             @enderror
                         </div>
 
-                        {{-- Hidden TOP & Jatuh Tempo --}}
-                        <input type="hidden" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}">
-                        <input type="hidden" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                    readonly
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
+                                    placeholder="Masukkan jumlah hari">
+                                @error('ftempohr')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
+                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
+                                @error('fjatuhtempo')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
                         {{-- Barcode --}}
                         <div>
@@ -1109,9 +1128,29 @@
                                     @enderror
                                 </div>
 
-                                {{-- Hidden TOP & Jatuh Tempo --}}
-                                <input type="hidden" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}">
-                                <input type="hidden" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                        <input type="number" id="ftempohr" name="ftempohr"
+                                            value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                            placeholder="Masukkan jumlah hari">
+                                        @error('ftempohr')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                            value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                            readonly
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                        @error('fjatuhtempo')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
 
                                 {{-- Barcode --}}
                                 <div>
