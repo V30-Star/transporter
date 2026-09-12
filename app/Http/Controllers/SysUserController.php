@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RoleAccess;
 use App\Models\Salesman;
 use App\Models\Sysuser;
 use Illuminate\Http\Request;
@@ -220,7 +221,7 @@ class SysUserController extends Controller
 
         $relatedMessages = [];
 
-        if (DB::table('roleaccess')->where('fuserid', $sysuser->fuid)->exists()) {
+        if (RoleAccess::where('fusercreate', $sysuser->fuid)->exists()) {
             $relatedMessages[] = 'Role Access';
         }
 
@@ -231,7 +232,7 @@ class SysUserController extends Controller
     {
         $sysuser = Sysuser::findOrFail($fuid);
 
-        if (DB::table('roleaccess')->where('fuserid', $sysuser->fuid)->exists()) {
+        if (RoleAccess::where('fusercreate', $sysuser->fuid)->exists()) {
             if (request()->wantsJson()) {
                 return response()->json([
                     'success' => false,

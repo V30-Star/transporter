@@ -60,13 +60,7 @@
         </div>
 
         @php
-            $relatedMessages = [];
-
-            if (\Illuminate\Support\Facades\DB::table('roleaccess')->where('fuserid', $sysuser->fuid)->exists()) {
-                $relatedMessages[] = 'Role Access';
-            }
-
-            $hasRelatedData = count($relatedMessages) > 0;
+            $hasRelatedData = !empty($relatedMessages);
         @endphp
 
         @if ($hasRelatedData)
