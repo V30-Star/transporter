@@ -398,7 +398,7 @@
                 </ul>
 
                 {{-- Penjualan Retail --}}
-                @if ($finitinvretail === 'INV')
+                @if ($finitinvretail === 'INV' && $finitinvretail === 'THE')
                     <ul x-show="open && openSidebar" x-transition
                         class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
