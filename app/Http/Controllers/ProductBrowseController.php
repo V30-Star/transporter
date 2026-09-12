@@ -21,7 +21,7 @@ class ProductBrowseController extends Controller
         $orderColumn = $request->input('order_column', 'fprdname');
         $orderDir = $request->input('order_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $allowedColumns = ['fprdcode', 'fprdname', 'fsatuanbesar', 'fminstock'];
+        $allowedColumns = ['fprdcode', 'fprdname', 'fspecification', 'fsatuanbesar', 'fminstock'];
         $orderColumn = in_array($orderColumn, $allowedColumns) ? $orderColumn : 'fprdname';
 
         // Total tanpa search

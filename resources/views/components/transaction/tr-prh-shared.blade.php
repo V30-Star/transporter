@@ -464,11 +464,13 @@ function productBrowser() {
                         data: 'fprdname',
                         name: 'fprdname',
                         className: 'text-sm',
-                        render: function(data, type, row) {
-                            const name = data || '';
-                            const spec = (row && row.fspecification ? String(row.fspecification).trim() : '');
-                            return spec ? `${name} ${spec}` : name;
-                        }
+                        render: d => d || '-'
+                    },
+                    {
+                        data: 'fspecification',
+                        name: 'fspecification',
+                        className: 'text-sm',
+                        render: d => d || '-'
                     },
                     {
                         data: 'fsatuanbesar',

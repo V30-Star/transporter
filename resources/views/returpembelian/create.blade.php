@@ -2348,10 +2348,16 @@
                                 data: 'fprdname',
                                 name: 'fprdname',
                                 className: 'text-sm',
-                                render: function(data, type, row) {
-                                    const name = data || '';
-                                    const spec = (row && row.fspecification ? String(row.fspecification).trim() : '');
-                                    return spec ? `${name} ${spec}` : name;
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fspecification',
+                                name: 'fspecification',
+                                className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
                                 }
                             },
                             {

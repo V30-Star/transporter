@@ -791,6 +791,9 @@
                                                         Nama Produk</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Spesifikasi</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Satuan</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
@@ -1721,6 +1724,9 @@
                                                         Nama Produk</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Spesifikasi</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Satuan</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
@@ -2187,10 +2193,16 @@
                                 data: 'fprdname',
                                 name: 'fprdname',
                                 className: 'text-sm',
-                                render: function(data, type, row) {
-                                    const name = data || '';
-                                    const spec = (row && row.fspecification ? String(row.fspecification).trim() : '');
-                                    return spec ? `${name} ${spec}` : name;
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fspecification',
+                                name: 'fspecification',
+                                className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
                                 }
                             },
                             {

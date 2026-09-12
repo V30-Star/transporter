@@ -1101,6 +1101,7 @@
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
                                     Produk</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Spesifikasi</th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan
                                 </th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Merek</th>
@@ -1380,11 +1381,13 @@
                                 data: 'fprdname',
                                 name: 'fprdname',
                                 className: 'text-sm',
-                                render: function(data, type, row) {
-                                    const name = data || '';
-                                    const spec = (row && row.fspecification ? String(row.fspecification).trim() : '');
-                                    return spec ? `${name} ${spec}` : name;
-                                }
+                                render: d => d || '-'
+                            },
+                            {
+                                data: 'fspecification',
+                                name: 'fspecification',
+                                className: 'text-sm',
+                                render: d => d || '-'
                             },
                             {
                                 data: 'fsatuanbesar',
