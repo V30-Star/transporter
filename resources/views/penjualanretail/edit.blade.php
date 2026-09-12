@@ -422,45 +422,26 @@
                             @enderror
                         </div>
 
+                        {{-- Hidden TOP & Jatuh Tempo --}}
+                        <input type="hidden" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}">
+                        <input type="hidden" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}">
+
                         {{-- Barcode --}}
                         <div>
                             <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-blue-700 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-barcode text-sm text-blue-600"></i>
+                                <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
                                     <span>Barcode</span>
                                 </label>
-                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
                             </div>
                             <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                class="w-full border-2 border-blue-400 bg-blue-50/70 text-blue-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-blue-400/80 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                                class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                                 placeholder="Scan / Masukkan Barcode" autocomplete="off"
                                 @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
                                 @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
                                 @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
                                 @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
-                        </div>
-
-                           <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                readonly
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
                         </div>
 
                         <script>
@@ -1128,42 +1109,23 @@
                                     @enderror
                                 </div>
 
+                                {{-- Hidden TOP & Jatuh Tempo --}}
+                                <input type="hidden" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}">
+                                <input type="hidden" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}">
+
                                 {{-- Barcode --}}
                                 <div>
                                     <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-bold text-blue-700 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-barcode text-sm text-blue-600"></i>
+                                        <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
                                             <span>Barcode</span>
                                         </label>
-                                        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                                        <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
                                     </div>
                                     <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                        class="w-full border-2 border-blue-400 bg-blue-50/70 text-blue-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-blue-400/80 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                                        class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                                         placeholder="Scan / Masukkan Barcode" autocomplete="off"
                                         {{ $action === 'view' ? 'disabled' : '' }}>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                        <input type="number" id="ftempohr" name="ftempohr"
-                                            value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
-                                            placeholder="Masukkan jumlah hari">
-                                        @error('ftempohr')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                            value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                            readonly
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
-                                        @error('fjatuhtempo')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
                                 </div>
 
                                 <script>
