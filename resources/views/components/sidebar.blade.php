@@ -356,7 +356,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                    @if ($hasSidebarPermission('viewSalesOrder', 'createSalesOrder', 'updateSalesOrder', 'deleteSalesOrder'))
                         <li>
                             <a href="{{ route('salesorder.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
