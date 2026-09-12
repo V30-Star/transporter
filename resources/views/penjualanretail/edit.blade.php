@@ -531,7 +531,6 @@
                                         <th class="p-2 text-left w-42">Kode Produk</th>
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
-                                        <th class="p-2 text-left w-36">No.Ref</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
@@ -570,7 +569,6 @@
                                                         x-text="it.fsatuan || '-'"></div>
                                                 </template>
                                             </td>
-                                            <td class="p-2" x-text="it.frefno_display || it.frefcode || '-'"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right"
@@ -581,7 +579,7 @@
 
                                         <!-- Hidden inputs row -->
                                         <tr class="hidden">
-                                            <td colspan="9">
+                                            <td colspan="8">
                                                 <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
                                                     :value="it.fitemcode">
                                                 <input type="hidden" :name="`fitemname[${it.formIndex}]`"
@@ -1238,12 +1236,11 @@
                                         data-skip-auto-detail-style="true">
                                         <colgroup>
                                             <col style="width:2%;">
-                                            <col style="width:16%;">
-                                            <col style="width:{{ $action === 'view' ? '28%' : '25%' }};">
-                                            <col style="width:8%;">
-                                            <col style="width:13%;">
+                                            <col style="width:18%;">
+                                            <col style="width:{{ $action === 'view' ? '36%' : '33%' }};">
                                             <col style="width:8%;">
                                             <col style="width:9%;">
+                                            <col style="width:11%;">
                                             <col style="width:6%;">
                                             <col style="width:10%;">
                                             @if ($action !== 'view')
@@ -1256,7 +1253,6 @@
                                                 <th class="p-2 text-left w-42">Kode Produk</th>
                                                 <th class="p-2 text-left w-96">Nama Produk</th>
                                                 <th class="p-2 text-left w-36">Satuan</th>
-                                                <th class="p-2 text-left w-36">No.Ref</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
@@ -1317,21 +1313,6 @@
                                                             <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
                                                                 x-text="it.fsatuan || '-'"></div>
                                                         </template>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <div class="flex w-full max-w-full">
-                                                            <input type="text"
-                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 text-sm font-mono bg-gray-100 text-gray-600 cursor-not-allowed"
-                                                                :value="String(it.fitemcode || '').toUpperCase().trim() === 'UM' ? (it.frefdtno || it.frefno_display || '') : (it.frefno_display || it.frefdtno || it.frefcode || '')"
-                                                                disabled>
-                                                            @if ($action !== 'view')
-                                                                <button type="button" @click="openProductHistory(it)"
-                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                                    title="Riwayat produk / Uang Muka">
-                                                                    <x-heroicon-o-clock class="w-4 h-4" />
-                                                                </button>
-                                                            @endif
-                                                        </div>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text" inputmode="decimal"
