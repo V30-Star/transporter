@@ -2528,7 +2528,8 @@ class InvoiceController extends Controller
                     'fincludeppn' => $fincludeppn,
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
-                    'ftypesales' => $request->input('ftypesales', 0),
+                    'ftypesales' => (int) $request->input('ftypesales', 0),
+                    'fgrosir' => (int) $request->input('fgrosir', 0),
                     'fbranchcode' => $request->fbranchcode,
                     'ftrcode' => 'INV',
                     'fprdout' => $fprdoutVal,
@@ -2538,7 +2539,7 @@ class InvoiceController extends Controller
                     'fuserapproved' => $isApproved ? (Auth::user()->fname ?? $userid ?? 'system') : null,
                     'fdateapproved' => $isApproved ? $now : null,
                     'fprint' => 0,
-                    'ftunai' => 0,
+                    'ftunai' => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
                     'fjatuhtempo' => $fjatuhtempo,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
@@ -3846,10 +3847,12 @@ class InvoiceController extends Controller
                     'fppnpersen'       => $ppnPersen,
                     'fbranchcode'      => $request->fbranchcode,
                     'ftypesales'       => (int) $request->input('ftypesales', 0),
+                    'fgrosir'          => (int) $request->input('fgrosir', 0),
                     'fprdout'          => $fprdoutVal,
                     'fneedacc'         => '0',
                     'fuseracc'         => mb_substr($userid, 0, 30),
                     'fapproval'        => $headerRefNo !== '' ? 1 : 0,
+                    'ftunai'           => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
                     'fjatuhtempo'      => $fjatuhtempo,
                 ];
 

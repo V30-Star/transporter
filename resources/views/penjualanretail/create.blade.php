@@ -4,6 +4,7 @@
 
 @section('content')
     @php
+        $canPenjualanTunai = in_array('BolehPenjualanTunai', explode(',', (string) session('user_restricted_permissions', '')), true);
         $oldInvoiceItemCodes = old('fitemcode', []);
         $oldInvoiceItemNames = old('fitemname', []);
         $oldInvoiceUnits = old('fsatuan', []);
@@ -253,6 +254,8 @@
             <input type="hidden" name="approve_now" id="approveNowInput" value="0">
             <input type="hidden" name="fneedacc" id="invoiceNeedAcc" value="{{ old('fneedacc', '0') }}">
             <input type="hidden" name="fuseracc" id="invoiceUserAcc" value="{{ old('fuseracc', '') }}">
+            <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
+            <input type="hidden" name="ftypesales" id="ftypesales" value="0">
 
             {{-- ─── CARD 1: Identitas Penjualan Retail ────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -296,24 +299,21 @@
                             </div>
                         </div>
 
-
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Type</label>
-                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = @json((int) old('ftypesales', 0))"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypesales') border-red-500 @enderror">
-                                <option value="0">Penjualan</option>
-                                <option value="1">Uang Muka</option>
-                            </select>
-                            @error('ftypesales')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div>
                             <label class="block text-xs font-bold mb-1">Tanggal</label>
-                            <input type="date" id="fsodate" name="fsodate"
-                                value="{{ old('fsodate') ?? date('Y-m-d') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="fsodate" name="fsodate"
+                                    value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
+                                @if ($canPenjualanTunai)
+                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                        <input type="checkbox" name="ftunai" id="ftunai" value="1"
+                                            {{ old('ftunai', '0') == '1' ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
+                                    </label>
+                                @endif
+                            </div>
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -423,9 +423,15 @@
 
                         {{-- Barcode --}}
                         <div>
-                            <label class="block text-xs font-bold mb-1">Barcode</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-barcode text-sm text-blue-600"></i>
+                                    <span>Barcode</span>
+                                </label>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                            </div>
                             <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                class="w-full border-2 border-blue-400 bg-blue-50/70 text-blue-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-blue-400/80 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm"
                                 placeholder="Scan / Masukkan Barcode" autocomplete="off"
                                 @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
                                 @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
@@ -482,21 +488,12 @@
                                 }
                             });
                         </script>
-                        <div> <label class="block text-xs font-bold mb-1">Keterangan</label>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Catatan Internal</label>
-                            <textarea name="fketinternal" id="fketinternal" rows="2"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-500 @enderror"
-                                placeholder="Catatan internal isi di sini...">{{ old('fketinternal') }}</textarea>
-                            @error('fketinternal')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>

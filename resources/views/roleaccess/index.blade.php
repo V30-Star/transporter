@@ -374,6 +374,10 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BolehGantiTanggal" {{ in_array('BolehGantiTanggal', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Boleh Penjualan Tunai</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BolehPenjualanTunai" {{ in_array('BolehPenjualanTunai', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Edit Periode Posting</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="editPeriode" {{ in_array('editPeriode', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>

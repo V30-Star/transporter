@@ -8,6 +8,7 @@
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateInvoice', $permissions, true);
         $canDeletePermission = in_array('deleteInvoice', $permissions, true);
+        $canPenjualanTunai = in_array('BolehPenjualanTunai', $permissions, true);
     @endphp
     <style>
         input:focus,
@@ -340,26 +341,25 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Type</label>
-                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales ?? 0) }}"
-                                disabled
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftypesales') border-red-500 @enderror">
-                                <option value="0">Penjualan</option>
-                                <option value="1">Uang Muka</option>
-                            </select>
-                            <input type="hidden" name="ftypesales" :value="ftypesales">
-                            @error('ftypesales')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
+                        <input type="hidden" name="ftypesales" id="ftypesales" value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
 
                         {{-- Tanggal --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Tanggal</label>
-                            <input disabled type="date" name="fsodate"
-                                value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
+                            <div class="flex items-center gap-2">
+                                <input disabled type="date" name="fsodate"
+                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
+                                @if ($canPenjualanTunai)
+                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-not-allowed">
+                                        <input disabled type="checkbox" name="ftunai" value="1"
+                                            {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
+                                            class="rounded border-gray-300 text-blue-600">
+                                        <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
+                                    </label>
+                                @endif
+                            </div>
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -424,9 +424,15 @@
 
                         {{-- Barcode --}}
                         <div>
-                            <label class="block text-xs font-bold mb-1">Barcode</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-barcode text-sm text-blue-600"></i>
+                                    <span>Barcode</span>
+                                </label>
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                            </div>
                             <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                class="w-full border-2 border-blue-400 bg-blue-50/70 text-blue-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-blue-400/80 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                                 placeholder="Scan / Masukkan Barcode" autocomplete="off"
                                 @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
                                 @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
@@ -487,7 +493,7 @@
                                 }
                             });
                         </script>
-                                <div class="flex flex-col">
+                                <div class="flex flex-col col-span-2">
                                     <label class="block text-xs font-bold mb-1">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
@@ -496,16 +502,6 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-
-                                <div class="flex flex-col">
-                                    <label class="block text-xs font-bold mb-1">Catatan Internal</label>
-                                    <textarea name="fketinternal" id="fketinternal" rows="3"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
-                                        placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
-                                    @error('fketinternal')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                        </div>
                     </div>
                 </div>
             </div>
@@ -950,6 +946,9 @@
                     value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
                 <input type="hidden" name="fuseracc" id="invoiceUserAcc"
                     value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
+                <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
+                <input type="hidden" name="ftypesales" id="ftypesales"
+                    value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
 
                 {{-- ─── CARD 1: Identitas Penjualan Retail (Edit/View) ─ --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -995,25 +994,24 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Type</label>
-                                    <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
-                                        x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftypesales') border-red-500 @enderror">
-                                        <option value="0">Penjualan</option>
-                                        <option value="1">Uang Muka</option>
-                                    </select>
-                                    @error('ftypesales')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
 
                                 {{-- Tanggal --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Tanggal</label>
-                                    <input type="date" id="fsodate" name="fsodate"
-                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
+                                    <div class="flex items-center gap-2">
+                                        <input type="date" id="fsodate" name="fsodate"
+                                            value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
+                                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
+                                        @if ($canPenjualanTunai)
+                                            <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                                <input type="checkbox" name="ftunai" id="ftunai" value="1"
+                                                    {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
+                                                    {{ $action === 'view' ? 'disabled' : '' }}
+                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
+                                            </label>
+                                        @endif
+                                    </div>
                                     @error('fsodate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -1132,9 +1130,15 @@
 
                                 {{-- Barcode --}}
                                 <div>
-                                    <label class="block text-xs font-bold mb-1">Barcode</label>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-barcode text-sm text-blue-600"></i>
+                                            <span>Barcode</span>
+                                        </label>
+                                        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                                    </div>
                                     <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed"
+                                        class="w-full border-2 border-blue-400 bg-blue-50/70 text-blue-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-blue-400/80 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                                         placeholder="Scan / Masukkan Barcode" autocomplete="off"
                                         {{ $action === 'view' ? 'disabled' : '' }}>
                                 </div>
@@ -1193,22 +1197,12 @@
                                     });
                                 </script>
 
-                                        <div class="flex flex-col">
+                                        <div class="flex flex-col col-span-2">
                                             <label class="block text-xs font-bold mb-1">Keterangan</label>
                                             <textarea name="fket" rows="3"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
                                                 placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
                                             @error('fket')
-                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-
-                                        <div class="flex flex-col">
-                                            <label class="block text-xs font-bold mb-1">Catatan Internal</label>
-                                            <textarea name="fketinternal" id="fketinternal" rows="3"
-                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
-                                                placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
-                                            @error('fketinternal')
                                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                             @enderror
                                         </div>
