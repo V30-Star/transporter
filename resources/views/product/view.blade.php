@@ -137,7 +137,7 @@
                             Identitas Produk
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="{{ $isRetailThe ? 'grid grid-cols-3 gap-4 mb-4' : 'grid grid-cols-2 gap-4 mb-4' }}">
                             {{-- Group Produk --}}
                             <div>
                                 <label class="field-label">Group Produk</label>
@@ -165,6 +165,22 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            @if ($isRetailThe)
+                                {{-- Dealer --}}
+                                <div>
+                                    <label class="field-label">Dealer</label>
+                                    <select disabled class="field-input bg-gray-100 text-gray-700 cursor-not-allowed" id="dealerSelect">
+                                        <option value="">-- Pilih Dealer --</option>
+                                        @foreach ($dealers as $dealer)
+                                            <option value="{{ $dealer->fdealercode }}"
+                                                {{ $product->fdealer == $dealer->fdealercode ? 'selected' : '' }}>
+                                                {{ $dealer->fdealercode }} - {{ $dealer->fdealername }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 mb-4">

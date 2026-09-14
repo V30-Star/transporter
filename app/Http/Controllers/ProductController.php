@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dealer;
 use App\Models\Groupproduct;
 use App\Models\Merek;
 use App\Models\Product;
@@ -402,12 +403,13 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
+        $dealers = Dealer::where('fnonactive', '0')->orderBy('fdealercode')->get();
         $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekcode ?? 1);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $canApproval = $this->canApproveProduct();
         $isRetailThe = $this->isRetailThe();
 
-        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers', 'canApproval', 'isRetailThe'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'dealers', 'newProductCode', 'enabledImageNumbers', 'canApproval', 'isRetailThe'));
     }
 
     public function store(Request $request)
@@ -427,6 +429,7 @@ class ProductController extends Controller
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
+                'fdealer' => 'nullable|string',
                 'fsatuankecil' => 'required',
                 'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
                 'fsatuanbesar2' => ['nullable', 'string', 'different:fsatuankecil', 'different:fsatuanbesar'],
@@ -512,6 +515,7 @@ class ProductController extends Controller
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
+            $validated['fdealer'] = $request->filled('fdealer') ? strtoupper($request->fdealer) : null;
 
             if (empty($request->fprdcode)) {
                 $validated['fprdcode'] = $this->generateProductCode($request->fgroupcode, $request->fmerek);
@@ -585,6 +589,7 @@ class ProductController extends Controller
                     'fgroupid',
                     'fgroupcode',
                     'fmerek',
+                    'fdealer',
                     'fsatuankecil',
                 ]));
         } catch (\Illuminate\Validation\ValidationException $v) {
@@ -609,6 +614,7 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
+        $dealers = Dealer::where('fnonactive', '0')->orderBy('fdealercode')->get();
         $usageInfo = $this->getProductUsageInfo($product);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $canApproval = $this->canApproveProduct();
@@ -619,6 +625,7 @@ class ProductController extends Controller
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
+            'dealers' => $dealers,
             'action' => 'edit',
             'usageInfo' => $usageInfo,
             'enabledImageNumbers' => $enabledImageNumbers,
@@ -633,10 +640,11 @@ class ProductController extends Controller
             return $guard;
         }
 
-        $product = Product::with(['merek', 'group', 'groupByCode'])->findOrFail($id);
+        $product = Product::with(['merek', 'group', 'groupByCode', 'dealer'])->findOrFail($id);
         $groups = Groupproduct::all();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
+        $dealers = Dealer::all();
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $isRetailThe = $this->isRetailThe();
 
@@ -645,6 +653,7 @@ class ProductController extends Controller
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
+            'dealers' => $dealers,
             'enabledImageNumbers' => $enabledImageNumbers,
             'approvalLockMessage' => $this->getApprovalLockMessage($product),
             'isRetailThe' => $isRetailThe,
@@ -674,6 +683,7 @@ class ProductController extends Controller
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
                 'fmerek' => 'required',
+                'fdealer' => 'nullable|string',
                 'fsatuankecil' => 'required',
                 'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
                 'fsatuanbesar2' => [
@@ -768,6 +778,7 @@ class ProductController extends Controller
 
             $validated['fprdcode'] = strtoupper($validated['fprdcode']);
             $validated['fprdname'] = strtoupper($validated['fprdname']);
+            $validated['fdealer'] = $request->filled('fdealer') ? strtoupper($request->fdealer) : null;
 
             $numericFields = [
                 'fhpp',
@@ -897,6 +908,7 @@ class ProductController extends Controller
                 'fupdatedby'              => $product->fupdatedby,
                 'fupdatedat'              => $product->fupdatedat,
                 'fmerek'                  => $product->fmerek,
+                'fdealer'                 => $product->fdealer,
                 'fsatuankecil'            => $product->fsatuankecil,
                 'fsatuanbesar'            => $product->fsatuanbesar,
                 'fqtykecil'               => $product->fqtykecil,
@@ -1043,7 +1055,7 @@ class ProductController extends Controller
             return $guard;
         }
 
-        $product = Product::with(['merek', 'group', 'groupByCode'])->findOrFail($fprdid);
+        $product = Product::with(['merek', 'group', 'groupByCode', 'dealer'])->findOrFail($fprdid);
         $usageInfo = $this->getProductUsageInfo($product);
         $isRetailThe = $this->isRetailThe();
 
@@ -1095,6 +1107,7 @@ class ProductController extends Controller
                 'fcreatedat'              => $product->fcreatedat,
                 'fupdatedat'              => $product->fupdatedat,
                 'fmerek'                  => $product->fmerek,
+                'fdealer'                 => $product->fdealer,
                 'fminmargin'              => $product->fminmargin,
                 'fformula'                => $product->fformula,
                 'fminstock'               => $product->fminstock,

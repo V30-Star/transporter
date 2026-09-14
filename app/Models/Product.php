@@ -53,6 +53,11 @@ class Product extends Model
         return $this->belongsTo(Merek::class, 'fmerek', 'fmerekcode');
     }
 
+    public function dealer()
+    {
+        return $this->belongsTo(Dealer::class, 'fdealer', 'fdealercode');
+    }
+
     public function group()
     {
         return $this->belongsTo(Groupproduct::class, 'fgroupcode', 'fgroupid');

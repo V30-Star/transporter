@@ -392,7 +392,7 @@
                             Identitas Produk
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="{{ $isRetailThe ? 'grid grid-cols-3 gap-4 mb-4' : 'grid grid-cols-2 gap-4 mb-4' }}">
                             {{-- Group Produk --}}
                             <div x-data="{ isEditable: false }">
                                 <label class="field-label">Group Produk</label>
@@ -466,6 +466,44 @@
                                     <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            @if ($isRetailThe)
+                                {{-- Dealer --}}
+                                <div x-data="{ isDealerEditable: false }">
+                                    <label class="field-label">Dealer</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1">
+                                            <select disabled id="dealerSelect"
+                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed">
+                                                <option value="">-- Pilih Dealer --</option>
+                                                @foreach ($dealers as $dealer)
+                                                    <option value="{{ $dealer->fdealercode }}"
+                                                        {{ old('fdealer', $lastProductFields['fdealer'] ?? '') == $dealer->fdealercode ? 'selected' : '' }}>
+                                                        {{ $dealer->fdealercode }} - {{ $dealer->fdealername }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="absolute inset-0" role="button" aria-label="Browse Dealer"
+                                                @click="window.dispatchEvent(new CustomEvent('dealer-browse-open'))"></div>
+                                        </div>
+                                        <input type="hidden" name="fdealer" id="fdealer" value="{{ old('fdealer', $lastProductFields['fdealer'] ?? '') }}">
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('dealer-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                            title="Browse Dealer">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        <button type="button" @click="isDealerEditable = true; $dispatch('open-dealer-modal')"
+                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            title="Tambah Dealer">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    @error('fdealer')
+                                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 mb-4">
@@ -1120,6 +1158,82 @@
         </div>
     </div>
 
+    @if ($isRetailThe)
+        {{-- ═══ MODAL TAMBAH DEALER ═══ --}}
+        <div x-data="{
+            open: false,
+            loading: false,
+            errors: {},
+            form: { fdealercode: '', fdealername: '', fnonactive: false },
+            saveData() {
+                this.loading = true;
+                this.errors = {};
+                $.ajax({
+                    url: '{{ route('dealer.store') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { fdealercode: this.form.fdealercode, fdealername: this.form.fdealername, fnonactive: this.form.fnonactive ? 1 : 0 }
+                }).done((res) => {
+                    if (res && res.code && res.name) {
+                        const opt = new Option(res.code + ' - ' + res.name, res.code, true, true);
+                        $('#dealerSelect').append(opt).trigger('change');
+                        const hidDealer = document.getElementById('fdealer');
+                        if (hidDealer) hidDealer.value = res.code;
+                        this.open = false;
+                        this.form = { fdealercode: '', fdealername: '', fnonactive: false };
+                        this.errors = {};
+                    } else { window.showAppErrorAlert('TERJADI KESALAHAN', 'FORMAT RESPON SERVER SALAH.'); }
+                    this.loading = false;
+                }).fail((xhr) => {
+                    this.loading = false;
+                    if (xhr.status === 422) { this.errors = xhr.responseJSON?.errors || {}; } else { window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENYIMPAN DEALER.'); }
+                });
+            }
+        }" x-on:open-dealer-modal.window="open = true; errors = {}; loading = false;" x-show="open"
+            style="display:none" class="fixed inset-0 z-[10000] flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
+            <div class="relative bg-white w-full max-w-lg rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Tambah Dealer</h3>
+                <div class="space-y-4 mt-2">
+                    <div>
+                        <label class="field-label">Kode Dealer</label>
+                        <input type="text" x-model="form.fdealercode" class="field-input uppercase" maxlength="10"
+                            :class="errors.fdealercode ? 'border-red-500' : ''">
+                        <template x-if="errors.fdealercode">
+                            <p class="text-red-600 text-xs mt-1" x-text="errors.fdealercode[0]"></p>
+                        </template>
+                    </div>
+                    <div>
+                        <label class="field-label">Nama Dealer</label>
+                        <input type="text" x-model="form.fdealername" class="field-input uppercase"
+                            :class="errors.fdealername ? 'border-red-500' : ''">
+                        <template x-if="errors.fdealername">
+                            <p class="text-red-600 text-xs mt-1" x-text="errors.fdealername[0]"></p>
+                        </template>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="form.fnonactive" id="modal_dealer_fnonactive"
+                            class="form-checkbox h-5 w-5 text-indigo-600">
+                        <label for="modal_dealer_fnonactive" class="field-label" style="margin:0">Non Aktif</label>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" @click="open=false"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Batal</button>
+                    <button type="button" @click="saveData()" :disabled="loading"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-60">
+                        <svg x-show="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                                opacity=".25"></circle>
+                            <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" opacity=".75"></path>
+                        </svg>
+                        <span x-text="loading ? 'Menyimpan...' : 'Simpan'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script>
         if (typeof window.groupBrowser !== 'function') {
             window.groupBrowser = function() {
@@ -1341,6 +1455,40 @@
             <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
         </div>
     </div>
+
+    @if ($isRetailThe)
+        {{-- ═══ MODAL BROWSE DEALER ═══ --}}
+        <div x-data="dealerBrowser()" x-show="open" x-cloak x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+                style="height:85vh;">
+                <div
+                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Browse Dealer</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">Pilih dealer yang diinginkan</p>
+                    </div>
+                    <button type="button" @click="close()"
+                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm">Tutup</button>
+                </div>
+                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100"></div>
+                <div class="flex-1 overflow-y-auto px-6" style="min-height:0;">
+                    <table id="dealerBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode Dealer</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Dealer</th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+            </div>
+        </div>
+    @endif
 
 @endsection
 
@@ -1922,7 +2070,99 @@
             const alpineData = Alpine.$data(sel.closest('[x-data]'));
             if (alpineData) alpineData.isMerekEditable = true;
         });
+
+        @if ($isRetailThe)
+            window.addEventListener('dealer-picked', (ev) => {
+                const { fdealercode, fdealername } = ev.detail || {};
+                const sel = document.getElementById('dealerSelect');
+                const hid = document.getElementById('fdealer');
+                if (sel) {
+                    let opt = Array.from(sel.options).find(o => o.value === fdealercode);
+                    if (!opt && fdealercode) {
+                        opt = new Option(fdealercode + ' - ' + (fdealername || fdealercode), fdealercode, true, true);
+                        sel.add(opt);
+                    }
+                    sel.value = fdealercode || '';
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                if (hid) hid.value = fdealercode || '';
+                const alpineData = Alpine.$data(sel.closest('[x-data]'));
+                if (alpineData) alpineData.isDealerEditable = true;
+            });
+        @endif
     });
+
+    @if ($isRetailThe)
+        window.dealerBrowser = function() {
+            return {
+                open: false,
+                table: null,
+                initDataTable() {
+                    if (this.table) this.table.destroy();
+                    this.table = $('#dealerBrowseTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('dealer.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                var orderCol = 'fdealercode';
+                                if (d.order && d.order.length > 0 && d.columns && d.columns[d.order[0].column]) {
+                                    orderCol = d.columns[d.order[0].column].data || 'fdealercode';
+                                }
+                                var orderDir = (d.order && d.order.length > 0) ? d.order[0].dir : 'asc';
+                                return {
+                                    draw: d.draw,
+                                    start: d.start,
+                                    length: d.length,
+                                    search: d.search ? d.search.value : '',
+                                    order_column: typeof orderCol === 'string' ? orderCol : 'fdealercode',
+                                    order_dir: orderDir
+                                };
+                            }
+                        },
+                        columns: [
+                            { data: 'fdealercode', name: 'fdealercode', className: 'font-mono text-sm', width: '30%' },
+                            { data: 'fdealername', name: 'fdealername', className: 'text-sm', width: '55%' },
+                            {
+                                data: null, orderable: false, searchable: false, className: 'text-center', width: '15%',
+                                render: function() { return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white">Pilih</button>'; }
+                            }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                        language: {
+                            processing: "Memuat data...", search: "Cari:", lengthMenu: "Tampilkan _MENU_",
+                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", infoEmpty: "Tidak ada data",
+                            infoFiltered: "(disaring dari _MAX_ total data)", zeroRecords: "Tidak ada data yang ditemukan",
+                            emptyTable: "Tidak ada data tersedia", paginate: { first: "Pertama", last: "Terakhir", next: "Selanjutnya", previous: "Sebelumnya" }
+                        },
+                        order: [[1, 'asc']],
+                        autoWidth: false,
+                        initComplete: function() {
+                            const $c = $(this.api().table().container());
+                            $c.find('.dt-search .dt-input, .dataTables_filter input').css({ width: '300px', padding: '8px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }).focus();
+                            $c.find('.dt-length select, .dataTables_length select').css({ padding: '6px 32px 6px 10px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' });
+                        }
+                    });
+                    $('#dealerBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                        const tr = $(e.currentTarget).closest('tr')[0];
+                        const data = this.table ? this.table.row(tr).data() : null;
+                        if (data) this.choose(data);
+                    });
+                },
+                openModal() { this.open = true; this.$nextTick(() => { this.initDataTable(); }); },
+                close() { this.open = false; if (this.table) this.table.search('').draw(); },
+                choose(d) {
+                    if (!d) return;
+                    window.dispatchEvent(new CustomEvent('dealer-picked', { detail: { fdealerid: d.fdealerid ?? '', fdealercode: d.fdealercode ?? '', fdealername: d.fdealername ?? '' } }));
+                    this.close();
+                },
+                init() { window.addEventListener('dealer-browse-open', () => this.openModal(), { passive: true }); }
+            };
+        };
+    @endif
 
     // ─── Group Browser ───
     window.groupBrowser = function() {

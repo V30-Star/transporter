@@ -824,6 +824,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/subaccount/browse', [SubaccountController::class, 'browse'])->name('subaccounts.browse');
         Route::get('/group/browse', [GroupproductController::class, 'browse'])->name('group.browse');
         Route::get('/merek/browse', [MerekController::class, 'browse'])->name('merek.browse');
+        Route::get('/dealer/browse', [DealerController::class, 'browse'])->name('dealer.browse');
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
             ->name('product.name.suggest');
