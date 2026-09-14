@@ -128,7 +128,7 @@
                     </th>
                     <th class="border px-3 py-2" style="width: 8rem;">
                         <div class="flex items-center justify-between">
-                            <span>Spesifikasi</span>
+                            <span>Spesifikasi/Type</span>
                             <div class="flex items-center gap-1">
                                 <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3"
                                     title="Filter Kolom">

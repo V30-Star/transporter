@@ -538,11 +538,11 @@
 
                             {{-- Spesifikasi --}}
                             <div>
-                                <label class="field-label">Spesifikasi</label>
+                                <label class="field-label">Spesifikasi/Type</label>
                                 <input type="text" name="fspecification" id="fspecification"
                                     value="{{ old('fspecification') }}"
                                     class="field-input @error('fspecification') border-red-500 @enderror"
-                                    placeholder="Spesifikasi produk">
+                                    placeholder="Spesifikasi/Type produk">
                                 @error('fspecification')
                                     <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -563,10 +563,15 @@
                             {{-- Jenis --}}
                             <div>
                                 <label class="field-label">Jenis</label>
-                                <select name="ftype" class="field-input @error('ftype') border-red-500 @enderror">
-                                    <option value="Produk">Produk</option>
-                                    <option value="Jasa">Jasa</option>
-                                </select>
+                                <div class="relative">
+                                    <select name="ftype" class="field-input appearance-none pr-8 cursor-pointer @error('ftype') border-red-500 @enderror">
+                                        <option value="Produk" {{ old('ftype') == 'Produk' ? 'selected' : '' }}>Produk</option>
+                                        <option value="Jasa" {{ old('ftype') == 'Jasa' ? 'selected' : '' }}>Jasa</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-gray-500">
+                                        <x-heroicon-o-chevron-down class="w-4 h-4" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -200,7 +200,7 @@
 
                             {{-- Spesifikasi --}}
                             <div>
-                                <label class="field-label">Spesifikasi</label>
+                                <label class="field-label">Spesifikasi/Type</label>
                                 <input type="text" readonly value="{{ $product->fspecification ?? '-' }}"
                                     class="field-input bg-gray-100">
                             </div>
@@ -217,10 +217,15 @@
                             {{-- Jenis --}}
                             <div>
                                 <label class="field-label">Jenis</label>
-                                <select disabled class="field-input bg-gray-100 cursor-not-allowed">
-                                    <option value="Produk" {{ $product->ftype == 'Produk' ? 'selected' : '' }}>Produk</option>
-                                    <option value="Jasa"   {{ $product->ftype == 'Jasa'   ? 'selected' : '' }}>Jasa</option>
-                                </select>
+                                <div class="relative">
+                                    <select disabled class="field-input appearance-none pr-8 bg-gray-100 cursor-not-allowed">
+                                        <option value="Produk" {{ $product->ftype == 'Produk' ? 'selected' : '' }}>Produk</option>
+                                        <option value="Jasa"   {{ $product->ftype == 'Jasa'   ? 'selected' : '' }}>Jasa</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-gray-400">
+                                        <x-heroicon-o-chevron-down class="w-4 h-4" />
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Non Aktif --}}

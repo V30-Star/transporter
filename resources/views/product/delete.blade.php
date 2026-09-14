@@ -56,7 +56,7 @@
 
             @if (!empty($product->fspecification))
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-bold text-gray-700">Spesifikasi</div>
+                    <div class="text-sm font-bold text-gray-700">Spesifikasi/Type</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->fspecification }}
                     </div>
