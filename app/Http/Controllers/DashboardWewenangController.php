@@ -56,6 +56,16 @@ class DashboardWewenangController extends Controller
                 'approve' => [],
                 'other' => [],
             ],
+            'Dealer' => [
+                'group' => 'Master Data',
+                'view' => ['viewDealer'],
+                'create' => ['createDealer'],
+                'update' => ['updateDealer'],
+                'delete' => ['deleteDealer'],
+                'print' => [],
+                'approve' => [],
+                'other' => [],
+            ],
             'Satuan' => [
                 'group' => 'Master Data',
                 'view' => ['viewSatuan'],

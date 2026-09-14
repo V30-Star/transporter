@@ -15,6 +15,7 @@ class EnsureRoutePermission
         'bayarsupplier' => 'BayarSupplier',
         'currency' => 'Currency',
         'customer' => 'Customer',
+        'dealer' => 'Dealer',
         'fakturpembelian' => 'FakturPembelian',
         'groupcustomer' => 'GroupCustomer',
         'groupproduct' => 'GroupProduct',

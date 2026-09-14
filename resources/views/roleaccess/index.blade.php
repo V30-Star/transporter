@@ -108,6 +108,13 @@
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="deleteSalesman" {{ in_array('deleteSalesman', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Dealer</td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="viewDealer" {{ in_array('viewDealer', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="createDealer" {{ in_array('createDealer', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="updateDealer" {{ in_array('updateDealer', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="deleteDealer" {{ in_array('deleteDealer', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Satuan</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewSatuan" {{ in_array('viewSatuan', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createSatuan" {{ in_array('createSatuan', $selectedPermissions) ? 'checked' : '' }}></td>

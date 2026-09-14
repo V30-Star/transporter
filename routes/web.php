@@ -15,6 +15,7 @@ use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\BayarSupplierController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DealerController;
 use App\Http\Controllers\EditPeriodeController;
 use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\GroupcustomerController;
@@ -172,6 +173,15 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/salesman/{fsalesmanid}/delete', [SalesmanController::class, 'delete'])->name('salesman.delete');
         Route::patch('/salesman/{fsalesmanid}', [SalesmanController::class, 'update'])->name('salesman.update');
         Route::delete('/salesman/{fsalesmanid}', [SalesmanController::class, 'destroy'])->name('salesman.destroy');
+
+        Route::get('/dealer', [DealerController::class, 'index'])->name('dealer.index');
+        Route::post('/dealer', [DealerController::class, 'store'])->name('dealer.store');
+        Route::get('/dealer/create', [DealerController::class, 'create'])->name('dealer.create');
+        Route::get('/dealer/{fdealerid}/edit', [DealerController::class, 'edit'])->name('dealer.edit');
+        Route::get('/dealer/{fdealerid}/view', [DealerController::class, 'view'])->name('dealer.view');
+        Route::get('/dealer/{fdealerid}/delete', [DealerController::class, 'delete'])->name('dealer.delete');
+        Route::patch('/dealer/{fdealerid}', [DealerController::class, 'update'])->name('dealer.update');
+        Route::delete('/dealer/{fdealerid}', [DealerController::class, 'destroy'])->name('dealer.destroy');
 
         Route::get('/satuan', [SatuanController::class, 'index'])->name('satuan.index');
         Route::post('/satuan', [SatuanController::class, 'store'])->name('satuan.store');
