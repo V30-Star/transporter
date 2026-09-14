@@ -1197,6 +1197,20 @@
                                         @enderror
                                     </div>
 
+                                    {{-- Spesifikasi --}}
+                                    <div>
+                                        <label class="field-label">Spesifikasi</label>
+                                        <input type="text" name="fspecification" id="fspecification"
+                                            value="{{ old('fspecification', $product->fspecification) }}"
+                                            class="field-input @error('fspecification') border-red-500 @enderror"
+                                            placeholder="Spesifikasi produk">
+                                        @error('fspecification')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4">
                                     {{-- Barcode --}}
                                     <div>
                                         <label class="field-label">Barcode</label>
@@ -1207,9 +1221,7 @@
                                             <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                </div>
 
-                                <div class="grid grid-cols-3 gap-4">
                                     {{-- Jenis --}}
                                     <div>
                                         <label class="field-label">Jenis</label>
@@ -1222,18 +1234,6 @@
                                                 {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>Jasa
                                             </option>
                                         </select>
-                                    </div>
-
-                                    {{-- Type / Spesifikasi --}}
-                                    <div>
-                                        <label class="field-label">Type</label>
-                                        <input type="text" name="fspecification" id="fspecification"
-                                            value="{{ old('fspecification', $product->fspecification) }}"
-                                            class="field-input @error('fspecification') border-red-500 @enderror"
-                                            placeholder="Type produk">
-                                        @error('fspecification')
-                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
                                     </div>
 
                                     {{-- Non Aktif --}}
@@ -3128,20 +3128,21 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('group-picked', (ev) => {
             const {
-                fgroupid
+                fgroupid,
+                fgroupcode
             } = ev.detail || {};
             const sel = document.getElementById('groupSelect');
             const hidCode = document.getElementById('groupCodeHidden');
 
             if (sel) {
-                sel.value = fgroupid || '';
+                sel.value = fgroupid || fgroupcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
             if (hidCode) {
-                hidCode.value = fgroupid || ''; // Update nilai tersembunyi agar masuk ke database
+                hidCode.value = fgroupid || fgroupcode || ''; // Update nilai tersembunyi agar masuk ke database
             }
             const alpineData = Alpine.$data(sel.closest('[x-data]'));
             if (alpineData) {

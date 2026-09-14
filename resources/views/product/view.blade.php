@@ -198,15 +198,22 @@
                                     class="field-input bg-gray-100 uppercase">
                             </div>
 
+                            {{-- Spesifikasi --}}
+                            <div>
+                                <label class="field-label">Spesifikasi</label>
+                                <input type="text" readonly value="{{ $product->fspecification ?? '-' }}"
+                                    class="field-input bg-gray-100">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4">
                             {{-- Barcode --}}
                             <div>
                                 <label class="field-label">Barcode</label>
                                 <input type="text" readonly value="{{ $product->fbarcode }}"
                                     class="field-input bg-gray-100">
                             </div>
-                        </div>
 
-                        <div class="grid grid-cols-3 gap-4">
                             {{-- Jenis --}}
                             <div>
                                 <label class="field-label">Jenis</label>
@@ -214,13 +221,6 @@
                                     <option value="Produk" {{ $product->ftype == 'Produk' ? 'selected' : '' }}>Produk</option>
                                     <option value="Jasa"   {{ $product->ftype == 'Jasa'   ? 'selected' : '' }}>Jasa</option>
                                 </select>
-                            </div>
-
-                            {{-- Type / Spesifikasi --}}
-                            <div>
-                                <label class="field-label">Type</label>
-                                <input type="text" readonly value="{{ $product->fspecification ?? '-' }}"
-                                    class="field-input bg-gray-100">
                             </div>
 
                             {{-- Non Aktif --}}

@@ -400,9 +400,12 @@
                                     <div class="relative flex-1">
                                         <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
                                             <option value="">-- Pilih Group Produk --</option>
+                                            @php
+                                                $selectedGroup = old('fgroupcode', old('fgroupid', $lastProductFields['fgroupcode'] ?? ($lastProductFields['fgroupid'] ?? '')));
+                                            @endphp
                                             @foreach ($groups as $group)
                                                 <option value="{{ $group->fgroupid }}"
-                                                    {{ old('fgroupid', old('fgroupcode', $lastProductFields['fgroupid'] ?? '')) == $group->fgroupid ? 'selected' : '' }}>
+                                                    {{ (string) $selectedGroup === (string) $group->fgroupid || (string) $selectedGroup === (string) $group->fgroupcode ? 'selected' : '' }}>
                                                     {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                                 </option>
                                             @endforeach
@@ -410,10 +413,8 @@
                                         <div class="absolute inset-0" role="button" aria-label="Browse Group"
                                             @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
                                     </div>
-                                    <input type="hidden" name="fgroupid" id="groupIdHidden"
-                                        value="{{ old('fgroupid', old('fgroupcode', $lastProductFields['fgroupid'] ?? '')) }}">
                                     <input type="hidden" name="fgroupcode" id="groupCodeHidden"
-                                        value="{{ old('fgroupcode', $lastProductFields['fgroupcode'] ?? '') }}">
+                                        value="{{ old('fgroupcode', old('fgroupid', $lastProductFields['fgroupcode'] ?? ($lastProductFields['fgroupid'] ?? ''))) }}">
                                     <button type="button"
                                         @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                         class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -535,6 +536,20 @@
                                 @enderror
                             </div>
 
+                            {{-- Spesifikasi --}}
+                            <div>
+                                <label class="field-label">Spesifikasi</label>
+                                <input type="text" name="fspecification" id="fspecification"
+                                    value="{{ old('fspecification') }}"
+                                    class="field-input @error('fspecification') border-red-500 @enderror"
+                                    placeholder="Spesifikasi produk">
+                                @error('fspecification')
+                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4">
                             {{-- Barcode --}}
                             <div>
                                 <label class="field-label">Barcode</label>
@@ -544,9 +559,7 @@
                                     <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                        </div>
 
-                        <div class="grid grid-cols-3 gap-4">
                             {{-- Jenis --}}
                             <div>
                                 <label class="field-label">Jenis</label>
@@ -554,18 +567,6 @@
                                     <option value="Produk">Produk</option>
                                     <option value="Jasa">Jasa</option>
                                 </select>
-                            </div>
-
-                            {{-- Type / Spesifikasi --}}
-                            <div>
-                                <label class="field-label">Type</label>
-                                <input type="text" name="fspecification" id="fspecification"
-                                    value="{{ old('fspecification') }}"
-                                    class="field-input @error('fspecification') border-red-500 @enderror"
-                                    placeholder="Type produk">
-                                @error('fspecification')
-                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
                         </div>
                     </div>
@@ -1028,8 +1029,8 @@
                 if (res && res.id && res.name) {
                     const opt = new Option(res.name, res.id, true, true);
                     $('#groupSelect').append(opt).trigger('change');
-                    const hidId = document.getElementById('groupIdHidden');
-                    if (hidId) hidId.value = res.id;
+                    const hidCode = document.getElementById('groupCodeHidden');
+                    if (hidCode) hidCode.value = res.id;
                     this.open = false;
                     this.form = { fgroupcode: '', fgroupname: '', fnonactive: false };
                     this.errors = {};
@@ -2295,17 +2296,18 @@
 
         window.addEventListener('group-picked', (ev) => {
             const {
-                fgroupid
+                fgroupid,
+                fgroupcode
             } = ev.detail || {};
             const sel = document.getElementById('groupSelect');
             const hidCode = document.getElementById('groupCodeHidden');
             if (sel) {
-                sel.value = fgroupid || '';
+                sel.value = fgroupid || fgroupcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hidCode) hidCode.value = fgroupid || '';
+            if (hidCode) hidCode.value = fgroupid || fgroupcode || '';
             const alpineData = Alpine.$data(sel.closest('[x-data]'));
             if (alpineData) alpineData.isEditable = true;
         });
