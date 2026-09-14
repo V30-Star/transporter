@@ -350,6 +350,31 @@ class ProductController extends Controller
         return response()->json($names);
     }
 
+    public function suggestSpecifications(Request $request)
+    {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
+        $term = (string) $request->get('term', '');
+
+        $q = DB::table('msprd')
+            ->whereNotNull('fspecification')
+            ->where('fspecification', '!=', '')
+            ->where('fapproval', 1);
+
+        if ($term !== '') {
+            $q->where('fspecification', 'ILIKE', "%{$term}%");
+        }
+
+        $specs = $q->distinct()
+            ->orderBy('fspecification')
+            ->limit(15)
+            ->pluck('fspecification');
+
+        return response()->json($specs);
+    }
+
     public function suggestCodes(Request $request)
     {
         if ($guard = $this->ensureProductPermission('viewProduct')) {

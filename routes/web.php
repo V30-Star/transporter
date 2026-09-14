@@ -828,6 +828,8 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
             ->name('product.name.suggest');
+        Route::get('/product-specification-suggest', [ProductController::class, 'suggestSpecifications'])
+            ->name('product.specification.suggest');
         Route::get('/product/suggest-codes', [ProductController::class, 'suggestCodes'])->name('product.suggest-codes');
 
         Route::get('/account/suggest', [AccountController::class, 'suggestAccounts'])->name('account.suggest');

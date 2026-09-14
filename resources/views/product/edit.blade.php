@@ -2516,8 +2516,8 @@
                         response(data);
                     });
                 },
-                minLength: 0,
-                delay: 0,
+                minLength: 2,
+                delay: 100,
                 select: function(event, ui) {
                     $(this).val(ui.item.value);
                     return false;
@@ -2527,6 +2527,38 @@
                 }
             });
 
+            const $specInp = $("#fspecification");
+            let lastSpecXHR = null;
+            const localSpecCache = {};
+
+            $specInp.autocomplete({
+                source: function(request, response) {
+                    const term = request.term || "";
+
+                    if (localSpecCache[term]) {
+                        response(localSpecCache[term]);
+                        return;
+                    }
+
+                    if (lastSpecXHR && lastSpecXHR.readyState !== 4) lastSpecXHR.abort();
+
+                    lastSpecXHR = $.getJSON("{{ route('product.specification.suggest') }}", {
+                        term
+                    }, function(data) {
+                        localSpecCache[term] = data;
+                        response(data);
+                    });
+                },
+                minLength: 2,
+                delay: 100,
+                select: function(event, ui) {
+                    $(this).val(ui.item.value);
+                    return false;
+                },
+                open: function() {
+                    $(".ui-autocomplete").css("width", $specInp.outerWidth());
+                }
+            });
 
             $('#fprdcode').autocomplete({
                 source: function(request, response) {
@@ -2566,14 +2598,26 @@
             }, 100);
 
             $inp.on("focus", function() {
-                if (!$(".ui-autocomplete:visible").length) {
-                    $(this).autocomplete("search", $(this).val() || "");
+                if (!$(".ui-autocomplete:visible").length && ($(this).val() || '').length >= 2) {
+                    $(this).autocomplete("search", $(this).val());
                 }
             });
 
             $inp.on("keydown", function(e) {
-                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length) {
-                    $(this).autocomplete("search", $(this).val() || "");
+                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length && ($(this).val() || '').length >= 2) {
+                    $(this).autocomplete("search", $(this).val());
+                }
+            });
+
+            $specInp.on("focus", function() {
+                if (!$(".ui-autocomplete:visible").length && ($(this).val() || '').length >= 2) {
+                    $(this).autocomplete("search", $(this).val());
+                }
+            });
+
+            $specInp.on("keydown", function(e) {
+                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length && ($(this).val() || '').length >= 2) {
+                    $(this).autocomplete("search", $(this).val());
                 }
             });
         });
