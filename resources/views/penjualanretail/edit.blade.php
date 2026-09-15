@@ -646,6 +646,7 @@
                                         <template x-if="editRow.units.length > 1">
                                             <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
                                                 x-model="editRow.fsatuan"
+                                                @change="applyInvoicePrice(editRow); enforceQtyRow(editRow);"
                                                 @keydown.enter.prevent="$refs.editRefPr?.focus()">
                                                 <template x-for="u in editRow.units" :key="u">
                                                     <option :value="u" :selected="u === editRow.fsatuan"

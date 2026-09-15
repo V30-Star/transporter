@@ -251,21 +251,21 @@ class InvoiceController extends Controller
         $largeUnit2 = strtoupper(trim((string) ($product->fsatuanbesar2 ?? '')));
 
         if ($normalizedUnit !== '' && $normalizedUnit === $smallUnit) {
-            return "fhargasatuankecillevel{$level}";
-        }
-
-        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit2) {
-            return "fhargajual2level{$level}";
-        }
-
-        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit) {
             return "fhargajuallevel{$level}";
         }
 
+        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit) {
+            return "fhargajual2level{$level}";
+        }
+
+        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit2) {
+            return "fhargajual3level{$level}";
+        }
+
         return match (trim((string) ($product->fsatuandefault ?? ''))) {
-            '1' => "fhargasatuankecillevel{$level}",
-            '2' => "fhargajuallevel{$level}",
-            '3' => "fhargajual2level{$level}",
+            '1' => "fhargajuallevel{$level}",
+            '2' => "fhargajual2level{$level}",
+            '3' => "fhargajual3level{$level}",
             default => "fhargajuallevel{$level}",
         };
     }
