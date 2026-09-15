@@ -319,6 +319,23 @@
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
+                        {{-- Gudang (Disabled) --}}
+                        @php
+                            $whCollectionReadonly = collect($warehouses ?? []);
+                            $currentWhCodeReadonly = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
+                            $selectedWhReadonly = $whCollectionReadonly->firstWhere('fwhcode', $currentWhCodeReadonly);
+                            $whDisplayTextReadonly = $selectedWhReadonly ? "{$selectedWhReadonly->fwhcode} - {$selectedWhReadonly->fwhname}" : ($currentWhCodeReadonly ?: '-');
+                        @endphp
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ $whDisplayTextReadonly }}"
+                                disabled>
+                            <input type="hidden" name="fwhcode_readonly"
+                                value="{{ $currentWhCodeReadonly }}">
+                        </div>
+
                         {{-- SO# --}}
                         <div x-data="{ autoCode: true }">
                             <label class="block text-xs font-bold mb-1">
@@ -392,7 +409,9 @@
                             @error('fcustno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
-                              {{-- Salesman --}}
+                        </div>
+
+                        {{-- Salesman --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Salesman</label>
                             <div class="flex">
@@ -420,42 +439,7 @@
                             @enderror
                         </div>
 
-                        {{-- Gudang (Disabled) --}}
-                        @php
-                            $whCollectionReadonly = collect($warehouses ?? []);
-                            $currentWhCodeReadonly = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
-                            $selectedWhReadonly = $whCollectionReadonly->firstWhere('fwhcode', $currentWhCodeReadonly);
-                            $whDisplayTextReadonly = $selectedWhReadonly ? "{$selectedWhReadonly->fwhcode} - {$selectedWhReadonly->fwhname}" : ($currentWhCodeReadonly ?: '-');
-                        @endphp
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                            <input type="text"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ $whDisplayTextReadonly }}"
-                                disabled>
-                            <input type="hidden" name="fwhcode_readonly"
-                                value="{{ $currentWhCodeReadonly }}">
-                        </div>
-
-                        {{-- Barcode (dibawah Customer) --}}
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
-                                    <span>Barcode</span>
-                                </label>
-                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
-                            </div>
-                            <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
-                                placeholder="Scan / Masukkan Barcode" autocomplete="off"
-                                @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
-                                @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
-                                @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
-                                @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
-                        </div>
-
-                        {{-- TOP (Hari) (dibawah Salesman) --}}
+                        {{-- TOP (Hari) --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                             <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
@@ -467,13 +451,24 @@
                             @enderror
                         </div>
 
-                        {{-- Tgl. Jatuh Tempo (dibawah Gudang) --}}
+                        {{-- Tgl. Jatuh Tempo --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
                             <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
                                 value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
                             @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Keterangan --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
+                            <textarea name="fket" rows="3"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                            @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -508,16 +503,24 @@
                                 }
                             });
                         </script>
+                    </div>
 
-                        <div class="flex flex-col col-span-3">
-                            <label class="block text-xs font-bold mb-1">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                            @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                    {{-- Barcode (Paling bawah memanjang) --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
+                                <span>Barcode</span>
+                            </label>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
                         </div>
+                        <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                            class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                            placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                            @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
+                            @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
+                            @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
+                            @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
                     </div>
                 </div>
             </div>
@@ -978,7 +981,7 @@
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
                     </div>
                     <div class="p-4 space-y-3">
-                        <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
+                        <fieldset {{ $action === 'view' ? 'disabled' : '' }} class="space-y-3">
                         <div class="grid grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Cabang</label>
@@ -987,6 +990,26 @@
                                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                         disabled>
                                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
+
+                                {{-- Gudang (Disabled) --}}
+                                @php
+                                    $whCollection = collect($warehouses ?? []);
+                                    $currentWhCode = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
+                                    $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
+                                    $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
+                                @endphp
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ $whDisplayText }}"
+                                        disabled>
+                                    <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
+                                        value="{{ $currentWhCode }}">
+                                    @error('fwhcode')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 {{-- SO# --}}
@@ -1145,42 +1168,7 @@
                                     @enderror
                                 </div>
 
-                                {{-- Gudang (Disabled) --}}
-                                @php
-                                    $whCollection = collect($warehouses ?? []);
-                                    $currentWhCode = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
-                                    $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
-                                    $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
-                                @endphp
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                                    <input type="text"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        value="{{ $whDisplayText }}"
-                                        disabled>
-                                    <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
-                                        value="{{ $currentWhCode }}">
-                                    @error('fwhcode')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Barcode (dibawah Customer) --}}
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
-                                            <span>Barcode</span>
-                                        </label>
-                                        <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
-                                    </div>
-                                    <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                        class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
-                                        placeholder="Scan / Masukkan Barcode" autocomplete="off"
-                                        {{ $action === 'view' ? 'disabled' : '' }}>
-                                </div>
-
-                                {{-- TOP (Hari) (dibawah Salesman) --}}
+                                {{-- TOP (Hari) --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                                     <input type="number" id="ftempohr" name="ftempohr"
@@ -1192,7 +1180,7 @@
                                     @enderror
                                 </div>
 
-                                {{-- Tgl. Jatuh Tempo (dibawah Gudang) --}}
+                                {{-- Tgl. Jatuh Tempo --}}
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
                                     <input type="date" id="fjatuhtempo" name="fjatuhtempo"
@@ -1200,6 +1188,17 @@
                                         readonly
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
                                     @error('fjatuhtempo')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Keterangan --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                    <textarea name="fket" rows="3"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                    @error('fket')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -1234,17 +1233,21 @@
                                         }
                                     });
                                 </script>
+                            </div>
 
-                                <div class="flex flex-col col-span-3">
-                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                    <textarea name="fket" rows="3"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
+                            {{-- Barcode (Paling bawah memanjang) --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
+                                        <span>Barcode</span>
+                                    </label>
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
                                 </div>
-
+                                <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                                    class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                                    placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                                    {{ $action === 'view' ? 'disabled' : '' }}>
                             </div>
                         </fieldset>
                     </div>
