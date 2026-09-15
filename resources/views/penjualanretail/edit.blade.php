@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Faktur Penjualan - Delete' : ($action === 'view' ? 'Faktur Penjualan - View' :
+@section('title', $action === 'delete' ? 'Penjualan Retail - Delete' : ($action === 'view' ? 'Penjualan Retail - View' :
     'Penjualan Retail - Edit'))
 
 @section('content')
@@ -276,7 +276,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ 'Faktur Penjualan' }}
+                            {{ 'Penjualan Retail' }}
                             {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
@@ -298,8 +298,22 @@
         </div>
     @endif
     <div>
-        @if ($action === 'delete')
-            {{-- ─── CARD 1: Identitas (Delete/View) ──────────── --}}
+        <form id="invoiceForm" action="{{ route('penjualanretail.update', parameters: $invoice->ftranmtid) }}"
+            method="POST" data-form-draft="true"
+            data-draft-key="penjualanretail:edit:{{ $invoice->ftranmtid }}"
+            data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+            x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, in_array('{{ $action }}', ['view', 'delete']))">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
+                value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
+            <input type="hidden" name="fuseracc" id="invoiceUserAcc"
+                value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
+            <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
+            <input type="hidden" name="ftypesales" id="ftypesales"
+                value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
+
+            {{-- ─── CARD 1: Identitas Penjualan Retail ────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
@@ -310,222 +324,283 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
                 </div>
                 <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Cabang</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
-                                disabled>
-                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                        </div>
+                    <fieldset {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }} class="space-y-3">
+                        <div class="grid grid-cols-3 gap-3">
+                            {{-- Cabang --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Cabang</label>
+                                <input type="text"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                    disabled>
+                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            </div>
 
-                        {{-- Gudang (Disabled) --}}
-                        @php
-                            $whCollectionReadonly = collect($warehouses ?? []);
-                            $currentWhCodeReadonly = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
-                            $selectedWhReadonly = $whCollectionReadonly->firstWhere('fwhcode', $currentWhCodeReadonly);
-                            $whDisplayTextReadonly = $selectedWhReadonly ? "{$selectedWhReadonly->fwhcode} - {$selectedWhReadonly->fwhname}" : ($currentWhCodeReadonly ?: '-');
-                        @endphp
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                            <input type="text"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ $whDisplayTextReadonly }}"
-                                disabled>
-                            <input type="hidden" name="fwhcode_readonly"
-                                value="{{ $currentWhCodeReadonly }}">
-                        </div>
-
-                        {{-- SO# --}}
-                        <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold mb-1">
-                                Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="text" name="fsono"
-                                    value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase"
-                                    :disabled="autoCode"
-                                    :required="!autoCode"
-                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
-                                    :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
-                                    oninput="this.value = this.value.toUpperCase()">
-
-                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                                    <span class="ml-1.5">Auto</span>
+                            {{-- Gudang (Sebelah Cabang) --}}
+                            @php
+                                $whCollection = collect($warehouses ?? []);
+                                $currentWhCode = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
+                                $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
+                                $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
+                            @endphp
+                            <div>
+                                <label class="block text-xs font-bold mb-1">
+                                    Gudang <span class="text-red-500">*</span>
                                 </label>
+                                <input type="text"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    value="{{ $whDisplayText }}"
+                                    disabled>
+                                <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
+                                    value="{{ $currentWhCode }}">
+                                @error('fwhcode')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                        </div>
 
-                        <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
-                        <input type="hidden" name="ftypesales" id="ftypesales" value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
+                            {{-- Faktur# --}}
+                            <div x-data="{ autoCode: true }">
+                                <label class="block text-xs font-bold mb-1">
+                                    Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="fsono"
+                                        value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        :disabled="autoCode || {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}"
+                                        :required="!autoCode"
+                                        :class="(autoCode || {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}) ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                        :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                        oninput="this.value = this.value.toUpperCase()">
 
-                        {{-- Tanggal --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Tanggal</label>
-                            <div class="flex items-center gap-2">
-                                <input disabled type="date" name="fsodate"
-                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
-                                @if ($canPenjualanTunai)
-                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-not-allowed">
-                                        <input disabled type="checkbox" name="ftunai" value="1"
-                                            {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
-                                            class="rounded border-gray-300 text-blue-600">
-                                        <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
-                                    </label>
+                                    @if ($action === 'edit')
+                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
+                                            <span class="ml-1.5">Auto</span>
+                                        </label>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Tanggal --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Tanggal</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="date" id="fsodate" name="fsodate"
+                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
+                                    @if ($canPenjualanTunai)
+                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                            <input type="checkbox" name="ftunai" id="ftunai" value="1"
+                                                {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
+                                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
+                                        </label>
+                                    @endif
+                                </div>
+                                @error('fsodate')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Customer --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Customer</label>
+                                <div class="flex">
+                                    <div class="relative flex-1">
+                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->fcustomercode }}"
+                                                    data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
+                                                    data-fkodefp="{{ $customer->fkodefp }}"
+                                                    data-fsalesman="{{ $customer->fsalesman }}"
+                                                    {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @if (!in_array($action, ['view', 'delete'], true))
+                                            <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                aria-label="Browse Customer"
+                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                        value="{{ old('fcustno', $invoice->fcustno) }}">
+                                    @if (!in_array($action, ['view', 'delete'], true))
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                            title="Browse Customer">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                            <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                title="Tambah Customer">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        @endif
+                                    @endif
+                                </div>
+                                @if (!in_array($action, ['view', 'delete'], true))
+                                <div id="customerAdvanceWarningBox" class="hidden my-2">
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0">
+                                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-yellow-700" id="customerAdvanceWarningText"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 @endif
+                                @error('fcustno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            @error('fsodate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
-                        {{-- Customer --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Customer</label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_customer_id_readonly">
-                                    <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomercode }}"
-                                                data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
-                                                {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                            {{-- Salesman --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Salesman</label>
+                                <div class="flex">
+                                    <div class="relative flex-1">
+                                        <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($salesmans as $salesman)
+                                                <option value="{{ $salesman->fsalesmancode }}"
+                                                    {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @if (!in_array($action, ['view', 'delete'], true))
+                                            <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                aria-label="Browse Salesman"
+                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                            </div>
+                                        @endif
                                     </div>
+                                    <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                        value="{{ old('fsalesman', $invoice->fsalesman) }}">
+                                    @if (!in_array($action, ['view', 'delete'], true))
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                            title="Browse Salesman">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
+                                            <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                title="Tambah Salesman">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        @endif
+                                    @endif
                                 </div>
-                                <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
-                                    value="{{ old('fcustno', $invoice->fcustno) }}">
+                                @error('fsalesman')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            @error('fcustno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
-                        {{-- Salesman --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Salesman</label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
-                                    <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($salesmans as $salesman)
-                                            <option value="{{ $salesman->fsalesmancode }}"
-                                                {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
-                                        @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
-                                    </div>
-                                </div>
-                                <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
-                                    value="{{ old('fsalesman', $invoice->fsalesman) }}">
+                            {{-- TOP (Hari) --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                <input type="number" id="ftempohr" name="ftempohr"
+                                    value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                    placeholder="Masukkan jumlah hari">
+                                @error('ftempohr')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            @error('fsalesman')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
-                        {{-- TOP (Hari) --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                readonly
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            {{-- Tgl. Jatuh Tempo --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                    readonly
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                @error('fjatuhtempo')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        {{-- Tgl. Jatuh Tempo --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            {{-- Keterangan --}}
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                <textarea name="fket" rows="2"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                    placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                @error('fket')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        {{-- Keterangan --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                            @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    function calculateDueDate() {
+                                        const poDate = document.getElementById('fsodate').value;
+                                        const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
 
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function calculateDueDate() {
-                                    const poDate = document.getElementById('fsodate').value;
-                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+                                        if (poDate) {
+                                            const date = new Date(poDate);
+                                            date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                            date.setDate(date.getDate() + tempoDays);
 
-                                    if (poDate) {
-                                        const date = new Date(poDate);
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                        date.setDate(date.getDate() + tempoDays);
+                                            const year = date.getFullYear();
+                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                            const day = String(date.getDate()).padStart(2, '0');
 
-                                        const year = date.getFullYear();
-                                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getDate()).padStart(2, '0');
-
-                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                    } else {
-                                        document.getElementById('fjatuhtempo').value = '';
+                                            document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                        } else {
+                                            document.getElementById('fjatuhtempo').value = '';
+                                        }
                                     }
-                                }
 
-                                // Event listeners
-                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+                                    // Event listeners
+                                    document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                    document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                                if (!@json(old('fjatuhtempo') !== null)) {
-                                    calculateDueDate();
-                                }
-                            });
-                        </script>
-                    </div>
-
-                    {{-- Barcode (Paling bawah memanjang) --}}
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
-                                <span>Barcode</span>
-                            </label>
-                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                                    if (!@json(old('fjatuhtempo') !== null)) {
+                                        calculateDueDate();
+                                    }
+                                });
+                            </script>
                         </div>
-                        <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                            class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
-                            placeholder="Scan / Masukkan Barcode" autocomplete="off"
-                            @if (in_array($action ?? '', ['view', 'delete'], true)) disabled @endif
-                            @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
-                            @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
-                            @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
-                    </div>
+
+                        {{-- Barcode (Paling bawah memanjang) --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
+                                    <span>Barcode</span>
+                                </label>
+                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                            </div>
+                            <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                                class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                                placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                        </div>
+                    </fieldset>
                 </div>
             </div>
 
-            {{-- ─── CARD 2: Detail Item (Delete/View) ──────── --}}
+            {{-- ─── CARD 2: Detail Item ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
@@ -538,265 +613,490 @@
                 <div class="p-4">
                     <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
-                        <div class="overflow-auto border rounded">
-                            <table class="invoice-detail-table min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-42">Kode Produk</th>
-                                        <th class="p-2 text-left w-96">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">Satuan</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                    </tr>
-                                </thead>
-
-                                <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                            <div class="overflow-auto border rounded">
+                                <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:18%;">
+                                        <col style="width:{{ in_array($action, ['view', 'delete'], true) ? '36%' : '33%' }};">
+                                        <col style="width:8%;">
+                                        <col style="width:9%;">
+                                        <col style="width:11%;">
+                                        <col style="width:6%;">
+                                        <col style="width:10%;">
+                                        @if (!in_array($action, ['view', 'delete'], true))
+                                            <col style="width:3%;">
+                                        @endif
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-42">Kode Produk</th>
+                                            <th class="p-2 text-left w-96">Nama Produk</th>
+                                            <th class="p-2 text-left w-36">Satuan</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                            @if (!in_array($action, ['view', 'delete'], true))
+                                                <th class="p-2 text-center w-28">Aksi</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
                                     <tbody>
-                                        <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
-                                        <tr class="border-t border-b align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
-                                            </td>
-                                            <td class="p-2">
-                                                <template x-if="it.units && it.units.length > 1">
-                                                    <select
-                                                        class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                        x-model="it.fsatuan" @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)">
-                                                        <template x-for="u in it.units" :key="u">
-                                                            <option :value="u" :selected="u === it.fsatuan"
-                                                                x-text="u"></option>
-                                                        </template>
-                                                    </select>
-                                                </template>
-                                                <template x-if="!(it.units && it.units.length > 1)">
-                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
-                                                        x-text="it.fsatuan || '-'"></div>
-                                                </template>
-                                            </td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right"
-                                                x-text="it.fdisc && it.fdisc.toString().includes('+') ? it.fdisc : fmt(it.fdisc)">
-                                            </td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
-                                        </tr>
-
-                                        <!-- Hidden inputs row -->
-                                        <tr class="hidden">
-                                            <td colspan="8">
-                                                <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
-                                                    :value="it.fitemcode">
-                                                <input type="hidden" :name="`fitemname[${it.formIndex}]`"
-                                                    :value="it.fitemname">
-                                                <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
-                                                    :value="it.fsatuan">
-                                                <input type="hidden" :name="`frefcode[${it.formIndex}]`"
-                                                    :value="it.frefcode">
-                                                <input type="hidden" :name="`fnouref[${it.formIndex}]`"
-                                                    :value="it.fnouref">
-                                                <input type="hidden" :name="`frefpr[${it.formIndex}]`"
-                                                    :value="it.frefpr">
-                                                <input type="hidden" :name="`frefso[${it.formIndex}]`"
-                                                    :value="it.frefso">
-                                                <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
-                                                    :value="it.frefsrj">
-                                                <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
-                                                    :value="it.fnoacak">
-                                                <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
-                                                    :value="it.frefnoacak">
-                                                <input type="hidden" :name="`fqty[${it.formIndex}]`"
-                                                    :value="it.fqty">
-                                                <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
-                                                    :value="it.maxqty">
-                                                <input type="hidden" :name="`fref_price[${it.formIndex}]`"
-                                                    :value="it.ref_price || it.maxprice || it.source_price || 0">
-                                                <input type="hidden" :name="`fterima[${it.formIndex}]`"
-                                                    :value="it.fterima">
-                                                <input type="hidden" :name="`fprice[${it.formIndex}]`"
-                                                    :value="it.fprice">
-                                                <input type="hidden" :name="`fdisc[${it.formIndex}]`"
-                                                    :value="it.fdisc">
-                                                <input type="hidden" :name="`ftotal[${it.formIndex}]`"
-                                                    :value="it.ftotal">
-                                                <input type="hidden" :name="`fdesc[${it.formIndex}]`"
-                                                    :value="it.fdesc">
-                                                <input type="hidden" :name="`fketdt[${it.formIndex}]`"
-                                                    :value="it.fketdt">
-                                            </td>
-                                        </tr>
-
-                                        <!-- TIDAK ADA TEXTAREA DI SINI! -->
+                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                            <tr class="border-t align-top">
+                                                <td class="p-2" x-text="i + 1"></td>
+                                                <td class="p-2">
+                                                    <div class="flex">
+                                                        <input type="text"
+                                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                            x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
+                                                            @keydown.enter.prevent="focusRowUnit(it, i)"
+                                                            {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                                        @if (!in_array($action, ['view', 'delete'], true))
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
+                                                        <button type="button" @click="openDesc(i)"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            :class="it.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
+                                                            title="Deskripsi">
+                                                            <x-heroicon-o-document-text class="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <template x-if="it.units && it.units.length > 1">
+                                                        <select
+                                                            class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                            :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                            @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowQty(i)"
+                                                            {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                                            <template x-for="u in it.units" :key="u">
+                                                                <option :value="u"
+                                                                    :selected="u === it.fsatuan" x-text="u">
+                                                                </option>
+                                                            </template>
+                                                        </select>
+                                                    </template>
+                                                    <template x-if="!(it.units && it.units.length > 1)">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                            x-text="it.fsatuan || '-'"></div>
+                                                    </template>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="text" inputmode="decimal"
+                                                        class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                        :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                        @focus="activeRow = it.uid; focusQtyInput(it); $event.target.select()"
+                                                        @input="onQtyInput(it); onRowUpdated(i)"
+                                                        @blur="blurQtyInput(it); onRowUpdated(i)"
+                                                        @keydown.enter.prevent="focusRowPrice(i)"
+                                                        {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                        <span x-show="it.fitemcode"
+                                                            x-html="formatStockLimit(it)"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                     <input type="text" inputmode="decimal"
+                                                         class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                         :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                         @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                                         @blur="activeRow = null; blurPriceInput(it)"
+                                                         @input="onPriceInput(it); onRowUpdated(i)"
+                                                         @keydown.enter.prevent="focusRowDisc(i)"
+                                                         :disabled="isPriceDisabled(it) || {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}">
+                                                 </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                        :id="'disc_row_' + i"
+                                                        :value="normalizeDiscountValue(it.fdisc)"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                        @input="it.fdisc = $event.target.value; onRowUpdated(i)"
+                                                        @keydown.enter.prevent="$event.target.blur()"
+                                                        {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                                </td>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        :value="fmt(it.ftotal)" disabled>
+                                                </td>
+                                                @if (!in_array($action, ['view', 'delete'], true))
+                                                    <td class="p-2 text-center">
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                            title="Hapus baris">-</button>
+                                                    </td>
+                                                @endif
+                                            </tr>
+                                        </template>
                                     </tbody>
+                                </table>
+                            </div>
+
+                            <div class="hidden">
+                                <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                    <div>
+                                        <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
+                                            :value="it.fitemcode">
+                                        <input type="hidden" :name="`fitemname[${it.formIndex}]`"
+                                            :value="it.fitemname">
+                                        <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
+                                            :value="it.fsatuan">
+                                        <input type="hidden" :name="`frefdtno[${it.formIndex}]`"
+                                            :value="it.frefdtno">
+                                        <input type="hidden" :name="`frefcode[${it.formIndex}]`"
+                                            :value="it.frefcode">
+                                        <input type="hidden" :name="`fnouref[${it.formIndex}]`"
+                                            :value="it.fnouref">
+                                        <input type="hidden" :name="`frefpr[${it.formIndex}]`"
+                                            :value="it.frefpr">
+                                        <input type="hidden" :name="`frefso[${it.formIndex}]`"
+                                            :value="it.frefso">
+                                        <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
+                                            :value="it.frefsrj">
+                                        <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
+                                            :value="it.fnoacak">
+                                        <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
+                                            :value="it.frefnoacak">
+                                        <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
+                                        <input type="hidden" :name="`fterima[${it.formIndex}]`"
+                                            :value="it.fterima">
+                                        <input type="hidden" :name="`fprice[${it.formIndex}]`"
+                                            :value="it.fprice">
+                                        <input type="hidden" :name="`fdisc[${it.formIndex}]`"
+                                            :value="it.fdisc">
+                                        <input type="hidden" :name="`ftotal[${it.formIndex}]`"
+                                            :value="it.ftotal">
+                                        <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
+                                            :value="it.maxqty">
+                                        <input type="hidden" :name="`fref_price[${it.formIndex}]`"
+                                            :value="it.ref_price || it.maxprice || it.source_price || 0">
+                                        <input type="hidden" :name="`fdesc[${it.formIndex}]`"
+                                            :value="it.fdesc">
+                                        <input type="hidden" :name="`fketdt[${it.formIndex}]`"
+                                            :value="it.fketdt">
+                                    </div>
                                 </template>
-                                <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                    <!-- # -->
-                                    <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
+                            </div>
 
-                                    <!-- Kode Produk -->
-                                    <td class="p-2">
-                                        <div class="flex">
-                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                @input="onCodeTypedRow(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                        </div>
-                                    </td>
+                            <div class="mt-3 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
+                                <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                                    @if (!in_array($action, ['view', 'delete'], true))
+                                        <div x-data="srjFormModal()" class="mt-3">
+                                            <button type="button" @click="openSrjModal()"
+                                                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                Add SRJ
+                                            </button>
 
-                                    <!-- Nama Produk (readonly) -->
-                                    <td class="p-2">
-                                        <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                            x-text="editRow.fitemname"></div>
-                                    </td>
+                                            <div x-show="showSrjModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                    @click="closeSrjModal()">
+                                                </div>
 
-                                    <!-- Satuan -->
-                                    <td class="p-2">
-                                        <template x-if="editRow.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                x-model="editRow.fsatuan"
-                                                @change="applyInvoicePrice(editRow); enforceQtyRow(editRow);"
-                                                @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                <template x-for="u in editRow.units" :key="u">
-                                                    <option :value="u" :selected="u === editRow.fsatuan"
-                                                        x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="editRow.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fsatuan || '-'" disabled>
-                                        </template>
-                                    </td>
+                                                <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-[100rem] flex flex-col overflow-hidden"
+                                                    style="height: 82vh;">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
+                                                        <div>
+                                                            <h3 class="text-xl font-bold text-gray-800">
+                                                                {{ 'Pilih Surat Jalan' }}</h3>
+                                                        </div>
+                                                        <button type="button" @click="closeSrjModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                            {{ 'Tutup' }}
+                                                        </button>
+                                                    </div>
 
-                                    <!-- Ref.PR# -->
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="editRow.frefcode" disabled placeholder="Ref PR">
-                                    </td>
+                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                        <div id="srjTableControls"></div>
+                                                    </div>
 
-                                    <!-- Qty -->
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            x-ref="editQty" x-model.number="editRow.fqty"
-                                            @input="
-                                                        recalc(editRow);
-                                                    "
-                                            @blur="
-                                                        enforceQtyRow(editRow);
-                                                        recalc(editRow);
-                                                    "
-                                            @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                            <span x-show="editRow.fitemcode" x-html="formatStockLimit(editRow)"></span>
-                                        </div>
-                                    </td>
+                                                    <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                        style="min-height: 0;">
+                                                        <div class="bg-white">
+                                                            <table id="srjTable"
+                                                                class="min-w-full text-sm display nowrap stripe hover"
+                                                                style="width:100%">
+                                                                <thead class="sticky top-0 z-10">
+                                                                    <tr
+                                                                        class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Cabang' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'No. SRJ' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Tanggal' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Customer' }}</th>
+                                                                        <th
+                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Aksi' }}</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
 
-                                    <!-- @ Harga -->
-                                    <td class="p-2 text-right">
-                                        <input type="text" inputmode="decimal"
-                                            class="border rounded px-2 py-1 w-28 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" x-ref="editPrice"
-                                            x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
-                                            @blur="blurPriceInput(editRow)"
-                                            @keydown.enter.prevent="$refs.editDisc?.focus()"
-                                            :disabled="isPriceDisabled(editRow) || '{{ $action }}' === 'view'">
-                                    </td>
-
-                                    <!-- Disc.% -->
-                                    <td class="p-2 text-right">
-                                        <input type="text"
-                                            class="border rounded px-2 py-1 w-24 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                            x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
-                                            @keydown.enter.prevent="applyEdit()" placeholder="10+2"
-                                            {{ $action === 'view' ? 'disabled' : '' }}>
-                                    </td>
-
-                                    <!-- Total Harga (readonly) -->
-                                    <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
-                                </tr>
-
-                                <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-
-                                <!-- ROW DRAFT DESC -->
-                                <tr class="border-b">
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-
-                        <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
-                            <!-- Trigger: Add PR dari panel kanan -->
-                            <div class="mt-3 flex justify-between items-start gap-4">
-                                <div class="w-full flex justify-start mb-3">
-                                </div>
-                                <!-- Kanan: Panel Totals -->
-                                <div class="w-1/2">
-                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                                <div class="flex items-center justify-between">
-                                                <span class="font-bold text-gray-800">Total Harga</span>
-                                                <span class="font-bold text-gray-900"
-                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                        <div id="srjTablePagination"></div>
+                                                    </div>
+                                                </div>
                                             </div>
+
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
+                                                </div>
+                                                <div
+                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                    <div
+                                                        class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                        <h3 class="text-lg font-semibold text-gray-800">
+                                                            {{ 'Item Duplikat Surat Jalan' }}</h3>
+                                                    </div>
+                                                    <div class="px-5 py-4">
+                                                        <p class="text-sm text-gray-700 mb-3">
+                                                            {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
+                                                                x-text="dupCount"
+                                                                class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
+                                                        </p>
+                                                        <div
+                                                            class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
+                                                            <template x-for="d in dupSample">
+                                                                <div class="p-2 text-xs border-b border-amber-100">
+                                                                    <span x-text="d.fitemcode"
+                                                                        class="font-bold"></span> -
+                                                                    <span x-text="d.fitemname"></span>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                    <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div x-data="soFormModal()" class="mt-3">
+                                            <button type="button" @click="openModal()"
+                                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                {{ 'Add SO' }}
+                                            </button>
+
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                    @click="closeModal()">
+                                                </div>
+
+                                                <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                                    style="height: 85vh;">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
+                                                        <div>
+                                                            <h3 class="text-xl font-bold text-gray-800">
+                                                                {{ 'Pilih Sales Order' }}</h3>
+                                                            <p class="text-sm text-gray-500 mt-0.5">
+                                                                {{ 'Pilih Sales Order yang diinginkan' }}</p>
+                                                        </div>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                            {{ 'Tutup' }}
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                        <div id="poTableControls"></div>
+                                                    </div>
+
+                                                    <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                        style="min-height: 0;">
+                                                        <div class="bg-white">
+                                                            <table id="poTable"
+                                                                class="min-w-full text-sm display nowrap stripe hover"
+                                                                style="width:100%">
+                                                                <thead class="sticky top-0 z-10">
+                                                                    <tr
+                                                                        class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Cab' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'No. SO' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Tanggal' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Customer' }}</th>
+                                                                        <th
+                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'No. PO' }}</th>
+                                                                        <th
+                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                            {{ 'Aksi' }}</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                        <div id="poTablePagination"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
+                                                </div>
+
+                                                <div
+                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                    <div
+                                                        class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                        <svg class="w-6 h-6 text-amber-600" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                        </svg>
+                                                        <h3 class="text-lg font-semibold text-gray-800">
+                                                            {{ 'Item Duplikat Ditemukan' }}</h3>
+                                                    </div>
+
+                                                    <div class="px-5 py-4 space-y-3">
+                                                        <p class="text-sm text-gray-700">
+                                                            Ditemukan <span class="font-semibold text-amber-600"
+                                                                x-text="dupCount"></span>
+                                                            item duplikat.
+                                                            Item duplikat <span class="font-semibold">tidak akan
+                                                                ditambahkan</span>.
+                                                        </p>
+
+                                                        <div class="rounded-lg border border-amber-200 bg-amber-50">
+                                                            <div
+                                                                class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
+                                                                {{ 'Preview Item Duplikat' }}
+                                                            </div>
+                                                            <ul
+                                                                class="max-h-40 overflow-auto divide-y divide-amber-100">
+                                                                <template x-for="d in dupSample"
+                                                                    :key="`${d.fitemcode}::${d.fitemname}`">
+                                                                    <li
+                                                                        class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
+                                                                        <span
+                                                                            class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
+                                                                        <span class="font-mono font-bold text-gray-700"
+                                                                            x-text="d.fitemcode || '-'"></span>
+                                                                        <span class="text-gray-400">•</span>
+                                                                        <span class="text-gray-600 truncate"
+                                                                            x-text="d.fitemname || '-'"></span>
+                                                                    </li>
+                                                                </template>
+                                                                <template x-if="dupCount === 0">
+                                                                    <li
+                                                                        class="px-3 py-2 text-sm text-gray-500 text-center">
+                                                                        {{ 'Tidak ada contoh.' }}</li>
+                                                                </template>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
+                                                            {{ 'Batal' }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Kanan: Panel Totals -->
+                                <div class="w-full md:w-1/2">
+                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-gray-800">Total Harga</span>
+                                            <span class="font-bold text-gray-900"
+                                                x-text="formatTransactionAmount(totalHarga)"></span>
+                                        </div>
 
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-gray-800">Discount</span>
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    name="fdiscpersen" x-model.number="headerDiscPercent" disabled
-                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                 <span class="text-gray-500">%</span>
-                                                <span class="flex-1"></span>
-                                                <span class="font-bold text-right"
-                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                        [appearance:textfield]
+                                                        [&::-webkit-outer-spin-button]:appearance-none
+                                                        [&::-webkit-inner-spin-button]:appearance-none
+                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                            <span class="text-gray-500">%</span>
+                                            <span class="flex-1"></span>
+                                            <span class="font-bold text-right"
+                                                x-text="rupiah(headerDiscAmount)"></span>
                                         </div>
 
                                         <div class="flex items-center justify-between">
-                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
-                                                <span class="font-bold text-gray-900"
-                                                    x-text="rupiah(totalSetelahDisc)"></span>
-                                            </div>
+                                            <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                            <span class="font-bold text-gray-900"
+                                                x-text="rupiah(totalSetelahDisc)"></span>
+                                        </div>
 
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN" disabled
+                                                <input id="fincludeppn_input" type="checkbox" name="fapplyppn"
+                                                    value="1" x-model="includePPN"
+                                                    :disabled="{{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fincludeppn_input"
+                                                    class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
@@ -805,34 +1105,37 @@
                                             <input type="hidden" name="fincludeppn" value="0">
 
                                             <!-- Input Rate + Nominal (kanan) -->
-                                                <input disabled type="number" min="0" max="100"
-                                                    step="0.01" x-model.number="ppnRate" readonly
-                                                    :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                 <span class="text-gray-500">%</span>
-                                                        <span class="flex-1"></span>
-                                                        <span class="font-bold"
-                                                            x-text="rupiah(ppnAmount)"></span>
-                                                        </div>
+                                            <input type="number" min="0" max="100"
+                                                step="0.01" x-model.number="ppnRate"
+                                                :disabled="!(includePPN || fapplyppn) || {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}"
+                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                        [appearance:textfield]
+                                                        [&::-webkit-outer-spin-button]:appearance-none
+                                                        [&::-webkit-inner-spin-button]:appearance-none
+                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <span class="text-gray-500">%</span>
+                                            <span class="flex-1"></span>
+                                            <span class="font-bold"
+                                                x-text="rupiah(ppnAmount)"></span>
+                                        </div>
+
                                         <div class="border-t my-1"></div>
 
                                         <div class="flex items-center justify-between text-base">
-                                                <span class="font-extrabold text-gray-900">Grand Total</span>
-                                                <span class="font-extrabold text-blue-700 text-lg"
-                                                    x-text="rupiah(grandTotal)"></span>
-                                            </div>
+                                            <span class="font-extrabold text-gray-900">Grand Total</span>
+                                            <span class="font-extrabold text-blue-700 text-lg"
+                                                x-text="rupiah(grandTotal)"></span>
+                                        </div>
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
                                     <input type="hidden" name="famountgross" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                    <input type="hidden" name="famountsonet" :value="netTotal">
                                     <input type="hidden" name="famountso" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
-                                    <input type="hidden" name="fdiscpersen" :value="headerDiscPercent">
+                                    <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                    <input type="hidden" name="fppnpersen" :value="ppnRate">
+                                    <input type="hidden" name="fdiscount" :value="headerDiscAmount">
                                 </div>
                             </div>
 
@@ -845,7 +1148,8 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
+                                        </h3>
                                     </div>
 
                                     <div class="px-5 py-4 space-y-4">
@@ -878,38 +1182,124 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" id="itemsCount" :value="savedItems.length">
-                    </div> {{-- End itemsTable --}}
-                </div> {{-- End CARD 2 body --}}
-            </div> {{-- End CARD 2 --}}
-
-                        {{-- MODAL ERROR: belum ada item --}}
-                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
-                                </div>
-
-                                <div class="px-5 py-4">
-                                    <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
-                                        Item” terlebih dahulu.
-                                    </p>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="showNoItems=false"
-                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        OK
-                                    </button>
+                            <div x-show="showHistoryModal" x-cloak
+                                class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                    <div class="px-5 py-4 border-b flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
+                                        <button type="button" @click="closeHistory()"
+                                            class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                    </div>
+                                    <div class="p-5 overflow-auto max-h-[65vh]">
+                                        <template x-if="historyLoading">
+                                            <div class="text-sm text-gray-500">Memuat data...</div>
+                                        </template>
+                                        <template x-if="!historyLoading">
+                                            <table class="min-w-full text-sm">
+                                                <thead class="bg-gray-100">
+                                                    <tr>
+                                                        <th class="p-2 text-left">No. Transaksi</th>
+                                                        <th class="p-2 text-left">Tanggal</th>
+                                                        <th class="p-2 text-right">Qty</th>
+                                                        <th class="p-2 text-right">Harga</th>
+                                                        <th class="p-2 text-right">Total</th>
+                                                        <th class="p-2 text-center">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
+                                                        <tr class="border-t">
+                                                            <td class="p-2" x-text="row.fsono"></td>
+                                                            <td class="p-2" x-text="row.fsodate"></td>
+                                                            <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                            <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
+                                                            <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
+                                                            <td class="p-2 text-center">
+                                                                <button type="button" @click="selectHistory(row)"
+                                                                    class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">
+                                                                    Pilih
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                    <tr x-show="!historyRows.length">
+                                                        <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
+
+                            <input type="hidden" id="itemsCount" :value="submitItems.length">
                         </div>
+                    </fieldset>
+
+                    {{-- MODAL ERROR: belum ada item --}}
+                    <div x-show="showNoItems && submitItems.length === 0" x-cloak
+                        class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-sm text-gray-700">
+                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris
+                                    “Detail Item” terlebih dahulu.
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="showNoItems=false"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    {{ 'OK' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="showCustomerRequired" x-cloak
+                        class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">{{ 'Pilih Customer Dulu' }}</h3>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-sm text-gray-700">
+                                    Customer wajib dipilih sebelum input produk manual. Untuk Add SO atau Add
+                                    SRJ, customer tidak wajib dipilih terlebih dahulu.
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button"
+                                    @click="showCustomerRequired = false; window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    {{ 'OK' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <x-transaction.browse-customer-modal />
+
+                    <x-transaction.browse-salesman-modal />
+
+                    <x-transaction.browse-warehouse-modal />
+
+                    <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                     @php
                         $canApproval = in_array(
@@ -918,1122 +1308,78 @@
                         );
                     @endphp
 
-                    @if ($canApproval)
-                        <div class="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                            <div class="font-semibold">Status Persetujuan Kredit</div>
-                            <div class="mt-1">
-                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: ' . $invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
-                            </div>
-                        </div>
-                    @endif
+                    </div> {{-- End itemsTable --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
 
-            {{-- ─── CARD 3: Aksi (Delete/View) ──────────── --}}
+            {{-- ─── CARD 3: Aksi ─────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="p-4 flex items-center justify-end gap-3">
-                        @if ($canDeletePermission)
-                            @if ($usageLocked)
-                                <button type="button" disabled title="{{ $usageLockMessage }}"
-                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
-                                    <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" />
-                                    Hapus
-                                </button>
-                            @else
-                                <button type="button" onclick="showDeleteModal()"
-                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                    Hapus
-                                </button>
-                            @endif
-                        @endif
-                        <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
-                            class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            Kembali
-                        </button>
-                </div>
-            </div>
-
-        {{-- ============================================ --}}
-        {{-- MODE EDIT / VIEW: FORM                      --}}
-        {{-- ============================================ --}}
-        @else
-            <form id="invoiceForm" action="{{ route('penjualanretail.update', parameters: $invoice->ftranmtid) }}"
-                method="POST" data-form-draft="true"
-                data-draft-key="penjualanretail:edit:{{ $invoice->ftranmtid }}"
-                data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
-                x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, '{{ $action }}' === 'view')">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
-                    value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
-                <input type="hidden" name="fuseracc" id="invoiceUserAcc"
-                    value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
-                <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
-                <input type="hidden" name="ftypesales" id="ftypesales"
-                    value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
-
-                {{-- ─── CARD 1: Identitas Penjualan Retail (Edit/View) ─ --}}
-                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        <fieldset {{ $action === 'view' ? 'disabled' : '' }} class="space-y-3">
-                        <div class="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Cabang</label>
-                                    <input type="text"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
-                                        disabled>
-                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                                </div>
-
-                                {{-- Gudang (Disabled) --}}
-                                @php
-                                    $whCollection = collect($warehouses ?? []);
-                                    $currentWhCode = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
-                                    $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
-                                    $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
-                                @endphp
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                                    <input type="text"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        value="{{ $whDisplayText }}"
-                                        disabled>
-                                    <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
-                                        value="{{ $currentWhCode }}">
-                                    @error('fwhcode')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- SO# --}}
-                                <div x-data="{ autoCode: true }">
-                                    <label class="block text-xs font-bold mb-1">
-                                        Faktur# <span class="text-red-500" x-show="!autoCode">*</span>
-                                    </label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="text" name="fsono"
-                                            value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
-                                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                            :disabled="autoCode || '{{ $action }}' === 'view'"
-                                            :required="!autoCode"
-                                            :class="(autoCode || '{{ $action }}' === 'view') ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
-                                            :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
-                                            oninput="this.value = this.value.toUpperCase()">
-
-                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                                            <span class="ml-1.5">Auto</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-
-                                {{-- Tanggal --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="date" id="fsodate" name="fsodate"
-                                            value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
-                                        @if ($canPenjualanTunai)
-                                            <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
-                                                <input type="checkbox" name="ftunai" id="ftunai" value="1"
-                                                    {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
-                                                    {{ $action === 'view' ? 'disabled' : '' }}
-                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
-                                            </label>
-                                        @endif
-                                    </div>
-                                    @error('fsodate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Customer --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Customer</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1">
-                                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomercode }}"
-                                                        data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
-                                                        data-fkodefp="{{ $customer->fkodefp }}"
-                                                        data-fsalesman="{{ $customer->fsalesman }}"
-                                                        {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @if ($action !== 'view')
-                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
-                                                    aria-label="Browse Customer"
-                                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                            value="{{ old('fcustno', $invoice->fcustno) }}">
-                                        @if ($action !== 'view')
-                                            <button type="button"
-                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                title="Browse Customer">
-                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                            </button>
-                                            @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
-                                                <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                    title="Tambah Customer">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            @endif
-                                        @endif
-                                    </div>
-                                    @if (($action ?? '') !== 'view')
-                                    <div id="customerAdvanceWarningBox" class="hidden my-2">
-                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                                            <div class="flex">
-                                                <div class="flex-shrink-0">
-                                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                                <div class="ml-3">
-                                                    <p class="text-sm font-medium text-yellow-700" id="customerAdvanceWarningText"></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endif
-                                    @error('fcustno')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Salesman --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Salesman</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1">
-                                            <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($salesmans as $salesman)
-                                                    <option value="{{ $salesman->fsalesmancode }}"
-                                                        {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                        {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @if ($action !== 'view')
-                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
-                                                    aria-label="Browse Salesman"
-                                                    @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                            value="{{ old('fsalesman', $invoice->fsalesman) }}">
-                                        @if ($action !== 'view')
-                                            <button type="button"
-                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                title="Browse Salesman">
-                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                            </button>
-                                            @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
-                                                <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                    title="Tambah Salesman">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            @endif
-                                        @endif
-                                    </div>
-                                    @error('fsalesman')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- TOP (Hari) --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                    <input type="number" id="ftempohr" name="ftempohr"
-                                        value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
-                                        placeholder="Masukkan jumlah hari">
-                                    @error('ftempohr')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Tgl. Jatuh Tempo --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                    <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                        readonly
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
-                                    @error('fjatuhtempo')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Keterangan --}}
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                    <textarea name="fket" rows="3"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        function calculateDueDate() {
-                                            const poDate = document.getElementById('fsodate').value;
-                                            const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                            if (poDate) {
-                                                const date = new Date(poDate);
-                                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                                date.setDate(date.getDate() + tempoDays);
-
-                                                const year = date.getFullYear();
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
-
-                                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                            } else {
-                                                document.getElementById('fjatuhtempo').value = '';
-                                            }
-                                        }
-
-                                        // Event listeners
-                                        document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                        document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                        if (!@json(old('fjatuhtempo') !== null)) {
-                                            calculateDueDate();
-                                        }
-                                    });
-                                </script>
-                            </div>
-
-                            {{-- Barcode (Paling bawah memanjang) --}}
-                            <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
-                                        <span>Barcode</span>
-                                    </label>
-                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
-                                </div>
-                                <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                    class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
-                                    placeholder="Scan / Masukkan Barcode" autocomplete="off"
-                                    {{ $action === 'view' ? 'disabled' : '' }}>
-                            </div>
-                        </fieldset>
-                    </div>
-                </div>
-
-                {{-- ─── CARD 2: Detail Item (Edit/View) ────────── --}}
-                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
-                    </div>
-                    <div class="p-4">
-                        <div x-data="itemsTable()" x-init="init()" class="space-y-2">
-
-                                <div class="overflow-auto border rounded">
-                                    <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
-                                        data-skip-auto-detail-style="true">
-                                        <colgroup>
-                                            <col style="width:2%;">
-                                            <col style="width:18%;">
-                                            <col style="width:{{ $action === 'view' ? '36%' : '33%' }};">
-                                            <col style="width:8%;">
-                                            <col style="width:9%;">
-                                            <col style="width:11%;">
-                                            <col style="width:6%;">
-                                            <col style="width:10%;">
-                                            @if ($action !== 'view')
-                                                <col style="width:3%;">
-                                            @endif
-                                        </colgroup>
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="p-2 text-left w-10">#</th>
-                                                <th class="p-2 text-left w-42">Kode Produk</th>
-                                                <th class="p-2 text-left w-96">Nama Produk</th>
-                                                <th class="p-2 text-left w-36">Satuan</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                                @if ($action !== 'view')
-                                                    <th class="p-2 text-center w-28">Aksi</th>
-                                                @endif
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <template x-for="(it, i) in savedItems" :key="it.uid">
-                                                <tr class="border-t align-top">
-                                                    <td class="p-2" x-text="i + 1"></td>
-                                                    <td class="p-2">
-                                                        <div class="flex">
-                                                            <input type="text"
-                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                                x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
-                                                                @keydown.enter.prevent="focusRowUnit(it, i)"
-                                                                {{ $action === 'view' ? 'disabled' : '' }}>
-                                                            @if ($action !== 'view')
-                                                                <button type="button" @click="openBrowseFor(i)"
-                                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                                    title="Cari Produk">
-                                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                                </button>
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <div class="flex w-full max-w-full">
-                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                x-text="it.fitemname"></div>
-                                                            <button type="button" @click="openDesc(i)"
-                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                                :class="it.fdesc ? 'btn-desc-filled font-medium' : 'btn-desc-empty'"
-                                                                title="Deskripsi">
-                                                                <x-heroicon-o-document-text class="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <template x-if="it.units && it.units.length > 1">
-                                                            <select
-                                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                                :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                                @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowQty(i)"
-                                                                {{ $action === 'view' ? 'disabled' : '' }}>
-                                                                <template x-for="u in it.units" :key="u">
-                                                                    <option :value="u"
-                                                                        :selected="u === it.fsatuan" x-text="u">
-                                                                    </option>
-                                                                </template>
-                                                            </select>
-                                                        </template>
-                                                        <template x-if="!(it.units && it.units.length > 1)">
-                                                            <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
-                                                                x-text="it.fsatuan || '-'"></div>
-                                                        </template>
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="text" inputmode="decimal"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                            :id="'qty_row_' + i" x-model="it.fqtyInput"
-                                                            @focus="activeRow = it.uid; focusQtyInput(it); $event.target.select()"
-                                                            @input="onQtyInput(it); onRowUpdated(i)"
-                                                            @blur="blurQtyInput(it); onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowPrice(i)"
-                                                            {{ $action === 'view' ? 'disabled' : '' }}>
-                                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.fitemcode"
-                                                                x-html="formatStockLimit(it)"></span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                         <input type="text" inputmode="decimal"
-                                                             class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                             :id="'price_row_' + i" x-model="it.fpriceInput"
-                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
-                                                             @blur="activeRow = null; blurPriceInput(it)"
-                                                             @input="onPriceInput(it); onRowUpdated(i)"
-                                                             @keydown.enter.prevent="focusRowDisc(i)"
-                                                             :disabled="isPriceDisabled(it) || '{{ $action }}' === 'view'">
-                                                     </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                            :id="'disc_row_' + i"
-                                                            :value="normalizeDiscountValue(it.fdisc)"
-                                                            @focus="activeRow = it.uid; $event.target.select()"
-                                                            @blur="activeRow = null; normalizeDiscountInput($event, it)"
-                                                            @input="it.fdisc = $event.target.value; onRowUpdated(i)"
-                                                            @keydown.enter.prevent="$event.target.blur()"
-                                                            {{ $action === 'view' ? 'disabled' : '' }}>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                            :value="fmt(it.ftotal)" disabled>
-                                                    </td>
-                                                    @if ($action !== 'view')
-                                                        <td class="p-2 text-center">
-                                                            <button type="button" @click="removeSaved(i)"
-                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                                title="Hapus baris">-</button>
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            </template>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div class="hidden">
-                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
-                                        <div>
-                                            <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
-                                                :value="it.fitemcode">
-                                            <input type="hidden" :name="`fitemname[${it.formIndex}]`"
-                                                :value="it.fitemname">
-                                            <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
-                                                :value="it.fsatuan">
-                                            <input type="hidden" :name="`frefdtno[${it.formIndex}]`"
-                                                :value="it.frefdtno">
-                                            <input type="hidden" :name="`frefcode[${it.formIndex}]`"
-                                                :value="it.frefcode">
-                                            <input type="hidden" :name="`fnouref[${it.formIndex}]`"
-                                                :value="it.fnouref">
-                                            <input type="hidden" :name="`frefpr[${it.formIndex}]`"
-                                                :value="it.frefpr">
-                                            <input type="hidden" :name="`frefso[${it.formIndex}]`"
-                                                :value="it.frefso">
-                                            <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
-                                                :value="it.frefsrj">
-                                            <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
-                                                :value="it.fnoacak">
-                                            <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
-                                                :value="it.frefnoacak">
-                                            <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
-                                            <input type="hidden" :name="`fterima[${it.formIndex}]`"
-                                                :value="it.fterima">
-                                            <input type="hidden" :name="`fprice[${it.formIndex}]`"
-                                                :value="it.fprice">
-                                            <input type="hidden" :name="`fdisc[${it.formIndex}]`"
-                                                :value="it.fdisc">
-                                            <input type="hidden" :name="`ftotal[${it.formIndex}]`"
-                                                :value="it.ftotal">
-                                            <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
-                                                :value="it.maxqty">
-                                            <input type="hidden" :name="`fref_price[${it.formIndex}]`"
-                                                :value="it.ref_price || it.maxprice || it.source_price || 0">
-                                            <input type="hidden" :name="`fdesc[${it.formIndex}]`"
-                                                :value="it.fdesc">
-                                            <input type="hidden" :name="`fketdt[${it.formIndex}]`"
-                                                :value="it.fketdt">
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <div class="mt-3 flex justify-between items-start gap-4">
-                                    <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
-                                        @if ($action !== 'view')
-                                            <div x-data="srjFormModal()" class="mt-3">
-                                                <button type="button" @click="openSrjModal()"
-                                                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                    </svg>
-                                                    Add SRJ
-                                                </button>
-
-                                                <div x-show="showSrjModal" x-cloak x-transition.opacity
-                                                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                        @click="closeSrjModal()">
-                                                    </div>
-
-                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-[100rem] flex flex-col overflow-hidden"
-                                                        style="height: 82vh;">
-                                                        <div
-                                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
-                                                            <div>
-                                                                <h3 class="text-xl font-bold text-gray-800">
-                                                                    {{ 'Pilih Surat Jalan' }}</h3>
-                                                            </div>
-                                                            <button type="button" @click="closeSrjModal()"
-                                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                                {{ 'Tutup' }}
-                                                            </button>
-                                                        </div>
-
-                                                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                            <div id="srjTableControls"></div>
-                                                        </div>
-
-                                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
-                                                            style="min-height: 0;">
-                                                            <div class="bg-white">
-                                                                <table id="srjTable"
-                                                                    class="min-w-full text-sm display nowrap stripe hover"
-                                                                    style="width:100%">
-                                                                    <thead class="sticky top-0 z-10">
-                                                                        <tr
-                                                                            class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Cabang' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'No. SRJ' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Tanggal' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Customer' }}</th>
-                                                                            <th
-                                                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Aksi' }}</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody></tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-
-                                                        <div
-                                                            class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                            <div id="srjTablePagination"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                    <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
-                                                    </div>
-                                                    <div
-                                                        class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                        <div
-                                                            class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                            <h3 class="text-lg font-semibold text-gray-800">
-                                                                {{ 'Item Duplikat Surat Jalan' }}</h3>
-                                                        </div>
-                                                        <div class="px-5 py-4">
-                                                            <p class="text-sm text-gray-700 mb-3">
-                                                                {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
-                                                                    x-text="dupCount"
-                                                                    class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
-                                                            </p>
-                                                            <div
-                                                                class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
-                                                                <template x-for="d in dupSample">
-                                                                    <div class="p-2 text-xs border-b border-amber-100">
-                                                                        <span x-text="d.fitemcode"
-                                                                            class="font-bold"></span> -
-                                                                        <span x-text="d.fitemname"></span>
-                                                                    </div>
-                                                                </template>
-                                                            </div>
-                                                        </div>
-                                                        <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
-                                                            <button type="button" @click="closeDupModal()"
-                                                                class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
-                                                            <button type="button" @click="confirmAddUniques()"
-                                                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div x-data="soFormModal()" class="mt-3">
-                                                <button type="button" @click="openModal()"
-                                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                    </svg>
-                                                    {{ 'Add SO' }}
-                                                </button>
-
-                                                <div x-show="show" x-cloak x-transition.opacity
-                                                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                        @click="closeModal()">
-                                                    </div>
-
-                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                                        style="height: 85vh;">
-                                                        <div
-                                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
-                                                            <div>
-                                                                <h3 class="text-xl font-bold text-gray-800">
-                                                                    {{ 'Pilih Sales Order' }}</h3>
-                                                                <p class="text-sm text-gray-500 mt-0.5">
-                                                                    {{ 'Pilih Sales Order yang diinginkan' }}</p>
-                                                            </div>
-                                                            <button type="button" @click="closeModal()"
-                                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                                {{ 'Tutup' }}
-                                                            </button>
-                                                        </div>
-
-                                                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                            <div id="poTableControls"></div>
-                                                        </div>
-
-                                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
-                                                            style="min-height: 0;">
-                                                            <div class="bg-white">
-                                                                <table id="poTable"
-                                                                    class="min-w-full text-sm display nowrap stripe hover"
-                                                                    style="width:100%">
-                                                                    <thead class="sticky top-0 z-10">
-                                                                        <tr
-                                                                            class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Cab' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'No. SO' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Tanggal' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Customer' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'No. PO' }}</th>
-                                                                            <th
-                                                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Aksi' }}</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody></tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-
-                                                        <div
-                                                            class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                            <div id="poTablePagination"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                    <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
-                                                    </div>
-
-                                                    <div
-                                                        class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                        <div
-                                                            class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                            <svg class="w-6 h-6 text-amber-600" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                            </svg>
-                                                            <h3 class="text-lg font-semibold text-gray-800">
-                                                                {{ 'Item Duplikat Ditemukan' }}</h3>
-                                                        </div>
-
-                                                        <div class="px-5 py-4 space-y-3">
-                                                            <p class="text-sm text-gray-700">
-                                                                Ditemukan <span class="font-semibold text-amber-600"
-                                                                    x-text="dupCount"></span>
-                                                                item duplikat.
-                                                                Item duplikat <span class="font-semibold">tidak akan
-                                                                    ditambahkan</span>.
-                                                            </p>
-
-                                                            <div class="rounded-lg border border-amber-200 bg-amber-50">
-                                                                <div
-                                                                    class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                                    {{ 'Preview Item Duplikat' }}
-                                                                </div>
-                                                                <ul
-                                                                    class="max-h-40 overflow-auto divide-y divide-amber-100">
-                                                                    <template x-for="d in dupSample"
-                                                                        :key="`${d.fitemcode}::${d.fitemname}`">
-                                                                        <li
-                                                                            class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
-                                                                            <span
-                                                                                class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
-                                                                            <span class="font-mono font-bold text-gray-700"
-                                                                                x-text="d.fitemcode || '-'"></span>
-                                                                            <span class="text-gray-400">â€¢</span>
-                                                                            <span class="text-gray-600 truncate"
-                                                                                x-text="d.fitemname || '-'"></span>
-                                                                        </li>
-                                                                    </template>
-                                                                    <template x-if="dupCount === 0">
-                                                                        <li
-                                                                            class="px-3 py-2 text-sm text-gray-500 text-center">
-                                                                            {{ 'Tidak ada contoh.' }}</li>
-                                                                    </template>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-
-                                                        <div
-                                                            class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
-                                                            <button type="button" @click="closeDupModal()"
-                                                                class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                                {{ 'Batal' }}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                                <div>
-                                    <!-- Trigger: Add PR dari panel kanan -->
-                                    <div class="mt-3 flex justify-between items-start gap-4">
-                                        <div class="w-full flex justify-start mb-3">
-                                        </div>
-                                        <!-- Kanan: Panel Totals -->
-                                        <div class="w-1/2">
-                                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                                <div class="flex items-center justify-between">
-                                                <span class="font-bold text-gray-800">Total Harga</span>
-                                                <span class="font-bold text-gray-900"
-                                                    x-text="formatTransactionAmount(totalHarga)"></span>
-                                            </div>
-
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-bold text-gray-800">Discount</span>
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    name="fdiscpersen" x-model.number="headerDiscPercent"
-                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
-                                                    {{ $action === 'view' ? 'disabled' : '' }}>
-                                                <span class="text-gray-500">%</span>
-                                                <span class="flex-1"></span>
-                                                <span class="font-bold text-right"
-                                                    x-text="rupiah(headerDiscAmount)"></span>
-                                            </div>
-
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
-                                                <span class="font-bold text-gray-900"
-                                                    x-text="rupiah(totalSetelahDisc)"></span>
-                                            </div>
-
-                                                <div class="flex items-center justify-between gap-6">
-                                                    <!-- Checkbox -->
-                                                    <div class="flex items-center">
-                                                        <input id="fincludeppn_input" type="checkbox" name="fapplyppn"
-                                                            value="1" x-model="includePPN"
-                                                            :disabled="action === 'delete' || action === 'view'"
-                                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                        <label for="fincludeppn_input"
-                                                            class="ml-2 text-sm font-medium text-gray-700">
-                                                            <span class="font-bold">PPN</span>
-                                                        </label>
-                                                    </div>
-
-                                                    <!-- Hidden fincludeppn (always Exclude = 0) -->
-                                                    <input type="hidden" name="fincludeppn" value="0">
-
-                                                    <!-- Input Rate + Nominal (kanan) -->
-                                                        <input type="number" min="0" max="100"
-                                                            step="0.01" x-model.number="ppnRate"
-                                                            :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
-                                                                action === 'view'"
-                                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <span class="text-gray-500">%</span>
-                                                        <span class="flex-1"></span>
-                                                        <span class="font-bold"
-                                                            x-text="rupiah(ppnAmount)"></span>
-                                                </div>
-
-                                                <div class="border-t my-1"></div>
-
-                                                <div class="flex items-center justify-between text-base">
-                                                <span class="font-extrabold text-gray-900">Grand Total</span>
-                                                <span class="font-extrabold text-blue-700 text-lg"
-                                                    x-text="rupiah(grandTotal)"></span>
-                                            </div>
-                                            </div>
-
-                                            <!-- Hidden inputs for submit -->
-                                            <input type="hidden" name="famountgross" :value="totalHarga">
-                                            <input type="hidden" name="famountpajak" :value="ppnAmount">
-                                            <input type="hidden" name="famountsonet" :value="netTotal">
-                                            <input type="hidden" name="famountso" :value="grandTotal">
-                                            <input type="hidden" name="famountpopajak" :value="ppnAmount">
-                                            <input type="hidden" name="fppnpersen" :value="ppnRate">
-                                            <input type="hidden" name="fdiscount" :value="headerDiscAmount">
-                                        </div>
-                                    </div>
-
-                                    <!-- MODAL DESC (di dalam itemsTable) -->
-                                    <div x-show="showDescModal" x-cloak
-                                        class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                            x-transition.scale>
-                                            <div class="px-5 py-4 border-b flex items-center">
-                                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
-                                                </h3>
-                                            </div>
-
-                                            <div class="px-5 py-4 space-y-4">
-                                                <div>
-                                                    <div class="mb-1 flex items-center justify-between gap-3">
-                                                        <div class="text-sm text-gray-700">Nama Produk</div>
-                                                        <button type="button" @click="copyDescName()"
-                                                            class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                            Copy
-                                                        </button>
-                                                    </div>
-                                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                                        x-text="descItemName || '-'"></div>
-                                                </div>
-                                                <label class="block text-sm text-gray-700">Deskripsi</label>
-                                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                                    placeholder="Tulis deskripsi item di sini..."></textarea>
-                                            </div>
-
-                                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                                <button type="button" @click="closeDesc()"
-                                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                    Batal
-                                                </button>
-                                                <button type="button" @click="applyDesc()"
-                                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                                    Simpan
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="showHistoryModal" x-cloak
-                                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
-                                        <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
-                                        <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
-                                            <div class="px-5 py-4 border-b flex items-center justify-between">
-                                                <h3 class="text-lg font-semibold text-gray-800">Browse Uang Muka</h3>
-                                                <button type="button" @click="closeHistory()"
-                                                    class="text-gray-500 hover:text-gray-700">Tutup</button>
-                                            </div>
-                                            <div class="p-5 overflow-auto max-h-[65vh]">
-                                                <template x-if="historyLoading">
-                                                    <div class="text-sm text-gray-500">Memuat data...</div>
-                                                </template>
-                                                <template x-if="!historyLoading">
-                                                    <table class="min-w-full text-sm">
-                                                        <thead class="bg-gray-100">
-                                                            <tr>
-                                                                <th class="p-2 text-left">No. Transaksi</th>
-                                                                <th class="p-2 text-left">Tanggal</th>
-                                                                <th class="p-2 text-right">Qty</th>
-                                                                <th class="p-2 text-right">Harga</th>
-                                                                <th class="p-2 text-right">Total</th>
-                                                                <th class="p-2 text-center">Aksi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
-                                                                <tr class="border-t">
-                                                                    <td class="p-2" x-text="row.fsono"></td>
-                                                                    <td class="p-2" x-text="row.fsodate"></td>
-                                                                    <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
-                                                                    <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
-                                                                    <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
-                                                                    <td class="p-2 text-center">
-                                                                        <button type="button" @click="selectHistory(row)"
-                                                                            class="px-3 py-1 rounded bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">
-                                                                            Pilih
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            </template>
-                                                            <tr x-show="!historyRows.length">
-                                                                <td colspan="6" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <input type="hidden" id="itemsCount" :value="submitItems.length">
-                                </div>
-                        </fieldset>
-
-                        {{-- MODAL ERROR: belum ada item --}}
-                        <div x-show="showNoItems && submitItems.length === 0" x-cloak
-                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
-                                </div>
-
-                                <div class="px-5 py-4">
-                                    <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris
-                                        â€œDetail
-                                        Itemâ€
-                                        terlebih
-                                        dahulu.
-                                    </p>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="showNoItems=false"
-                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        {{ 'OK' }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div x-show="showCustomerRequired" x-cloak
-                            class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
-
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Pilih Customer Dulu' }}</h3>
-                                </div>
-
-                                <div class="px-5 py-4">
-                                    <p class="text-sm text-gray-700">
-                                        Customer wajib dipilih sebelum input produk manual. Untuk Add SO atau Add
-                                        SRJ,
-                                        customer tidak wajib dipilih terlebih dahulu.
-                                    </p>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button"
-                                        @click="showCustomerRequired = false; window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        {{ 'OK' }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <x-transaction.browse-customer-modal />
-
-                        <x-transaction.browse-salesman-modal />
-
-                        <x-transaction.browse-warehouse-modal />
-
-                        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-
-                        @php
-                            $canApproval = in_array(
-                                'approveFakturPenjualan',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-
-                        </div> {{-- End itemsTable --}}
-                    </div> {{-- End CARD 2 body --}}
-                </div> {{-- End CARD 2 --}}
-
-                {{-- ─── CARD 3: Aksi (Edit/View) ────────────── --}}
-                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="p-4 flex items-center justify-end gap-3">
-                            @if ($action !== 'view' && $canEditPermission)
-                                @if ($usageLocked)
-                                    <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Update
-                                    </button>
-                                @else
-                                    <button type="submit"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        Update
-                                    </button>
-                                @endif
-                            @elseif ($action === 'view')
-                                @php
-                                    $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
-                                    $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
-                                @endphp
-                                @if (!$isApproved)
-                                    <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </button>
-                                @elseif ($isPrinted)
-                                    <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </button>
-                                @else
-                                    <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </a>
-                                @endif
-                            @endif
-                            <button type="button" @click="window.location.href='{{ route('penjualanretail.index') }}'"
-                                class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                    @if ($action === 'edit' && $canEditPermission)
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Update
                             </button>
-                    </div>
+                        @else
+                            <button type="submit"
+                                class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Update
+                            </button>
+                        @endif
+                    @elseif ($action === 'view')
+                        @php
+                            $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
+                            $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
+                        @endphp
+                        @if (!$isApproved)
+                            <button type="button"
+                                onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <x-heroicon-o-printer class="w-5 h-5" /> Print
+                            </button>
+                        @elseif ($isPrinted)
+                            <button type="button"
+                                onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <x-heroicon-o-printer class="w-5 h-5" /> Print
+                            </button>
+                        @else
+                            <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
+                                class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <x-heroicon-o-printer class="w-5 h-5" /> Print
+                            </a>
+                        @endif
+                    @elseif ($action === 'delete' && $canDeletePermission)
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="inline-flex h-9 items-center justify-center rounded-lg bg-red-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Hapus
+                            </button>
+                        @else
+                            <button type="button" onclick="showDeleteModal()"
+                                class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                Hapus
+                            </button>
+                        @endif
+                    @endif
+                    <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
+                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        {{ $action === 'edit' ? 'Keluar' : 'Kembali' }}
+                    </button>
                 </div>
-            </form>
-
-            {{-- FOOTER INFO --}}
-            @php
-                $lastUpdate = $invoice->fupdatedat ?: $invoice->fcreatedat;
-                $updatedBy = $invoice->fuserupdate ?: ($invoice->fusercreate ?: '—');
-            @endphp
-            <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
-                <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
-                <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
             </div>
-        @endif
+        </form>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $invoice->fupdatedat ?: $invoice->fcreatedat;
+            $updatedBy = $invoice->fuserupdate ?: ($invoice->fusercreate ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
     </div>
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
