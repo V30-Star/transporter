@@ -62,8 +62,9 @@
                                 User Name / Login <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="fsysuserid" value="{{ old('fsysuserid') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsysuserid') border-red-400 @enderror"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsysuserid') border-red-400 @enderror"
                                 placeholder="Masukkan Username">
+                            <p class="text-[11px] text-gray-400 mt-1">Min. 1 huruf besar, 1 angka, dan 1 simbol (contoh: . / ;)</p>
                             @error('fsysuserid')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
