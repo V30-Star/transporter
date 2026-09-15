@@ -298,391 +298,11 @@
         </div>
     @endif
     <div>
-        @if ($action === 'delete')
-            {{-- ─── CARD 1: Identitas (Delete/View) ──────────── --}}
-            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penjualan Retail</p>
-                </div>
-                <div class="p-4 space-y-3">
-                    <fieldset disabled>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Cabang</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
-                                disabled>
-                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                        </div>
-
-                        {{-- SO# --}}
-                        <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold mb-1">
-                                Faktur#
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input type="text" name="fsono"
-                                    value="{{ strtoupper(old('fsono', $displayFsono ?? $invoice->fsono ?? '')) }}"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
-                                    disabled>
-
-                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-500 cursor-not-allowed">
-                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked disabled>
-                                    <span class="ml-1.5">Auto</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
-                        <input type="hidden" name="ftypesales" id="ftypesales" value="{{ old('ftypesales', $invoice->ftypesales ?? 0) }}">
-
-                        {{-- Tanggal --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Tanggal</label>
-                            <div class="flex items-center gap-2">
-                                <input disabled type="date" id="fsodate" name="fsodate"
-                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
-                                @if ($canPenjualanTunai)
-                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-500 cursor-not-allowed">
-                                        <input disabled type="checkbox" name="ftunai" value="1"
-                                            {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
-                                            class="rounded border-gray-300 text-blue-600">
-                                        <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
-                                    </label>
-                                @endif
-                            </div>
-                            @error('fsodate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- Customer --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Customer</label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_customer_id_readonly">
-                                    <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomercode }}"
-                                                data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
-                                                {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
-                                    value="{{ old('fcustno', $invoice->fcustno) }}">
-                            </div>
-                            @error('fcustno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                           {{-- Salesman --}}
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Salesman</label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
-                                    <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($salesmans as $salesman)
-                                            <option value="{{ $salesman->fsalesmancode }}"
-                                                {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
-                                    value="{{ old('fsalesman', $invoice->fsalesman) }}">
-                            </div>
-                            @error('fsalesman')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                    disabled readonly
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
-                                    placeholder="Masukkan jumlah hari">
-                                @error('ftempohr')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                <input type="date" id="fjatuhtempo" name="fjatuhtempo" disabled readonly
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                                @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 items-center">
-                            {{-- Barcode --}}
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Barcode</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        placeholder="Scan barcode"
-                                        disabled>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                <textarea name="fket" rows="3" disabled
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                    placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                            </div>
-                        </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function calculateDueDate() {
-                                    const poDate = document.getElementById('fsodate')?.value;
-                                    const tempoDays = parseInt(document.getElementById('ftempohr')?.value) || 0;
-                                    const jatuhtempoEl = document.getElementById('fjatuhtempo');
-                                    if (!jatuhtempoEl) return;
-
-                                    if (poDate) {
-                                        const date = new Date(poDate);
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                        date.setDate(date.getDate() + tempoDays);
-
-                                        const year = date.getFullYear();
-                                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getDate()).padStart(2, '0');
-
-                                        jatuhtempoEl.value = `${year}-${month}-${day}`;
-                                    } else {
-                                        jatuhtempoEl.value = '';
-                                    }
-                                }
-
-                                const sodateEl = document.getElementById('fsodate');
-                                const tempohrEl = document.getElementById('ftempohr');
-                                if (sodateEl) sodateEl.addEventListener('change', calculateDueDate);
-                                if (tempohrEl) tempohrEl.addEventListener('input', calculateDueDate);
-
-                                if (!@json(old('fjatuhtempo') !== null)) {
-                                    calculateDueDate();
-                                }
-                            });
-                        </script>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                    </fieldset>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ─── CARD 2: Detail Item (Delete/View) ──────── --}}
-            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
-                </div>
-                <div class="p-4">
-                    <fieldset disabled>
-                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
-
-                        <div class="overflow-auto border rounded">
-                            <table class="invoice-detail-table min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-42">Kode Produk</th>
-                                        <th class="p-2 text-left w-96">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">Satuan</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                    </tr>
-                                </thead>
-
-                                <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                    <tbody>
-                                        <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
-                                        <tr class="border-t border-b align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
-                                            </td>
-                                            <td class="p-2">
-                                                <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
-                                                    x-text="it.fsatuan || '-'"></div>
-                                            </td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right"
-                                                x-text="it.fdisc && it.fdisc.toString().includes('+') ? it.fdisc : fmt(it.fdisc)">
-                                            </td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
-                                        </tr>
-                                    </tbody>
-                                </template>
-                            </table>
-                        </div>
-
-                        <!-- Panel Totals -->
-                        <div class="mt-3 flex justify-between items-start gap-4">
-                            <div class="w-full flex justify-start mb-3"></div>
-                            <!-- Kanan: Panel Totals -->
-                            <div class="w-1/2">
-                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-gray-800">Total Harga</span>
-                                        <span class="font-bold text-gray-900"
-                                            x-text="formatTransactionAmount(totalHarga)"></span>
-                                    </div>
-
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-gray-800">Discount</span>
-                                        <input type="number" min="0" max="100" step="0.01"
-                                            name="fdiscpersen" x-model.number="headerDiscPercent" disabled
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                    [appearance:textfield]
-                                                    [&::-webkit-outer-spin-button]:appearance-none
-                                                    [&::-webkit-inner-spin-button]:appearance-none
-                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-gray-500">%</span>
-                                        <span class="flex-1"></span>
-                                        <span class="font-bold text-right"
-                                            x-text="rupiah(headerDiscAmount)"></span>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-gray-800">Total Setelah Disc.</span>
-                                        <span class="font-bold text-gray-900"
-                                            x-text="rupiah(totalSetelahDisc)"></span>
-                                    </div>
-
-                                    <div class="flex items-center justify-between gap-6">
-                                        <!-- Checkbox -->
-                                        <div class="flex items-center">
-                                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                x-model="includePPN" disabled
-                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
-                                                <span class="font-bold">PPN</span>
-                                            </label>
-                                        </div>
-
-                                        <!-- Hidden fincludeppn (always Exclude = 0) -->
-                                        <input type="hidden" name="fincludeppn" value="0">
-
-                                        <!-- Input Rate + Nominal (kanan) -->
-                                        <input disabled type="number" min="0" max="100"
-                                            step="0.01" x-model.number="ppnRate" readonly
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                    [appearance:textfield]
-                                                    [&::-webkit-outer-spin-button]:appearance-none
-                                                    [&::-webkit-inner-spin-button]:appearance-none
-                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-gray-500">%</span>
-                                        <span class="flex-1"></span>
-                                        <span class="font-bold"
-                                            x-text="rupiah(ppnAmount)"></span>
-                                    </div>
-                                    <div class="border-t my-1"></div>
-
-                                    <div class="flex items-center justify-between text-base">
-                                        <span class="font-extrabold text-gray-900">Grand Total</span>
-                                        <span class="font-extrabold text-blue-700 text-lg"
-                                            x-text="rupiah(grandTotal)"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
-                    </div> {{-- End itemsTable --}}
-                    </fieldset>
-                </div> {{-- End CARD 2 body --}}
-            </div> {{-- End CARD 2 --}}
-
-                    @php
-                        $canApproval = in_array(
-                            'approveFakturPenjualan',
-                            explode(',', session('user_restricted_permissions', '')),
-                        );
-                    @endphp
-
-                    @if ($canApproval)
-                        <div class="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                            <div class="font-semibold">Status Persetujuan Kredit</div>
-                            <div class="mt-1">
-                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: ' . $invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
-                            </div>
-                        </div>
-                    @endif
-
-            {{-- ─── CARD 3: Aksi (Delete/View) ──────────── --}}
-            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="p-4 flex items-center justify-end gap-3">
-                        @if ($canDeletePermission)
-                            @if ($usageLocked)
-                                <button type="button" disabled title="{{ $usageLockMessage }}"
-                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
-                                    <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" />
-                                    Hapus
-                                </button>
-                            @else
-                                <button type="button" onclick="showDeleteModal()"
-                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                    Hapus
-                                </button>
-                            @endif
-                        @endif
-                        <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
-                            class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            Kembali
-                        </button>
-                </div>
-            </div>
-
-        {{-- ============================================ --}}
-        {{-- MODE EDIT / VIEW: FORM                      --}}
-        {{-- ============================================ --}}
-        @else
-            <form id="invoiceForm" action="{{ route('penjualanretail.update', parameters: $invoice->ftranmtid) }}"
-                method="POST" data-form-draft="true"
-                data-draft-key="penjualanretail:edit:{{ $invoice->ftranmtid }}"
-                data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
-                x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, '{{ $action }}' === 'view')">
+        <form id="invoiceForm" action="{{ route('penjualanretail.update', parameters: $invoice->ftranmtid) }}"
+            method="POST" data-form-draft="true"
+            data-draft-key="penjualanretail:edit:{{ $invoice->ftranmtid }}"
+            data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+            x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el, {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }})">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
@@ -1698,48 +1318,71 @@
                 {{-- ─── CARD 3: Aksi (Edit/View) ────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                     <div class="p-4 flex items-center justify-end gap-3">
-                            @if ($action !== 'view' && $canEditPermission)
+                        @if ($action === 'delete')
+                            @if ($canDeletePermission)
                                 @if ($usageLocked)
                                     <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-5 h-5" /> Simpan
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-red-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-5 h-5" /> Hapus
                                     </button>
                                 @else
-                                    <button type="submit"
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                        <x-heroicon-o-check class="w-6 h-6" />
-                                        Simpan
+                                    <button type="button" onclick="showDeleteModal()"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+                                        <x-heroicon-o-trash class="w-5 h-5" /> Hapus
                                     </button>
-                                @endif
-                            @elseif ($action === 'view')
-                                @php
-                                    $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
-                                    $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
-                                @endphp
-                                @if (!$isApproved)
-                                    <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </button>
-                                @elseif ($isPrinted)
-                                    <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </button>
-                                @else
-                                    <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                        <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                    </a>
                                 @endif
                             @endif
-                            <button type="button" @click="window.location.href='{{ route('penjualanretail.index') }}'"
+                            <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
+                                class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-6 h-6" /> Kembali
+                            </button>
+                        @elseif ($action === 'edit' && $canEditPermission)
+                            @if ($usageLocked)
+                                <button type="button" disabled title="{{ $usageLockMessage }}"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70">
+                                    <x-heroicon-o-lock-closed class="w-5 h-5" /> Simpan
+                                </button>
+                            @else
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    <x-heroicon-o-check class="w-6 h-6" />
+                                    Simpan
+                                </button>
+                            @endif
+                            <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
                                 class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
                                 <x-heroicon-o-arrow-left class="w-6 h-6" />
-                                {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                                Keluar
                             </button>
+                        @elseif ($action === 'view')
+                            @php
+                                $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
+                                $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
+                            @endphp
+                            @if (!$isApproved)
+                                <button type="button"
+                                    onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                </button>
+                            @elseif ($isPrinted)
+                                <button type="button"
+                                    onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                </button>
+                            @else
+                                <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
+                                </a>
+                            @endif
+                            <button type="button" onclick="window.location.href='{{ route('penjualanretail.index') }}'"
+                                class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-6 h-6" />
+                                Kembali
+                            </button>
+                        @endif
                     </div>
                 </div>
             </form>
