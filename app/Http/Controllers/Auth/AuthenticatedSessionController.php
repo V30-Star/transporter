@@ -14,25 +14,8 @@ use Illuminate\View\View; // Pastikan RoleAccess model diimport
 
 class AuthenticatedSessionController extends Controller
 {
-    public function create(Request $request): View
+    public function create(): View
     {
-        $logId = session('login_log_id');
-        $account = session('fsysuserid');
-
-        if ($logId) {
-            LogUser::where('floguserid', $logId)
-                ->whereNull('log_out_date')
-                ->update(['log_out_date' => now()]);
-            session()->forget(['login_log_id', 'session_device_token', 'fsysuserid']);
-        }
-
-        if ($account) {
-            \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
-            LogUser::where('akun', $account)
-                ->whereNull('log_out_date')
-                ->update(['log_out_date' => now()]);
-        }
-
         return view('auth.login');
     }
 
@@ -121,6 +104,33 @@ SVG;
             ->whereNull('log_out_date')
             ->where('login_date', '<', now()->subMinutes($sessionLifetime))
             ->update(['log_out_date' => now()]);
+
+        // Check if there is an active online session in log_user
+        $activeLog = LogUser::leftJoin('sysuser', 'log_user.akun', '=', 'sysuser.fsysuserid')
+            ->where('log_user.akun', $user->fsysuserid)
+            ->whereNull('log_user.log_out_date')
+            ->select('log_user.*', 'sysuser.fname')
+            ->latest('log_user.login_date')
+            ->first();
+
+        if ($activeLog) {
+            // Log out the freshly authenticated attempt to prevent simultaneous logins
+            Auth::guard('sysuser')->logout();
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withInput($request->only('fsysuserid'))
+                ->with('active_login_conflict', [
+                    'fname' => $activeLog->fname ?? $user->fname ?? '-',
+                    'akun' => $activeLog->akun,
+                    'ip' => $activeLog->ip ?? '-',
+                    'komp' => $activeLog->komp ?? '-',
+                    'login_date' => $activeLog->login_date ? \Carbon\Carbon::parse($activeLog->login_date)->format('d/m/Y H:i:s') : '-',
+                    'log_out_date' => 'Belum Logout (Sedang Online)',
+                ]);
+        }
 
         // Check maximum concurrent active users quota from setini table (fmaxuser)
         $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
