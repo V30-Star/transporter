@@ -3329,9 +3329,23 @@ class InvoiceController extends Controller
 
     public function update(Request $request, $ftranmtid)
     {
+        // 1. LOAD HEADER
+        $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
+        if (! $header) {
+            return abort(404, 'Faktur penjualan tidak ada.');
+        }
+
+        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
+            return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
+        }
+
+        if ($message = $this->getUsageLockMessage((object) $header)) {
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
+        }
+
         $shouldSendApprovalNotification = false;
         $needsApprovalNotification = $this->shouldRequestInvoiceApproval($request);
-        // 1. VALIDASI
+        // 2. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
             'fjatuhtempo' => ['nullable', 'date'],
@@ -3416,20 +3430,6 @@ class InvoiceController extends Controller
             $normalizedDetailPayload['fitemcode'] ?? [],
             $normalizedDetailPayload
         );
-
-        // 2. LOAD HEADER
-        $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
-        if (! $header) {
-            return abort(404, 'Faktur penjualan tidak ada.');
-        }
-
-        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
-        }
-
-        if ($message = $this->getUsageLockMessage((object) $header)) {
-            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
-        }
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
         $userName = mb_substr($userLogin->fname ?? 'admin', 0, 10);
@@ -3946,7 +3946,7 @@ class InvoiceController extends Controller
                     'fgrosir'          => $updatedHeader->fgrosir,
                     'ftunai'           => $updatedHeader->ftunai,
                     'fketinternal'     => $updatedHeader->fketinternal ?? null,
-                    'ffrom'            => $updatedHeader->ffrom,
+                    'fwhcode'          => $updatedHeader->fwhcode ?? ($request->fwhcode ?? null),
                     'fuseracc'         => $updatedHeader->fuseracc,
                     'fapproval'        => $updatedHeader->fapproval,
                     'fuserapproved'    => $updatedHeader->fuserapproved,
@@ -4029,7 +4029,7 @@ class InvoiceController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => $successMessage,
-                        'redirect_url' => route('invoice.index'),
+                        'redirect_url' => route($this->getRoutePrefix() . '.index'),
                         'success_prompt' => [
                             'type' => 'invoice_create_suratjalan',
                             'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
@@ -4045,7 +4045,7 @@ class InvoiceController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $successMessage,
-                    'redirect_url' => route('invoice.index'),
+                    'redirect_url' => route($this->getRoutePrefix() . '.index'),
                 ]);
             }
             return $redirect;
@@ -4251,7 +4251,7 @@ class InvoiceController extends Controller
                     'fgrosir'          => $invoice->fgrosir,
                     'ftunai'           => $invoice->ftunai,
                     'fketinternal'     => $invoice->fketinternal ?? null,
-                    'ffrom'            => $invoice->ffrom,
+                    'fwhcode'          => $invoice->fwhcode ?? null,
                     'fuseracc'         => $invoice->fuseracc,
                     'fapproval'        => $invoice->fapproval,
                     'fuserapproved'    => $invoice->fuserapproved,
