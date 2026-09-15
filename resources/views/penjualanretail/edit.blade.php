@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Faktur Penjualan - Delete' : ($action === 'view' ? 'Faktur Penjualan - View' :
+@section('title', $action === 'delete' ? 'Penjualan Retail - Delete' : ($action === 'view' ? 'Penjualan Retail - View' :
     'Penjualan Retail - Edit'))
 
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canEditPermission = in_array('updateInvoice', $permissions, true);
-        $canDeletePermission = in_array('deleteInvoice', $permissions, true);
+        $canEditPermission = in_array('updatePenjualanRetail', $permissions, true) || in_array('updateInvoice', $permissions, true);
+        $canDeletePermission = in_array('deletePenjualanRetail', $permissions, true) || in_array('deleteInvoice', $permissions, true);
         $canPenjualanTunai = in_array('BolehPenjualanTunai', $permissions, true);
     @endphp
     <style>
@@ -1941,12 +1941,13 @@
                             @if ($action !== 'view' && $canEditPermission)
                                 @if ($usageLocked)
                                     <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Simpan
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-5 h-5" /> Simpan
                                     </button>
                                 @else
                                     <button type="submit"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                        <x-heroicon-o-check class="w-6 h-6" />
                                         Simpan
                                     </button>
                                 @endif
@@ -1957,25 +1958,26 @@
                                 @endphp
                                 @if (!$isApproved)
                                     <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                         <x-heroicon-o-printer class="w-5 h-5" /> Print
                                     </button>
                                 @elseif ($isPrinted)
                                     <button type="button"
-                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Faktur Penjualan Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                         <x-heroicon-o-printer class="w-5 h-5" /> Print
                                     </button>
                                 @else
                                     <a href="{{ route('penjualanretail.print', $invoice->fsono) }}" target="_blank"
-                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 text-xs font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                         <x-heroicon-o-printer class="w-5 h-5" /> Print
                                     </a>
                                 @endif
                             @endif
                             <button type="button" @click="window.location.href='{{ route('penjualanretail.index') }}'"
-                                class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-6 h-6" />
                                 {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                             </button>
                     </div>
@@ -2307,7 +2309,7 @@
     window.validateAndSubmitInvoiceForm = function(form, isViewMode = false) {
         if (isViewMode) return;
         const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
-        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const alpineData = (tableRoot && window.Alpine ? Alpine.$data(tableRoot) : null) || tableRoot?._x_dataStack?.[0] || null;
         const validRows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : [];
         const isUM = String(document.getElementById('ftypesales')?.value || form.querySelector('[name="ftypesales"]')?.value || '0') === '1';
 
@@ -2357,9 +2359,15 @@
             return;
         }
 
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        const n = validRows.length || Number(form.querySelector('#itemsCount')?.value || 0);
         if (n < 1) {
-            if (alpineData) alpineData.showNoItems = true;
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Ada Item',
+                text: 'Minimal harus ada 1 item barang sebelum menyimpan faktur penjualan retail.',
+                confirmButtonText: 'OK',
+                customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+            });
             return;
         }
 
@@ -2373,7 +2381,7 @@
     window.getInvoiceDuplicateCode = function(form) {
         const seen = new Set();
         const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
-        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const alpineData = (tableRoot && window.Alpine ? Alpine.$data(tableRoot) : null) || tableRoot?._x_dataStack?.[0] || null;
         const rows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : null;
 
         if (rows) {
@@ -2413,7 +2421,8 @@
         }
 
         const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
-        const rows = tableRoot?._x_dataStack?.[0]?.submitItems || [];
+        const alpineData = (tableRoot && window.Alpine ? Alpine.$data(tableRoot) : null) || tableRoot?._x_dataStack?.[0] || null;
+        const rows = alpineData?.submitItems || [];
         for (const row of rows) {
             const inputQty = parseNum(row.qty || row.fqty);
             const refQty = parseNum(row.po_qty || row.do_qty || row.sj_qty || row.qty_ref || row.ref_qty || row.source_qty || row.maxqty || row.fqtyremain_source || row.fqtysisa_source);
@@ -4144,7 +4153,7 @@
     @if (($action ?? '') !== 'view')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
+            const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
             const warningBox = document.getElementById('customerAdvanceWarningBox');
             const warningText = document.getElementById('customerAdvanceWarningText');
             const hiddenInput = document.getElementById('customerCodeHidden');
@@ -4155,7 +4164,7 @@
                 }
 
                 const code = (customerCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
-                // const warning = customerAdvanceWarnings[code] ?? null;
+                const warning = customerAdvanceWarnings[code] ?? null;
 
                 if (!warning || !warning.message) {
                     warningBox.classList.add('hidden');
