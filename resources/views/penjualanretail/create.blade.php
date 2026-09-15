@@ -421,44 +421,23 @@
                             @enderror
                         </div>
 
-                        {{-- Gudang (Wajib) --}}
+                        {{-- Gudang (Disabled - dari mscabang.fgudangretail) --}}
+                        @php
+                            $whCollection = collect($warehouses ?? []);
+                            $currentWhCode = old('fwhcode', $fgudangretail ?? '');
+                            $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
+                            $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
+                        @endphp
                         <div>
                             <label class="block text-xs font-bold mb-1">
                                 Gudang <span class="text-red-500">*</span>
                             </label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_warehouse_id">
-                                    <select id="modal_filter_warehouse_id" name="filter_warehouse_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}"
-                                                {{ old('fwhcode') == $wh->fwhcode ? 'selected' : '' }}>
-                                                {{ $wh->fwhname }} ({{ $wh->fwhcode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0 cursor-pointer z-10" role="button"
-                                        aria-label="Browse Gudang"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
-                                </div>
-                                <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
-                                    value="{{ old('fwhcode') }}" required>
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                    title="Browse Gudang">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                @if (in_array('createGudang', explode(',', session('user_restricted_permissions', '')), true) || in_array('createWh', explode(',', session('user_restricted_permissions', '')), true))
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                        title="Tambah Gudang">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                @endif
-                            </div>
+                            <input type="text"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ $whDisplayText }}"
+                                disabled>
+                            <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
+                                value="{{ $currentWhCode }}" required>
                             @error('fwhcode')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -1943,7 +1922,7 @@
         return {
             savedItems: @json($initialInvoiceItems),
             nextFormIndex: @json($nextInvoiceItemIndex),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: 3,
             browseTarget: null,
             descSavedIndex: null,
             showDescModal: false,

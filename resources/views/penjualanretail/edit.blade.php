@@ -6,8 +6,8 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canEditPermission = in_array('updateInvoice', $permissions, true);
-        $canDeletePermission = in_array('deleteInvoice', $permissions, true);
+        $canEditPermission = in_array('updatePenjualanRetail', $permissions, true) || in_array('updateInvoice', $permissions, true);
+        $canDeletePermission = in_array('deletePenjualanRetail', $permissions, true) || in_array('deleteInvoice', $permissions, true);
         $canPenjualanTunai = in_array('BolehPenjualanTunai', $permissions, true);
     @endphp
     <style>
@@ -420,26 +420,21 @@
                             @enderror
                         </div>
 
-                        {{-- Gudang --}}
+                        {{-- Gudang (Disabled) --}}
+                        @php
+                            $whCollectionReadonly = collect($warehouses ?? []);
+                            $currentWhCodeReadonly = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
+                            $selectedWhReadonly = $whCollectionReadonly->firstWhere('fwhcode', $currentWhCodeReadonly);
+                            $whDisplayTextReadonly = $selectedWhReadonly ? "{$selectedWhReadonly->fwhcode} - {$selectedWhReadonly->fwhname}" : ($currentWhCodeReadonly ?: '-');
+                        @endphp
                         <div>
                             <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="modal_filter_warehouse_id_readonly" name="filter_warehouse_id_readonly"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}"
-                                                {{ old('fwhcode', $invoice->fwhcode ?? '') == $wh->fwhcode ? 'selected' : '' }}>
-                                                {{ $wh->fwhname }} ({{ $wh->fwhcode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <input type="hidden" name="fwhcode_readonly"
-                                    value="{{ old('fwhcode', $invoice->fwhcode ?? '') }}">
-                            </div>
+                            <input type="text"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ $whDisplayTextReadonly }}"
+                                disabled>
+                            <input type="hidden" name="fwhcode_readonly"
+                                value="{{ $currentWhCodeReadonly }}">
                         </div>
 
                         {{-- Barcode (dibawah Customer) --}}
@@ -1150,47 +1145,21 @@
                                     @enderror
                                 </div>
 
-                                {{-- Gudang --}}
+                                {{-- Gudang (Disabled) --}}
+                                @php
+                                    $whCollection = collect($warehouses ?? []);
+                                    $currentWhCode = old('fwhcode', $invoice->fwhcode ?? ($fgudangretail ?? ''));
+                                    $selectedWh = $whCollection->firstWhere('fwhcode', $currentWhCode);
+                                    $whDisplayText = $selectedWh ? "{$selectedWh->fwhcode} - {$selectedWh->fwhname}" : ($currentWhCode ?: '-');
+                                @endphp
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_warehouse_id">
-                                            <select id="modal_filter_warehouse_id" name="filter_warehouse_id"
-                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($warehouses as $wh)
-                                                    <option value="{{ $wh->fwhcode }}"
-                                                        {{ old('fwhcode', $invoice->fwhcode ?? '') == $wh->fwhcode ? 'selected' : '' }}>
-                                                        {{ $wh->fwhname }} ({{ $wh->fwhcode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @if ($action !== 'view')
-                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
-                                                    aria-label="Browse Gudang"
-                                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
-                                            value="{{ old('fwhcode', $invoice->fwhcode ?? '') }}">
-                                        @if ($action !== 'view')
-                                            <button type="button"
-                                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                title="Browse Gudang">
-                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                            </button>
-                                            @if (in_array('createGudang', explode(',', session('user_restricted_permissions', '')), true) || in_array('createWh', explode(',', session('user_restricted_permissions', '')), true))
-                                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
-                                                    title="Tambah Gudang">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            @endif
-                                        @endif
-                                    </div>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ $whDisplayText }}"
+                                        disabled>
+                                    <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
+                                        value="{{ $currentWhCode }}">
                                     @error('fwhcode')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -2012,12 +1981,12 @@
                                 @if ($usageLocked)
                                     <button type="button" disabled title="{{ $usageLockMessage }}"
                                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Simpan
+                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1" /> Update
                                     </button>
                                 @else
                                     <button type="submit"
                                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        Simpan
+                                        Update
                                     </button>
                                 @endif
                             @elseif ($action === 'view')

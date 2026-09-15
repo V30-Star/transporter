@@ -1381,12 +1381,13 @@ class InvoiceController extends Controller
                 ! is_numeric($raw),
                 fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname', 'fgudangretail']);
 
         $canApproval = $this->canApproveCreditLimit();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+        $fgudangretail = trim((string) ($branch->fgudangretail ?? ''));
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
@@ -1408,6 +1409,7 @@ class InvoiceController extends Controller
             'customers' => $customers,
             'salesmans' => $salesmans,
             'warehouses' => $warehouses,
+            'fgudangretail' => $fgudangretail,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
@@ -3087,6 +3089,8 @@ class InvoiceController extends Controller
         }
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
+        $branchObj = DB::table('mscabang')->where('fcabangkode', $fbranchcode)->first(['fgudangretail']);
+        $fgudangretail = trim((string) ($branchObj->fgudangretail ?? ''));
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
@@ -3186,6 +3190,7 @@ class InvoiceController extends Controller
             'customers' => $customers,
             'salesmans' => $salesmans,
             'warehouses' => $warehouses,
+            'fgudangretail' => $fgudangretail,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -3244,6 +3249,8 @@ class InvoiceController extends Controller
         }
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
+        $branchObj = DB::table('mscabang')->where('fcabangkode', $fbranchcode)->first(['fgudangretail']);
+        $fgudangretail = trim((string) ($branchObj->fgudangretail ?? ''));
 
         // $approvalLockMessage = $this->getApprovalLockMessage($invoice);
 
@@ -3298,6 +3305,7 @@ class InvoiceController extends Controller
             'customers' => $customers,
             'salesmans' => $salesmans,
             'warehouses' => $warehouses,
+            'fgudangretail' => $fgudangretail,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -4097,6 +4105,8 @@ class InvoiceController extends Controller
         }
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
+        $branchObj = DB::table('mscabang')->where('fcabangkode', $fbranchcode)->first(['fgudangretail']);
+        $fgudangretail = trim((string) ($branchObj->fgudangretail ?? ''));
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
@@ -4145,10 +4155,17 @@ class InvoiceController extends Controller
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);
 
+        $warehouses = DB::table('mswh')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhname', 'asc')
+            ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
+            'fgudangretail' => $fgudangretail,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
