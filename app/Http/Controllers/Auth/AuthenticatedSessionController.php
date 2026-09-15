@@ -14,11 +14,25 @@ use Illuminate\View\View; // Pastikan RoleAccess model diimport
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
-    public function create(): View
+    public function create(Request $request): View
     {
+        $logId = session('login_log_id');
+        $account = session('fsysuserid');
+
+        if ($logId) {
+            LogUser::where('floguserid', $logId)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
+            session()->forget(['login_log_id', 'session_device_token', 'fsysuserid']);
+        }
+
+        if ($account) {
+            \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
+            LogUser::where('akun', $account)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
+        }
+
         return view('auth.login');
     }
 
@@ -197,12 +211,12 @@ SVG;
             LogUser::where('floguserid', $logId)
                 ->whereNull('log_out_date')
                 ->update(['log_out_date' => now()]);
-        } elseif ($account) {
+        }
+
+        if ($account) {
             LogUser::where('akun', $account)
                 ->whereNull('log_out_date')
-                ->latest('login_date')
-                ->first()
-                ?->update(['log_out_date' => now()]);
+                ->update(['log_out_date' => now()]);
         }
 
         return response()->noContent();

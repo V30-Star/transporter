@@ -2778,6 +2778,47 @@
             });
         })();
     </script>
+    @auth
+        <script>
+            (() => {
+                const closeTabUrl = "{{ route('loguser.close-tab') }}";
+                const logId = "{{ session('login_log_id', '') }}";
+                const account = "{{ Auth::user()->fsysuserid ?? '' }}";
+                let isNavigating = false;
+
+                document.addEventListener('click', (e) => {
+                    const link = e.target.closest('a[href], button[type="submit"], input[type="submit"], [onclick]');
+                    if (link) {
+                        isNavigating = true;
+                        setTimeout(() => { isNavigating = false; }, 3000);
+                    }
+                }, true);
+
+                document.addEventListener('submit', () => {
+                    isNavigating = true;
+                    setTimeout(() => { isNavigating = false; }, 3000);
+                }, true);
+
+                const notifyClose = () => {
+                    if (!isNavigating && closeTabUrl) {
+                        const data = new FormData();
+                        if (logId) data.append('log_id', logId);
+                        if (account) data.append('account', account);
+                        if (navigator.sendBeacon) {
+                            navigator.sendBeacon(closeTabUrl, data);
+                        } else {
+                            fetch(closeTabUrl, { method: 'POST', body: data, credentials: 'same-origin', keepalive: true });
+                        }
+                    }
+                };
+
+                window.addEventListener('beforeunload', notifyClose);
+                window.addEventListener('pagehide', (e) => {
+                    if (!e.persisted) notifyClose();
+                });
+            })();
+        </script>
+    @endauth
 </body>
 
 </html>
