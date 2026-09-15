@@ -60,6 +60,8 @@ class EnsureSingleSession
 
                 return redirect()->route('login')->with('status', 'Sesi Anda telah berakhir karena akun ini telah login di perangkat lain.');
             }
+
+            \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 30);
         }
 
         return $next($request);

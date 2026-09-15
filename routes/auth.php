@@ -58,3 +58,6 @@ Route::middleware('auth')->group(function () {
 Route::post('log-user/close-tab', [AuthenticatedSessionController::class, 'closeTab'])
     ->name('loguser.close-tab');
 
+Route::post('log-user/heartbeat', [AuthenticatedSessionController::class, 'heartbeat'])
+    ->name('loguser.heartbeat');
+

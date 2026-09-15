@@ -13,6 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'log-user/close-tab',
+        'log-user/heartbeat',
     ];
 
 }

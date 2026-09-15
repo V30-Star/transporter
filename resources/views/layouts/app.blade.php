@@ -2782,40 +2782,42 @@
         <script>
             (() => {
                 const closeTabUrl = "{{ route('loguser.close-tab') }}";
+                const heartbeatUrl = "{{ route('loguser.heartbeat') }}";
                 const logId = "{{ session('login_log_id', '') }}";
                 const account = "{{ Auth::user()->fsysuserid ?? '' }}";
-                let isNavigating = false;
 
-                document.addEventListener('click', (e) => {
-                    const link = e.target.closest('a[href], button[type="submit"], input[type="submit"], [onclick]');
-                    if (link) {
-                        isNavigating = true;
-                        setTimeout(() => { isNavigating = false; }, 3000);
-                    }
-                }, true);
+                // 1. Send heartbeat every 10 seconds to indicate this window is alive
+                const pingHeartbeat = () => {
+                    if (!account || !heartbeatUrl) return;
+                    const data = new URLSearchParams({ account: account, log_id: logId });
+                    fetch(heartbeatUrl, {
+                        method: 'POST',
+                        body: data,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        credentials: 'same-origin'
+                    }).catch(() => {});
+                };
+                setInterval(pingHeartbeat, 10000);
 
-                document.addEventListener('submit', () => {
-                    isNavigating = true;
-                    setTimeout(() => { isNavigating = false; }, 3000);
-                }, true);
-
+                // 2. On window / tab close: send close beacon immediately
                 const notifyClose = () => {
-                    if (!isNavigating && closeTabUrl) {
-                        const data = new FormData();
-                        if (logId) data.append('log_id', logId);
-                        if (account) data.append('account', account);
-                        if (navigator.sendBeacon) {
-                            navigator.sendBeacon(closeTabUrl, data);
-                        } else {
-                            fetch(closeTabUrl, { method: 'POST', body: data, credentials: 'same-origin', keepalive: true });
-                        }
+                    if (!closeTabUrl || !account) return;
+                    const data = new URLSearchParams({ account: account, log_id: logId });
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon(closeTabUrl, data);
+                    } else {
+                        fetch(closeTabUrl, {
+                            method: 'POST',
+                            body: data,
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            credentials: 'same-origin',
+                            keepalive: true
+                        }).catch(() => {});
                     }
                 };
 
                 window.addEventListener('beforeunload', notifyClose);
-                window.addEventListener('pagehide', (e) => {
-                    if (!e.persisted) notifyClose();
-                });
+                window.addEventListener('pagehide', notifyClose);
             })();
         </script>
     @endauth

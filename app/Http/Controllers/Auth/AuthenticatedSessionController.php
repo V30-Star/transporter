@@ -105,31 +105,42 @@ SVG;
             ->where('login_date', '<', now()->subMinutes($sessionLifetime))
             ->update(['log_out_date' => now()]);
 
-        // Check if there is an active online session in log_user
-        $activeLog = LogUser::leftJoin('sysuser', 'log_user.akun', '=', 'sysuser.fsysuserid')
-            ->where('log_user.akun', $user->fsysuserid)
-            ->whereNull('log_user.log_out_date')
-            ->select('log_user.*', 'sysuser.fname')
-            ->latest('log_user.login_date')
-            ->first();
+        // Check if there is an active online session with live heartbeat for this account
+        $lastHeartbeat = \Illuminate\Support\Facades\Cache::get("user_heartbeat:{$user->fsysuserid}");
+        $isLiveOnline = $lastHeartbeat && (now()->timestamp - (int) $lastHeartbeat) <= 20;
 
-        if ($activeLog) {
-            // Log out the freshly authenticated attempt to prevent simultaneous logins
-            Auth::guard('sysuser')->logout();
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if (! $isLiveOnline) {
+            // No active open window / window was closed -> close stale session
+            LogUser::where('akun', $user->fsysuserid)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
+        } else {
+            // Another device is actively running and heartbeating right now
+            $activeLog = LogUser::leftJoin('sysuser', 'log_user.akun', '=', 'sysuser.fsysuserid')
+                ->where('log_user.akun', $user->fsysuserid)
+                ->whereNull('log_user.log_out_date')
+                ->select('log_user.*', 'sysuser.fname')
+                ->latest('log_user.login_date')
+                ->first();
 
-            return redirect()->route('login')
-                ->withInput($request->only('fsysuserid'))
-                ->with('active_login_conflict', [
-                    'fname' => $activeLog->fname ?? $user->fname ?? '-',
-                    'akun' => $activeLog->akun,
-                    'ip' => $activeLog->ip ?? '-',
-                    'komp' => $activeLog->komp ?? '-',
-                    'login_date' => $activeLog->login_date ? \Carbon\Carbon::parse($activeLog->login_date)->format('d/m/Y H:i:s') : '-',
-                    'log_out_date' => 'Belum Logout (Sedang Online)',
-                ]);
+            if ($activeLog) {
+                // Log out the freshly authenticated attempt to prevent simultaneous logins
+                Auth::guard('sysuser')->logout();
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withInput($request->only('fsysuserid'))
+                    ->with('active_login_conflict', [
+                        'fname' => $activeLog->fname ?? $user->fname ?? '-',
+                        'akun' => $activeLog->akun,
+                        'ip' => $activeLog->ip ?? '-',
+                        'komp' => $activeLog->komp ?? '-',
+                        'login_date' => $activeLog->login_date ? \Carbon\Carbon::parse($activeLog->login_date)->format('d/m/Y H:i:s') : '-',
+                        'log_out_date' => 'Belum Logout (Sedang Online)',
+                    ]);
+            }
         }
 
         // Check maximum concurrent active users quota from setini table (fmaxuser)
@@ -159,7 +170,7 @@ SVG;
             }
         }
 
-        // Close any previous sessions for this account (treat previous window close as logged out)
+        // Close any previous sessions for this account
         LogUser::where('akun', $user->fsysuserid)
             ->whereNull('log_out_date')
             ->update(['log_out_date' => now()]);
@@ -198,9 +209,25 @@ SVG;
         ]);
 
         \Illuminate\Support\Facades\Cache::put("user_active_device_token:{$user->fsysuserid}", $deviceToken, now()->addMinutes($sessionLifetime));
+        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 30);
         cookie()->queue(cookie('app_session_device_token', $deviceToken, $sessionLifetime, null, null, false, true));
 
         return redirect()->intended(RouteServiceProvider::HOME);
+    }
+
+    /**
+     * Heartbeat keep-alive from active browser tab.
+     */
+    public function heartbeat(Request $request)
+    {
+        $user = Auth::guard('sysuser')->user() ?? Auth::user();
+        $account = $user?->fsysuserid ?? session('fsysuserid') ?? $request->input('account');
+
+        if ($account) {
+            \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 30);
+        }
+
+        return response()->noContent();
     }
 
     /**
@@ -214,17 +241,15 @@ SVG;
 
         if ($account) {
             \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
+            \Illuminate\Support\Facades\Cache::forget("user_heartbeat:{$account}");
+            LogUser::where('akun', $account)
+                ->whereNull('log_out_date')
+                ->update(['log_out_date' => now()]);
         }
         cookie()->queue(cookie()->forget('app_session_device_token'));
 
         if ($logId) {
             LogUser::where('floguserid', $logId)
-                ->whereNull('log_out_date')
-                ->update(['log_out_date' => now()]);
-        }
-
-        if ($account) {
-            LogUser::where('akun', $account)
                 ->whereNull('log_out_date')
                 ->update(['log_out_date' => now()]);
         }
