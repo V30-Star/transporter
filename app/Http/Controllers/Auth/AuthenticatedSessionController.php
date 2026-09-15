@@ -100,7 +100,6 @@ SVG;
         $request->authenticate();
 
         $user = Auth::user();
-        $isForceLogout = $request->boolean('force_logout');
         $sessionLifetime = (int) config('session.lifetime', 120);
 
         // Auto close stale sessions for this account that exceeded session lifetime
@@ -108,33 +107,6 @@ SVG;
             ->whereNull('log_out_date')
             ->where('login_date', '<', now()->subMinutes($sessionLifetime))
             ->update(['log_out_date' => now()]);
-
-        // Check if there is an active online session in log_user
-        $activeLog = LogUser::leftJoin('sysuser', 'log_user.akun', '=', 'sysuser.fsysuserid')
-            ->where('log_user.akun', $user->fsysuserid)
-            ->whereNull('log_user.log_out_date')
-            ->select('log_user.*', 'sysuser.fname')
-            ->latest('log_user.login_date')
-            ->first();
-
-        if ($activeLog && ! $isForceLogout) {
-            // Log out the freshly authenticated attempt
-            Auth::guard('sysuser')->logout();
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')
-                ->withInput($request->only('fsysuserid'))
-                ->with('active_login_conflict', [
-                    'fname' => $activeLog->fname ?? $user->fname ?? '-',
-                    'akun' => $activeLog->akun,
-                    'ip' => $activeLog->ip ?? '-',
-                    'komp' => $activeLog->komp ?? '-',
-                    'login_date' => $activeLog->login_date ? \Carbon\Carbon::parse($activeLog->login_date)->format('d/m/Y H:i:s') : '-',
-                    'log_out_date' => 'Belum Logout (Sedang Online)',
-                ]);
-        }
 
         // Check maximum concurrent active users quota from setini table (fmaxuser)
         $setini = \Illuminate\Support\Facades\DB::table('setini')->first();
@@ -163,8 +135,7 @@ SVG;
             }
         }
 
-        // If force_logout or no active session exists:
-        // Close any previous sessions for this account
+        // Close any previous sessions for this account (treat previous window close as logged out)
         LogUser::where('akun', $user->fsysuserid)
             ->whereNull('log_out_date')
             ->update(['log_out_date' => now()]);
