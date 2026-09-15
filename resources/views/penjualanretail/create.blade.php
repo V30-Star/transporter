@@ -421,28 +421,50 @@
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-500 @enderror"
-                                    placeholder="Masukkan jumlah hari">
-                                @error('ftempohr')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                        {{-- Gudang (Wajib) --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">
+                                Gudang <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex">
+                                <div class="relative flex-1" for="modal_filter_warehouse_id">
+                                    <select id="modal_filter_warehouse_id" name="filter_warehouse_id"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($warehouses as $wh)
+                                            <option value="{{ $wh->fwhcode }}"
+                                                {{ old('fwhcode') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ $wh->fwhname }} ({{ $wh->fwhcode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                        aria-label="Browse Gudang"
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                </div>
+                                <input type="hidden" name="fwhcode" id="warehouseCodeHidden"
+                                    value="{{ old('fwhcode') }}" required>
+                                <button type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    title="Browse Gudang">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                @if (in_array('createGudang', explode(',', session('user_restricted_permissions', '')), true) || in_array('createWh', explode(',', session('user_restricted_permissions', '')), true))
+                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Tambah Gudang">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </a>
+                                @endif
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                                @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @error('fwhcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        {{-- Barcode --}}
+                        {{-- Barcode (dibawah Customer) --}}
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
@@ -458,6 +480,29 @@
                                 @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
                                 @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
                         </div>
+
+                        {{-- TOP (Hari) (dibawah Salesman) --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-500 @enderror"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Tgl. Jatuh Tempo (dibawah Gudang) --}}
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 function calculateDueDate() {
@@ -489,7 +534,8 @@
                                 }
                             });
                         </script>
-                        <div class="col-span-2">
+
+                        <div class="col-span-3">
                             <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
@@ -1286,6 +1332,8 @@
 
             <x-transaction.browse-salesman-modal />
 
+            <x-transaction.browse-warehouse-modal />
+
             <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
             @php
@@ -1559,6 +1607,18 @@
                 icon: 'warning',
                 title: 'Produk Duplikat',
                 text: `Kode produk ${duplicateCode} dengan nomor acak yang sama tidak boleh dobel dalam satu Faktur Penjualan.`,
+                confirmButtonText: 'OK',
+                customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+            });
+            return;
+        }
+
+        const whCode = (document.getElementById('warehouseCodeHidden')?.value || '').trim();
+        if (!whCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Gudang Wajib Dipilih',
+                text: 'Silakan pilih Gudang terlebih dahulu.',
                 confirmButtonText: 'OK',
                 customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
             });
@@ -3251,6 +3311,7 @@
 </script>
 @include('components.transaction.browse-customer-script')
 @include('components.transaction.browse-salesman-script')
+@include('components.transaction.browse-warehouse-script')
 
 <script>
     window.prhFormModal = function() {

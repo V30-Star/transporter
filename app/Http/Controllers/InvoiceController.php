@@ -1397,11 +1397,17 @@ class InvoiceController extends Controller
 
         $productMap = $this->buildProductMap($products);
 
+        $warehouses = DB::table('mswh')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhname', 'asc')
+            ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
+
         return view($this->getViewPrefix() . '.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
@@ -2030,10 +2036,14 @@ class InvoiceController extends Controller
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+                'fwhcode' => $this->getRoutePrefix() === 'penjualanretail'
+                    ? ['required', 'string', 'max:10']
+                    : ['nullable', 'string', 'max:10'],
             ], [
                 'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
                 'fcustno.required' => 'Customer wajib diisi.',
                 'fitemcode.required' => 'Minimal harus ada 1 item barang.',
+                'fwhcode.required' => 'Gudang wajib dipilih.',
             ]);
 
             $fsodateVal = Carbon::parse($request->fsodate);
@@ -2540,6 +2550,7 @@ class InvoiceController extends Controller
                     'fdateapproved' => $isApproved ? $now : null,
                     'fprint' => 0,
                     'ftunai' => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
+                    'fwhcode' => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo' => $fjatuhtempo,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
@@ -3165,10 +3176,16 @@ class InvoiceController extends Controller
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);
 
+        $warehouses = DB::table('mswh')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhname', 'asc')
+            ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -3271,10 +3288,16 @@ class InvoiceController extends Controller
         // Prepare the product map for frontend
         $productMap = $this->buildProductMap($products);
 
+        $warehouses = DB::table('mswh')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhname', 'asc')
+            ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -3354,6 +3377,11 @@ class InvoiceController extends Controller
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fwhcode' => $this->getRoutePrefix() === 'penjualanretail'
+                ? ['required', 'string', 'max:10']
+                : ['nullable', 'string', 'max:10'],
+        ], [
+            'fwhcode.required' => 'Gudang wajib dipilih.',
         ]);
 
         $normalizedDetailPayload = $this->normalizeInvoiceDetailPayload([
@@ -3853,6 +3881,7 @@ class InvoiceController extends Controller
                     'fuseracc'         => mb_substr($userid, 0, 30),
                     'fapproval'        => $headerRefNo !== '' ? 1 : 0,
                     'ftunai'           => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
+                    'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,
                 ];
 
