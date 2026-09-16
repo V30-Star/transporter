@@ -90,7 +90,13 @@ class DashboardController extends Controller
         if ($canViewTotalPiutangUsaha || $canViewBelumJatuhTempo || $canViewLewatJatuhTempo) {
             $piutangBaseQuery = DB::table('tranmt')
                 ->where('ftrcode', 'INV')
-                ->whereRaw('COALESCE(famountremain, 0) > 0');
+                ->whereRaw('COALESCE(famountremain, 0) > 0')
+                ->where(function ($q) {
+                    $q->whereNull('ftunai')
+                        ->orWhere('ftunai', 0)
+                        ->orWhere('ftunai', '0')
+                        ->orWhere('ftunai', '');
+                });
             $this->applyBranchVisibilityScope($piutangBaseQuery, 'fbranchcode');
 
             if ($canViewBelumJatuhTempo || $canViewTotalPiutangUsaha) {
@@ -119,6 +125,12 @@ class DashboardController extends Controller
                 ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
                 ->where('m.ftrcode', 'INV')
                 ->whereRaw('COALESCE(m.famountremain, 0) > 0')
+                ->where(function ($q) {
+                    $q->whereNull('m.ftunai')
+                        ->orWhere('m.ftunai', 0)
+                        ->orWhere('m.ftunai', '0')
+                        ->orWhere('m.ftunai', '');
+                })
                 ->whereNotNull('m.fjatuhtempo')
                 ->whereRaw('CAST(m.fjatuhtempo AS DATE) < CURRENT_DATE')
                 ->selectRaw('m.fsono, m.fsodate, m.fjatuhtempo, m.fcustno, c.fcustomername, m.famountremain, (CURRENT_DATE - CAST(m.fjatuhtempo AS DATE)) as days_overdue');

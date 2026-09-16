@@ -638,7 +638,13 @@ class InvoiceController extends Controller
 
         $outstandingQuery = DB::table('tranmt')
             ->where('fcustno', $customerCode)
-            ->whereRaw('COALESCE(famountremain, 0) > 0');
+            ->whereRaw('COALESCE(famountremain, 0) > 0')
+            ->where(function ($q) {
+                $q->whereNull('ftunai')
+                    ->orWhere('ftunai', 0)
+                    ->orWhere('ftunai', '0')
+                    ->orWhere('ftunai', '');
+            });
 
         if ($exceptTranmtId) {
             $outstandingQuery->where('ftranmtid', '<>', $exceptTranmtId);
@@ -655,6 +661,12 @@ class InvoiceController extends Controller
             $overdueQuery = DB::table('tranmt')
                 ->where('fcustno', $customerCode)
                 ->whereRaw('COALESCE(famountremain, 0) > 0')
+                ->where(function ($q) {
+                    $q->whereNull('ftunai')
+                        ->orWhere('ftunai', 0)
+                        ->orWhere('ftunai', '0')
+                        ->orWhere('ftunai', '');
+                })
                 ->whereNotNull('fjatuhtempo')
                 ->whereRaw('CAST(NOW() AS DATE) - CAST(fjatuhtempo AS DATE) > ?', [$maxTempo]);
 

@@ -156,6 +156,12 @@ class PelunasanCustomerController extends Controller
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
             ->whereIn('mt.ftrcode', ['INV', 'REJ', 'RUJ'])
             ->whereRaw('COALESCE(mt.famountremain, 0) > 0')
+            ->where(function ($q) {
+                $q->whereNull('mt.ftunai')
+                    ->orWhere('mt.ftunai', 0)
+                    ->orWhere('mt.ftunai', '0')
+                    ->orWhere('mt.ftunai', '');
+            })
             ->when($customerCode !== '', function ($query) use ($customerCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
             });

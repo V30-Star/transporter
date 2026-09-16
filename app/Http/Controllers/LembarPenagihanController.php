@@ -118,6 +118,12 @@ class LembarPenagihanController extends Controller
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 't.fcustno')
             ->whereIn('t.ftrcode', $codes)
             ->whereRaw('COALESCE(t.famountremain, t.famountso, 0) <> 0')
+            ->where(function ($q) {
+                $q->whereNull('t.ftunai')
+                    ->orWhere('t.ftunai', 0)
+                    ->orWhere('t.ftunai', '0')
+                    ->orWhere('t.ftunai', '');
+            })
             ->when($customerCode !== '', fn ($q) => $q->where('t.fcustno', $customerCode))
             ->select([
                 't.ftrcode',

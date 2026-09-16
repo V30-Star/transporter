@@ -51,7 +51,10 @@ class ListingPiutangPenjualanController extends Controller
             ->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ', 'RUJ'] : ['INV'])
             ->where('m.fsodate', '<=', $perTanggal)
             ->where(function ($q) {
-                $q->whereNull('m.ftunai')->orWhere('m.ftunai', '0')->orWhere('m.ftunai', '');
+                $q->whereNull('m.ftunai')
+                    ->orWhere('m.ftunai', 0)
+                    ->orWhere('m.ftunai', '0')
+                    ->orWhere('m.ftunai', '');
             });
 
         $this->applyBranchVisibilityScope($base, 'm.fbranchcode');

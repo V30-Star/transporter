@@ -289,6 +289,12 @@ class SalesOrderController extends Controller
         $outstandingTotal = (float) DB::table('tranmt')
             ->where('fcustno', $customerCode)
             ->whereRaw('COALESCE(famountremain, 0) > 0')
+            ->where(function ($q) {
+                $q->whereNull('ftunai')
+                    ->orWhere('ftunai', 0)
+                    ->orWhere('ftunai', '0')
+                    ->orWhere('ftunai', '');
+            })
             ->sum('famountremain');
 
         $transactionAmount = max(0, $currentTransactionAmount);
@@ -301,6 +307,12 @@ class SalesOrderController extends Controller
             $overdueItems = DB::table('tranmt')
                 ->where('fcustno', $customerCode)
                 ->whereRaw('COALESCE(famountremain, 0) > 0')
+                ->where(function ($q) {
+                    $q->whereNull('ftunai')
+                        ->orWhere('ftunai', 0)
+                        ->orWhere('ftunai', '0')
+                        ->orWhere('ftunai', '');
+                })
                 ->whereNotNull('fjatuhtempo')
                 ->whereRaw('CAST(NOW() AS DATE) - CAST(fjatuhtempo AS DATE) > ?', [$maxTempo])
                 ->orderBy('fjatuhtempo')

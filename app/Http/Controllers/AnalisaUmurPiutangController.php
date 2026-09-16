@@ -131,6 +131,12 @@ class AnalisaUmurPiutangController extends Controller
     private function applyBaseFilters($query, Request $request, string $alias, string $customerColumn, bool $salesman): void
     {
         $this->applyBranchVisibilityScope($query, "{$alias}.fbranchcode");
+        $query->where(function ($q) use ($alias) {
+            $q->whereNull("{$alias}.ftunai")
+                ->orWhere("{$alias}.ftunai", 0)
+                ->orWhere("{$alias}.ftunai", '0')
+                ->orWhere("{$alias}.ftunai", '');
+        });
         if ($request->filled('branch_codes')) {
             $query->whereIn("{$alias}.fbranchcode", (array) $request->input('branch_codes'));
         }
