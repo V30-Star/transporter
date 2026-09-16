@@ -2345,17 +2345,6 @@
                 let rawPrice = this.parseMoney(row.fpriceInput);
                 let absPrice = Math.abs(rawPrice);
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
-                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
-                if (refPrice > 0 && absPrice > refPrice) {
-                    absPrice = refPrice;
-                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
-                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
-                    if (typeof window.showAppWarningAlert === 'function') {
-                        window.showAppWarningAlert('WARNING', message);
-                    } else if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
-                    }
-                }
                 const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
                 row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 this.recalc(row);
@@ -2374,17 +2363,6 @@
                 let rawPrice = this.parseMoney(row.fpriceInput !== undefined ? row.fpriceInput : row.fprice);
                 let absPrice = Math.abs(rawPrice);
                 const isUM = String(row?.fitemcode || '').toUpperCase().trim().startsWith('UM');
-                const refPrice = Math.abs(Number(row.ref_price || row.maxprice || row.source_price || row.fsisadp || 0));
-                if (refPrice > 0 && absPrice > refPrice) {
-                    absPrice = refPrice;
-                    const labelRef = isUM ? 'sisa Uang Muka' : 'Harga Referensi';
-                    const message = `Harga tidak boleh melebihi ${labelRef} (${this.fmt(refPrice)}).`;
-                    if (typeof window.showAppWarningAlert === 'function') {
-                        window.showAppWarningAlert('WARNING', message);
-                    } else if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
-                    }
-                }
                 const shouldBeNegative = (isUM && !this.isUangMuka() && this.hasRowRef(row)) || isNegativeInput || rawPrice < 0;
                 row.fprice = shouldBeNegative ? -absPrice : absPrice;
                 row.fpriceInput = (shouldBeNegative && absPrice > 0 ? '-' : '') + this.fmt(absPrice);
