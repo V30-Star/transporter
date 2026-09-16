@@ -35,46 +35,46 @@
         <table id="pengeluaranKasTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">{{ 'Cab.' }}</th>
-                    <th class="border px-2 py-2">{{ 'Voucher No.' }}</th>
-                    <th class="border px-2 py-2">{{ 'Tanggal' }}</th>
-                    <th class="border px-2 py-2">{{ 'Account' }}</th>
-                    <th class="border px-2 py-2">{{ 'No.Giro/Cek' }}</th>
-                    <th class="border px-2 py-2" style="width: 24%; min-width: 16rem;">{{ 'Keterangan' }}</th>
-                    <th class="border px-2 py-2 text-right">{{ 'Nilai Bayar' }}</th>
-                    <th class="border px-2 py-2 no-sort">{{ 'Aksi' }}</th>
+                    <th class="border px-2 py-1">{{ 'Cab.' }}</th>
+                    <th class="border px-2 py-1">{{ 'Voucher No.' }}</th>
+                    <th class="border px-2 py-1">{{ 'Tanggal' }}</th>
+                    <th class="border px-2 py-1">{{ 'Account' }}</th>
+                    <th class="border px-2 py-1">{{ 'No.Giro/Cek' }}</th>
+                    <th class="border px-2 py-1" style="width: 24%; min-width: 16rem;">{{ 'Keterangan' }}</th>
+                    <th class="border px-2 py-1 text-right">{{ 'Nilai Bayar' }}</th>
+                    <th class="border px-2 py-1 no-sort">{{ 'Aksi' }}</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($records as $record)
                     <tr data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
                         data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
-                        <td class="border px-2 py-2">{{ $record->fbranchcode }}</td>
-                        <td class="border px-2 py-2 uppercase font-mono">{{ $record->fkasmtno }}</td>
-                        <td class="border px-2 py-2">
+                        <td class="border px-2 py-1">{{ $record->fbranchcode }}</td>
+                        <td class="border px-2 py-1 uppercase font-mono">{{ $record->fkasmtno }}</td>
+                        <td class="border px-2 py-1">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
                         </td>
-                        <td class="border px-2 py-2">{{ $record->account_summary }}</td>
-                        <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
+                        <td class="border px-2 py-1">{{ $record->account_summary }}</td>
+                        <td class="border px-2 py-1">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-1" style="width: 24%; min-width: 16rem;">
                             <div class="kas-description-cell">{{ $record->description_summary }}</div>
                         </td>
-                        <td class="border px-2 py-2 text-right whitespace-nowrap"
+                        <td class="border px-2 py-1 text-right whitespace-nowrap"
                             data-order="{{ (float) $record->payment_amount }}">
                             Rp {{ number_format((float) $record->payment_amount, 2, ',', '.') }}
                         </td>
-                        <td class="border px-2 py-2 text-right whitespace-nowrap">
+                        <td class="border px-2 py-1 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5 flex-nowrap">
                                 <a href="{{ route('pengeluarankas.view', $record->fkasmtno) }}"
-                                    class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                    class="inline-flex items-center bg-slate-500 text-white px-2.5 py-1 text-xs rounded hover:bg-slate-600">
                                     <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ 'View' }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.edit', $record->fkasmtno) }}"
-                                    class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                    class="inline-flex items-center bg-yellow-500 text-white px-2.5 py-1 text-xs rounded hover:bg-yellow-600">
                                     <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ 'Edit' }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.delete', $record->fkasmtno) }}"
-                                    class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                    class="inline-flex items-center bg-red-600 text-white px-2.5 py-1 text-xs rounded hover:bg-red-700">
                                     <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ 'Hapus' }}
                                 </a>
                             </div>

@@ -9,8 +9,8 @@
     $backRoute = $backRoute ?? route('pengeluarankas.index');
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld) ? collect($detailsOld)->map(fn($row) => (object) $row) : $details;
-    if (! $isReadOnly && ! $isDeleteMode && $detailRows->count() < 5) {
-        $detailRows = $detailRows->concat(collect(array_map(fn() => new stdClass, range(1, 5 - $detailRows->count()))));
+    if (! $isReadOnly && ! $isDeleteMode && $detailRows->count() < 3) {
+        $detailRows = $detailRows->concat(collect(array_map(fn() => new stdClass, range(1, 3 - $detailRows->count()))));
     }
     $selectedHeader = old('faccountheader', $pengeluaranKas->faccountheader);
     $isGiroMundur = old('fgiromundur', $pengeluaranKas->fgiromundur ?? '0') === '1';
@@ -144,7 +144,7 @@
         }
 
         .select2-container--default .select2-selection--single {
-            height: 32px !important;
+            height: 26px !important;
             border-color: #d1d5db !important;
             border-radius: 0.25rem !important;
             display: flex !important;
@@ -152,21 +152,50 @@
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            font-size: 0.875rem !important;
+            font-size: 0.75rem !important;
             color: #111827 !important;
             line-height: normal !important;
-            padding-left: 0.5rem !important;
-            padding-right: 1.5rem !important;
+            padding-left: 0.375rem !important;
+            padding-right: 1.25rem !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 30px !important;
+            height: 24px !important;
         }
 
         .select2-container--default.select2-container--disabled .select2-selection--single {
             background-color: #f9fafb !important;
             cursor: not-allowed !important;
             opacity: 0.6 !important;
+        }
+
+        .pr-detail-table th,
+        .pr-detail-table td {
+            padding: .15rem .25rem !important;
+        }
+
+        .pr-detail-table input:not([type="hidden"]),
+        .pr-detail-table select,
+        .pr-detail-table button,
+        .pr-detail-table textarea {
+            min-height: 1.625rem;
+            padding-top: .15rem !important;
+            padding-bottom: .15rem !important;
+            line-height: 1.15rem;
+            font-size: .75rem;
+        }
+
+        .pr-detail-table .rounded-l.border,
+        .pr-detail-table .rounded-r.border {
+            min-height: 1.625rem;
+            padding-top: .15rem !important;
+            padding-bottom: .15rem !important;
+            line-height: 1.15rem;
+        }
+
+        .pr-detail-table button {
+            display: inline-flex;
+            align-items: center;
         }
     </style>
 
@@ -177,22 +206,22 @@
         @endif
 
         @if (session('error'))
-            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
-                <div class="flex items-start gap-3">
-                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div class="mb-2 rounded-lg border border-red-200 bg-red-50 p-2.5 text-red-700 shadow-sm">
+                <div class="flex items-start gap-2">
+                    <x-heroicon-o-exclamation-triangle class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                     <div>
-                        <h3 class="text-sm font-bold text-red-800">{{ session('error') }}</h3>
+                        <h3 class="text-xs font-bold text-red-800">{{ session('error') }}</h3>
                     </div>
                 </div>
             </div>
         @endif
         @if ($errors->any())
-            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
-                <div class="flex items-start gap-3">
-                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div class="mb-2 rounded-lg border border-red-200 bg-red-50 p-2.5 text-red-700 shadow-sm">
+                <div class="flex items-start gap-2">
+                    <x-heroicon-o-exclamation-triangle class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                     <div>
-                        <h3 class="text-sm font-bold text-red-800">Terjadi Kesalahan Validasi</h3>
-                        <ul class="mt-1.5 list-disc list-inside text-xs space-y-1">
+                        <h3 class="text-xs font-bold text-red-800">Terjadi Kesalahan Validasi</h3>
+                        <ul class="mt-1 list-disc list-inside text-[11px] space-y-0.5">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -202,74 +231,73 @@
             </div>
         @endif
 
-        <div class="border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="px-6 py-4">
-                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas {{ $transactionLabel }}</p>
-                    </div>
+        <div class="border border-gray-200 rounded-xl bg-white mb-2 overflow-hidden shadow-xs">
+            <div class="flex items-center gap-2 px-3 pt-2 pb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">Identitas {{ $transactionLabel }}</p>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-2.5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1">{{ 'Cabang' }}</label>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'Cabang' }}</label>
                         <input type="text" value="{{ $resolvedBranchLabel }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                            class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" readonly>
                         <input type="hidden" name="fbranchcode" value="{{ $resolvedBranchCode }}">
                         @error('fbranchcode')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold mb-1">
+                        <label class="block text-[11px] font-bold mb-0.5">
                             Voucher No. <span class="text-red-500" x-show="!autoCode">*</span>
                         </label>
                         @if ($isReadOnly)
                             <input type="text" name="fkasmtno" value="{{ strtoupper(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')) }}"
-                                class="w-full border-gray-300 rounded-lg px-3 py-2 uppercase bg-gray-100 cursor-not-allowed" readonly>
+                                class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" readonly>
                         @else
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
                                 <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
                                     :required="!autoCode"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                                    class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs uppercase focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
                                     :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
                                     oninput="this.value = this.value.toUpperCase()">
-                                <label class="inline-flex items-center select-none cursor-pointer">
-                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
+                                <label class="inline-flex items-center select-none text-[11px] font-bold text-gray-600 cursor-pointer shrink-0">
+                                    <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
+                                    <span class="ml-1">{{ 'Auto' }}</span>
                                 </label>
                             </div>
                         @endif
                         @error('fkasmtno')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'Tanggal' }}</label>
                         <input type="date" name="fkasmtdate"
                             value="{{ old('fkasmtdate', optional($pengeluaranKas->fkasmtdate)->format('Y-m-d') ?? $pengeluaranKas->fkasmtdate) }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                            class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>
                         @error('fkasmtdate')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold mb-1">{{ 'Cash / Bank Account' }}</label>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'Cash / Bank Account' }}</label>
                         @if ($isReadOnly)
                             <input type="text" value="{{ $selectedHeaderLabel }}"
-                                class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                                class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" readonly>
                         @else
                             <div>
-                                <select name="faccountheader" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <select name="faccountheader" class="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">{{ 'Pilih account' }}</option>
                                     @foreach ($headerAccounts as $account)
                                         <option value="{{ $account->faccount }}"
@@ -284,85 +312,77 @@
                             <input type="hidden" name="faccountheader" value="{{ $selectedHeader }}">
                         @endif
                         @error('faccountheader')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold mb-1">{{ 'Penerima' }}</label>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'Penerima' }}</label>
                         <input type="text" name="fwhom" value="{{ old('fwhom', $pengeluaranKas->fwhom) }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                            class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>
                         @error('fwhom')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
-                        <div class="flex items-center gap-3 flex-nowrap">
-                            <div class="w-[12rem] shrink-0">
-                                <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
-                                    class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                                    {{ $isReadOnly ? 'readonly' : '' }}>
-                            </div>
-
-                            <div class="flex items-center h-10 px-1 shrink-0">
-                                <label class="inline-flex items-center gap-2 cursor-pointer whitespace-nowrap">
-                                    <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
-                                        class="rounded border-gray-300">
-                                    <span class="text-sm text-gray-700">{{ 'Giro Mundur' }}</span>
-                                </label>
-                                <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
-                            </div>
-
-                            <div class="flex items-center gap-2 shrink-0">
-                                <label class="text-xs font-bold whitespace-nowrap">{{ 'Tgl. Jatuh Tempo' }}</label>
-                                <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
-                                    class="w-[12rem] border-gray-300 rounded-lg px-3 py-2"
-                                    :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
-                                    :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
-                            </div>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'No.Giro/Cek' }}</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
+                                class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
+                                {{ $isReadOnly ? 'readonly' : '' }}>
+                            <label class="inline-flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0 text-[11px] text-gray-700">
+                                <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
+                                    class="rounded border-gray-300 w-3.5 h-3.5">
+                                <span>{{ 'Giro Mundur' }}</span>
+                            </label>
+                            <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
                         </div>
-
                         @error('fnogiro')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                         @error('fgiromundur')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                        @error('ftgljatuhtempo')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
-                        <textarea name="fket" rows="2"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                            {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $pengeluaranKas->fket) }}</textarea>
+                    <div>
+                        <label class="block text-[11px] font-bold mb-0.5 whitespace-nowrap">{{ 'Tgl. Jatuh Tempo' }}</label>
+                        <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
+                            class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs"
+                            :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500'"
+                            :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
+                        @error('ftgljatuhtempo')
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold mb-0.5">{{ 'Keterangan' }}</label>
+                        <input type="text" name="fket" value="{{ old('fket', $pengeluaranKas->fket) }}"
+                            class="w-full border border-gray-300 rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
+                            {{ $isReadOnly ? 'readonly' : '' }}>
                         @error('fket')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="px-6 py-4">
-                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
-                    </div>
+        <div class="border border-gray-200 rounded-xl bg-white mb-2 overflow-hidden shadow-xs">
+            <div class="flex items-center gap-2 px-3 pt-2 pb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
             </div>
-            <div class="p-6">
+            <div class="p-2.5 space-y-2">
                 <div class="overflow-auto border rounded">
-                <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
+                <table class="pr-detail-table min-w-full text-xs balanced-detail-table"
                     data-skip-auto-detail-style="true">
                     <colgroup>
                         @if ($isReadOnly)
@@ -384,22 +404,22 @@
                     </colgroup>
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="p-2 text-left w-10">No</th>
-                            <th class="p-2 text-left w-40">Kode Account</th>
-                            <th class="p-2 text-left w-56">Nama Account</th>
-                            <th class="p-2 text-left w-56" data-role="subaccount-header-title">{{ $subAccountHeaderTitle }}</th>
-                            <th class="p-2 text-left w-[28rem]">Uraian</th>
-                            <th class="p-2 text-right w-44 whitespace-nowrap">Nilai Bayar</th>
+                            <th class="p-1 text-left w-10">No</th>
+                            <th class="p-1 text-left w-40">Kode Account</th>
+                            <th class="p-1 text-left w-56">Nama Account</th>
+                            <th class="p-1 text-left w-56" data-role="subaccount-header-title">{{ $subAccountHeaderTitle }}</th>
+                            <th class="p-1 text-left w-[28rem]">Uraian</th>
+                            <th class="p-1 text-right w-44 whitespace-nowrap">Nilai Bayar</th>
                             @unless ($isReadOnly)
-                                <th class="p-2 text-center text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                <th class="p-1 text-center text-xs font-semibold text-gray-500 uppercase">Aksi</th>
                             @endunless
                         </tr>
                     </thead>
                     <tbody id="detailRows">
                         @foreach ($detailRows as $index => $detail)
                             <tr class="border-t align-top detail-row hover:bg-gray-50">
-                                <td class="p-2 text-gray-400 text-center align-middle">{{ $index + 1 }}</td>
-                                <td class="p-2">
+                                <td class="p-1 text-gray-400 text-center align-middle">{{ $index + 1 }}</td>
+                                <td class="p-1">
                                     @php
                                         $detailAccountCode = (string) old(
                                             "details.$index.faccount",
@@ -416,13 +436,13 @@
                                         );
                                     @endphp
                                     @if ($isReadOnly)
-                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono">{{ $detailAccountCode }}</div>
+                                        <div class="px-2 py-0.5 text-xs text-gray-655 bg-gray-50 border rounded font-mono">{{ $detailAccountCode }}</div>
                                         <input type="hidden" name="details[{{ $index }}][faccount]"
                                             value="{{ $detailAccountCode }}">
                                     @else
                                         <div class="flex">
                                             <input type="text"
-                                                class="detail-account-code flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
+                                                class="detail-account-code flex-1 border rounded-l px-2 py-0.5 font-mono text-xs focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
                                                 name="details[{{ $index }}][faccount]"
                                                 value="{{ $detailAccountCode }}" @focus="$event.target.select()"
                                                 @click="$event.target.select()"
@@ -434,22 +454,22 @@
                                             <input type="hidden" value="{{ $detailSubaccountType }}"
                                                 data-role="account-subaccount-type">
                                             <button type="button" @click="openAccountBrowse($event)"
-                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
+                                                class="shrink-0 border border-l-0 px-1.5 py-0.5 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                 title="Cari Account">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
+                                                <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5 text-gray-500" />
                                             </button>
                                         </div>
                                     @endif
                                     @error("details.$index.faccount")
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-600 text-[10px] mt-0.5">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="p-2">
+                                <td class="p-1">
                                     <input type="text" value="{{ $detailAccountName }}"
-                                        class="detail-account-name w-full border bg-gray-50 text-gray-500 rounded px-2 py-1 text-sm cursor-not-allowed"
+                                        class="detail-account-name w-full border bg-gray-50 text-gray-500 rounded px-2 py-0.5 text-xs cursor-not-allowed"
                                         readonly data-role="account-name-display">
                                 </td>
-                                <td class="p-2">
+                                <td class="p-1">
                                     @php
                                         $detailSubaccountCode = (string) old(
                                             "details.$index.fsubaccount",
@@ -492,12 +512,12 @@
                                         };
                                     @endphp
                                      @if ($isReadOnly)
-                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountLabel ?: '-' }}</div>
+                                         <div class="px-2 py-0.5 text-xs text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountLabel ?: '-' }}</div>
                                          <input type="hidden" name="details[{{ $index }}][fsubaccount]"
                                              value="{{ $detailSubaccountCode }}">
                                      @else
                                           <select name="details[{{ $index }}][fsubaccount]"
-                                              class="detail-subaccount-select select2-subaccount w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                              class="detail-subaccount-select select2-subaccount w-full border rounded px-2 py-0.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white"
                                               data-role="subaccount-select">
                                               <option value="">
                                                   @if ($detailSubaccountType === 'C')
@@ -533,10 +553,10 @@
                                           </select>
                                      @endif
                                     @error("details.$index.fsubaccount")
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-600 text-[10px] mt-0.5">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="p-2">
+                                <td class="p-1">
                                     @php
                                         $detailReferenceValue = (string) old(
                                             "details.$index.frefno",
@@ -546,18 +566,18 @@
                                     <input type="hidden" name="details[{{ $index }}][frefno]"
                                         value="{{ $detailReferenceValue }}" data-role="detail-reference-input">
                                     @if ($isReadOnly)
-                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded whitespace-normal break-words">{{ old("details.$index.fnote", $detail->fnote ?? '') }}</div>
+                                        <div class="px-2 py-0.5 text-xs text-gray-655 bg-gray-50 border rounded whitespace-normal break-words">{{ old("details.$index.fnote", $detail->fnote ?? '') }}</div>
                                         <input type="hidden" name="details[{{ $index }}][fnote]" value="{{ old("details.$index.fnote", $detail->fnote ?? '') }}">
                                     @else
-                                        <textarea name="details[{{ $index }}][fnote]" rows="1"
-                                            class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white"
-                                            >{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
+                                        <input type="text" name="details[{{ $index }}][fnote]"
+                                            value="{{ old("details.$index.fnote", $detail->fnote ?? '') }}"
+                                            class="w-full border rounded px-2 py-0.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
                                     @endif
                                     @error("details.$index.fnote")
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-600 text-[10px] mt-0.5">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="p-2 text-right">
+                                <td class="p-1 text-right">
                                     @php
                                         $detailAmountValue = old(
                                             "details.$index.fkasdtvalue",
@@ -565,23 +585,23 @@
                                         );
                                     @endphp
                                     @if ($isReadOnly)
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}</div>
+                                        <div class="px-2 py-0.5 text-xs text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}</div>
                                         <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ $detailAmountValue }}">
                                     @else
                                         <input type="text" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}"
-                                            class="detail-amount w-full border rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500 bg-white"
+                                            class="detail-amount w-full border rounded px-2 py-0.5 text-xs text-right focus:ring-1 focus:ring-blue-500 bg-white"
                                             data-role="detail-amount-input">
                                     @endif
                                     @error("details.$index.fkasdtvalue")
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        <p class="text-red-600 text-[10px] mt-0.5">{{ $message }}</p>
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="p-2 text-center text-xs">
+                                    <td class="p-1 text-center text-xs">
                                         <button type="button" @click="removeRow($event)"
-                                            class="detail-delete-btn inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                            class="detail-delete-btn inline-flex h-6 w-6 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                                             title="Hapus baris">-</button>
                                     </td>
                                 @endunless
@@ -591,24 +611,15 @@
                 </table>
             </div>
 
-            <div class="mt-4 flex justify-end">
-                <div class="w-full max-w-md">
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-800">{{ 'Total Pengeluaran' }}</span>
-                            <input type="text" id="detailTotal"
-                                value="{{ number_format($totalAmount, 2, '.', ',') }}"
-                                class="w-48 border-gray-300 rounded-lg px-3 py-2 text-right bg-gray-100 font-semibold" readonly>
-                        </div>
-                    </div>
+            <div class="pt-2 border-t flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-gray-700">{{ 'Total Pengeluaran' }}:</span>
+                    <input type="text" id="detailTotal"
+                        value="{{ number_format($totalAmount, 2, '.', ',') }}"
+                        class="w-44 border border-gray-300 rounded px-2.5 py-1 text-xs text-right bg-gray-100 font-bold text-gray-900" readonly>
                 </div>
-            </div>
-            </div>
-        </div>
 
-        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="p-6">
-                <div class="flex justify-end gap-3">
+                <div class="flex items-center gap-2">
                     @if ($isReadOnly && !$isDeleteMode && !empty($printRoute))
                         @php
                             $isApproved = !isset($header->fapproval) || (int) ($header->fapproval ?? 0) === 1;
@@ -617,8 +628,8 @@
                         @if (!$isApproved)
                             <button type="button"
                                 onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: '{{ $transactionLabel }} belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
-                                class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg inline-flex items-center text-sm font-medium">
-                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="bg-blue-600 text-white hover:bg-blue-700 px-3.5 py-1.5 rounded inline-flex items-center text-xs font-medium">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                                     </path>
@@ -628,8 +639,8 @@
                         @elseif ($isPrinted)
                             <button type="button"
                                 onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: '{{ $transactionLabel }} Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
-                                class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg inline-flex items-center text-sm font-medium">
-                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="bg-blue-600 text-white hover:bg-blue-700 px-3.5 py-1.5 rounded inline-flex items-center text-xs font-medium">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                                     </path>
@@ -638,8 +649,8 @@
                             </button>
                         @else
                             <a href="{{ $printRoute }}" target="_blank"
-                                class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded-lg inline-flex items-center text-sm font-medium">
-                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="bg-blue-600 text-white hover:bg-blue-700 px-3.5 py-1.5 rounded inline-flex items-center text-xs font-medium">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                                     </path>
@@ -651,21 +662,22 @@
 
                     @if ($isDeleteMode)
                         <button type="submit"
-                            class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
-                            <x-heroicon-o-trash class="w-6 h-6 mr-2" /> {{ 'Hapus' }}
+                            class="bg-red-600 text-white px-4 py-1.5 rounded hover:bg-red-700 inline-flex items-center text-xs font-medium">
+                            <x-heroicon-o-trash class="w-4 h-4 mr-1.5" /> {{ 'Hapus' }}
                         </button>
                     @elseif (!$isReadOnly)
                         <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
-                            <x-heroicon-o-check class="w-6 h-6 mr-2" /> {{ $submitLabel }}
+                            class="bg-blue-600 text-white px-5 py-1.5 rounded hover:bg-blue-700 inline-flex items-center text-xs font-medium">
+                            <x-heroicon-o-check class="w-4 h-4 mr-1.5" /> {{ $submitLabel }}
                         </button>
                     @endif
 
                     <a href="{{ $backRoute }}"
-                        class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
-                        <x-heroicon-o-arrow-left class="w-6 h-6 mr-2" /> {{ 'Kembali' }}
+                        class="bg-gray-500 text-white px-4 py-1.5 rounded hover:bg-gray-600 inline-flex items-center text-xs font-medium">
+                        <x-heroicon-o-arrow-left class="w-4 h-4 mr-1.5" /> {{ 'Kembali' }}
                     </a>
                 </div>
+            </div>
             </div>
         </div>
     </form>
@@ -675,7 +687,7 @@
         $lastUpdate = ($pengeluaranKas->fupdatedat ?? null) ?: ($pengeluaranKas->fcreatedat ?? null);
         $updatedBy = ($pengeluaranKas->fuserupdate ?? null) ?: (($pengeluaranKas->fusercreate ?? null) ?: '—');
     @endphp
-    <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+    <div class="mt-2 px-2 flex justify-between items-center text-[11px] text-gray-400">
         <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
         <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
     </div>

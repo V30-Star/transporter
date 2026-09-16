@@ -1107,23 +1107,35 @@
     @endif
 
 
-    {{-- MODAL KONFIRMASI HAPUS --}}
+    {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
     @if ($action === 'delete' && $canDeletePermission)
+        {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus Penerimaan Barang ini?</h3>
-                <form action="{{ route('penerimaanbarang.destroy', $penerimaanbarang->fstockmtid) }}" method="POST">
+            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 allow-action">
+                <h3 class="text-lg font-semibold mb-4">Hapus Penerimaan Barang ini?</h3>
+                <form id="deleteForm" action="{{ route('penerimaanbarang.destroy', $penerimaanbarang->fstockmtid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeDeleteModal()"
-                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Tidak</button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Ya,
-                            Hapus</button>
+                        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="button" id="btnYa" onclick="confirmDelete()" @if ($usageLocked) disabled @endif class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                            Ya, Hapus
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+
+        <div id="toast" class="hidden fixed top-5 right-5 z-[60]">
+            <div id="toastContent" class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+                <span id="toastMessage"></span>
+                <button type="button" onclick="closeToast()" class="ml-4 font-bold leading-none">&times;</button>
+            </div>
+        </div>
+
         <script>
             function showDeleteModal() {
                 document.getElementById('deleteModal').classList.remove('hidden');
@@ -1131,6 +1143,132 @@
 
             function closeDeleteModal() {
                 document.getElementById('deleteModal').classList.add('hidden');
+            }
+
+            function closeToast() {
+                document.getElementById('toast').classList.add('hidden');
+            }
+
+            function showToast(message, isSuccess = true) {
+                const toast = document.getElementById('toast');
+                const toastContent = document.getElementById('toastContent');
+                const toastMessage = document.getElementById('toastMessage');
+
+                toastMessage.textContent = message;
+                toastContent.className = isSuccess ?
+                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
+                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
+
+                toast.classList.remove('hidden');
+            }
+
+            function confirmDelete(forceSave = false) {
+                const btnYa = document.getElementById('btnYa');
+                const btnTidak = document.getElementById('btnTidak');
+
+                if (btnYa) {
+                    btnYa.disabled = true;
+                    btnYa.textContent = 'Menghapus...';
+                }
+                if (btnTidak) btnTidak.disabled = true;
+
+                fetch('{{ route('penerimaanbarang.destroy', $penerimaanbarang->fstockmtid) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE',
+                            force_save: forceSave
+                        })
+                    })
+                    .then(response => response.json().then(data => ({
+                        ok: response.ok,
+                        status: response.status,
+                        data: data
+                    })))
+                    .then(result => {
+                        if (result.ok) {
+                            closeDeleteModal();
+                            showToast(result.data.message || 'Data berhasil dihapus.', true);
+
+                            setTimeout(() => {
+                                window.location.href = '{{ route('penerimaanbarang.index') }}';
+                            }, 500);
+                        } else if (result.status === 422 && result.data?.status === 'insufficient_stock') {
+                            closeDeleteModal();
+                            const escapeHtml = (val) => String(val || '').replace(/[&<>"']/g, (c) => ({
+                                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+                            }[c]));
+                            const lines = (result.data.message || '').split(/\r?\n/);
+                            const htmlContent = lines.map(line => {
+                                const tr = line.trim();
+                                if (!tr) return '';
+                                const esc = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
+                                if (/Produk ini Qty Stok tidak cukup/i.test(tr)) {
+                                    return `<div style="text-align: center; margin-bottom: 8px; font-weight: 600;">${esc}</div>`;
+                                }
+                                if (/Apakah anda ingin melanjutkan/i.test(tr)) {
+                                    return `<div style="text-align: center; margin-top: 12px; font-weight: 500;">${esc}</div>`;
+                                }
+                                return `<div style="text-align: left; margin-left: 12px;">${esc}</div>`;
+                            }).filter(Boolean).join('');
+
+                            if (result.data.allow_force) {
+                                Swal.fire({
+                                    title: 'Peringatan: Stok Kurang',
+                                    html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc2626',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Ya, Lanjutkan Hapus',
+                                    cancelButtonText: 'Tidak, Batalkan',
+                                    reverseButtons: true
+                                }).then((res) => {
+                                    if (res.isConfirmed) {
+                                        confirmDelete(true);
+                                    } else {
+                                        if (btnYa) {
+                                            btnYa.disabled = false;
+                                            btnYa.textContent = 'Ya, Hapus';
+                                        }
+                                        if (btnTidak) btnTidak.disabled = false;
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Stok Tidak Cukup',
+                                    html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                    icon: 'error',
+                                    confirmButtonColor: '#3b82f6',
+                                    confirmButtonText: 'Tutup'
+                                });
+                                if (btnYa) {
+                                    btnYa.disabled = false;
+                                    btnYa.textContent = 'Ya, Hapus';
+                                }
+                                if (btnTidak) btnTidak.disabled = false;
+                            }
+                        } else {
+                            if (btnYa) {
+                                btnYa.disabled = false;
+                                btnYa.textContent = 'Ya, Hapus';
+                            }
+                            if (btnTidak) btnTidak.disabled = false;
+                            showToast(result.data?.message || 'Terjadi kesalahan saat hapus data.', false);
+                        }
+                    })
+                    .catch(error => {
+                        if (btnYa) {
+                            btnYa.disabled = false;
+                            btnYa.textContent = 'Ya, Hapus';
+                        }
+                        if (btnTidak) btnTidak.disabled = false;
+                        showToast('Terjadi kesalahan saat hapus data.', false);
+                    });
             }
         </script>
     @endif

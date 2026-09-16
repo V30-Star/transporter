@@ -1608,6 +1608,13 @@ class AdjstockController extends Controller
                 return redirect()->route('adjstock.index')->with('error', $message);
             }
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForSignedRows([], (string) $adjstock->ffrom, $this->fetchStockDetailRows((string) $adjstock->fstockmtno), (string) $adjstock->ffrom),
+                request()->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             $userLogin = auth('sysuser')->user() ?? auth()->user();
             $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'admin';
 

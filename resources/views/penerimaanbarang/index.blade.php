@@ -279,7 +279,7 @@
                     this.showCreateLimitModal = false;
                 },
 
-                confirmDelete() {
+                confirmDelete(forceSave = false) {
                     this.isDeleting = true;
                     const rowToDelete = this.currentRow;
 
@@ -290,7 +290,10 @@
                                     .content,
                                 'Accept': 'application/json',
                                 'Content-Type': 'application/json'
-                            }
+                            },
+                            body: JSON.stringify({
+                                force_save: forceSave
+                            })
                         })
                         .then(response => {
                             return response.json().then(data => ({
@@ -300,22 +303,70 @@
                             }));
                         })
                         .then(result => {
-                            this.showDeleteModal = false;
                             this.isDeleting = false;
 
                             if (result.ok) {
+                                this.showDeleteModal = false;
                                 const table = $('#penerimaanbarangTable').DataTable();
                                 if (rowToDelete) {
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
                                     'Data berhasil dihapus.');
-                            } else {
-                                this.showNotificationMsg('error', result.data.message ||
-                                    'Hapus data gagal.');
-                            }
+                                this.currentRow = null;
+                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock') {
+                                this.showDeleteModal = false;
+                                const escapeHtml = (val) => String(val || '').replace(/[&<>"']/g, (c) => ({
+                                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+                                }[c]));
+                                const lines = (result.data.message || '').split(/\r?\n/);
+                                const htmlContent = lines.map(line => {
+                                    const tr = line.trim();
+                                    if (!tr) return '';
+                                    const esc = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
+                                    if (/Produk ini Qty Stok tidak cukup/i.test(tr)) {
+                                        return `<div style="text-align: center; margin-bottom: 8px; font-weight: 600;">${esc}</div>`;
+                                    }
+                                    if (/Apakah anda ingin melanjutkan/i.test(tr)) {
+                                        return `<div style="text-align: center; margin-top: 12px; font-weight: 500;">${esc}</div>`;
+                                    }
+                                    return `<div style="text-align: left; margin-left: 12px;">${esc}</div>`;
+                                }).filter(Boolean).join('');
 
-                            this.currentRow = null;
+                                if (result.data.allow_force) {
+                                    Swal.fire({
+                                        title: 'Peringatan: Stok Kurang',
+                                        html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#dc2626',
+                                        cancelButtonColor: '#6b7280',
+                                        confirmButtonText: 'Ya, Lanjutkan Hapus',
+                                        cancelButtonText: 'Tidak, Batalkan',
+                                        reverseButtons: true
+                                    }).then((res) => {
+                                        if (res.isConfirmed) {
+                                            this.confirmDelete(true);
+                                        } else {
+                                            this.currentRow = null;
+                                        }
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Stok Tidak Cukup',
+                                        html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                        icon: 'error',
+                                        confirmButtonColor: '#3b82f6',
+                                        confirmButtonText: 'Tutup'
+                                    });
+                                    this.currentRow = null;
+                                }
+                            } else {
+                                this.showDeleteModal = false;
+                                this.showNotificationMsg('error', result.data?.message ||
+                                    'Hapus data gagal.');
+                                this.currentRow = null;
+                            }
                         })
                         .catch(error => {
                             console.error('Error:', error);
