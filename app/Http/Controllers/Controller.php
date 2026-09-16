@@ -281,10 +281,17 @@ abstract class Controller
 
         $message = "Produk ini Qty Stok tidak cukup digudang :\n \n" . implode("\n", $products);
 
+        $isDelete = request()->isMethod('DELETE') || request()->input('_method') === 'DELETE';
+        $actionText = $isDelete ? 'penghapusan' : 'penyimpanan';
+
+        $confirmText = $this->stockMinusAllowsForce()
+            ? "\n \nApakah anda ingin melanjutkan {$actionText}?"
+            : '';
+
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
                 'status' => 'insufficient_stock',
-                'message' => $message . ($this->stockMinusAllowsForce() ? "\n \nApakah anda ingin melanjutkan penyimpanan?" : ''),
+                'message' => $message . $confirmText,
                 'allow_force' => $this->stockMinusAllowsForce(),
                 'products' => $shortages,
             ], 422);

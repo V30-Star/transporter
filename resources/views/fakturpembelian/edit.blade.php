@@ -1667,7 +1667,7 @@
                     toast.classList.remove('hidden');
                 }
 
-                function confirmDelete(forceSave = true) {
+                function confirmDelete(forceSave = false) {
                     const btnYa = document.getElementById('btnYa');
                     const btnTidak = document.getElementById('btnTidak');
 
@@ -1702,6 +1702,61 @@
                                 setTimeout(() => {
                                     window.location.href = '{{ route('fakturpembelian.index') }}';
                                 }, 500);
+                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock') {
+                                closeDeleteModal();
+                                const escapeHtml = (val) => String(val || '').replace(/[&<>"']/g, (c) => ({
+                                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+                                }[c]));
+                                const lines = (result.data.message || '').split(/\r?\n/);
+                                const htmlContent = lines.map(line => {
+                                    const tr = line.trim();
+                                    if (!tr) return '';
+                                    const esc = escapeHtml(line).replace(/^(\d+)\.\s+/, '$1.&nbsp;');
+                                    if (/Produk ini Qty Stok tidak cukup/i.test(tr)) {
+                                        return `<div style="text-align: center; margin-bottom: 8px; font-weight: 600;">${esc}</div>`;
+                                    }
+                                    if (/Apakah anda ingin melanjutkan/i.test(tr)) {
+                                        return `<div style="text-align: center; margin-top: 12px; font-weight: 500;">${esc}</div>`;
+                                    }
+                                    return `<div style="text-align: left; margin-left: 12px;">${esc}</div>`;
+                                }).filter(Boolean).join('');
+
+                                if (result.data.allow_force) {
+                                    Swal.fire({
+                                        title: 'Peringatan: Stok Kurang',
+                                        html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#dc2626',
+                                        cancelButtonColor: '#6b7280',
+                                        confirmButtonText: 'Ya, Lanjutkan Hapus',
+                                        cancelButtonText: 'Tidak, Batalkan',
+                                        reverseButtons: true
+                                    }).then((res) => {
+                                        if (res.isConfirmed) {
+                                            confirmDelete(true);
+                                        } else {
+                                            if (btnYa) {
+                                                btnYa.disabled = false;
+                                                btnYa.textContent = 'Ya, Hapus';
+                                            }
+                                            if (btnTidak) btnTidak.disabled = false;
+                                        }
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Stok Tidak Cukup',
+                                        html: `<div style="max-width: 100%; word-break: break-word;">${htmlContent}</div>`,
+                                        icon: 'error',
+                                        confirmButtonColor: '#3b82f6',
+                                        confirmButtonText: 'Tutup'
+                                    });
+                                    if (btnYa) {
+                                        btnYa.disabled = false;
+                                        btnYa.textContent = 'Ya, Hapus';
+                                    }
+                                    if (btnTidak) btnTidak.disabled = false;
+                                }
                             } else {
                                 if (btnYa) {
                                     btnYa.disabled = false;
