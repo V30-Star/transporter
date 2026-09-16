@@ -60,7 +60,7 @@
 
 <div
     x-data="bayarSupplierForm(@js($initialDetailRows), @js($selectedSupplierTempo))" x-init="init()">
-    <form action="{{ $formAction }}" method="POST" @submit="handleFormSubmit($event)"
+    <form id="bayarSupplierMainForm" action="{{ $formAction }}" method="POST" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -1368,7 +1368,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.querySelector('form');
+                    const form = document.getElementById('bayarSupplierMainForm');
                     if (form) {
                         form.submit();
                     }

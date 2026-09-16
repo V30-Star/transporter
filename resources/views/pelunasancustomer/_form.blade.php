@@ -62,7 +62,7 @@
 
 <div
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo), @js(old('fkasmtno', $voucherNo)))" x-init="init()">
-    <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
+    <form id="pelunasanCustomerMainForm" action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -1687,7 +1687,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.querySelector('form');
+                    const form = document.getElementById('pelunasanCustomerMainForm');
                     if (form) {
                         form.submit();
                     }
