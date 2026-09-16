@@ -389,15 +389,25 @@
                                     <input type="date" id="fsodate" name="fsodate"
                                         value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
                                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
-                                    @if ($canPenjualanTunai)
+                                    @if ($canPenjualanTunai && in_array($action, ['view', 'delete'], true))
                                         <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                             <input type="checkbox" name="ftunai" id="ftunai" value="1"
                                                 {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
-                                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}
+                                                disabled
                                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                             <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
                                         </label>
                                     @endif
+                                    {{-- Checkbox Cash khusus mode edit di-comment:
+                                    @if ($canPenjualanTunai && $action === 'edit')
+                                        <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                            <input type="checkbox" name="ftunai" id="ftunai" value="1"
+                                                {{ old('ftunai', $invoice->ftunai ?? 0) == '1' ? 'checked' : '' }}
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
+                                        </label>
+                                    @endif
+                                    --}}
                                 </div>
                                 @error('fsodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
