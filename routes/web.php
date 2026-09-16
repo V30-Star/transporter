@@ -799,6 +799,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
         Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
+        Route::get('/listingjurnal/excel', [ListingJurnalController::class, 'exportExcel'])->name('listingjurnal.excel');
         Route::get('/listingjurnal/exportExcel', [ListingJurnalController::class, 'exportExcel'])->name('listingjurnal.exportExcel');
 
         Route::get('/reportingpelunasancustomer', [ReportingPelunasanCustomerController::class, 'index'])->name('reportingpelunasancustomer.index');

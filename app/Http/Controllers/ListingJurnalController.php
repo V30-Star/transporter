@@ -63,6 +63,10 @@ class ListingJurnalController extends Controller
             'dateTo' => $dateTo,
             'selectedTypes' => $journalTypes,
             'selectedBranches' => $branchCodes,
+            'accountFrom' => $request->input('account_from'),
+            'accountTo' => $request->input('account_to'),
+            'subAccountFrom' => $request->input('sub_account_from'),
+            'subAccountTo' => $request->input('sub_account_to'),
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }

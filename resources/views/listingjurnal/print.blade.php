@@ -451,12 +451,19 @@
         $grandTotalDebet = 0;
         $grandTotalKredit = 0;
 
-        $dateFromFmt = $dateFrom ? date('d-m-Y', strtotime($dateFrom)) : '...';
-        $dateToFmt = $dateTo ? date('d-m-Y', strtotime($dateTo)) : '...';
+        $dateFromFmt = !empty($dateFrom) ? date('d-m-Y', strtotime($dateFrom)) : '...';
+        $dateToFmt = !empty($dateTo) ? date('d-m-Y', strtotime($dateTo)) : '...';
         $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+
+        $accountFrom = $accountFrom ?? null;
+        $accountTo = $accountTo ?? null;
+        $subAccountFrom = $subAccountFrom ?? null;
+        $subAccountTo = $subAccountTo ?? null;
 
         $accText = ($accountFrom || $accountTo) ? (($accountFrom ?: '...') . ' s/d ' . ($accountTo ?: '...')) : 'Semua';
         $subAccText = ($subAccountFrom || $subAccountTo) ? (($subAccountFrom ?: '...') . ' s/d ' . ($subAccountTo ?: '...')) : 'Semua';
+        $typeText = !empty($selectedTypes) ? implode(', ', (array) $selectedTypes) : 'Semua';
+        $branchText = !empty($selectedBranches) ? implode(', ', (array) $selectedBranches) : 'Semua';
     @endphp
 
     <div class="no-print">
