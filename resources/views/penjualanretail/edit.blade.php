@@ -1511,11 +1511,9 @@
             return;
         }
 
-        if (window.invoiceReferenceQtyGuard?.(form) !== false) {
-            window.invoiceCreditApprovalGuard?.(form).then(ok => {
-                if (ok) window.submitFormWithStockMinusConfirmation?.(form);
-            });
-        }
+        window.invoiceCreditApprovalGuard?.(form).then(ok => {
+            if (ok) window.submitFormWithStockMinusConfirmation?.(form);
+        });
     };
 
     window.getInvoiceDuplicateCode = function(form) {
@@ -1554,27 +1552,6 @@
     };
 
     window.invoiceReferenceQtyGuard = function(form) {
-        function parseNum(val) {
-            if (val === null || val === undefined || val === '') return 0;
-            let clean = String(val).replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]+/g, '');
-            return parseFloat(clean) || 0;
-        }
-
-        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
-        const alpineData = (tableRoot && window.Alpine ? Alpine.$data(tableRoot) : null) || tableRoot?._x_dataStack?.[0] || null;
-        const rows = alpineData?.submitItems || [];
-        for (const row of rows) {
-            const inputQty = parseNum(row.qty || row.fqty);
-            const refQty = parseNum(row.po_qty || row.do_qty || row.sj_qty || row.qty_ref || row.ref_qty || row.source_qty || row.maxqty || row.fqtyremain_source || row.fqtysisa_source);
-            if (refQty > 0 && inputQty > refQty) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validasi Gagal',
-                    text: `Qty (${inputQty}) melebihi Qty Referensi (${refQty}).`
-                });
-                return false;
-            }
-        }
         return true;
     };
 

@@ -71,6 +71,7 @@
                                 </label>
                                 <input type="text" name="fcustomername" id="fcustomername"
                                     value="{{ old('fcustomername', $customer->fcustomername) }}"
+                                    oninput="this.value = this.value.toUpperCase()"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcustomername') border-red-400 @enderror"
                                     placeholder="Masukkan Nama Customer" autofocus>
                                 @error('fcustomername')

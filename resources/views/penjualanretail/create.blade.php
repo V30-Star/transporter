@@ -1225,41 +1225,39 @@
             return;
         }
 
-        if (window.invoiceReferenceQtyGuard?.(form) !== false) {
-            window.invoiceCreditApprovalGuard?.(form).then(ok => {
-                if (ok) {
-                    const doSubmit = () => {
-                        window.submitFormWithStockMinusConfirmation?.(form);
-                    };
+        window.invoiceCreditApprovalGuard?.(form).then(ok => {
+            if (ok) {
+                const doSubmit = () => {
+                    window.submitFormWithStockMinusConfirmation?.(form);
+                };
 
-                    Swal.fire({
-                        icon: 'question',
-                        title: 'Konfirmasi Approval',
-                        text: 'Apakah faktur penjualan ini mau langsung di Approve ?',
-                        showConfirmButton: true,
-                        confirmButtonText: 'Yes',
-                        showDenyButton: true,
-                        denyButtonText: 'No',
-                        showCancelButton: true,
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#2563eb',
-                        denyButtonColor: '#4b5563',
-                        cancelButtonColor: '#9ca3af',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        const approveInput = document.getElementById('approveNowInput');
-                        if (result.isConfirmed) {
-                            if (approveInput) approveInput.value = '1';
-                            doSubmit();
-                        } else if (result.isDenied) {
-                            if (approveInput) approveInput.value = '0';
-                            doSubmit();
-                        }
-                    });
-                }
-            });
-        }
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Konfirmasi Approval',
+                    text: 'Apakah faktur penjualan ini mau langsung di Approve ?',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Yes',
+                    showDenyButton: true,
+                    denyButtonText: 'No',
+                    showCancelButton: true,
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#2563eb',
+                    denyButtonColor: '#4b5563',
+                    cancelButtonColor: '#9ca3af',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                }).then((result) => {
+                    const approveInput = document.getElementById('approveNowInput');
+                    if (result.isConfirmed) {
+                        if (approveInput) approveInput.value = '1';
+                        doSubmit();
+                    } else if (result.isDenied) {
+                        if (approveInput) approveInput.value = '0';
+                        doSubmit();
+                    }
+                });
+            }
+        });
     };
 
     window.getInvoiceDuplicateCode = function(form) {
@@ -1298,26 +1296,6 @@
     };
 
     window.invoiceReferenceQtyGuard = function(form) {
-        function parseNum(val) {
-            if (val === null || val === undefined || val === '') return 0;
-            let clean = String(val).replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]+/g, '');
-            return parseFloat(clean) || 0;
-        }
-
-        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
-        const rows = tableRoot?._x_dataStack?.[0]?.submitItems || [];
-        for (const row of rows) {
-            const inputQty = parseNum(row.qty || row.fqty);
-            const refQty = parseNum(row.po_qty || row.do_qty || row.sj_qty || row.qty_ref || row.ref_qty || row.source_qty || row.maxqty || row.fqtyremain_source || row.fqtysisa_source);
-            if (refQty > 0 && inputQty > refQty) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validasi Gagal',
-                    text: `Qty (${inputQty}) melebihi Qty Referensi (${refQty}).`
-                });
-                return false;
-            }
-        }
         return true;
     };
 
