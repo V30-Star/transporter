@@ -62,7 +62,7 @@
 
 <div
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo), @js(old('fkasmtno', $voucherNo)))" x-init="init()">
-    <form id="pelunasanCustomerMainForm" action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
+    <form id="pelunasanCustomerMainForm" action="{{ $formAction }}" method="POST" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -98,169 +98,158 @@
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
         <input type="hidden" name="detail_snapshot" x-ref="detailSnapshot" value="{{ old('detail_snapshot') }}">
 
-        <div class="border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="px-6 py-4">
-                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas {{ $pageTitle }}</p>
-                    </div>
+        <div class="border border-gray-200 rounded-lg bg-white overflow-hidden">
+            <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Identitas {{ $pageTitle }}</p>
             </div>
-            <fieldset @disabled($isReadOnly) class="space-y-3.5 p-6">
-            <!-- Row 1: Branch, Voucher Number, Date -->
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'Cabang' }}</label>
-                    <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
-class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
-                <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold mb-1">No. Voucher <span class="text-red-500" x-show="!autoCode">*</span></label>
-                    <div class="flex items-center gap-3">
-                        <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
-                            :required="!autoCode"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
-                            :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
-                            :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
-                            oninput="this.value = this.value.toUpperCase()">
-                        <label class="inline-flex items-center select-none cursor-pointer">
-                            <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
-                            <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
-                        </label>
+            <fieldset @disabled($isReadOnly) class="p-4">
+                <!-- Row 1: Branch, Voucher Number, Date -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">{{ 'Cabang' }}</label>
+                        <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                        <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                     </div>
-                    @error('fkasmtno')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
 
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
-                    <input type="date" name="fkasmtdate" x-model="transactionDate"
-                        value="{{ old('fkasmtdate', $transactionDate) }}"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtdate') border-red-500 @enderror">
-                    @error('fkasmtdate')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">No. Voucher <span class="text-red-500" x-show="!autoCode">*</span></label>
+                        <div class="flex items-center gap-3">
+                            <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
+                                :required="!autoCode"
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
+                                :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                                :placeholder="autoCode ? 'Auto Generated' : 'Wajib diisi'"
+                                oninput="this.value = this.value.toUpperCase()">
+                            <label class="inline-flex items-center select-none cursor-pointer shrink-0">
+                                <input type="checkbox" name="auto_generate" value="1" x-model="autoCode" checked>
+                                <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
+                            </label>
+                        </div>
+                        @error('fkasmtno')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-            <!-- Row 2: Customer, Account, Giro/Cek -->
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'Customer' }}</label>
-                    <div class="flex">
-                        <div class="relative flex-1">
-                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                class="w-full border rounded-l px-3 py-1.5 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
-                                <option value="{{ $selectedCustomerCode }}">{{ $selectedCustomerLabel }}</option>
-                            </select>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
+                        <input type="date" name="fkasmtdate" x-model="transactionDate"
+                            value="{{ old('fkasmtdate', $transactionDate) }}"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtdate') border-red-500 @enderror">
+                        @error('fkasmtdate')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Row 2: Customer, Account, Giro/Cek & Jatuh Tempo -->
+                    <div>
+                        <label class="block text-xs font-bold mb-1">{{ 'Customer' }}</label>
+                        <div class="flex">
+                            <div class="relative flex-1">
+                                <select id="modal_filter_customer_id" name="filter_customer_id"
+                                    class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    disabled>
+                                    <option value="{{ $selectedCustomerCode }}">{{ $selectedCustomerLabel }}</option>
+                                </select>
+                                @if (!$isReadOnly)
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                        :class="hasSelectedNotas ? 'cursor-not-allowed' : 'cursor-pointer'"
+                                        @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
+                                @endif
+                            </div>
+                            <input type="hidden" name="fcustomer" id="customerCodeHidden" x-model="customerCode">
                             @if (!$isReadOnly)
-                                <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                    :class="hasSelectedNotas ? 'cursor-not-allowed' : 'cursor-pointer'"
-                                    @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
+                                <button type="button" @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                    :class="hasSelectedNotas ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'"
+                                    :disabled="hasSelectedNotas"
+                                    class="border border-gray-300 -ml-px px-3 py-2 rounded-r-lg" title="Browse Customer">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
                             @endif
                         </div>
-                        <input type="hidden" name="fcustomer" id="customerCodeHidden" x-model="customerCode">
-                        @if (!$isReadOnly)
-                            <button type="button" @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                :class="hasSelectedNotas ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'"
-                                :disabled="hasSelectedNotas"
-                                class="border border-gray-300 -ml-px px-3 py-2 rounded-r" title="Browse Customer">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                        @endif
+                        @error('fcustomer')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                    @error('fcustomer')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
 
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'Account' }}</label>
-                    @if ($isReadOnly)
-                        <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
-                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
-                        <input type="hidden" name="faccountheader" value="{{ $selectedAccountCode }}">
-                    @else
-                        <div>
-                            <select name="faccountheader" x-model="accountCode" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('faccountheader') border-red-500 @enderror">
-                                <option value="">{{ 'Pilih account' }}</option>
-                                @foreach ($headerAccounts as $account)
-                                    <option value="{{ $account->faccount }}">
-                                        {{ $account->faccount }} - {{ $account->faccname }}
-                                    </option>
-                                @endforeach
-                            </select>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">{{ 'Account' }}</label>
+                        @if ($isReadOnly)
+                            <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                            <input type="hidden" name="faccountheader" value="{{ $selectedAccountCode }}">
+                        @else
+                            <div>
+                                <select name="faccountheader" x-model="accountCode" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('faccountheader') border-red-500 @enderror">
+                                    <option value="">{{ 'Pilih account' }}</option>
+                                    @foreach ($headerAccounts as $account)
+                                        <option value="{{ $account->faccount }}">
+                                            {{ $account->faccount }} - {{ $account->faccname }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        @error('faccountheader')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold mb-1">{{ 'No.Giro/Cek / Tgl. Jatuh Tempo' }}</label>
+                        <div class="flex items-center gap-2 flex-nowrap">
+                            <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
+                                placeholder="No. Giro/Cek"
+                                class="w-1/3 min-w-0 border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-700' : 'bg-white' }} @error('fnogiro') border-red-500 @enderror">
+
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0">
+                                <input type="checkbox" x-model="isGiroMundur" class="rounded border-gray-300 text-sm">
+                                <span class="text-sm text-gray-700">{{ 'Mundur' }}</span>
+                            </label>
+                            <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+
+                            <input type="date" name="ftgljatuhtempo" x-model="dueDate"
+                                class="w-1/2 min-w-0 border-gray-300 rounded-lg px-3 py-2 text-sm shrink-0"
+                                :readonly="!isGiroMundur" :disabled="!isGiroMundur"
+                                :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'">
                         </div>
-                    @endif
-                    @error('faccountheader')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                        @error('fnogiro')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        @error('ftgljatuhtempo')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
-                    <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fnogiro') border-red-500 @enderror">
-                    @error('fnogiro')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Row 3: Giro Mundur, Due Date -->
-            <div class="grid grid-cols-3 gap-3 items-end">
-                <div>
-                    <label class="inline-flex items-center gap-2 h-9 px-3 border border-gray-300 rounded-lg w-full bg-white">
-                        <input type="checkbox" x-model="isGiroMundur" class="rounded border-gray-300">{{ 'Giro Mundur' }}
-                    </label>
-                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
-                    <input type="date" name="ftgljatuhtempo" x-model="dueDate"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('ftgljatuhtempo') border-red-500 @enderror"
-                        :readonly="!isGiroMundur" :disabled="!isGiroMundur"
-                        :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'">
-                    @error('ftgljatuhtempo')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Row 4: Description -->
-                <div>
+                <!-- Row 3: Description Full Width -->
+                <div class="mt-3">
                     <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
-                    <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
-                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fket') border-red-500 @enderror">
+                    <textarea name="fket" rows="2"
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-700' : 'bg-white' }}"
+                        {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $noteValue ?? '') }}</textarea>
                     @error('fket')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-                <!-- <div></div> -->
-            </div>
+            </fieldset>
+        </div>
 
-        </fieldset>
-    </div>
-
-        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="px-6 py-4">
-                   <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
-                    </div>
+        <div class="mt-4 border border-gray-200 rounded-lg bg-white overflow-hidden">
+            <div class="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Detail Item</p>
             </div>
-            <fieldset @disabled($isReadOnly) class="space-y-3.5 p-6">
+            <fieldset @disabled($isReadOnly) class="p-4 space-y-4">
 
                 <div class="overflow-auto border rounded">
                     <table class="min-w-full text-sm balanced-detail-table"
@@ -390,17 +379,17 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     </table>
                 </div>
 
-                <div class="mt-3 flex justify-start">
-                    <button type="button" @click="openNotaModal()"
-                        @disabled($isReadOnly)
-                        class="inline-flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2.5 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm font-medium">
-                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span>{{ 'Add Nota' }}</span>
-                    </button>
-                </div>
+                <div class="mt-4 flex flex-col md:flex-row items-start justify-between gap-4">
+                    <div>
+                        <button type="button" @click="openNotaModal()"
+                            @disabled($isReadOnly)
+                            class="inline-flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm font-medium">
+                            <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                            <span>{{ 'Add Nota' }}</span>
+                        </button>
+                    </div>
 
-            <div class="flex justify-end">
-                <div class="w-full max-w-2xl">
+                    <div class="w-full max-w-2xl">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
                             <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank (-)' }}</label>
@@ -418,11 +407,11 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             <div>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccountLabel"
-                                        class="w-full border-gray-300 rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                        class="w-full border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed text-gray-700" readonly>
                                     <input type="hidden" name="faccountadmin" x-model="adminAccountCode">
                                     @if (!$isReadOnly)
                                         <button type="button" @click="activeAccountField = 'admin'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
-                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
+                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-lg" title="Browse Account Admin">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                     @endif
@@ -446,11 +435,11 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                             <div>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccount2Label"
-                                        class="w-full border-gray-300 rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                        class="w-full border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed text-gray-700" readonly>
                                     <input type="hidden" name="faccountadmin2" x-model="adminAccount2Code">
                                     @if (!$isReadOnly)
                                         <button type="button" @click="activeAccountField = 'admin2'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
-                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin 2">
+                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-lg" title="Browse Account Admin 2">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                     @endif
@@ -475,7 +464,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
                             <input type="text" x-model="totalPenerimaanDisplay"
-                                class="w-52 border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
+                                class="w-52 border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed text-sm"
                                 readonly>
                         </div>
                     </div>
@@ -484,19 +473,19 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
         </fieldset>
     </div>
 
-        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
-            <div class="p-6">
+        <div class="mt-4 border border-gray-200 rounded-lg bg-white overflow-hidden">
+            <div class="p-4">
                 <div class="flex items-center justify-end gap-3">
              @if ($isDeleteMode)
                 <button type="button"
                     onclick="confirmDeletePelunasan()"
                     class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
-                    <x-heroicon-o-trash class="w-4 h-4" />
+                    <x-heroicon-o-trash class="w-5 h-5" />
                     {{ $submitLabel }}
                 </button>
             @elseif (!$isReadOnly && !empty($submitLabel))
                 <button type="submit"
-                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
                     {{ $submitLabel }}
                 </button>
             @endif
@@ -510,26 +499,26 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     <button type="button"
                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Pelunasan Customer belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
                         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
-                        <x-heroicon-o-printer class="w-4 h-4" />
+                        <x-heroicon-o-printer class="w-5 h-5" />
                         {{ 'Print' }}
                     </button>
                 @elseif ($isPrinted)
                     <button type="button"
                         onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Pelunasan Customer Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
-                        <x-heroicon-o-printer class="w-4 h-4" />
+                        <x-heroicon-o-printer class="w-5 h-5" />
                         {{ 'Print' }}
                     </button>
                 @else
                     <a href="{{ route('pelunasancustomer.print', $printVoucherNo) }}" target="_blank"
                         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
-                        <x-heroicon-o-printer class="w-4 h-4" />
+                        <x-heroicon-o-printer class="w-5 h-5" />
                         {{ 'Print' }}
                     </a>
                 @endif
             @endif
             <a href="{{ $backRoute }}"
-                class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
+                class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
                 {{ 'Keluar' }}
             </a>
         </div>
