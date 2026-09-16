@@ -44,7 +44,7 @@ class ListingReturPenjualanController extends Controller
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->leftJoin('mswh as w', 'm.ffrom', '=', 'w.fwhcode')
+            ->leftJoin('mswh as w', 'm.fwhcode', '=', 'w.fwhcode')
             ->whereIn('m.ftrcode', ['REJ', 'RUJ'])
             ->select(
                 'm.ftranmtid as fstockmtid',
@@ -55,7 +55,7 @@ class ListingReturPenjualanController extends Controller
                 DB::raw("'' as fcity"),
                 'm.fket',
                 'm.frefno',
-                DB::raw("CAST(CONCAT(TRIM(m.ffrom), ' - ', TRIM(w.fwhname)) AS VARCHAR(50)) as gudang"),
+                DB::raw("CAST(CONCAT(TRIM(m.fwhcode), ' - ', TRIM(w.fwhname)) AS VARCHAR(50)) as gudang"),
                 'm.fuserid',
                 'd.fprdcode',
                 'd.fprdcode as fitemcode',
