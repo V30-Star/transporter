@@ -525,8 +525,7 @@
                             class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm"
                             placeholder="Scan / Masukkan Barcode" autocomplete="off"
                             @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
-                            @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)"
-                            @change="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))">
+                            @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)">
                     </div>
                 </div>
             </div>
@@ -2061,6 +2060,16 @@
             async addProductByBarcode(rawBarcode, inputElement = null) {
                 const barcode = (rawBarcode || '').toString().trim();
                 if (!barcode) return;
+
+                const now = Date.now();
+                if (this._lastScannedBarcode === barcode && (now - (this._lastScannedTime || 0)) < 600) {
+                    if (inputElement) {
+                        inputElement.value = '';
+                    }
+                    return;
+                }
+                this._lastScannedBarcode = barcode;
+                this._lastScannedTime = now;
 
                 if (!this.requireCustomerBeforeManualProduct()) {
                     if (inputElement) {

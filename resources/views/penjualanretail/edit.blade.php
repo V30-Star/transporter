@@ -597,7 +597,9 @@
                             <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
                                 class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
                                 placeholder="Scan / Masukkan Barcode" autocomplete="off"
-                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}
+                                @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
+                                @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)">
                         </div>
                     </fieldset>
                 </div>
@@ -2316,6 +2318,16 @@
 
                 const barcode = (rawBarcode || '').toString().trim();
                 if (!barcode) return;
+
+                const now = Date.now();
+                if (this._lastScannedBarcode === barcode && (now - (this._lastScannedTime || 0)) < 600) {
+                    if (inputElement) {
+                        inputElement.value = '';
+                    }
+                    return;
+                }
+                this._lastScannedBarcode = barcode;
+                this._lastScannedTime = now;
 
                 if (!this.requireCustomerBeforeManualProduct()) {
                     if (inputElement) {
