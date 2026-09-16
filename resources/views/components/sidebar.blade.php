@@ -363,49 +363,55 @@
                 </button>
 
                 <!-- Sales Order -->
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                @if ($finitinvretail !== 'THE')
+                    <ul x-show="open && openSidebar" x-transition
+                        class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('viewSalesOrder', 'createSalesOrder', 'updateSalesOrder', 'deleteSalesOrder'))
-                        <li>
-                            <a href="{{ route('salesorder.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-file-invoice w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Sales Order' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                        @if ($hasSidebarPermission('viewSalesOrder', 'createSalesOrder', 'updateSalesOrder', 'deleteSalesOrder'))
+                            <li>
+                                <a href="{{ route('salesorder.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <i class="fa-solid fa-file-invoice w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Sales Order' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                @endif
 
                 {{-- Surat Jalan --}}
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                @if ($finitinvretail !== 'THE')
+                    <ul x-show="open && openSidebar" x-transition
+                        class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createSuratJalan', 'updateSuratJalan', 'deleteSuratJalan'))
-                        <li>
-                            <a href="{{ route('suratjalan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-truck-ramp-box w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Surat Jalan' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                        @if ($hasSidebarPermission('createSuratJalan', 'updateSuratJalan', 'deleteSuratJalan'))
+                            <li>
+                                <a href="{{ route('suratjalan.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <i class="fa-solid fa-truck-ramp-box w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Surat Jalan' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                @endif
 
                 {{-- Faktur Penjualan --}}
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                @if ($finitinvretail !== 'THE')
+                    <ul x-show="open && openSidebar" x-transition
+                        class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
-                        <li>
-                            <a href="{{ route('invoice.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Faktur Penjualan' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                        @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
+                            <li>
+                                <a href="{{ route('invoice.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Faktur Penjualan' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                @endif
 
                 {{-- Penjualan Retail --}}
                 @if (in_array($finitinvretail, ['INV', 'THE'], true))
@@ -440,19 +446,21 @@
                 </ul>
 
                 {{-- Lembar Penagihan --}}
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                @if ($finitinvretail !== 'THE')
+                    <ul x-show="open && openSidebar" x-transition
+                        class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createLembarPenagihan', 'updateLembarPenagihan', 'deleteLembarPenagihan'))
-                        <li>
-                            <a href="{{ route('lembarpenagihan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-book w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Lembar Penagihan' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                        @if ($hasSidebarPermission('createLembarPenagihan', 'updateLembarPenagihan', 'deleteLembarPenagihan'))
+                            <li>
+                                <a href="{{ route('lembarpenagihan.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <i class="fa-solid fa-book w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Lembar Penagihan' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                @endif
             </li>
 
             <!-- Transaksi Pembelian (accordion) -->
@@ -472,14 +480,16 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
-                        <li>
-                            <a href="{{ route('tr_prh.index') }}"
-                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <i class="fa-solid fa-file-signature w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Permintaan Pembelian' }}</span>
-                            </a>
-                        </li>
+                    @if ($finitinvretail !== 'THE')
+                        @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
+                            <li>
+                                <a href="{{ route('tr_prh.index') }}"
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                    <i class="fa-solid fa-file-signature w-5 text-center flex-shrink-0 text-lg"></i>
+                                    <span class="ml-3">{{ 'Permintaan Pembelian' }}</span>
+                                </a>
+                            </li>
+                        @endif
                     @endif
                     @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
