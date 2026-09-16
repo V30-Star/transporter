@@ -1616,17 +1616,17 @@
             <div id="deleteModal"
                 class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                    <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus fakturpembelian ini?</h3>
+                    <h3 class="text-lg font-semibold mb-4">Hapus Faktur Pembelian ini?</h3>
                     <form id="deleteForm"
                         action="{{ route('fakturpembelian.destroy', $fakturpembelian->fstockmtid) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <div class="flex justify-end space-x-2">
-                            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                                 id="btnTidak">
                                 Tidak
                             </button>
-                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            <button type="button" id="btnYa" onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                                 Ya, Hapus
                             </button>
                         </div>
@@ -1660,13 +1660,15 @@
                     toast.classList.remove('hidden');
                 }
 
-                function confirmDelete() {
+                function confirmDelete(forceSave = false) {
                     const btnYa = document.getElementById('btnYa');
                     const btnTidak = document.getElementById('btnTidak');
 
-                    btnYa.disabled = true;
-                    btnTidak.disabled = true;
-                    btnYa.textContent = 'Menghapus...';
+                    if (btnYa) {
+                        btnYa.disabled = true;
+                        btnYa.textContent = 'Menghapus...';
+                    }
+                    if (btnTidak) btnTidak.disabled = true;
 
                     fetch('{{ route('fakturpembelian.destroy', $fakturpembelian->fstockmtid) }}', {
                             method: 'POST',
@@ -1676,22 +1678,61 @@
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({
-                                _method: 'DELETE'
+                                _method: 'DELETE',
+                                force_save: forceSave
                             })
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            closeDeleteModal();
-                            showToast(data.message || 'Data berhasil dihapus.', true);
+                        .then(response => response.json().then(data => ({
+                            ok: response.ok,
+                            status: response.status,
+                            data: data
+                        })))
+                        .then(result => {
+                            if (result.ok) {
+                                closeDeleteModal();
+                                showToast(result.data.message || 'Data berhasil dihapus.', true);
 
-                            setTimeout(() => {
-                                window.location.href = '{{ route('fakturpembelian.index') }}';
-                            }, 500);
+                                setTimeout(() => {
+                                    window.location.href = '{{ route('fakturpembelian.index') }}';
+                                }, 500);
+                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock' && result.data?.allow_force) {
+                                closeDeleteModal();
+                                Swal.fire({
+                                    title: 'Konfirmasi Hapus',
+                                    text: 'Hapus Faktur Pembelian ini?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc2626',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Ya, Hapus',
+                                    cancelButtonText: 'Batal',
+                                    reverseButtons: true
+                                }).then((res) => {
+                                    if (res.isConfirmed) {
+                                        confirmDelete(true);
+                                    } else {
+                                        if (btnYa) {
+                                            btnYa.disabled = false;
+                                            btnYa.textContent = 'Ya, Hapus';
+                                        }
+                                        if (btnTidak) btnTidak.disabled = false;
+                                    }
+                                });
+                            } else {
+                                if (btnYa) {
+                                    btnYa.disabled = false;
+                                    btnYa.textContent = 'Ya, Hapus';
+                                }
+                                if (btnTidak) btnTidak.disabled = false;
+                                showToast(result.data?.message || 'Terjadi kesalahan saat hapus data.', false);
+                            }
                         })
                         .catch(error => {
-                            btnYa.disabled = false;
-                            btnTidak.disabled = false;
-                            btnYa.textContent = 'Ya, Hapus';
+                            if (btnYa) {
+                                btnYa.disabled = false;
+                                btnYa.textContent = 'Ya, Hapus';
+                            }
+                            if (btnTidak) btnTidak.disabled = false;
                             showToast('Terjadi kesalahan saat hapus data.', false);
                         });
                 }

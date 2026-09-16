@@ -141,7 +141,7 @@
             <div @click.away="!$store.fakturpembelianStore.isDeleting && $store.fakturpembelianStore.closeDelete()"
                 class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">{{ "Konfirmasi Hapus" }}</h3>
-                <p class="mb-6">{{ "Apakah Anda yakin ingin menghapus data ini?" }}</p>
+                <p class="mb-6">{{ "Hapus Faktur Pembelian ini?" }}</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="$store.fakturpembelianStore.closeDelete()"
                         class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
@@ -321,7 +321,7 @@
                     this.showCreateLimitModal = false;
                 },
 
-                confirmDelete() {
+                confirmDelete(forceSave = false) {
                     this.isDeleting = true;
                     const rowToDelete = this.currentRow;
 
@@ -332,7 +332,10 @@
                                     .content,
                                 'Accept': 'application/json',
                                 'Content-Type': 'application/json'
-                            }
+                            },
+                            body: JSON.stringify({
+                                force_save: forceSave
+                            })
                         })
                         .then(response => {
                             return response.json().then(data => ({
@@ -342,22 +345,43 @@
                             }));
                         })
                         .then(result => {
-                            this.showDeleteModal = false;
                             this.isDeleting = false;
 
                             if (result.ok) {
+                                this.showDeleteModal = false;
                                 const table = $('#fakturpembelianTable').DataTable();
                                 if (rowToDelete) {
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
                                     @json("Data berhasil dihapus."));
+                                this.currentRow = null;
+                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock' && result.data?.allow_force) {
+                                this.showDeleteModal = false;
+                                Swal.fire({
+                                    title: 'Konfirmasi Hapus',
+                                    text: 'Hapus Faktur Pembelian ini?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc2626',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Ya, Hapus',
+                                    cancelButtonText: 'Batal',
+                                    reverseButtons: true
+                                }).then((res) => {
+                                    if (res.isConfirmed) {
+                                        this.currentRow = rowToDelete;
+                                        this.confirmDelete(true);
+                                    } else {
+                                        this.currentRow = null;
+                                    }
+                                });
                             } else {
+                                this.showDeleteModal = false;
                                 this.showNotificationMsg('error', result.data.message ||
                                     @json("Hapus data gagal."));
+                                this.currentRow = null;
                             }
-
-                            this.currentRow = null;
                         })
                         .catch(error => {
                             console.error('Error:', error);
