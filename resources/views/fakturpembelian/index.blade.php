@@ -321,7 +321,7 @@
                     this.showCreateLimitModal = false;
                 },
 
-                confirmDelete(forceSave = false) {
+                confirmDelete(forceSave = true) {
                     this.isDeleting = true;
                     const rowToDelete = this.currentRow;
 
@@ -356,26 +356,6 @@
                                 this.showNotificationMsg('success', result.data.message ||
                                     @json("Data berhasil dihapus."));
                                 this.currentRow = null;
-                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock' && result.data?.allow_force) {
-                                this.showDeleteModal = false;
-                                Swal.fire({
-                                    title: 'Konfirmasi Hapus',
-                                    text: 'Hapus Faktur Pembelian ini?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#dc2626',
-                                    cancelButtonColor: '#6b7280',
-                                    confirmButtonText: 'Ya, Hapus',
-                                    cancelButtonText: 'Batal',
-                                    reverseButtons: true
-                                }).then((res) => {
-                                    if (res.isConfirmed) {
-                                        this.currentRow = rowToDelete;
-                                        this.confirmDelete(true);
-                                    } else {
-                                        this.currentRow = null;
-                                    }
-                                });
                             } else {
                                 this.showDeleteModal = false;
                                 this.showNotificationMsg('error', result.data.message ||

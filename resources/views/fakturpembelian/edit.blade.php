@@ -1634,6 +1634,13 @@
                 </div>
             </div>
 
+            <div id="toast" class="hidden fixed top-5 right-5 z-[60]">
+                <div id="toastContent" class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+                    <span id="toastMessage"></span>
+                    <button type="button" onclick="closeToast()" class="ml-4 font-bold leading-none">&times;</button>
+                </div>
+            </div>
+
             <script>
                 function showDeleteModal() {
                     document.getElementById('deleteModal').classList.remove('hidden');
@@ -1660,7 +1667,7 @@
                     toast.classList.remove('hidden');
                 }
 
-                function confirmDelete(forceSave = false) {
+                function confirmDelete(forceSave = true) {
                     const btnYa = document.getElementById('btnYa');
                     const btnTidak = document.getElementById('btnTidak');
 
@@ -1695,29 +1702,6 @@
                                 setTimeout(() => {
                                     window.location.href = '{{ route('fakturpembelian.index') }}';
                                 }, 500);
-                            } else if (result.status === 422 && result.data?.status === 'insufficient_stock' && result.data?.allow_force) {
-                                closeDeleteModal();
-                                Swal.fire({
-                                    title: 'Konfirmasi Hapus',
-                                    text: 'Hapus Faktur Pembelian ini?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#dc2626',
-                                    cancelButtonColor: '#6b7280',
-                                    confirmButtonText: 'Ya, Hapus',
-                                    cancelButtonText: 'Batal',
-                                    reverseButtons: true
-                                }).then((res) => {
-                                    if (res.isConfirmed) {
-                                        confirmDelete(true);
-                                    } else {
-                                        if (btnYa) {
-                                            btnYa.disabled = false;
-                                            btnYa.textContent = 'Ya, Hapus';
-                                        }
-                                        if (btnTidak) btnTidak.disabled = false;
-                                    }
-                                });
                             } else {
                                 if (btnYa) {
                                     btnYa.disabled = false;
@@ -3475,7 +3459,6 @@
                     this.recalcTotals();
                     this.biayaGlobal = @json((float) ($biayaGlobal ?? 0));
                     this.$watch('includePPN', () => this.recalcTotals());
-                    this.$watch('fapplyppn', () => this.recalcTotals());
                     this.$watch('ppnRate', () => this.recalcTotals());
                     this.$nextTick(() => window.syncFpbBiayaGlobalHeader?.());
                     this.syncSupplierLockState();
