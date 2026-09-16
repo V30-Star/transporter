@@ -192,7 +192,7 @@ class ReturPenjualanController extends Controller
                 ->select(
                     'tranmt.ftranmtid',
                     'tranmt.fbranchcode',
-                    'tranmt.ffrom',
+                    'tranmt.fwhcode',
                     'tranmt.fsono',
                     'tranmt.fincludeppn',
                     'tranmt.fsodate',
@@ -254,8 +254,8 @@ class ReturPenjualanController extends Controller
                     $orderColumn = 'tranmt.fsono';
                 } elseif ($colName === 'fsodate') {
                     $orderColumn = 'tranmt.fsodate';
-                } elseif ($colName === 'ffrom') {
-                    $orderColumn = 'tranmt.ffrom';
+                } elseif ($colName === 'fwhcode' || $colName === 'ffrom') {
+                    $orderColumn = 'tranmt.fwhcode';
                 } elseif ($colName === 'fcustomername') {
                     $orderColumn = 'c.fcustomername';
                 } elseif ($colName === 'famountso') {
@@ -291,7 +291,8 @@ class ReturPenjualanController extends Controller
                         ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
                         : '',
                     'frefno' => $row->frefno ?? '',
-                    'ffrom' => $row->ffrom ?? '',
+                    'fwhcode' => $row->fwhcode ?? '',
+                    'ffrom' => $row->fwhcode ?? '',
                     'fcustomername' => $row->fcustomername ?? '',
                     'famountso' => (float) ($row->famountso ?? 0),
                     'fket' => $row->fket ?? '',
