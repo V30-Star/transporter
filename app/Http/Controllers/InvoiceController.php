@@ -2580,10 +2580,11 @@ class InvoiceController extends Controller
                 ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
                 : null;
 
-            $successPrompt = $isApproved ? [
-                'type' => 'invoice_create',
+            $isRetail = $this->getRoutePrefix() === 'penjualanretail';
+            $successPrompt = ($isApproved || $isRetail) ? [
+                'type' => $isRetail ? 'penjualanretail_create' : 'invoice_create',
                 'redirect_url' => route($this->getRoutePrefix() . '.print', $fsono),
-                'suratjalan_url' => $suratjalanUrl,
+                'suratjalan_url' => $isRetail ? null : $suratjalanUrl,
             ] : ($suratjalanUrl ? [
                 'type' => 'invoice_create_suratjalan',
                 'redirect_url' => $suratjalanUrl,
@@ -4012,6 +4013,23 @@ class InvoiceController extends Controller
             });
 
             $successMessage = "{$this->getModuleTitle()} {$header->fsono} berhasil diupdate.";
+
+            if ($this->getRoutePrefix() === 'penjualanretail') {
+                $successPrompt = [
+                    'type' => 'penjualanretail_edit',
+                    'redirect_url' => route('penjualanretail.print', $header->fsono),
+                ];
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => $successMessage,
+                        'redirect_url' => route('penjualanretail.index'),
+                        'success_prompt' => $successPrompt,
+                    ]);
+                }
+                return redirect()->route('penjualanretail.index')
+                    ->with('success', $successMessage)
+                    ->with('success_prompt', $successPrompt);
+            }
 
             $redirect = redirect()->route($this->getRoutePrefix() . '.index')->with('success', $successMessage);
 

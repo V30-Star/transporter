@@ -798,270 +798,9 @@
                                 </template>
                             </div>
 
-                            <div class="mt-3 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
-                                <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
-                                    @if (!in_array($action, ['view', 'delete'], true))
-                                        <div x-data="srjFormModal()" class="mt-3">
-                                            <button type="button" @click="openSrjModal()"
-                                                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                Add SRJ
-                                            </button>
-
-                                            <div x-show="showSrjModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                    @click="closeSrjModal()">
-                                                </div>
-
-                                                <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-[100rem] flex flex-col overflow-hidden"
-                                                    style="height: 82vh;">
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
-                                                        <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">
-                                                                {{ 'Pilih Surat Jalan' }}</h3>
-                                                        </div>
-                                                        <button type="button" @click="closeSrjModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            {{ 'Tutup' }}
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                        <div id="srjTableControls"></div>
-                                                    </div>
-
-                                                    <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
-                                                        style="min-height: 0;">
-                                                        <div class="bg-white">
-                                                            <table id="srjTable"
-                                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                                style="width:100%">
-                                                                <thead class="sticky top-0 z-10">
-                                                                    <tr
-                                                                        class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Cabang' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'No. SRJ' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Tanggal' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Customer' }}</th>
-                                                                        <th
-                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Aksi' }}</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody></tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                        <div id="srjTablePagination"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
-                                                </div>
-                                                <div
-                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                    <div
-                                                        class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                        <h3 class="text-lg font-semibold text-gray-800">
-                                                            {{ 'Item Duplikat Surat Jalan' }}</h3>
-                                                    </div>
-                                                    <div class="px-5 py-4">
-                                                        <p class="text-sm text-gray-700 mb-3">
-                                                            {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
-                                                                x-text="dupCount"
-                                                                class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
-                                                        </p>
-                                                        <div
-                                                            class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
-                                                            <template x-for="d in dupSample">
-                                                                <div class="p-2 text-xs border-b border-amber-100">
-                                                                    <span x-text="d.fitemcode"
-                                                                        class="font-bold"></span> -
-                                                                    <span x-text="d.fitemname"></span>
-                                                                </div>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                    <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
-                                                        <button type="button" @click="confirmAddUniques()"
-                                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div x-data="soFormModal()" class="mt-3">
-                                            <button type="button" @click="openModal()"
-                                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                {{ 'Add SO' }}
-                                            </button>
-
-                                            <div x-show="show" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                    @click="closeModal()">
-                                                </div>
-
-                                                <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                                    style="height: 85vh;">
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
-                                                        <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">
-                                                                {{ 'Pilih Sales Order' }}</h3>
-                                                            <p class="text-sm text-gray-500 mt-0.5">
-                                                                {{ 'Pilih Sales Order yang diinginkan' }}</p>
-                                                        </div>
-                                                        <button type="button" @click="closeModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            {{ 'Tutup' }}
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                        <div id="poTableControls"></div>
-                                                    </div>
-
-                                                    <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
-                                                        style="min-height: 0;">
-                                                        <div class="bg-white">
-                                                            <table id="poTable"
-                                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                                style="width:100%">
-                                                                <thead class="sticky top-0 z-10">
-                                                                    <tr
-                                                                        class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Cab' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'No. SO' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Tanggal' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Customer' }}</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'No. PO' }}</th>
-                                                                        <th
-                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            {{ 'Aksi' }}</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody></tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                        <div id="poTablePagination"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()">
-                                                </div>
-
-                                                <div
-                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                    <div
-                                                        class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                        <svg class="w-6 h-6 text-amber-600" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                        </svg>
-                                                        <h3 class="text-lg font-semibold text-gray-800">
-                                                            {{ 'Item Duplikat Ditemukan' }}</h3>
-                                                    </div>
-
-                                                    <div class="px-5 py-4 space-y-3">
-                                                        <p class="text-sm text-gray-700">
-                                                            Ditemukan <span class="font-semibold text-amber-600"
-                                                                x-text="dupCount"></span>
-                                                            item duplikat.
-                                                            Item duplikat <span class="font-semibold">tidak akan
-                                                                ditambahkan</span>.
-                                                        </p>
-
-                                                        <div class="rounded-lg border border-amber-200 bg-amber-50">
-                                                            <div
-                                                                class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                                {{ 'Preview Item Duplikat' }}
-                                                            </div>
-                                                            <ul
-                                                                class="max-h-40 overflow-auto divide-y divide-amber-100">
-                                                                <template x-for="d in dupSample"
-                                                                    :key="`${d.fitemcode}::${d.fitemname}`">
-                                                                    <li
-                                                                        class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
-                                                                        <span
-                                                                            class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
-                                                                        <span class="font-mono font-bold text-gray-700"
-                                                                            x-text="d.fitemcode || '-'"></span>
-                                                                        <span class="text-gray-400">•</span>
-                                                                        <span class="text-gray-600 truncate"
-                                                                            x-text="d.fitemname || '-'"></span>
-                                                                    </li>
-                                                                </template>
-                                                                <template x-if="dupCount === 0">
-                                                                    <li
-                                                                        class="px-3 py-2 text-sm text-gray-500 text-center">
-                                                                        {{ 'Tidak ada contoh.' }}</li>
-                                                                </template>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-
-                                                    <div
-                                                        class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                            {{ 'Batal' }}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-
+                            <div class="mt-3 flex justify-end w-full">
                                 <!-- Kanan: Panel Totals -->
-                                <div class="w-full md:w-1/2">
+                                <div class="w-full sm:w-96 max-w-md">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                         <div class="flex items-center justify-between">
                                             <span class="font-bold text-gray-800">Total Harga</span>
@@ -1281,8 +1020,7 @@
 
                             <div class="px-5 py-4">
                                 <p class="text-sm text-gray-700">
-                                    Customer wajib dipilih sebelum input produk manual. Untuk Add SO atau Add
-                                    SRJ, customer tidak wajib dipilih terlebih dahulu.
+                                    Customer wajib dipilih sebelum input produk.
                                 </p>
                             </div>
 
@@ -2208,7 +1946,7 @@
             },
 
             isReferenceRow(row) {
-                return String(row?.frefso ?? '').trim() !== '' || String(row?.frefsrj ?? '').trim() !== '';
+                return false;
             },
 
             async applyInvoicePrice(row) {
@@ -2352,10 +2090,7 @@
             },
 
             isPriceDisabled(row) {
-                const code = String(row?.fitemcode || '').toUpperCase().trim();
-                if (!code || code.startsWith('UM')) return false;
-                const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
-                return Boolean(ref);
+                return false;
             },
 
             blurPriceInput(row) {
@@ -2553,34 +2288,9 @@
             enforceQtyRow(row) {
                 let n = +row.fqty;
 
-                if (!Number.isFinite(n)) {
+                if (!Number.isFinite(n) || n < 0) {
                     row.fqty = 0;
                     return;
-                }
-                if (n < 0) {
-                    row.fqty = 0;
-                    return;
-                }
-
-                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
-                    String(row?.frefsrj ?? '').trim() !== '' ||
-                    String(row?.frefdtno ?? '').trim() !== '';
-                if (hasRef) {
-                    const limit = this.getRowQtyLimit(row);
-                    if (limit > 0 && n > limit) {
-                        row.fqty = limit;
-                        row.fqtyInput = this.fmt(limit);
-                        const refDoc = String(row?.frefsrj || row?.frefso || row?.frefdtno || '').trim();
-                        const refLabel = (!refDoc.startsWith('SO.') && !refDoc.startsWith('SO/')) ? (refDoc.startsWith('SRJ.') || refDoc.startsWith('SRJ/') ? 'SRJ' : (refDoc.startsWith('UMJ') ? 'UMJ' : (refDoc.startsWith('RUJ') ? 'RUJ' : 'referensi'))) : 'SO';
-                        const message = `Qty tidak boleh melebihi sisa ${refLabel} (${limit} ${row.fsatuan || ''}).`.trim();
-                        if (typeof window.showAppWarningAlert === 'function') {
-                            window.showAppWarningAlert('WARNING', message);
-                        } else if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: message });
-                        } else {
-                            window.toast?.error(message);
-                        }
-                    }
                 }
             },
 
@@ -3080,12 +2790,6 @@
                     if (!rawBarcode) return;
                     await this.addProductByBarcode(rawBarcode, e.detail?.input);
                 });
-                window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
-                    passive: true
-                });
-                window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), {
-                    passive: true
-                });
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
@@ -3524,8 +3228,6 @@
     @include('components.transaction.browse-customer-script')
     @include('components.transaction.browse-salesman-script')
     @include('components.transaction.browse-warehouse-script')
-    @include('components.transaction.invoice-so-modal-script')
-    @include('components.transaction.invoice-srj-modal-script')
     @include('components.transaction.browse-product-script', [
         'showControls' => true,
         'showPagination' => true,

@@ -1584,6 +1584,8 @@
                     'penerimaankas_create': 'Print Penerimaan Kas/Bank ini?',
                     'pelunasancustomer_create': 'Print Pelunasan Customer ini?',
                     'bayarsupplier_create': 'Print Bayar Supplier ini?',
+                    'penjualanretail_create': 'Mau Print Penjualan Retail?',
+                    'penjualanretail_edit': 'Mau Print Penjualan Retail?',
                 };
 
                 if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {
@@ -1805,6 +1807,8 @@
                     'penerimaankas_create': 'Print Penerimaan Kas/Bank ini?',
                     'pelunasancustomer_create': 'Print Pelunasan Customer ini?',
                     'bayarsupplier_create': 'Print Bayar Supplier ini?',
+                    'penjualanretail_create': 'Mau Print Penjualan Retail?',
+                    'penjualanretail_edit': 'Mau Print Penjualan Retail?',
                 };
 
                 if (successPrompt?.type && printPrompts[successPrompt.type] && successPrompt.redirect_url) {
