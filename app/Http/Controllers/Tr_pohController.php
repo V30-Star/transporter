@@ -2058,9 +2058,23 @@ class Tr_pohController extends Controller
         }
 
         $message = "PO {$header->fpono} berhasil diupdate";
+        $successPrompt = [
+            'type' => 'tr_poh_edit',
+            'redirect_url' => route('tr_poh.print', $header->fpono),
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect_url' => route('tr_poh.index'),
+                'success_prompt' => $successPrompt,
+            ]);
+        }
+
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', $message);
+            ->with('success', $message)
+            ->with('success_prompt', $successPrompt);
     }
 
     public function delete(Request $request, $fpohid)

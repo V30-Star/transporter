@@ -1895,14 +1895,18 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
 
+            $invoiceUrl = ! $this->canCreateInvoice() ? null : route('invoice.create', ['surat_jalan_id' => $fstockmtid]);
+            $successPrompt = [
+                'type' => 'suratjalan_edit',
+                'redirect_url' => route('suratjalan.print', $fstockmtno),
+                'invoice_url' => $invoiceUrl,
+            ];
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => "Surat Jalan {$fstockmtno} berhasil diupdate.",
                     'redirect_url' => route('suratjalan.index'),
-                    'success_prompt' => ! $this->canCreateInvoice() ? null : [
-                        'type' => 'suratjalan_create_invoice',
-                        'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
-                    ]
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
@@ -1910,14 +1914,11 @@ class SuratJalanController extends Controller
                 ->route('suratjalan.index')
                 ->with('success', "Surat Jalan {$fstockmtno} berhasil diupdate.");
 
-            if (! $this->canCreateInvoice()) {
-                return $redirect;
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
             }
 
-            return $redirect->with('success_prompt', [
-                'type' => 'suratjalan_create_invoice',
-                'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
-            ]);
+            return $redirect;
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();

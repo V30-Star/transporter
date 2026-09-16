@@ -1736,15 +1736,29 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
         }
 
+        $message = "Penerimaan Barang {$header->fstockmtno} berhasil diupdate.";
+        $successPrompt = $isApproved ? [
+            'type' => 'penerimaanbarang_edit',
+            'redirect_url' => route('penerimaanbarang.print', $header->fstockmtno),
+        ] : null;
+
         if ($request->expectsJson()) {
-            return response()->json([
-                'message' => "Penerimaan Barang {$header->fstockmtno} berhasil diupdate.",
+            $payload = [
+                'message' => $message,
                 'redirect_url' => route('penerimaanbarang.index'),
-            ]);
+            ];
+            if ($successPrompt) {
+                $payload['success_prompt'] = $successPrompt;
+            }
+            return response()->json($payload);
         }
 
-        return redirect()->route('penerimaanbarang.index')
-            ->with('success', "Penerimaan Barang {$header->fstockmtno} berhasil diupdate.");
+        $redirect = redirect()->route('penerimaanbarang.index')
+            ->with('success', $message);
+        if ($successPrompt) {
+            $redirect->with('success_prompt', $successPrompt);
+        }
+        return $redirect;
     }
 
     public function destroy($fstockmtid)

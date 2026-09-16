@@ -1461,16 +1461,24 @@ class AssemblingController extends Controller
             unset($r);
         });
 
+        $message = "Assembling {$header->fstockmtno} berhasil diupdate.";
+        $successPrompt = [
+            'type' => 'assembling_edit',
+            'redirect_url' => route('assembling.print', $header->fstockmtno),
+        ];
+
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Assembling {$header->fstockmtno} berhasil diupdate.",
+                'message' => $message,
                 'redirect_url' => route('assembling.index'),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('assembling.index')
-            ->with('success', "Assembling {$header->fstockmtno} berhasil diupdate.");
+            ->with('success', $message)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

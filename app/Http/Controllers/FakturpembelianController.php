@@ -3333,17 +3333,31 @@ class FakturpembelianController extends Controller
             });
 
             $successMessage = "Faktur pembelian {$fstockmtno} berhasil diupdate.";
+            $successPrompt = $isApproved ? [
+                'type' => 'fakturpembelian_edit',
+                'redirect_url' => route('fakturpembelian.print', $fstockmtno),
+            ] : null;
 
             if ($request->expectsJson()) {
-                return response()->json([
+                $payload = [
                     'message' => $successMessage,
                     'redirect_url' => route('fakturpembelian.index'),
-                ]);
+                ];
+                if ($successPrompt) {
+                    $payload['success_prompt'] = $successPrompt;
+                }
+                return response()->json($payload);
             }
 
-            return redirect()
+            $redirect = redirect()
                 ->route('fakturpembelian.index')
                 ->with('success', $successMessage);
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

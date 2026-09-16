@@ -2059,15 +2059,25 @@ class SalesOrderController extends Controller
         });
 
         $message = "Sales Order {$header->fsono} berhasil diupdate";
+        $isApprovedSo = (int) ($header->fapproval ?? 0) === 1 || (int) ($creditApproval['fapproval'] ?? 0) === 1;
+        $suratJalanUrl = (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue)
+            ? null
+            : route('suratjalan.create', ['sales_order_id' => $ftrsomtid]);
+
+        $successPrompt = $isApprovedSo ? [
+            'type' => 'salesorder_edit',
+            'redirect_url' => route('salesorder.print', $header->fsono),
+            'suratjalan_url' => $suratJalanUrl,
+        ] : ($suratJalanUrl ? [
+            'type' => 'salesorder_create_suratjalan',
+            'redirect_url' => $suratJalanUrl,
+        ] : null);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
                 'redirect_url' => route('salesorder.index'),
-                'success_prompt' => (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) ? null : [
-                    'type' => 'salesorder_create_suratjalan',
-                    'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
-                ]
+                'success_prompt' => $successPrompt,
             ]);
         }
 
@@ -2075,14 +2085,11 @@ class SalesOrderController extends Controller
             ->route('salesorder.index')
             ->with('success', $message);
 
-        if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
-            return $redirect;
+        if ($successPrompt) {
+            $redirect->with('success_prompt', $successPrompt);
         }
 
-        return $redirect->with('success_prompt', [
-            'type' => 'salesorder_create_suratjalan',
-            'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
-        ]);
+        return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

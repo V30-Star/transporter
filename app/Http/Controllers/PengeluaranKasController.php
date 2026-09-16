@@ -384,16 +384,24 @@ class PengeluaranKasController extends Controller
             }
         });
 
+        $successMessage = 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.';
+        $successPrompt = [
+            'type' => 'pengeluarankas_edit',
+            'redirect_url' => route('pengeluarankas.print', $header->fkasmtno),
+        ];
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.',
+                'message'      => $successMessage,
                 'redirect_url' => route('pengeluarankas.index', ['fkasmtno' => $header->fkasmtno]),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('pengeluarankas.index', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.');
+            ->with('success', $successMessage)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

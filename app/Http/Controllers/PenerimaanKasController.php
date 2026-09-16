@@ -384,16 +384,24 @@ class PenerimaanKasController extends Controller
             }
         });
 
+        $successMessage = 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.';
+        $successPrompt = [
+            'type' => 'penerimaankas_edit',
+            'redirect_url' => route('penerimaankas.print', $header->fkasmtno),
+        ];
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.',
+                'message'      => $successMessage,
                 'redirect_url' => route('penerimaankas.index', ['fkasmtno' => $header->fkasmtno]),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('penerimaankas.index', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.');
+            ->with('success', $successMessage)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

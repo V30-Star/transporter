@@ -763,16 +763,24 @@ class PelunasanCustomerController extends Controller
             $this->syncInvoiceAmountRemain($refNos);
         });
 
+        $message = "Pelunasan Customer {$voucherNo} berhasil diupdate.";
+        $successPrompt = [
+            'type' => 'pelunasancustomer_edit',
+            'redirect_url' => route('pelunasancustomer.print', $voucherNo),
+        ];
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => "Pelunasan Customer {$voucherNo} berhasil diupdate.",
+                'message'      => $message,
                 'redirect_url' => route('pelunasancustomer.index'),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('pelunasancustomer.index')
-            ->with('success', "Pelunasan Customer {$voucherNo} berhasil diupdate.");
+            ->with('success', $message)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

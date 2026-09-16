@@ -874,9 +874,31 @@ class Tr_prhController extends Controller
         });
 
         $message = "PR {$header->fprno} berhasil diupdate";
-        return redirect()
+        $successPrompt = $isApproved ? [
+            'type' => 'tr_prh_edit',
+            'redirect_url' => route('tr_prh.print', $header->fprno),
+        ] : null;
+
+        if ($request->expectsJson()) {
+            $payload = [
+                'message' => $message,
+                'redirect_url' => route('tr_prh.index'),
+            ];
+            if ($successPrompt) {
+                $payload['success_prompt'] = $successPrompt;
+            }
+            return response()->json($payload);
+        }
+
+        $redirect = redirect()
             ->route('tr_prh.index')
             ->with('success', $message);
+
+        if ($successPrompt) {
+            $redirect->with('success_prompt', $successPrompt);
+        }
+
+        return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

@@ -774,16 +774,24 @@ class BayarSupplierController extends Controller
             $this->syncPayableAmountRemain(array_unique(array_merge($oldRefNos, $newRefNos)));
         });
 
+        $message = 'Bayar supplier ' . $voucherNo . ' berhasil diupdate.';
+        $successPrompt = [
+            'type' => 'bayarsupplier_edit',
+            'redirect_url' => route('bayarsupplier.print', $voucherNo),
+        ];
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message'      => 'Bayar supplier ' . $voucherNo . ' berhasil diupdate.',
+                'message'      => $message,
                 'redirect_url' => route('bayarsupplier.edit', $voucherNo),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('bayarsupplier.edit', $voucherNo)
-            ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil diupdate.');
+            ->with('success', $message)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

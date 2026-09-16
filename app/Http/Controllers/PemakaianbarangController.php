@@ -1403,16 +1403,24 @@ class PemakaianbarangController extends Controller
             unset($r);
         });
 
+        $message = "Pemakaian Barang {$fstockmtno} berhasil diupdate.";
+        $successPrompt = [
+            'type' => 'pemakaianbarang_edit',
+            'redirect_url' => route('pemakaianbarang.print', $fstockmtno),
+        ];
+
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => "Pemakaian Barang {$fstockmtno} berhasil diupdate.",
+                'message' => $message,
                 'redirect_url' => route('pemakaianbarang.index'),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
         return redirect()
             ->route('pemakaianbarang.index')
-            ->with('success', "Pemakaian Barang {$fstockmtno} berhasil diupdate.");
+            ->with('success', $message)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

@@ -336,14 +336,23 @@ class LembarPenagihanController extends Controller
             $this->replaceDetailsWithLog($tagihanNo, $data, $userId, $trxLogId, 'U', $userIdLog, $now);
         });
 
+        $successMessage = "Lembar penagihan {$tagihanNo} berhasil diupdate.";
+        $successPrompt = [
+            'type' => 'lembarpenagihan_edit',
+            'redirect_url' => route('lembarpenagihan.print', $tagihanNo),
+        ];
+
         if (request()->expectsJson()) {
             return response()->json([
-                'message'      => "Lembar penagihan {$tagihanNo} berhasil diupdate.",
+                'message'      => $successMessage,
                 'redirect_url' => route('lembarpenagihan.index'),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
-        return redirect()->route('lembarpenagihan.index')->with('success', "Lembar penagihan {$tagihanNo} berhasil diupdate.");
+        return redirect()->route('lembarpenagihan.index')
+            ->with('success', $successMessage)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

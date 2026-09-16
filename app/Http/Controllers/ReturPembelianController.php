@@ -2103,16 +2103,32 @@ class ReturPembelianController extends Controller
                 );
             });
 
+            $successMessage = "Retur pembelian {$fstockmtno} berhasil diupdate.";
+            $successPrompt = $isApproved ? [
+                'type' => 'returpembelian_edit',
+                'redirect_url' => route('returpembelian.print', $fstockmtno),
+            ] : null;
+
             if (request()->expectsJson()) {
-                return response()->json([
-                    'message' => "Retur pembelian {$fstockmtno} berhasil diupdate.",
+                $payload = [
+                    'message' => $successMessage,
                     'redirect_url' => route('returpembelian.index'),
-                ]);
+                ];
+                if ($successPrompt) {
+                    $payload['success_prompt'] = $successPrompt;
+                }
+                return response()->json($payload);
             }
 
-            return redirect()
+            $redirect = redirect()
                 ->route('returpembelian.index')
-                ->with('success', "Retur pembelian {$fstockmtno} berhasil diupdate.");
+                ->with('success', $successMessage);
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

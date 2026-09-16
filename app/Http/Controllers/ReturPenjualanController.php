@@ -3507,14 +3507,28 @@ class ReturPenjualanController extends Controller
                 );
             });
 
+            $successMessage = "Retur Penjualan {$fstockmtno} berhasil diupdate.";
+            $successPrompt = $isApproved ? [
+                'type' => 'returpenjualan_edit',
+                'redirect_url' => route('returpenjualan.print', $fstockmtno),
+            ] : null;
+
             if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => "Retur Penjualan {$fstockmtno} berhasil diupdate.",
+                $payload = [
+                    'message' => $successMessage,
                     'redirect_url' => route('returpenjualan.index'),
-                ]);
+                ];
+                if ($successPrompt) {
+                    $payload['success_prompt'] = $successPrompt;
+                }
+                return response()->json($payload);
             }
 
-            return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$fstockmtno} berhasil diupdate.");
+            $redirect = redirect()->route('returpenjualan.index')->with('success', $successMessage);
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

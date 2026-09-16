@@ -1456,13 +1456,21 @@ class JurnalTransaksiController extends Controller
             DB::table('jurnaldt')->insert($details);
         });
 
+        $printUrl = route('jurnaltransaksi.print', ['fjurnalno' => $header->fjurnalno]);
+        $successMessage = "Jurnal Transaksi {$header->fjurnalno} berhasil diupdate.";
+        $successPrompt = [
+            'type'         => 'jurnaltransaksi_edit',
+            'redirect_url' => $printUrl,
+        ];
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => "Jurnal Transaksi {$header->fjurnalno} berhasil diupdate.",
+                'message' => $successMessage,
                 'redirect_url' => route('jurnaltransaksi.edit', array_merge(
                     ['fcurrid' => $fstockmtid],
                     $this->resolveJournalIndexRouteParams($fjurnaltype)
                 )),
+                'success_prompt' => $successPrompt,
             ]);
         }
 
@@ -1471,7 +1479,8 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', "Jurnal Transaksi {$header->fjurnalno} berhasil diupdate.");
+            ->with('success', $successMessage)
+            ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

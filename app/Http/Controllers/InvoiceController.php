@@ -4031,40 +4031,34 @@ class InvoiceController extends Controller
                     ->with('success_prompt', $successPrompt);
             }
 
-            $redirect = redirect()->route($this->getRoutePrefix() . '.index')->with('success', $successMessage);
+            $isApprovedInvoice = (int) ($header->fapproval ?? 0) === 1;
+            $suratjalanUrl = (! $needsApprovalNotification && $this->canCreateSuratJalan() && $fprdoutVal === '0')
+                ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
+                : null;
 
-            if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => $successMessage,
-                        'redirect_url' => route($this->getRoutePrefix() . '.index'),
-                    ]);
-                }
-                return $redirect;
-            }
-
-            if ($fprdoutVal === '0') {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => $successMessage,
-                        'redirect_url' => route($this->getRoutePrefix() . '.index'),
-                        'success_prompt' => [
-                            'type' => 'invoice_create_suratjalan',
-                            'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-                        ]
-                    ]);
-                }
-                return $redirect->with('success_prompt', [
-                    'type' => 'invoice_create_suratjalan',
-                    'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-                ]);
-            }
+            $successPrompt = $isApprovedInvoice ? [
+                'type' => 'invoice_edit',
+                'redirect_url' => route($this->getRoutePrefix() . '.print', $header->fsono),
+                'suratjalan_url' => $suratjalanUrl,
+            ] : ($suratjalanUrl ? [
+                'type' => 'invoice_create_suratjalan',
+                'redirect_url' => $suratjalanUrl,
+            ] : null);
 
             if ($request->expectsJson()) {
-                return response()->json([
+                $payload = [
                     'message' => $successMessage,
                     'redirect_url' => route($this->getRoutePrefix() . '.index'),
-                ]);
+                ];
+                if ($successPrompt) {
+                    $payload['success_prompt'] = $successPrompt;
+                }
+                return response()->json($payload);
+            }
+
+            $redirect = redirect()->route($this->getRoutePrefix() . '.index')->with('success', $successMessage);
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
             }
             return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {

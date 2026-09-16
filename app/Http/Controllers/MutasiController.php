@@ -1362,16 +1362,24 @@ class MutasiController extends Controller
                 }
             });
 
+            $message = "Mutasi {$header->fstockmtno} berhasil diupdate.";
+            $successPrompt = [
+                'type' => 'mutasi_edit',
+                'redirect_url' => route('mutasi.print', $header->fstockmtno),
+            ];
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Mutasi {$header->fstockmtno} berhasil diupdate.",
+                    'message' => $message,
                     'redirect_url' => route('mutasi.index'),
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
             return redirect()
                 ->route('mutasi.index')
-                ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
+                ->with('success', $message)
+                ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 

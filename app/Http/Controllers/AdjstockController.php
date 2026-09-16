@@ -1439,16 +1439,24 @@ class AdjstockController extends Controller
                 unset($r);
             });
 
+            $message = "Adjustment Stok {$header->fstockmtno} berhasil diupdate.";
+            $successPrompt = [
+                'type' => 'adjstock_edit',
+                'redirect_url' => route('adjstock.print', $header->fstockmtno),
+            ];
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => "Adjustment Stok {$header->fstockmtno} berhasil diupdate.",
+                    'message' => $message,
                     'redirect_url' => route('adjstock.index'),
+                    'success_prompt' => $successPrompt,
                 ]);
             }
 
             return redirect()
                 ->route('adjstock.index')
-                ->with('success', "Adjustment Stok {$header->fstockmtno} berhasil diupdate.");
+                ->with('success', $message)
+                ->with('success_prompt', $successPrompt);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
