@@ -1309,7 +1309,7 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
 
-        if ((int) ($hdr->fapproval ?? 0) !== 1) {
+        if ($this->getRoutePrefix() !== 'penjualanretail' && (int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.');
         }
 
@@ -2547,9 +2547,9 @@ class InvoiceController extends Controller
                     'fprdout' => $fprdoutVal,
                     'fneedacc' => '0',
                     'fuseracc' => mb_substr($userid, 0, 30),
-                    'fapproval' => $isApproved ? 1 : 0,
-                    'fuserapproved' => $isApproved ? (Auth::user()->fname ?? $userid ?? 'system') : null,
-                    'fdateapproved' => $isApproved ? $now : null,
+                    'fapproval' => $this->getRoutePrefix() === 'penjualanretail' ? 1 : ($isApproved ? 1 : 0),
+                    'fuserapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? (Auth::user()->fname ?? $userid ?? 'system') : null,
+                    'fdateapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? $now : null,
                     'fprint' => 0,
                     'ftunai' => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
                     'fwhcode' => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
@@ -3888,7 +3888,9 @@ class InvoiceController extends Controller
                     'fprdout'          => $fprdoutVal,
                     'fneedacc'         => '0',
                     'fuseracc'         => mb_substr($userid, 0, 30),
-                    'fapproval'        => $headerRefNo !== '' ? 1 : 0,
+                    'fapproval'        => $this->getRoutePrefix() === 'penjualanretail' ? 1 : ($headerRefNo !== '' ? 1 : 0),
+                    'fuserapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fuserapproved ?: (Auth::user()->fname ?? $userid ?? 'system')) : $header->fuserapproved,
+                    'fdateapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fdateapproved ?: $now) : $header->fdateapproved,
                     'ftunai'           => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
                     'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,

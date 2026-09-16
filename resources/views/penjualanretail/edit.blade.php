@@ -1094,16 +1094,9 @@
                             </button>
                         @elseif ($action === 'view')
                             @php
-                                $isApproved = (int) ($invoice->fapproval ?? 0) === 1;
                                 $isPrinted = ! can_print_again() && (int) ($invoice->fprint ?? 0) === 1;
                             @endphp
-                            @if (!$isApproved)
-                                <button type="button"
-                                    onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail belum di-approve dan tidak boleh dicetak.', confirmButtonColor: '#3b82f6' })"
-                                    class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                    <x-heroicon-o-printer class="w-5 h-5" /> Print
-                                </button>
-                            @elseif ($isPrinted)
+                            @if ($isPrinted)
                                 <button type="button"
                                     onclick="Swal.fire({ icon: 'warning', title: 'Informasi', text: 'Penjualan Retail Sudah Pernah diPrint.', confirmButtonColor: '#3b82f6' })"
                                     class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">

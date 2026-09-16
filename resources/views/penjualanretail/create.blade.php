@@ -1227,35 +1227,9 @@
 
         window.invoiceCreditApprovalGuard?.(form).then(ok => {
             if (ok) {
-                const doSubmit = () => {
-                    window.submitFormWithStockMinusConfirmation?.(form);
-                };
-
-                Swal.fire({
-                    icon: 'question',
-                    title: 'Konfirmasi Approval',
-                    text: 'Apakah faktur penjualan ini mau langsung di Approve ?',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Yes',
-                    showDenyButton: true,
-                    denyButtonText: 'No',
-                    showCancelButton: true,
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#2563eb',
-                    denyButtonColor: '#4b5563',
-                    cancelButtonColor: '#9ca3af',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                }).then((result) => {
-                    const approveInput = document.getElementById('approveNowInput');
-                    if (result.isConfirmed) {
-                        if (approveInput) approveInput.value = '1';
-                        doSubmit();
-                    } else if (result.isDenied) {
-                        if (approveInput) approveInput.value = '0';
-                        doSubmit();
-                    }
-                });
+                const approveInput = document.getElementById('approveNowInput');
+                if (approveInput) approveInput.value = '1';
+                window.submitFormWithStockMinusConfirmation?.(form);
             }
         });
     };
