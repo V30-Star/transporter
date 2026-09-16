@@ -488,8 +488,10 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
             <div class="p-6">
                 <div class="flex items-center justify-end gap-3">
              @if ($isDeleteMode)
-                <button type="submit"
-                    class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
+                <button type="button"
+                    onclick="confirmDeletePelunasan()"
+                    class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center gap-1.5 text-sm font-medium shadow-sm">
+                    <x-heroicon-o-trash class="w-4 h-4" />
                     {{ $submitLabel }}
                 </button>
             @elseif (!$isReadOnly && !empty($submitLabel))
@@ -1670,6 +1672,27 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
                 handleImportInvoice() {}
             }
+        }
+
+        function confirmDeletePelunasan() {
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: 'Apakah Anda yakin ingin menghapus data Pelunasan Customer ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.querySelector('form');
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
         }
     </script>
 @endpush

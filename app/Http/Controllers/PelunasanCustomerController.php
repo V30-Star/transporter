@@ -67,6 +67,7 @@ class PelunasanCustomerController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.famountpay',
                 'trkasmt.faccountheader',
                 'acc.faccname'
             )
@@ -182,6 +183,7 @@ class PelunasanCustomerController extends Controller
                 'mt.fsodate',
                 'mt.fcustno',
                 'mt.ftrcode',
+                'mt.famountso',
                 'mt.famountremain',
                 'mt.fongkosangkut',
                 'mt.fjatuhtempo',

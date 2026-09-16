@@ -43,6 +43,7 @@ class BayarSupplierController extends Controller
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
                 'trkasmt.fwhom',
+                'trkasmt.famountpay',
                 'trkasmt.faccountheader',
                 'acc.faccname'
             )
