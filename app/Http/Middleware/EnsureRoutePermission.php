@@ -151,6 +151,14 @@ class EnsureRoutePermission
             return ['roleaccess'];
         }
 
+        if ($module === 'loguser') {
+            return ['viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'];
+        }
+
+        if ($module === 'dashboardwewenang') {
+            return ['roleaccess', 'viewSysuser'];
+        }
+
         if (isset(self::REPORT_PRINTS[$module])) {
             return [self::REPORT_PRINTS[$module]];
         }
