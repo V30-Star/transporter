@@ -333,7 +333,7 @@
                                 @if ($canPenjualanTunai)
                                     <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                         <input type="checkbox" name="ftunai" id="ftunai" value="1"
-                                            {{ old('ftunai', '0') == '1' ? 'checked' : '' }}
+                                            {{ old('ftunai', '1') == '1' ? 'checked' : '' }}
                                             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                         <span class="ml-1.5 font-bold text-xs text-gray-700">Cash</span>
                                     </label>

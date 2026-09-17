@@ -2523,7 +2523,7 @@ class InvoiceController extends Controller
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $isTunai = $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerInsert = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
@@ -2566,7 +2566,7 @@ class InvoiceController extends Controller
                     'fuserapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? (Auth::user()->fname ?? $userid ?? 'system') : null,
                     'fdateapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? $now : null,
                     'fprint' => 0,
-                    'ftunai' => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
+                    'ftunai' => $isTunai ? 1 : 0,
                     'fwhcode' => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo' => $fjatuhtempo,
                 ];
@@ -2587,7 +2587,9 @@ class InvoiceController extends Controller
                     $fsodate,
                     (string) ($request->fbranchcode ?? 'BG'),
                     (string) $request->fcustno,
-                    (string) $userid
+                    (string) $userid,
+                    $isTunai,
+                    $fkodefp
                 );
             });
 
@@ -3870,7 +3872,7 @@ class InvoiceController extends Controller
                     ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
                     ->value('total');
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $isTunai = $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $amountRemain = $isTunai ? 0 : max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = $isTunai ? 0 : max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
@@ -3910,7 +3912,7 @@ class InvoiceController extends Controller
                     'fapproval'        => $this->getRoutePrefix() === 'penjualanretail' ? 1 : ($headerRefNo !== '' ? 1 : 0),
                     'fuserapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fuserapproved ?: (Auth::user()->fname ?? $userid ?? 'system')) : $header->fuserapproved,
                     'fdateapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fdateapproved ?: $now) : $header->fdateapproved,
-                    'ftunai'           => $request->boolean('ftunai') ? 1 : ((int) $request->input('ftunai', 0) === 1 ? 1 : 0),
+                    'ftunai'           => $isTunai ? 1 : 0,
                     'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,
                 ];
@@ -4029,7 +4031,9 @@ class InvoiceController extends Controller
                     $fsodate,
                     (string) ($request->fbranchcode ?? ($header->fbranchcode ?? 'BG')),
                     (string) $request->fcustno,
-                    (string) $userid
+                    (string) $userid,
+                    $isTunai,
+                    $fkodefp
                 );
             });
 
@@ -4383,9 +4387,11 @@ class InvoiceController extends Controller
         Carbon $fsodate,
         string $branchCode,
         string $customerCode,
-        string $userName
+        string $userName,
+        bool $isCash = false,
+        ?string $kodeFp = null
     ): void {
-        JurnalFakturPenjualan::sync($fsono, $fsodate, $branchCode, $customerCode, $userName);
+        JurnalFakturPenjualan::sync($fsono, $fsodate, $branchCode, $customerCode, $userName, $isCash, $kodeFp);
     }
 
     private function deleteInvoiceJournalEntries(string $fsono): void
