@@ -3,24 +3,24 @@
 @section('title', 'Master Produk - Delete')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-                <x-heroicon-o-trash class="w-8 h-8 text-red-600" />
+    <div class="bg-white rounded shadow p-4 md:p-6 max-w-[1800px] w-full mx-auto">
+        <div class="text-center mb-3">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-2">
+                <x-heroicon-o-trash class="w-6 h-6 text-red-600" />
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Konfirmasi Hapus Produk</h2>
-            <p class="text-gray-600 mt-1">Data berikut akan dihapus secara permanen:</p>
+            <h2 class="text-lg font-bold text-gray-800">Konfirmasi Hapus Produk</h2>
+            <p class="text-sm text-gray-600 mt-0.5">Data berikut akan dihapus secara permanen:</p>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-6 space-y-4">
-            <div class="grid grid-cols-3 gap-4">
+        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Kode Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdcode }}
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Nama Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdname }}
@@ -28,7 +28,7 @@
             </div>
 
             @if ($product->merek)
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Merek</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->merek->fmereknama ?? '-' }}
@@ -37,7 +37,7 @@
             @endif
 
             @if (!empty($product->fgroupcode) || $product->group_model)
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Group Produk</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->group_display }}
@@ -46,7 +46,7 @@
             @endif
 
             @if (!empty($isRetailThe) && (!empty($product->fdealer) || $product->dealer))
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Dealer</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->dealer ? $product->dealer->fdealercode . ' - ' . $product->dealer->fdealername : $product->fdealer }}
@@ -55,7 +55,7 @@
             @endif
 
             @if (!empty($product->fspecification))
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Spesifikasi/Type</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->fspecification }}
@@ -75,28 +75,28 @@
                     ),
                 );
             @endphp
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Satuan</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ count($productSatuan) > 0 ? implode(' / ', $productSatuan) : '-' }}
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Min. Stok</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ number_format((float) ($product->fminstock ?? 0), 2, ',', '.') }}
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Harga Beli</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     Rp {{ number_format($product->fhargabeli ?? 0, 2, ',', '.') }}
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Harga Jual</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     Rp {{ number_format($product->fhargajual ?? 0, 2, ',', '.') }}
@@ -104,7 +104,7 @@
             </div>
 
             @if (!empty($isRetailThe))
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Promosi 1</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         Qty: {{ number_format((float) ($product->fqtypromosi1 ?? 0), 2, ',', '.') }} {{ $product->fsatuankecil ?? '' }} &middot;
@@ -112,7 +112,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-3 gap-2 py-0.5">
                     <div class="text-sm font-bold text-gray-700">Promosi 2</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         Qty: {{ number_format((float) ($product->fqtypromosi2 ?? 0), 2, ',', '.') }} {{ $product->fsatuankecil ?? '' }} &middot;
@@ -121,7 +121,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span
@@ -132,7 +132,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 py-0.5">
                 <div class="text-sm font-bold text-gray-700">Foto Produk</div>
                 <div class="col-span-2">
                     <div class="flex flex-col gap-6">

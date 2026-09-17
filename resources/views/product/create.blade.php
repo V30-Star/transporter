@@ -104,14 +104,14 @@
         .select2-container--default .select2-selection--single {
             border: 1px solid #000000 !important;
             border-radius: 0.375rem;
-            height: 42px;
-            padding: 0.5rem 0.75rem;
+            height: 32px;
+            padding: 0.2rem 0.5rem;
             width: 100% !important;
             background-color: white;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px;
+            height: 30px;
         }
 
         .select2-dropdown {
@@ -121,7 +121,7 @@
         }
 
         .select2-results__option {
-            padding: 8px 12px;
+            padding: 6px 10px;
         }
 
         .select2-results__option--highlighted {
@@ -131,15 +131,33 @@
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #000000 !important;
+            line-height: 22px;
         }
 
         /* ─── Layout sections ─── */
         .section-card {
             background: #fff;
             border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1rem;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.625rem;
+        }
+
+        .section-card .grid {
+            gap: 0.5rem 0.75rem;
+        }
+
+        .section-card .mb-4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .section-card .mb-3 {
+            margin-bottom: 0.375rem;
+        }
+
+        .section-card .py-2 {
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
         }
 
         .section-title {
@@ -148,7 +166,7 @@
             letter-spacing: 0.07em;
             text-transform: uppercase;
             color: #6b7280;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -159,14 +177,14 @@
             font-size: 12px;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .field-input {
             width: 100%;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 8px 10px;
+            padding: 4px 8px;
             font-size: 13px;
             background: #fff;
             color: #111827;
@@ -198,9 +216,9 @@
             display: inline-block;
             font-size: 10px;
             font-weight: 600;
-            padding: 2px 8px;
+            padding: 1px 6px;
             border-radius: 99px;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
         }
 
         .satuan-badge.blue {
@@ -228,7 +246,7 @@
         .hj-table th {
             background: #f9fafb;
             border: 1px solid #e5e7eb;
-            padding: 7px 10px;
+            padding: 4px 6px;
             font-size: 11px;
             font-weight: 600;
             color: #6b7280;
@@ -241,7 +259,7 @@
 
         .hj-table td {
             border: 1px solid #e5e7eb;
-            padding: 6px 8px;
+            padding: 3px 5px;
         }
 
         .hj-table td.row-label {
@@ -256,7 +274,7 @@
             width: 100%;
             border: 1px solid #d1d5db;
             border-radius: 4px;
-            padding: 5px 8px;
+            padding: 3px 6px;
             font-size: 13px;
             text-align: right;
         }
@@ -286,9 +304,9 @@
             cursor: pointer;
             color: #9ca3af;
             transition: border-color 0.15s;
-            padding: 12px 8px;
+            padding: 8px 6px;
             text-align: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .img-upload-box:hover {
@@ -297,8 +315,8 @@
         }
 
         .img-upload-box svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
 
         .img-upload-box span {

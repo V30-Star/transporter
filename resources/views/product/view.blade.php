@@ -23,10 +23,14 @@
         input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
 
         /* ─── Layout sections ─── */
-        .section-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
-        .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #6b7280; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
-        .field-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
-        .field-input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 13px; background: #fff; color: #000; }
+        .section-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.625rem; }
+        .section-card .grid { gap: 0.5rem 0.75rem; }
+        .section-card .mb-4 { margin-bottom: 0.5rem; }
+        .section-card .mb-3 { margin-bottom: 0.375rem; }
+        .section-card .py-2 { padding-top: 0.3rem; padding-bottom: 0.3rem; }
+        .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px; }
+        .field-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 2px; }
+        .field-input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 8px; font-size: 13px; background: #fff; color: #000; }
         .field-input:disabled,
         .field-input[readonly] { background: #f3f4f6; color: #000; cursor: not-allowed; opacity: 1; }
         .field-input.blue   { background: #eff6ff; border-color: #93c5fd; }
@@ -34,18 +38,18 @@
         .field-input.purple { background: #faf5ff; border-color: #d8b4fe; }
 
         /* satuan badge */
-        .satuan-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px; }
+        .satuan-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 99px; margin-bottom: 3px; }
         .satuan-badge.blue   { background: #dbeafe; color: #1d4ed8; }
         .satuan-badge.yellow { background: #fef9c3; color: #92400e; }
         .satuan-badge.purple { background: #ede9fe; color: #6d28d9; }
 
         /* Harga jual matrix table */
         .hj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .hj-table th { background: #f9fafb; border: 1px solid #e5e7eb; padding: 7px 10px; font-size: 11px; font-weight: 600; color: #6b7280; text-align: center; }
+        .hj-table th { background: #f9fafb; border: 1px solid #e5e7eb; padding: 4px 6px; font-size: 11px; font-weight: 600; color: #6b7280; text-align: center; }
         .hj-table th:first-child { text-align: left; }
-        .hj-table td { border: 1px solid #e5e7eb; padding: 6px 8px; }
+        .hj-table td { border: 1px solid #e5e7eb; padding: 3px 5px; }
         .hj-table td.row-label { font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap; background: #f9fafb; }
-        .hj-table input { width: 100%; border: 1px solid #d1d5db; border-radius: 4px; padding: 5px 8px; font-size: 13px; text-align: right; color: #000; }
+        .hj-table input { width: 100%; border: 1px solid #d1d5db; border-radius: 4px; padding: 3px 6px; font-size: 13px; text-align: right; color: #000; }
         .hj-table input:disabled { color: #000; opacity: 1; }
         input:disabled,
         select:disabled,
