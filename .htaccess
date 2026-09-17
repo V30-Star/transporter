@@ -2,7 +2,7 @@
     RewriteEngine On
 
     # Block sensitive files and directories directly from web access
-    RewriteRule ^(\.env|\.git|storage/.*|bootstrap/cache/.*|composer\.(json|lock)|package\.(json|lock)) - [F,L,NC]
+    RewriteRule ^(\.env|\.git|storage/.*|bootstrap/cache/.*|composer\.(json|lock)|package\.(json|lock)|.*\.map$) - [F,L,NC]
 
     # Redirect root requests to public/
     RewriteCond %{REQUEST_URI} !^/public/

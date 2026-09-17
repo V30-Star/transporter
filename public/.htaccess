@@ -3,6 +3,17 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Block access to source map files (.map)
+    <FilesMatch "\.map$">
+        <IfModule !mod_authz_core.c>
+            Order deny,allow
+            Deny from all
+        </IfModule>
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+    </FilesMatch>
+
     RewriteEngine On
 
     # Handle Authorization Header
