@@ -1400,6 +1400,7 @@ class FakturpembelianController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Faktur Pembelian tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Faktur Pembelian belum di-approve dan tidak boleh dicetak.');
@@ -2276,6 +2277,7 @@ class FakturpembelianController extends Controller
                   ->orWhere('fstockmtno', $slash)
                   ->orWhere('fstockmtno', $dot);
             })->firstOrFail();
+        $this->ensureBranchAccess($fakturpembelian->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
             return redirect()
@@ -2510,6 +2512,7 @@ class FakturpembelianController extends Controller
                   ->orWhere('fstockmtno', $slash)
                   ->orWhere('fstockmtno', $dot);
             })->firstOrFail();
+        $this->ensureBranchAccess($fakturpembelian->fbranchcode);
 
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $fakturpembelian->fprdjadi;
@@ -2667,7 +2670,8 @@ class FakturpembelianController extends Controller
 
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
             $hasPpn = $fapplyppn === 1;
-            $header = PenerimaanPembelianHeader::find($fstockmtid);
+            $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($header->fbranchcode);
             $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
 
             // VALIDASI
@@ -3515,6 +3519,7 @@ class FakturpembelianController extends Controller
     {
         try {
             $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($fakturpembelian->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
                 return redirect()->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)->with('error', $message);

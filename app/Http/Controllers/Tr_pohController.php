@@ -790,6 +790,7 @@ class Tr_pohController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'PO tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Order Pembelian belum di-approve dan tidak boleh dicetak.');
@@ -1345,6 +1346,7 @@ class Tr_pohController extends Controller
               ->orWhere('fpono', $slash)
               ->orWhere('fpono', $dot);
         })->firstOrFail();
+        $this->ensureBranchAccess($tr_poh->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
             return redirect()
@@ -1521,6 +1523,7 @@ class Tr_pohController extends Controller
               ->orWhere('fpono', $slash)
               ->orWhere('fpono', $dot);
         })->firstOrFail();
+        $this->ensureBranchAccess($tr_poh->fbranchcode);
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($tr_poh->fbranchcode ?? null);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
@@ -1599,6 +1602,7 @@ class Tr_pohController extends Controller
     {
         $allowNegativeStockQty = stock_boleh_minus();
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+        $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fpodate, 'Data ini')) {
             return redirect()->route('tr_poh.view', $header->fpohid)->with('error', $message);
@@ -2235,6 +2239,7 @@ class Tr_pohController extends Controller
     {
         try {
             $tr_poh = Tr_poh::findOrFail($fpohid);
+            $this->ensureBranchAccess($tr_poh->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
                 return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);

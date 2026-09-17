@@ -642,6 +642,7 @@ class SuratJalanController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Surat Jalan tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Surat Jalan belum di-approve dan tidak boleh dicetak.');
@@ -1244,6 +1245,7 @@ class SuratJalanController extends Controller
             ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
             ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+        $this->ensureBranchAccess($suratjalan->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
             return redirect()
@@ -1521,6 +1523,7 @@ class SuratJalanController extends Controller
             // 2) AMBIL DATA HEADER
             // =========================
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($header->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
                 return redirect()->route('suratjalan.edit', $header->fstockmtid)->with('error', $message);
@@ -2076,6 +2079,7 @@ class SuratJalanController extends Controller
     {
         try {
             $suratjalan = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($suratjalan->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
                 return redirect()->route('suratjalan.edit', $suratjalan->fstockmtid)->with('error', $message);

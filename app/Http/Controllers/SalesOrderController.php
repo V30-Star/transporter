@@ -934,6 +934,7 @@ class SalesOrderController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Sales Order tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Sales Order belum di-approve dan tidak boleh dicetak.');
@@ -1558,6 +1559,7 @@ class SalesOrderController extends Controller
             }
         }
         abort_if(! $salesorder, 404);
+        $this->ensureBranchAccess($salesorder->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
@@ -1794,6 +1796,7 @@ class SalesOrderController extends Controller
         if (! $header) {
             return abort(404, 'Sales Order tidak ada.');
         }
+        $this->ensureBranchAccess($header->fbranchcode);
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', $message);
         }
@@ -2259,6 +2262,7 @@ class SalesOrderController extends Controller
     {
         try {
             $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
+            $this->ensureBranchAccess($salesorder->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
                 return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);

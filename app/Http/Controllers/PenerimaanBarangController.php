@@ -828,6 +828,7 @@ class PenerimaanBarangController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Penerimaan Barang tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Penerimaan Barang belum di-approve dan tidak boleh dicetak.');
@@ -1236,6 +1237,7 @@ class PenerimaanBarangController extends Controller
                     ->orderBy('trstockdt.fstockdtid');
             },
         ])->findOrFail($fstockmtid);
+        $this->ensureBranchAccess($penerimaanbarang->fbranchcode);
 
         if (in_array($action, ['edit', 'delete'], true)) {
             if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
@@ -1392,6 +1394,7 @@ class PenerimaanBarangController extends Controller
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []), $request->input('fnoacak', []));
 
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+        $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate)) {
             return redirect()->route('penerimaanbarang.edit', $header->fstockmtid)->with('error', $message);
@@ -1765,6 +1768,7 @@ class PenerimaanBarangController extends Controller
     {
         try {
             $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($penerimaanbarang->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
                 return redirect()->route('penerimaanbarang.edit', $penerimaanbarang->fstockmtid)->with('error', $message);

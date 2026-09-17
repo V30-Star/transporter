@@ -1337,6 +1337,7 @@ class ReturPenjualanController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Retur penjualan tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Retur Penjualan belum di-approve dan tidak boleh dicetak.');
@@ -2526,6 +2527,7 @@ class ReturPenjualanController extends Controller
                 // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->firstOrFail();
+        $this->ensureBranchAccess($returpenjualan->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
             return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
@@ -2855,6 +2857,7 @@ class ReturPenjualanController extends Controller
             }
             return abort(404, 'Faktur penjualan tidak ada.');
         }
+        $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
             if ($request->expectsJson()) {
@@ -3691,6 +3694,7 @@ class ReturPenjualanController extends Controller
             $ftranmtid = $this->resolveReturPenjualanId($ftranmtid);
             $deletedHeader = null;
             $returHeader = Tranmt::findOrFail($ftranmtid);
+            $this->ensureBranchAccess($returHeader->fbranchcode);
             if ($message = $this->getPostedPeriodLockMessage($returHeader->fsodate, 'Retur ini')) {
                 return redirect()->route('returpenjualan.index')->with('error', $message);
             }

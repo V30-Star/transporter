@@ -568,6 +568,7 @@ class ReturPembelianController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Retur pembelian tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ((int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Retur Pembelian belum di-approve dan tidak boleh dicetak.');
@@ -1426,6 +1427,7 @@ class ReturPembelianController extends Controller
             },
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+        $this->ensureBranchAccess($returpembelian->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
             return redirect()
@@ -1582,6 +1584,7 @@ class ReturPembelianController extends Controller
             },
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+        $this->ensureBranchAccess($returpembelian->fbranchcode);
 
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $returpembelian->fprdjadi;
@@ -1729,6 +1732,7 @@ class ReturPembelianController extends Controller
 
             // 1. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($header->fbranchcode);
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Retur Pembelian ini')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
@@ -2287,6 +2291,7 @@ class ReturPembelianController extends Controller
     {
         try {
             $returpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $this->ensureBranchAccess($returpembelian->fbranchcode);
             if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
                 return redirect()->route('returpembelian.edit', $returpembelian->fstockmtid)->with('error', $message);
             }

@@ -1320,6 +1320,7 @@ class InvoiceController extends Controller
         if (! $hdr) {
             return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
+        $this->ensureBranchAccess($hdr->fbranchcode);
 
         if ($this->getRoutePrefix() !== 'penjualanretail' && (int) ($hdr->fapproval ?? 0) !== 1) {
             return redirect()->back()->with('error', 'Faktur Penjualan belum di-approve dan tidak boleh dicetak.');
@@ -3089,6 +3090,7 @@ class InvoiceController extends Controller
               ->orWhere('fsono', $slash)
               ->orWhere('fsono', $dot);
         })->firstOrFail();
+        $this->ensureBranchAccess($invoice->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
             return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $message);
@@ -3348,6 +3350,7 @@ class InvoiceController extends Controller
         if (! $header) {
             return abort(404, 'Faktur penjualan tidak ada.');
         }
+        $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
             return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
@@ -4219,6 +4222,7 @@ class InvoiceController extends Controller
     {
         try {
             $invoice = Tranmt::findOrFail($ftranmtid);
+            $this->ensureBranchAccess($invoice->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
                 return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);

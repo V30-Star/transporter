@@ -95,6 +95,28 @@ abstract class Controller
         return $query;
     }
 
+    protected function ensureBranchAccess($recordBranchCode, string $message = 'Anda tidak memiliki akses ke data cabang ini.'): void
+    {
+        if ($this->canAccessAllBranches()) {
+            return;
+        }
+
+        $userBranchCode = $this->getCurrentBranchCode();
+        if (! filled($userBranchCode) || ! filled($recordBranchCode)) {
+            return;
+        }
+
+        $userContext = $this->resolveBranchContext($userBranchCode);
+        $recordContext = $this->resolveBranchContext($recordBranchCode);
+
+        $userCode = strtolower(trim((string) ($userContext['fbranchcode'] ?: $userBranchCode)));
+        $recordCode = strtolower(trim((string) ($recordContext['fbranchcode'] ?: $recordBranchCode)));
+
+        if ($userCode !== '' && $recordCode !== '' && $userCode !== $recordCode) {
+            abort(403, $message);
+        }
+    }
+
     protected function resolveBranchContext($branch = null): array
     {
         $needle = trim((string) ($branch ?? ''));

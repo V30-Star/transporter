@@ -587,6 +587,7 @@ class Tr_prhController extends Controller
     {
         try {
             $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+            $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fprdate, 'Data ini')) {
             return redirect()->route('tr_prh.edit', $header->fprhid)->with('error', $message);
@@ -954,6 +955,7 @@ class Tr_prhController extends Controller
     {
         try {
             $tr_prh = Tr_prh::findOrFail($fprhid);
+            $this->ensureBranchAccess($tr_prh->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
                 return redirect()->route('tr_prh.edit', $tr_prh->fprhid)->with('error', $message);
@@ -1246,7 +1248,7 @@ class Tr_prhController extends Controller
             $selectColumns[] = 's.fsuppliercode';
         }
 
-        return Tr_prh::with(['details' => function ($q) {
+        $pr = Tr_prh::with(['details' => function ($q) {
             $q->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                 ->orderBy('p.fprdname')
                 ->select(
@@ -1258,6 +1260,10 @@ class Tr_prhController extends Controller
             ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'tr_prh.fsupplier')
             ->select(...$selectColumns)
             ->findOrFail($fprhid);
+
+        $this->ensureBranchAccess($pr->fbranchcode);
+
+        return $pr;
     }
 
     private function buildPrPageData(Tr_prh $tr_prh, bool $includePricing = false): array
