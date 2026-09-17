@@ -76,7 +76,7 @@ class InvoiceController extends Controller
         return str_replace('/', '.', $normalized);
     }
 
-    private function validateInvoiceStockLines(array $rows, bool $forceSave = false)
+    protected function validateInvoiceStockLines(array $rows, bool $forceSave = false)
     {
         $needs = [];
 
