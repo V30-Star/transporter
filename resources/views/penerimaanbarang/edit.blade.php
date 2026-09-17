@@ -807,7 +807,7 @@
 
                         {{-- Hidden Submit inputs --}}
                         <div class="hidden">
-                            <template x-for="it in savedItems" :key="'submit-' + it.uid">
+                            <template x-for="(it, i) in savedItems" :key="'submit-' + (it.uid || i)">
                                 <div>
                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -1346,7 +1346,7 @@
         function mainForm() {
             function newRow() {
                 return {
-                    uid: null,
+                    uid: cryptoRandom(),
                     fitemcode: '',
                     fitemname: '',
                     units: [],
