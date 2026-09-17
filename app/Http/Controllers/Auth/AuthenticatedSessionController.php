@@ -221,11 +221,13 @@ SVG;
     public function heartbeat(Request $request)
     {
         $user = Auth::guard('sysuser')->user() ?? Auth::user();
-        $account = $user?->fsysuserid ?? session('fsysuserid') ?? $request->input('account');
+        $account = $user?->fsysuserid ?? session('fsysuserid');
 
-        if ($account) {
-            \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 30);
+        if (! $account) {
+            return response()->noContent();
         }
+
+        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 30);
 
         return response()->noContent();
     }
@@ -235,9 +237,14 @@ SVG;
      */
     public function closeTab(Request $request)
     {
-        $logId = session('login_log_id') ?? $request->input('log_id');
         $user = Auth::guard('sysuser')->user() ?? Auth::user();
-        $account = $user?->fsysuserid ?? session('fsysuserid') ?? $request->input('account');
+        $account = $user?->fsysuserid ?? session('fsysuserid');
+        $sessionLogId = session('login_log_id');
+
+        // Only process if user is actively authenticated in this session
+        if (! $account && ! $sessionLogId) {
+            return response()->noContent();
+        }
 
         if ($account) {
             \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$account}");
@@ -248,10 +255,13 @@ SVG;
         }
         cookie()->queue(cookie()->forget('app_session_device_token'));
 
+        $logId = $sessionLogId ?? $request->input('log_id');
         if ($logId) {
-            LogUser::where('floguserid', $logId)
-                ->whereNull('log_out_date')
-                ->update(['log_out_date' => now()]);
+            $query = LogUser::where('floguserid', $logId)->whereNull('log_out_date');
+            if ($account) {
+                $query->where('akun', $account);
+            }
+            $query->update(['log_out_date' => now()]);
         }
 
         return response()->noContent();
