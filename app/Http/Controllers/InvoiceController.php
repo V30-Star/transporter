@@ -2521,7 +2521,8 @@ class InvoiceController extends Controller
 
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
-                $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
+                $isRetail = $this->getRoutePrefix() === 'penjualanretail';
+                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $headerInsert = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
                     'fsono' => $fsono,
@@ -2543,8 +2544,8 @@ class InvoiceController extends Controller
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
                     'ftotalsalesnet' => $totalSalesNet,
-                    'famountremain' => $grandTotal,
-                    'famountremain_rp' => $grandTotal * $frate,
+                    'famountremain' => $isTunai ? 0 : $grandTotal,
+                    'famountremain_rp' => $isTunai ? 0 : ($grandTotal * $frate),
                     'fket' => $request->fket ?? '',
                     'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,
@@ -3864,8 +3865,10 @@ class InvoiceController extends Controller
                     ->where('d.fdk', 'K')
                     ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
                     ->value('total');
-                $amountRemain = max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
-                $amountRemainRp = max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
+                $isRetail = $this->getRoutePrefix() === 'penjualanretail';
+                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $amountRemain = $isTunai ? 0 : max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
+                $amountRemainRp = $isTunai ? 0 : max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
                 $headerUpdate = [
                     'ftaxno'           => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) $header->fsono, 0, 50),
