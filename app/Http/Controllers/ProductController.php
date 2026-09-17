@@ -238,8 +238,8 @@ class ProductController extends Controller
             $columnFields = [
                 0 => 'msprd.fprdcode',
                 1 => 'msprd.fprdname',
-                2 => 'msmerek.fmerekname',
-                3 => 'msprd.fspecification',
+                2 => 'msprd.fspecification',
+                3 => 'msmerek.fmerekname',
                 4 => 'msprd.fsatuankecil',
                 5 => 'msprd.fstok',
             ];
@@ -257,8 +257,8 @@ class ProductController extends Controller
             $columns = [
                 0 => 'msprd.fprdcode',
                 1 => 'msprd.fprdname',
-                2 => 'msmerek.fmerekname',
-                3 => 'msprd.fspecification',
+                2 => 'msprd.fspecification',
+                3 => 'msmerek.fmerekname',
                 4 => 'msprd.fsatuankecil',
                 5 => 'msprd.fstok',
                 6 => 'msprd.fnonactive',
