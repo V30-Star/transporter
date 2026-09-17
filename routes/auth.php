@@ -15,6 +15,7 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::get('captcha', [AuthenticatedSessionController::class, 'captcha'])
+        ->middleware('throttle:30,1')
         ->name('captcha');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
@@ -23,12 +24,14 @@ Route::middleware('guest')->group(function () {
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:3,1')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->middleware('throttle:5,1')
         ->name('password.store');
 });
 

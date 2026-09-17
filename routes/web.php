@@ -864,48 +864,50 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
 
 
-Route::get('/approval-page', [ApprovalController::class, 'showApprovalPage'])
-    ->name('approval.page');
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/approval-page', [ApprovalController::class, 'showApprovalPage'])
+        ->name('approval.page');
 
-Route::post('/approve/{fprno}', [ApprovalController::class, 'approveRequest'])
-    ->name('approval.submit');
+    Route::post('/approve/{fprno}', [ApprovalController::class, 'approveRequest'])
+        ->name('approval.submit');
 
-Route::post('/reject/{fprno}', [ApprovalController::class, 'rejectRequest'])
-    ->where('fprno', '[A-Za-z0-9\.\-]+')
-    ->name('approval.reject');
+    Route::post('/reject/{fprno}', [ApprovalController::class, 'rejectRequest'])
+        ->where('fprno', '[A-Za-z0-9\.\-]+')
+        ->name('approval.reject');
 
-Route::get('/approval/info/{fprno}', [ApprovalController::class, 'infoApprovalPage'])
-    ->name('approval.info');
+    Route::get('/approval/info/{fprno}', [ApprovalController::class, 'infoApprovalPage'])
+        ->name('approval.info');
 
-Route::get('/approval-page-po', [ApprovalController::class, 'showApprovalPagePO'])
-    ->name('approval.page.po');
+    Route::get('/approval-page-po', [ApprovalController::class, 'showApprovalPagePO'])
+        ->name('approval.page.po');
 
-Route::post('/approve-po/{fpono}', [ApprovalController::class, 'approveRequestPO'])
-    ->name('approval.po.submit');
+    Route::post('/approve-po/{fpono}', [ApprovalController::class, 'approveRequestPO'])
+        ->name('approval.po.submit');
 
-Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO'])
-    ->where('fpono', '[A-Za-z0-9\.\-]+')
-    ->name('approval.po.reject');
+    Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO'])
+        ->where('fpono', '[A-Za-z0-9\.\-]+')
+        ->name('approval.po.reject');
 
-Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
-    ->name('approval.po.info');
+    Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
+        ->name('approval.po.info');
 
-Route::get('/approval-salesorder/{fsono}', [ApprovalController::class, 'showSalesOrderApprovalPage'])
-    ->name('approval.salesorder.page');
-Route::post('/approve-salesorder/{fsono}', [ApprovalController::class, 'approveSalesOrder'])
-    ->name('approval.salesorder.submit');
-Route::post('/reject-salesorder/{fsono}', [ApprovalController::class, 'rejectSalesOrder'])
-    ->name('approval.salesorder.reject');
-Route::get('/approval-salesorder/info/{fsono}', [ApprovalController::class, 'salesOrderInfo'])
-    ->name('approval.salesorder.info');
+    Route::get('/approval-salesorder/{fsono}', [ApprovalController::class, 'showSalesOrderApprovalPage'])
+        ->name('approval.salesorder.page');
+    Route::post('/approve-salesorder/{fsono}', [ApprovalController::class, 'approveSalesOrder'])
+        ->name('approval.salesorder.submit');
+    Route::post('/reject-salesorder/{fsono}', [ApprovalController::class, 'rejectSalesOrder'])
+        ->name('approval.salesorder.reject');
+    Route::get('/approval-salesorder/info/{fsono}', [ApprovalController::class, 'salesOrderInfo'])
+        ->name('approval.salesorder.info');
 
-Route::get('/approval-invoice/{fsono}', [ApprovalController::class, 'showInvoiceApprovalPage'])
-    ->name('approval.invoice.page');
-Route::post('/approve-invoice/{fsono}', [ApprovalController::class, 'approveInvoice'])
-    ->name('approval.invoice.submit');
-Route::post('/reject-invoice/{fsono}', [ApprovalController::class, 'rejectInvoice'])
-    ->name('approval.invoice.reject');
-Route::get('/approval-invoice/info/{fsono}', [ApprovalController::class, 'invoiceInfo'])
-    ->name('approval.invoice.info');
+    Route::get('/approval-invoice/{fsono}', [ApprovalController::class, 'showInvoiceApprovalPage'])
+        ->name('approval.invoice.page');
+    Route::post('/approve-invoice/{fsono}', [ApprovalController::class, 'approveInvoice'])
+        ->name('approval.invoice.submit');
+    Route::post('/reject-invoice/{fsono}', [ApprovalController::class, 'rejectInvoice'])
+        ->name('approval.invoice.reject');
+    Route::get('/approval-invoice/info/{fsono}', [ApprovalController::class, 'invoiceInfo'])
+        ->name('approval.invoice.info');
+});
 
 require __DIR__.'/auth.php';
