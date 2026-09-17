@@ -2524,6 +2524,7 @@ class InvoiceController extends Controller
 
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
                 $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerInsert = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
                     'fsono' => $fsono,
