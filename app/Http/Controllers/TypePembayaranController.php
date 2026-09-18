@@ -69,34 +69,43 @@ class TypePembayaranController extends Controller
             return $guard;
         }
 
-        $request->merge([
-            'ftypepembayarankode' => strtoupper(trim((string) $request->ftypepembayarankode)),
-            'ftypepembayaranname' => strtoupper(trim((string) $request->ftypepembayaranname)),
-            'faccount' => trim((string) $request->faccount),
-        ]);
+        try {
+            $request->merge([
+                'ftypepembayarankode' => strtoupper(trim((string) $request->ftypepembayarankode)),
+                'ftypepembayaranname' => strtoupper(trim((string) $request->ftypepembayaranname)),
+                'faccount' => trim((string) $request->faccount),
+            ]);
 
-        $validated = $request->validate([
-            'ftypepembayarankode' => 'required|string|max:10|unique:msttypepembayaran,ftypepembayarankode',
-            'ftypepembayaranname' => 'required|string|max:50',
-            'faccount' => 'required|string|max:10',
-        ], [
-            'ftypepembayarankode.required' => 'Kode Type Pembayaran wajib diisi.',
-            'ftypepembayarankode.unique' => 'Kode Type Pembayaran sudah digunakan.',
-            'ftypepembayarankode.max' => 'Kode Type Pembayaran maksimal 10 karakter.',
-            'ftypepembayaranname.required' => 'Nama Type Pembayaran wajib diisi.',
-            'ftypepembayaranname.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
-            'faccount.required' => 'Account Kas/Bank wajib dipilih.',
-        ]);
+            $validated = $request->validate([
+                'ftypepembayarankode' => 'required|string|max:10|unique:msttypepembayaran,ftypepembayarankode',
+                'ftypepembayaranname' => 'required|string|max:50',
+                'faccount' => 'required|string|max:10',
+            ], [
+                'ftypepembayarankode.required' => 'Kode Type Pembayaran wajib diisi.',
+                'ftypepembayarankode.unique' => 'Kode Type Pembayaran sudah digunakan.',
+                'ftypepembayarankode.max' => 'Kode Type Pembayaran maksimal 10 karakter.',
+                'ftypepembayaranname.required' => 'Nama Type Pembayaran wajib diisi.',
+                'ftypepembayaranname.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
+                'faccount.required' => 'Account Kas/Bank wajib dipilih.',
+            ]);
 
-        $userLogin = auth('sysuser')->user() ?? auth()->user();
-        $validated['fcreateby'] = $userLogin->fname ?? ($userLogin->name ?? null);
-        $validated['fcreatedat'] = now();
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $validated['fcreateby'] = $userLogin->fname ?? ($userLogin->name ?? null);
+            $validated['fcreatedat'] = now();
 
-        TypePembayaran::create($validated);
+            TypePembayaran::create($validated);
 
-        return redirect()
-            ->route('typepembayaran.create')
-            ->with('success', 'Type Pembayaran berhasil disimpan.');
+            return redirect()
+                ->route('typepembayaran.create')
+                ->with('success', 'Type Pembayaran berhasil disimpan.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan Type Pembayaran: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)

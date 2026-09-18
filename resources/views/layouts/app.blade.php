@@ -1559,8 +1559,13 @@
     </script>
     @if (session('success'))
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                sessionStorage.removeItem('app.pendingSuccessMessage');
+            (() => {
+                const runSuccessHandler = () => {
+                    if (typeof Swal === 'undefined') {
+                        setTimeout(runSuccessHandler, 30);
+                        return;
+                    }
+                    sessionStorage.removeItem('app.pendingSuccessMessage');
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
 
@@ -1793,17 +1798,29 @@
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                 });
-            });
-        </script>
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', runSuccessHandler);
+            } else {
+                runSuccessHandler();
+            }
+        })();
+    </script>
     @endif
     @if (!session('success'))
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const successMessage = sessionStorage.getItem('app.pendingSuccessMessage');
-                if (!successMessage) return;
-                const successPrompt = JSON.parse(sessionStorage.getItem('app.pendingSuccessPrompt') || 'null');
+            (() => {
+                const runPendingSuccessHandler = () => {
+                    const successMessage = sessionStorage.getItem('app.pendingSuccessMessage');
+                    if (!successMessage) return;
+                    if (typeof Swal === 'undefined') {
+                        setTimeout(runPendingSuccessHandler, 30);
+                        return;
+                    }
+                    const successPrompt = JSON.parse(sessionStorage.getItem('app.pendingSuccessPrompt') || 'null');
 
-                sessionStorage.removeItem('app.pendingSuccessMessage');
+                    sessionStorage.removeItem('app.pendingSuccessMessage');
                 sessionStorage.removeItem('app.pendingSuccessPrompt');
 
                 const printPrompts = {
@@ -1988,8 +2005,15 @@
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                 });
-            });
-        </script>
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', runPendingSuccessHandler);
+            } else {
+                runPendingSuccessHandler();
+            }
+        })();
+    </script>
     @endif
     @if (session('warning'))
         <script>
