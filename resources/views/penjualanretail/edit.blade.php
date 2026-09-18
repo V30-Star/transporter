@@ -1044,6 +1044,8 @@
 
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
+                    @include('penjualanretail.payment-modal')
+
                     @php
                         $canApproval = in_array(
                             'approveFakturPenjualan',
@@ -1507,7 +1509,7 @@
         }
 
         window.invoiceCreditApprovalGuard?.(form).then(ok => {
-            if (ok) window.submitFormWithStockMinusConfirmation?.(form);
+            if (ok) window.openRetailPaymentModal(form);
         });
     };
 

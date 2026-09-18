@@ -1444,6 +1444,10 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
+        $typePembayarans = DB::table('msttypepembayaran')
+            ->orderBy('ftypepembayarankode', 'asc')
+            ->get(['ftypepembayaranid', 'ftypepembayarankode', 'ftypepembayaranname', 'faccount']);
+
         return view($this->getViewPrefix() . '.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
@@ -1461,6 +1465,7 @@ class InvoiceController extends Controller
             'filterSalesmanId' => $request->query('filter_salesman_id'),
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
+            'typePembayarans' => $typePembayarans,
         ]);
     }
 
@@ -2551,7 +2556,7 @@ class InvoiceController extends Controller
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerInsert = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
@@ -2610,6 +2615,22 @@ class InvoiceController extends Controller
                 // INSERT DETAIL
                 DB::table('trandt')->insert($detailRows);
 
+                $cashAccount = null;
+                if ($this->getRoutePrefix() === 'penjualanretail') {
+                    $paymentTypeId = $request->input('type_pembayaran_id');
+                    if (!empty($paymentTypeId)) {
+                        $paymentType = DB::table('msttypepembayaran')
+                            ->where('ftypepembayaranid', $paymentTypeId)
+                            ->first();
+                        if ($paymentType && !empty($paymentType->faccount)) {
+                            $cashAccount = trim((string) $paymentType->faccount);
+                        }
+                    }
+                    if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
+                        $cashAccount = trim((string) $request->input('faccount_pembayaran'));
+                    }
+                }
+
                 $this->syncInvoiceJournalEntries(
                     (string) $fsono,
                     $fsodate,
@@ -2617,7 +2638,8 @@ class InvoiceController extends Controller
                     (string) $request->fcustno,
                     (string) $userid,
                     $isTunai,
-                    $fkodefp
+                    $fkodefp,
+                    $cashAccount
                 );
             });
 
@@ -3232,6 +3254,26 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
+        $typePembayarans = DB::table('msttypepembayaran')
+            ->orderBy('ftypepembayarankode', 'asc')
+            ->get(['ftypepembayaranid', 'ftypepembayarankode', 'ftypepembayaranname', 'faccount']);
+
+        $selectedTypePembayaranId = null;
+        if (!empty($invoice->fsono)) {
+            $journalDebit = DB::table('jurnaldt')
+                ->where('frefno', $invoice->fsono)
+                ->where('fjurnaltype', 'SLS')
+                ->where('fdk', 'D')
+                ->where('flineno', 1)
+                ->first();
+            if ($journalDebit && !empty($journalDebit->faccount)) {
+                $matchedType = $typePembayarans->firstWhere('faccount', $journalDebit->faccount);
+                if ($matchedType) {
+                    $selectedTypePembayaranId = $matchedType->ftypepembayaranid;
+                }
+            }
+        }
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
@@ -3257,6 +3299,8 @@ class InvoiceController extends Controller
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
+            'typePembayarans' => $typePembayarans,
+            'selectedTypePembayaranId' => $selectedTypePembayaranId,
         ]);
     }
 
@@ -3371,6 +3415,8 @@ class InvoiceController extends Controller
             'usageLockMessage' => $this->getUsageLockMessage($invoice, 'edit'),
             'action' => 'view',
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
+            'typePembayarans' => $typePembayarans,
+            'selectedTypePembayaranId' => $selectedTypePembayaranId,
         ]);
     }
 
@@ -3903,7 +3949,7 @@ class InvoiceController extends Controller
                     ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
                     ->value('total');
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $amountRemain = $isTunai ? 0 : max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = $isTunai ? 0 : max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
@@ -4057,6 +4103,22 @@ class InvoiceController extends Controller
                     }
                 }
 
+                $cashAccount = null;
+                if ($this->getRoutePrefix() === 'penjualanretail') {
+                    $paymentTypeId = $request->input('type_pembayaran_id');
+                    if (!empty($paymentTypeId)) {
+                        $paymentType = DB::table('msttypepembayaran')
+                            ->where('ftypepembayaranid', $paymentTypeId)
+                            ->first();
+                        if ($paymentType && !empty($paymentType->faccount)) {
+                            $cashAccount = trim((string) $paymentType->faccount);
+                        }
+                    }
+                    if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
+                        $cashAccount = trim((string) $request->input('faccount_pembayaran'));
+                    }
+                }
+
                 $this->syncInvoiceJournalEntries(
                     (string) $header->fsono,
                     $fsodate,
@@ -4064,7 +4126,8 @@ class InvoiceController extends Controller
                     (string) $request->fcustno,
                     (string) $userid,
                     $isTunai,
-                    $fkodefp
+                    $fkodefp,
+                    $cashAccount
                 );
             });
 
@@ -4451,9 +4514,10 @@ class InvoiceController extends Controller
         string $customerCode,
         string $userName,
         bool $isCash = false,
-        ?string $kodeFp = null
+        ?string $kodeFp = null,
+        ?string $cashAccount = null
     ): void {
-        JurnalFakturPenjualan::sync($fsono, $fsodate, $branchCode, $customerCode, $userName, $isCash, $kodeFp);
+        JurnalFakturPenjualan::sync($fsono, $fsodate, $branchCode, $customerCode, $userName, $isCash, $kodeFp, $cashAccount);
     }
 
     private function deleteInvoiceJournalEntries(string $fsono): void

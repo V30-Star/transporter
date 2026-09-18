@@ -36,10 +36,11 @@ class JurnalFakturPenjualan
         string $customerCode,
         string $userName,
         bool $isCash = false,
-        ?string $kodeFp = null
+        ?string $kodeFp = null,
+        ?string $cashAccount = null
     ): void {
         self::delete($fsono);
-        self::create($fsono, $fsodate, $branchCode, $customerCode, $userName, $isCash, $kodeFp);
+        self::create($fsono, $fsodate, $branchCode, $customerCode, $userName, $isCash, $kodeFp, $cashAccount);
     }
 
     public static function create(
@@ -49,7 +50,8 @@ class JurnalFakturPenjualan
         string $customerCode,
         string $userName,
         bool $isCash = false,
-        ?string $kodeFp = null
+        ?string $kodeFp = null,
+        ?string $cashAccount = null
     ): void {
         $fsono = trim($fsono);
         if ($fsono === '') {
@@ -143,7 +145,7 @@ class JurnalFakturPenjualan
             'fjurnaltype' => self::JURNAL_TYPE,
             'fjurnalno' => $fjurnalno,
             'flineno' => $lineNo,
-            'faccount' => self::accountCode($isCash ? self::ACCOUNT_JUALTUNAI : self::ACCOUNT_PIUTANG),
+            'faccount' => (!empty($cashAccount) && $isCash) ? $cashAccount : self::accountCode($isCash ? self::ACCOUNT_JUALTUNAI : self::ACCOUNT_PIUTANG),
             'fdk' => 'D',
             'fsubaccount' => $subaccount,
             'frefno' => $fsono,
