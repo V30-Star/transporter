@@ -140,6 +140,16 @@
                             </a>
                         </li>
                     @endif
+
+                    @if ($hasSidebarPermission('viewTypePembayaran', 'createTypePembayaran', 'updateTypePembayaran', 'deleteTypePembayaran'))
+                        <li>
+                            <a href="{{ route('typepembayaran.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-money-check-dollar w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Type Pembayaran' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 

@@ -46,6 +46,7 @@ class EnsureRoutePermission
         'sysuser' => 'Sysuser',
         'tr_poh' => 'Tr_poh',
         'tr_prh' => 'Tr_prh',
+        'typepembayaran' => 'TypePembayaran',
         'wilayah' => 'Wilayah',
     ];
 

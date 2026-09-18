@@ -90,6 +90,7 @@ use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\SystemSettingController;
 use App\Http\Controllers\Tr_pohController;
 use App\Http\Controllers\Tr_prhController;
+use App\Http\Controllers\TypePembayaranController;
 use App\Http\Controllers\WhController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Middleware\EnsureRoutePermission;
@@ -266,6 +267,15 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/currency/{fcurrid}/delete', [CurrencyController::class, 'delete'])->name('currency.delete');
         Route::patch('/currency/{fcurrid}', [CurrencyController::class, 'update'])->name('currency.update');
         Route::delete('/currency/{fcurrid}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
+
+        Route::get('/typepembayaran', [TypePembayaranController::class, 'index'])->name('typepembayaran.index');
+        Route::post('/typepembayaran', [TypePembayaranController::class, 'store'])->name('typepembayaran.store');
+        Route::get('/typepembayaran/create', [TypePembayaranController::class, 'create'])->name('typepembayaran.create');
+        Route::get('/typepembayaran/{ftypepembayaranid}/view', [TypePembayaranController::class, 'view'])->name('typepembayaran.view');
+        Route::get('/typepembayaran/{ftypepembayaranid}/edit', [TypePembayaranController::class, 'edit'])->name('typepembayaran.edit');
+        Route::get('/typepembayaran/{ftypepembayaranid}/delete', [TypePembayaranController::class, 'delete'])->name('typepembayaran.delete');
+        Route::patch('/typepembayaran/{ftypepembayaranid}', [TypePembayaranController::class, 'update'])->name('typepembayaran.update');
+        Route::delete('/typepembayaran/{ftypepembayaranid}', [TypePembayaranController::class, 'destroy'])->name('typepembayaran.destroy');
 
         Route::get('/jurnaltransaksi', [JurnalTransaksiController::class, 'index'])->name('jurnaltransaksi.index');
         Route::post('/jurnaltransaksi', [JurnalTransaksiController::class, 'store'])->name('jurnaltransaksi.store');

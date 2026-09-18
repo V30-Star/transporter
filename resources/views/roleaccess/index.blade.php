@@ -185,6 +185,13 @@
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="deleteCurrency" {{ in_array('deleteCurrency', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Type Pembayaran</td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="viewTypePembayaran" {{ in_array('viewTypePembayaran', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="createTypePembayaran" {{ in_array('createTypePembayaran', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="updateTypePembayaran" {{ in_array('updateTypePembayaran', $selectedPermissions) ? 'checked' : '' }}></td>
+                                <td class="text-center"><input type="checkbox" name="permission[]" value="deleteTypePembayaran" {{ in_array('deleteTypePembayaran', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">User (Wewenang User Data)</td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="viewSysuser" {{ in_array('viewSysuser', $selectedPermissions) ? 'checked' : '' }}></td>
                                 <td class="text-center"><input type="checkbox" name="permission[]" value="createSysuser" {{ in_array('createSysuser', $selectedPermissions) ? 'checked' : '' }}></td>
