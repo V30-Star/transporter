@@ -86,3 +86,11 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('formTypePembayaran')?.addEventListener('submit', function() {
+        sessionStorage.setItem('app.pendingSuccessMessage', 'Type Pembayaran berhasil disimpan.');
+    });
+</script>
+@endpush

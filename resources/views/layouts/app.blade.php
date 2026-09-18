@@ -1557,14 +1557,23 @@
             };
         })();
     </script>
+    @if ($errors->any() || session('error'))
+        <script>
+            sessionStorage.removeItem('app.pendingSuccessMessage');
+            sessionStorage.removeItem('app.pendingSuccessPrompt');
+        </script>
+    @endif
     @if (session('success'))
         <script>
             (() => {
+                let handled = false;
                 const runSuccessHandler = () => {
-                    if (typeof Swal === 'undefined') {
+                    if (handled) return;
+                    if (typeof Swal === 'undefined' || !document.body) {
                         setTimeout(runSuccessHandler, 30);
                         return;
                     }
+                    handled = true;
                     sessionStorage.removeItem('app.pendingSuccessMessage');
                 const successMessage = @json((string) session('success'));
                 const successPrompt = @json(session('success_prompt'));
@@ -1800,10 +1809,9 @@
                 });
             };
 
+            runSuccessHandler();
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', runSuccessHandler);
-            } else {
-                runSuccessHandler();
             }
         })();
     </script>
@@ -1811,13 +1819,16 @@
     @if (!session('success'))
         <script>
             (() => {
+                let handled = false;
                 const runPendingSuccessHandler = () => {
+                    if (handled) return;
                     const successMessage = sessionStorage.getItem('app.pendingSuccessMessage');
                     if (!successMessage) return;
-                    if (typeof Swal === 'undefined') {
+                    if (typeof Swal === 'undefined' || !document.body) {
                         setTimeout(runPendingSuccessHandler, 30);
                         return;
                     }
+                    handled = true;
                     const successPrompt = JSON.parse(sessionStorage.getItem('app.pendingSuccessPrompt') || 'null');
 
                     sessionStorage.removeItem('app.pendingSuccessMessage');
@@ -2007,10 +2018,9 @@
                 });
             };
 
+            runPendingSuccessHandler();
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', runPendingSuccessHandler);
-            } else {
-                runPendingSuccessHandler();
             }
         })();
     </script>

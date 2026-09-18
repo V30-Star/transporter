@@ -146,6 +146,9 @@
             .then(data => {
                 closeDeleteModal();
                 if (data.success || data.redirect) {
+                    if (data.message) {
+                        sessionStorage.setItem('app.pendingSuccessMessage', data.message);
+                    }
                     window.location.href = data.redirect || '{{ route('typepembayaran.index') }}';
                 } else {
                     alert(data.message || 'Gagal menghapus data.');
