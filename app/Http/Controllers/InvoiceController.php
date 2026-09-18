@@ -915,7 +915,30 @@ class InvoiceController extends Controller
             $length = (int) $request->input('length', 10);
             $records = $query->skip($start)->take($length)->get();
 
-            $data = $records->map(function ($row) {
+            $allFsono = $records->pluck('fsono')->filter()->all();
+            $allVariants = [];
+            foreach ($allFsono as $no) {
+                $no = trim((string) $no);
+                $allVariants[] = $no;
+                $allVariants[] = str_replace('.', '/', $no);
+                $allVariants[] = str_replace('/', '.', $no);
+            }
+            $allVariants = array_unique(array_filter($allVariants));
+
+            $pelunasanMap = empty($allVariants) ? collect() : DB::table('trkasdt')
+                ->where('ftrancode', 'RCP')
+                ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+                ->whereIn('frefno', $allVariants)
+                ->select('frefno', 'fkasmtno')
+                ->get()
+                ->groupBy(function ($item) {
+                    return str_replace(['/', '.'], '', trim((string) $item->frefno));
+                })
+                ->map(function ($items) {
+                    return $items->pluck('fkasmtno')->filter()->unique()->values()->implode(', ');
+                });
+
+            $data = $records->map(function ($row) use ($pelunasanMap) {
                 $soRefs = trim((string) ($row->so_refs ?? ''));
                 $srjRefs = trim((string) ($row->srj_refs ?? ''));
                 $refs = collect([$soRefs, $srjRefs])
@@ -923,6 +946,9 @@ class InvoiceController extends Controller
                     ->filter()
                     ->unique()
                     ->implode(', ');
+
+                $normFsono = str_replace(['/', '.'], '', trim((string) ($row->fsono ?? '')));
+                $pelunasanNo = (string) ($pelunasanMap->get($normFsono, ''));
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -943,6 +969,8 @@ class InvoiceController extends Controller
                     'fsudahtagih' => trim((string) ($row->fsudahtagih ?? '0')),
                     'fclose' => trim((string) ($row->fclose ?? '0')),
                     'fapproval' => trim((string) ($row->fapproval ?? '')),
+                    'fpelunasan' => $pelunasanNo,
+                    'has_pelunasan' => $pelunasanNo !== '',
                 ];
             });
 
@@ -3111,10 +3139,10 @@ class InvoiceController extends Controller
         $branchObj = DB::table('mscabang')->where('fcabangkode', $fbranchcode)->first(['fgudangretail']);
         $fgudangretail = trim((string) ($branchObj->fgudangretail ?? ''));
 
-        $usageLockMessage = $this->getUsageLockMessage($invoice);
+        $usageLockMessage = $this->getUsageLockMessage($invoice, 'edit');
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -3339,8 +3367,8 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => false,
-            'usageLockMessage' => null,
+            'isUsageLocked' => ! empty($this->getUsageLockMessage($invoice, 'edit')),
+            'usageLockMessage' => $this->getUsageLockMessage($invoice, 'edit'),
             'action' => 'view',
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
         ]);
@@ -3359,7 +3387,10 @@ class InvoiceController extends Controller
             return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
         }
 
-        if ($message = $this->getUsageLockMessage((object) $header)) {
+        if ($message = $this->getUsageLockMessage((object) $header, 'edit')) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
             return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
         }
 
@@ -4145,10 +4176,10 @@ class InvoiceController extends Controller
         $branchObj = DB::table('mscabang')->where('fcabangkode', $fbranchcode)->first(['fgudangretail']);
         $fgudangretail = trim((string) ($branchObj->fgudangretail ?? ''));
 
-        $usageLockMessage = $this->getUsageLockMessage($invoice);
+        $usageLockMessage = $this->getUsageLockMessage($invoice, 'delete');
 
         if (! empty($usageLockMessage)) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $usageLockMessage);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $usageLockMessage);
         }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
@@ -4233,8 +4264,11 @@ class InvoiceController extends Controller
                 return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($invoice)) {
-                return redirect()->route('invoice.index')->with('error', $message);
+            if ($message = $this->getUsageLockMessage($invoice, 'delete')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+                return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user() ?? auth()->user();
@@ -4367,8 +4401,36 @@ class InvoiceController extends Controller
         }
     }
 
-    private function getUsageLockMessage($header): ?string
+    protected function getPelunasanNumbers($header): array
     {
+        $fsono = trim((string) ($header->fsono ?? ''));
+        if ($fsono === '') {
+            return [];
+        }
+
+        $variants = array_unique([$fsono, str_replace('.', '/', $fsono), str_replace('/', '.', $fsono)]);
+
+        return DB::table('trkasdt')
+            ->where('ftrancode', 'RCP')
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->whereIn('frefno', $variants)
+            ->pluck('fkasmtno')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function getUsageLockMessage($header, string $action = 'edit'): ?string
+    {
+        $pelunasanList = $this->getPelunasanNumbers($header);
+        if (! empty($pelunasanList)) {
+            $pelunasanStr = implode(', ', $pelunasanList);
+            $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'didelete' : 'diedit';
+
+            return "Nota ini sudah ada Pelunasan ({$pelunasanStr})\nTidak boleh {$actionText}";
+        }
+
         return null;
     }
 
