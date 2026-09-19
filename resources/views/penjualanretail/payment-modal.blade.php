@@ -56,7 +56,7 @@
 
             <!-- Biaya / Charge -->
             <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Biaya / Charge (%):</label>
+                <label class="col-span-4 font-semibold text-gray-700">Biaya / Charge:</label>
                 <div class="col-span-8 flex items-center gap-2">
                     <div class="relative w-28 shrink-0">
                         <input type="text" id="modal_biaya_charge_persen" value="0"
@@ -65,7 +65,7 @@
                     </div>
                     <div class="relative flex-1">
                         <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
-                        <input type="text" id="modal_biaya_charge_nominal" value="0,00" readonly tabindex="-1"
+                        <input type="text" id="modal_biaya_charge_nominal" value="0,00" disabled
                             class="w-full pl-8 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-right font-medium text-gray-600 cursor-not-allowed text-sm">
                     </div>
                 </div>
