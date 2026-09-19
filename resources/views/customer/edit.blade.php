@@ -42,13 +42,17 @@
                                     Kode Customer
                                 </label>
                                 <input type="text" name="fcustomercode" id="fcustomercode"
-                                    value="{{ $customer->fcustomercode }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                    readonly>
+                                    value="{{ old('fcustomercode', $customer->fcustomercode) }}"
+                                    {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
+                                    oninput="this.value = this.value.toUpperCase()"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100' }} @error('fcustomercode') border-red-400 @enderror"
+                                    {!! !empty($isTransactionLocked) ? 'title="Kode customer tidak dapat diubah karena sudah digunakan dalam transaksi"' : '' !!}>
                                 @if (!empty($isTransactionLocked))
-                                    <p class="text-[11px] text-amber-600 mt-1 font-medium">Kode customer dikunci karena
-                                        sudah direferensi di transaksi.</p>
+                                    <p class="text-[11px] text-amber-600 mt-1 font-medium">Kode customer dikunci karena sudah direferensi di transaksi.</p>
                                 @endif
+                                @error('fcustomercode')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             {{-- Nama Customer --}}

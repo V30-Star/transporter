@@ -166,18 +166,28 @@ class ProductController extends Controller
 
     protected function getProductUsageInfo(Product $product): array
     {
+        $fprdcode = trim((string) ($product->fprdcode ?? ''));
+
         $usageMap = [
             'po' => [
-                'used' => $product->trPods()->exists(),
+                'used' => $product->trPods()->exists() || ($fprdcode !== '' && DB::table('tr_pod')->where('fprdcode', $fprdcode)->exists()),
                 'label' => 'PO',
             ],
             'pr' => [
-                'used' => $product->trPrds()->exists(),
+                'used' => $product->trPrds()->exists() || ($fprdcode !== '' && DB::table('tr_prd')->where('fprdcode', $fprdcode)->exists()),
                 'label' => 'PR',
             ],
             'stok' => [
-                'used' => $product->trstockdts()->exists(),
+                'used' => $product->trstockdts()->exists() || ($fprdcode !== '' && DB::table('trstockdt')->where('fprdcode', $fprdcode)->exists()),
                 'label' => 'Transaksi Stok',
+            ],
+            'so' => [
+                'used' => $fprdcode !== '' && DB::table('trsodt')->where('fprdcode', $fprdcode)->exists(),
+                'label' => 'Sales Order',
+            ],
+            'penjualan' => [
+                'used' => $fprdcode !== '' && DB::table('trandt')->where('fprdcode', $fprdcode)->exists(),
+                'label' => 'Penjualan',
             ],
         ];
 
@@ -701,7 +711,9 @@ class ProductController extends Controller
             $enabledImageFields = $this->getEnabledProductImageFields();
 
             $validationRules = [
-                'fprdcode' => 'nullable|string',
+                'fprdcode' => $usageInfo['is_used']
+                    ? 'nullable|string'
+                    : ['required', 'string', \Illuminate\Validation\Rule::unique('msprd', 'fprdcode')->ignore($product->fprdid, 'fprdid')],
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fspecification' => 'nullable|string',
@@ -801,7 +813,12 @@ class ProductController extends Controller
                 ]
             );
 
-            $validated['fprdcode'] = $product->fprdcode;
+            if ($usageInfo['is_used']) {
+                $validated['fprdcode'] = $product->fprdcode;
+            } else {
+                $newCode = strtoupper(trim((string) $request->input('fprdcode', '')));
+                $validated['fprdcode'] = $newCode !== '' ? $newCode : $product->fprdcode;
+            }
             $validated['fprdname'] = strtoupper($validated['fprdname']);
             $validated['fdealer'] = $request->filled('fdealer') ? strtoupper($request->fdealer) : null;
 
@@ -846,7 +863,7 @@ class ProductController extends Controller
 
                 $errors = [];
 
-                if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
+                if ($normalizeText($product->fprdcode) !== $normalizeText($request->input('fprdcode', $product->fprdcode))) {
                     $errors['fprdcode'] = 'Kode produk tidak bisa diubah. Sudah dipakai transaksi.';
                 }
 
@@ -911,7 +928,12 @@ class ProductController extends Controller
                 }
             }
 
+            $oldCode = $product->fprdcode;
             $product->update($validated);
+
+            if (! empty($oldCode) && $product->fprdcode !== $oldCode) {
+                DB::table('prdwh')->where('fprdcode', $oldCode)->update(['fprdcode' => $product->fprdcode]);
+            }
 
             $logData = [
                 'fprdid'                  => $product->fprdid,

@@ -140,9 +140,19 @@ class SupplierController extends Controller
             $supplier = Supplier::findOrFail($fsupplierid);
             $isTransactionLocked = $this->hasTransactionUsage($supplier);
 
-            $request->merge([
-                'fsuppliercode' => strtoupper($isTransactionLocked ? $supplier->fsuppliercode : $request->fsuppliercode),
-            ]);
+            if ($isTransactionLocked) {
+                if (strtoupper(trim((string) $request->input('fsuppliercode', $supplier->fsuppliercode))) !== strtoupper(trim((string) $supplier->fsuppliercode))) {
+                    return redirect()->back()->withInput()->withErrors(['fsuppliercode' => 'Kode supplier tidak bisa diubah karena sudah direferensi di transaksi.']);
+                }
+                $request->merge([
+                    'fsuppliercode' => $supplier->fsuppliercode,
+                ]);
+            } else {
+                $rawCode = trim((string) $request->input('fsuppliercode', ''));
+                $request->merge([
+                    'fsuppliercode' => $rawCode !== '' ? strtoupper($rawCode) : $supplier->fsuppliercode,
+                ]);
+            }
 
             $validated = $request->validate(
                 [
@@ -168,17 +178,15 @@ class SupplierController extends Controller
                 ]
             );
 
-            $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
+            $validated['fsuppliercode'] = $isTransactionLocked
+                ? $supplier->fsuppliercode
+                : (strtoupper(trim((string) ($validated['fsuppliercode'] ?? ''))) ?: $supplier->fsuppliercode);
             $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
             $userLogin = auth('sysuser')->user();
             $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
             $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
             $validated['fupdatedat'] = now();
-
-            if ($isTransactionLocked) {
-                $validated['fsuppliercode'] = $supplier->fsuppliercode;
-            }
 
             $supplier->update($validated);
 
@@ -372,7 +380,9 @@ class SupplierController extends Controller
 
         return DB::table('tr_prh')->where('fsupplier', $supplierCode)->exists()
             || DB::table('tr_poh')->where('fsupplier', $supplierCode)->exists()
-            || DB::table('trstockmt')->where('fsupplier', $supplierCode)->exists();
+            || DB::table('trstockmt')->where('fsupplier', $supplierCode)->exists()
+            || DB::table('trsisadp_pembelian')->where('fsupplier', $supplierCode)->exists()
+            || DB::table('trkasmt')->where('fcustomercode', $supplierCode)->exists();
     }
 
     private function getUsageLockMessage(Supplier $supplier): ?string

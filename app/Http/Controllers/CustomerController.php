@@ -426,12 +426,15 @@ class CustomerController extends Controller
             // 2. LOGIKA PENANGANAN fcustomercode & fcustomername
             $customerNameMerged = is_string($request->fcustomername) ? strtoupper(trim($request->fcustomername)) : $request->fcustomername;
             $request->merge([
-                'fcustomercode' => $customer->fcustomercode,
                 'fcustomername' => $customerNameMerged,
             ]);
 
+            $customercodeRules = $isTransactionLocked
+                ? 'nullable|string'
+                : ['required', 'string', \Illuminate\Validation\Rule::unique('mscustomer', 'fcustomercode')->ignore($customer->fcustomerid, 'fcustomerid')];
+
             $validated = $request->validate([
-                'fcustomercode' => 'nullable|string',
+                'fcustomercode' => $customercodeRules,
                 'fcustomername' => 'required|string|max:50',
                 'fgroup' => '',
                 'fsalesman' => '',
@@ -496,7 +499,16 @@ class CustomerController extends Controller
             $validated['fblokir'] = $request->boolean('fblokir') ? '1' : '0';
 
             $validated['fcurrency'] = 'IDR';
-            $validated['fcustomercode'] = $customer->fcustomercode;
+
+            if ($isTransactionLocked) {
+                if (strtoupper(trim((string) $request->input('fcustomercode', $customer->fcustomercode))) !== strtoupper(trim((string) $customer->fcustomercode))) {
+                    return redirect()->back()->withInput()->withErrors(['fcustomercode' => 'Kode customer tidak bisa diubah karena sudah direferensi di transaksi.']);
+                }
+                $validated['fcustomercode'] = $customer->fcustomercode;
+            } else {
+                $newCode = strtoupper(trim((string) $request->input('fcustomercode', '')));
+                $validated['fcustomercode'] = $newCode !== '' ? $newCode : $customer->fcustomercode;
+            }
 
             if (isset($validated['fcustomername']) && is_string($validated['fcustomername'])) {
                 $validated['fcustomername'] = strtoupper(trim($validated['fcustomername']));
@@ -835,6 +847,9 @@ class CustomerController extends Controller
 
             return DB::table('trsomt')->where('fcustno', $customerCode)->exists()
                 || DB::table('tranmt')->where('fcustno', $customerCode)->exists()
+                || DB::table('trtagihanmt')->where('fcustno', $customerCode)->exists()
+                || DB::table('trkasmt')->where('fcustomercode', $customerCode)->exists()
+                || DB::table('trsisadp_penjualan')->where('fcustno', $customerCode)->exists()
                 || DB::table('trstockmt')->where('fsupplier', $customerCode)->exists();
         } catch (\Throwable $e) {
             return false;

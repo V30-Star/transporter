@@ -965,7 +965,7 @@
 
                     @if ($isUsedProduct)
                         <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                            PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI.
+                            PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI{{ !empty($usedByLabels) ? ' (' . implode(', ', $usedByLabels) . ')' : '' }}. KODE PRODUK DAN SATUAN TERKUNCI.
                         </div>
                     @endif
 
@@ -1199,8 +1199,13 @@
                                     <div>
                                         <label class="field-label">Kode Produk</label>
                                         <input type="text" name="fprdcode" id="fprdcode"
-                                            value="{{ $product->fprdcode }}"
-                                            class="field-input bg-gray-100 cursor-not-allowed uppercase" readonly>
+                                            value="{{ old('fprdcode', $product->fprdcode) }}"
+                                            {{ $isUsedProduct ? 'readonly' : '' }}
+                                            class="field-input uppercase {{ $isUsedProduct ? 'bg-gray-100 cursor-not-allowed' : '' }} @error('fprdcode') border-red-500 bg-red-50 @enderror"
+                                            {!! $isUsedProduct ? 'title="Kode produk tidak dapat diubah karena sudah digunakan dalam transaksi"' : '' !!}>
+                                        @error('fprdcode')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
                                     {{-- Nama Produk --}}

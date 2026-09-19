@@ -150,7 +150,7 @@
     <div x-data="{ open: true, selected: 'surat', nonactive: {{ old('fnonactive', $supplier->fnonactive) == '1' ? 'true' : 'false' }} }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1400px] w-full mx-auto">
             <form action="{{ route('supplier.update', $supplier->fsupplierid) }}" method="POST" data-form-draft="true"
-                data-draft-key="supplier:edit">
+                data-draft-key="supplier:edit:{{ $supplier->fsupplierid }}">
                 @csrf
                 @method('PATCH')
 
@@ -180,7 +180,9 @@
                             <label class="field-label">Kode Supplier <span class="req">*</span></label>
                             <input type="text" name="fsuppliercode" value="{{ old('fsuppliercode', $supplier->fsuppliercode) }}"
                                 class="field-input uppercase @error('fsuppliercode') is-invalid border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : '' }}"
-                                {{ !empty($isTransactionLocked) ? 'readonly' : '' }} autofocus>
+                                {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
+                                {!! !empty($isTransactionLocked) ? 'title="Kode supplier tidak dapat diubah karena sudah digunakan dalam transaksi"' : '' !!}
+                                autofocus>
                             @if (!empty($isTransactionLocked))
                                 <p class="text-amber-600 text-xs mt-1 font-medium">Kode supplier dikunci karena sudah direferensi di transaksi.</p>
                             @endif
