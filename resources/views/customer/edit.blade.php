@@ -24,7 +24,7 @@
                 @method('PATCH')
 
                 {{-- ─── CARD 1: Identitas Customer ────────────────────────── --}}
-                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden" x-data="{ autoCode: {{ old('fcustomercode', $customer->fcustomercode) ? 'true' : 'false' }} }">
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                     <div class="flex items-center gap-2 px-4 pt-3 pb-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -37,31 +37,18 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {{-- Kode Customer --}}
-                            <div class="flex items-center gap-3">
-                                <div class="flex-1">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">
-                                        Kode Customer
-                                    </label>
-                                    <input type="text" name="fcustomercode" id="fcustomercode"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        placeholder="Masukkan Kode Customer"
-                                        :disabled="autoCode || {{ !empty($isTransactionLocked) ? 'true' : 'false' }}"
-                                        :value="autoCode ? '{{ $customer->fcustomercode }}' :
-                                            '{{ old('fcustomercode', $customer->fcustomercode) }}'"
-                                        :class="(autoCode || {{ !empty($isTransactionLocked) ? 'true' : 'false' }}) ?
-                                        'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
-                                    @if (!empty($isTransactionLocked))
-                                        <p class="text-[11px] text-amber-600 mt-1 font-medium">Kode customer dikunci karena
-                                            sudah direferensi di transaksi.</p>
-                                    @endif
-                                </div>
-                                <label
-                                    class="inline-flex items-center mt-5 font-medium text-xs text-gray-700 cursor-pointer {{ !empty($isTransactionLocked) ? 'opacity-50 cursor-not-allowed' : '' }}">
-                                    <input type="checkbox" x-model="autoCode"
-                                        class="form-checkbox h-4 w-4 rounded text-blue-600 border-gray-300 focus:ring-blue-100"
-                                        {{ !empty($isTransactionLocked) ? 'disabled' : '' }}>
-                                    <span class="ml-1.5">Auto</span>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">
+                                    Kode Customer
                                 </label>
+                                <input type="text" name="fcustomercode" id="fcustomercode"
+                                    value="{{ $customer->fcustomercode }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+                                @if (!empty($isTransactionLocked))
+                                    <p class="text-[11px] text-amber-600 mt-1 font-medium">Kode customer dikunci karena
+                                        sudah direferensi di transaksi.</p>
+                                @endif
                             </div>
 
                             {{-- Nama Customer --}}

@@ -425,20 +425,13 @@ class CustomerController extends Controller
 
             // 2. LOGIKA PENANGANAN fcustomercode & fcustomername
             $customerNameMerged = is_string($request->fcustomername) ? strtoupper(trim($request->fcustomername)) : $request->fcustomername;
-            if ($isTransactionLocked || empty($request->fcustomercode)) {
-                $request->merge([
-                    'fcustomercode' => $customer->fcustomercode,
-                    'fcustomername' => $customerNameMerged,
-                ]);
-            } else {
-                $request->merge([
-                    'fcustomercode' => strtoupper($request->fcustomercode),
-                    'fcustomername' => $customerNameMerged,
-                ]);
-            }
+            $request->merge([
+                'fcustomercode' => $customer->fcustomercode,
+                'fcustomername' => $customerNameMerged,
+            ]);
 
             $validated = $request->validate([
-                'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
+                'fcustomercode' => 'nullable|string',
                 'fcustomername' => 'required|string|max:50',
                 'fgroup' => '',
                 'fsalesman' => '',
@@ -503,9 +496,7 @@ class CustomerController extends Controller
             $validated['fblokir'] = $request->boolean('fblokir') ? '1' : '0';
 
             $validated['fcurrency'] = 'IDR';
-            if ($isTransactionLocked) {
-                $validated['fcustomercode'] = $customer->fcustomercode;
-            }
+            $validated['fcustomercode'] = $customer->fcustomercode;
 
             if (isset($validated['fcustomername']) && is_string($validated['fcustomername'])) {
                 $validated['fcustomername'] = strtoupper(trim($validated['fcustomername']));

@@ -701,7 +701,7 @@ class ProductController extends Controller
             $enabledImageFields = $this->getEnabledProductImageFields();
 
             $validationRules = [
-                'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
+                'fprdcode' => 'nullable|string',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fspecification' => 'nullable|string',
@@ -801,7 +801,7 @@ class ProductController extends Controller
                 ]
             );
 
-            $validated['fprdcode'] = strtoupper($validated['fprdcode']);
+            $validated['fprdcode'] = $product->fprdcode;
             $validated['fprdname'] = strtoupper($validated['fprdname']);
             $validated['fdealer'] = $request->filled('fdealer') ? strtoupper($request->fdealer) : null;
 

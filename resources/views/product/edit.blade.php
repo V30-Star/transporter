@@ -948,7 +948,7 @@
                 {{-- ============================================ --}}
             @else
                 <form action="{{ route('product.update', $product->fprdid) }}" method="POST"
-                    enctype="multipart/form-data" data-form-draft="true" data-draft-key="product:edit" onsubmit="return handleProductSubmit(event)">
+                    enctype="multipart/form-data" data-form-draft="true" data-draft-key="product:edit:{{ $product->fprdid }}" onsubmit="return handleProductSubmit(event)">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="approve_now" id="approveNowInput" value="0">
@@ -1199,7 +1199,7 @@
                                     <div>
                                         <label class="field-label">Kode Produk</label>
                                         <input type="text" name="fprdcode" id="fprdcode"
-                                            value="{{ old('fprdcode', $product->fprdcode) }}"
+                                            value="{{ $product->fprdcode }}"
                                             class="field-input bg-gray-100 cursor-not-allowed uppercase" readonly>
                                     </div>
 
@@ -2578,42 +2578,6 @@
                 }
             });
 
-            $('#fprdcode').autocomplete({
-                source: function(request, response) {
-                    $.ajax({
-                        url: "{{ route('product.suggest-codes') }}",
-                        dataType: "json",
-                        data: {
-                            term: request.term
-                        },
-                        success: function(data) {
-                            response(data);
-                        }
-                    });
-                },
-                minLength: 1, // Minimal 1 karakter untuk kode
-                select: function(event, ui) {
-                    // Isi input dengan nilai yang dipilih
-                    $(this).val(ui.item.value);
-                    return false;
-                },
-                // Disable autocomplete saat checkbox "Auto" dicentang
-                disabled: true
-            });
-
-            const fprdcodeInput = document.getElementById('fprdcode');
-
-            setInterval(function() {
-                const isDisabled = fprdcodeInput.disabled;
-
-                if (isDisabled) {
-                    // Jika Auto dicentang, disable autocomplete
-                    $('#fprdcode').autocomplete('disable');
-                } else {
-                    // Jika Auto tidak dicentang, enable autocomplete
-                    $('#fprdcode').autocomplete('enable');
-                }
-            }, 100);
 
             $inp.on("focus", function() {
                 if (!$(".ui-autocomplete:visible").length && ($(this).val() || '').length >= 2) {
