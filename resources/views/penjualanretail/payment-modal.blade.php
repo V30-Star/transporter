@@ -72,13 +72,17 @@
             </div>
 
             <!-- Kurangi Retur -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Kurangi Retur:</label>
-                <div class="col-span-8">
+            <div class="grid grid-cols-12 items-start gap-3">
+                <label class="col-span-4 font-semibold text-gray-700 pt-1.5">Kurangi Retur:</label>
+                <div class="col-span-8 space-y-1.5">
+                    <select id="modal_retur_select"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Tanpa Retur --</option>
+                    </select>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
                         <input type="text" id="modal_kurangi_retur" value="0,00"
-                            class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     </div>
                 </div>
             </div>
@@ -237,8 +241,17 @@
             const biayaNominalEl = document.getElementById('modal_biaya_charge_nominal');
             if (biayaNominalEl) biayaNominalEl.value = '0,00';
 
+            const returSelect = document.getElementById('modal_retur_select');
             const returEl = document.getElementById('modal_kurangi_retur');
-            if (returEl) returEl.value = '0,00';
+            if (returSelect) {
+                returSelect.innerHTML = '<option value="">Memuat retur...</option>';
+                returSelect.disabled = true;
+            }
+            if (returEl) {
+                returEl.value = '0,00';
+                returEl.dataset.maxRemain = '0';
+                returEl.disabled = true;
+            }
 
             recalculateRetailTotals();
 
@@ -250,6 +263,75 @@
             }
 
             recalculateRetailKembalian();
+
+            // Ambil retur yg masih famountremain > 0 milik customer yang bersangkutan
+            const custNo = (form.querySelector('input[name="fcustno"]')?.value || form.querySelector('[name="filter_customer_id"]')?.value || '').trim();
+            if (custNo) {
+                const returUrl = '{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo);
+                fetch(returUrl)
+                    .then(res => res.json())
+                    .then(returs => {
+                        if (!Array.isArray(returs) || returs.length === 0) {
+                            if (returSelect) {
+                                returSelect.innerHTML = '<option value="">-- Tidak ada retur aktif --</option>';
+                                returSelect.disabled = true;
+                            }
+                            if (returEl) {
+                                returEl.value = '0,00';
+                                returEl.dataset.maxRemain = '0';
+                                returEl.disabled = true;
+                            }
+                        } else {
+                            if (returSelect) {
+                                returSelect.disabled = false;
+                                let html = '';
+                                if (returs.length > 1) {
+                                    html += '<option value="">-- Pilih Retur / Tanpa Retur --</option>';
+                                }
+                                returs.forEach(r => {
+                                    const remain = parseFloat(r.famountremain || 0);
+                                    html += `<option value="${r.fsono}" data-remain="${remain}">[${r.fsono}] Sisa: Rp ${formatRetailMoney(remain)}</option>`;
+                                });
+                                returSelect.innerHTML = html;
+                            }
+                            if (returEl) {
+                                returEl.disabled = false;
+                                if (returs.length === 1) {
+                                    returSelect.value = returs[0].fsono;
+                                    const remain = parseFloat(returs[0].famountremain || 0);
+                                    returEl.dataset.maxRemain = remain;
+                                    const curNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
+                                    const curPersen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
+                                    const curBiaya = Math.round((curNota * curPersen) / 100);
+                                    const deduction = Math.min(curNota + curBiaya, remain);
+                                    returEl.value = formatRetailMoney(deduction);
+                                } else {
+                                    returEl.value = '0,00';
+                                    returEl.dataset.maxRemain = '0';
+                                }
+                            }
+                        }
+                        recalculateRetailTotals();
+                        const curGrandTotal = parseRetailMoney(document.getElementById('modal_grand_total')?.dataset?.raw || '0');
+                        const curBayarEl = document.getElementById('modal_total_bayar');
+                        if (curBayarEl) {
+                            curBayarEl.value = formatRetailMoney(curGrandTotal);
+                        }
+                        recalculateRetailKembalian();
+                    })
+                    .catch(err => {
+                        console.error('Error loading retur:', err);
+                        if (returSelect) {
+                            returSelect.innerHTML = '<option value="">-- Gagal memuat retur --</option>';
+                            returSelect.disabled = true;
+                        }
+                    });
+            } else {
+                if (returSelect) {
+                    returSelect.innerHTML = '<option value="">-- Customer belum dipilih --</option>';
+                    returSelect.disabled = true;
+                }
+            }
 
             const modal = document.getElementById('retailPaymentModal');
             if (modal) {
@@ -323,6 +405,28 @@
             }
             inputFpembayaran.value = fkode;
 
+            const returSelect = document.getElementById('modal_retur_select');
+            const returFsono = returSelect?.value || '';
+            const returNominal = parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0');
+
+            let inputReturNo = retailActiveForm.querySelector('input[name="retur_fsono"]');
+            if (!inputReturNo) {
+                inputReturNo = document.createElement('input');
+                inputReturNo.type = 'hidden';
+                inputReturNo.name = 'retur_fsono';
+                retailActiveForm.appendChild(inputReturNo);
+            }
+            inputReturNo.value = returFsono;
+
+            let inputReturNominal = retailActiveForm.querySelector('input[name="fkurangiretur"]');
+            if (!inputReturNominal) {
+                inputReturNominal = document.createElement('input');
+                inputReturNominal.type = 'hidden';
+                inputReturNominal.name = 'fkurangiretur';
+                retailActiveForm.appendChild(inputReturNominal);
+            }
+            inputReturNominal.value = returNominal;
+
             window.closeRetailPaymentModal();
 
             // Lanjut ke submission dengan konfirmasi stok jika ada minus
@@ -340,6 +444,21 @@
                 });
 
                 el.addEventListener('input', function() {
+                    if (id === 'modal_kurangi_retur') {
+                        let val = parseRetailMoney(this.value);
+                        const maxRemain = parseFloat(this.dataset.maxRemain || '0');
+                        if (maxRemain > 0 && val > maxRemain) {
+                            val = maxRemain;
+                            this.value = formatRetailMoney(val);
+                        }
+                        const totalNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
+                        const persen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
+                        const biaya = Math.round((totalNota * persen) / 100);
+                        if (val > totalNota + biaya) {
+                            val = totalNota + biaya;
+                            this.value = formatRetailMoney(val);
+                        }
+                    }
                     if (isTotalBayar) {
                         recalculateRetailKembalian();
                     } else {
@@ -372,6 +491,41 @@
                 });
             };
 
+            const returSelect = document.getElementById('modal_retur_select');
+            if (returSelect) {
+                returSelect.addEventListener('change', function() {
+                    const returEl = document.getElementById('modal_kurangi_retur');
+                    const selectedOpt = this.options[this.selectedIndex];
+                    const remain = parseFloat(selectedOpt?.getAttribute('data-remain') || '0');
+                    if (returEl) {
+                        returEl.dataset.maxRemain = remain;
+                        if (remain > 0) {
+                            const totalNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
+                            const persen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
+                            const biaya = Math.round((totalNota * persen) / 100);
+                            const deduction = Math.min(totalNota + biaya, remain);
+                            returEl.value = formatRetailMoney(deduction);
+                        } else {
+                            returEl.value = '0,00';
+                        }
+                    }
+                    recalculateRetailTotals();
+                    const grandTotal = parseRetailMoney(document.getElementById('modal_grand_total')?.dataset?.raw || '0');
+                    const bayarEl = document.getElementById('modal_total_bayar');
+                    if (bayarEl) {
+                        bayarEl.value = formatRetailMoney(grandTotal);
+                    }
+                    recalculateRetailKembalian();
+                });
+
+                returSelect.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('modal_kurangi_retur')?.focus();
+                    }
+                });
+            }
+
             const persenEl = document.getElementById('modal_biaya_charge_persen');
             if (persenEl) {
                 persenEl.addEventListener('focus', function() {
@@ -388,7 +542,12 @@
                 persenEl.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        document.getElementById('modal_kurangi_retur')?.focus();
+                        const sel = document.getElementById('modal_retur_select');
+                        if (sel && !sel.disabled) {
+                            sel.focus();
+                        } else {
+                            document.getElementById('modal_total_bayar')?.focus();
+                        }
                     } else if (e.key === 'Escape') {
                         e.preventDefault();
                         window.closeRetailPaymentModal();

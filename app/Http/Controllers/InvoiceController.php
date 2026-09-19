@@ -2634,6 +2634,27 @@ class InvoiceController extends Controller
                     if (empty($fpembayaran) && $request->filled('fpembayaran')) {
                         $fpembayaran = trim((string) $request->input('fpembayaran'));
                     }
+
+                    $returNo = trim((string) $request->input('retur_fsono', ''));
+                    $returNominal = (float) $request->input('fkurangiretur', 0);
+                    if ($returNo !== '' && $returNominal > 0) {
+                        $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
+                        if ($retur) {
+                            $curRemain = (float) ($retur->famountremain ?? 0);
+                            $newRemain = round(max($curRemain - $returNominal, 0), 2);
+                            DB::table('tranmt')->where('fsono', $returNo)->update([
+                                'famountremain' => $newRemain,
+                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                            ]);
+                            DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
+                                'famountremain' => $newRemain,
+                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                            ]);
+                        }
+                        if (empty($headerInsert['frefno'])) {
+                            $headerInsert['frefno'] = $returNo;
+                        }
+                    }
                 }
                 $headerInsert['fpembayaran'] = $fpembayaran ? mb_substr($fpembayaran, 0, 30) : null;
 
@@ -4039,6 +4060,24 @@ class InvoiceController extends Controller
                     if (empty($fpembayaran) && $request->filled('fpembayaran')) {
                         $fpembayaran = trim((string) $request->input('fpembayaran'));
                     }
+
+                    $returNo = trim((string) $request->input('retur_fsono', ''));
+                    $returNominal = (float) $request->input('fkurangiretur', 0);
+                    if ($returNo !== '' && $returNominal > 0) {
+                        $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
+                        if ($retur) {
+                            $curRemain = (float) ($retur->famountremain ?? 0);
+                            $newRemain = round(max($curRemain - $returNominal, 0), 2);
+                            DB::table('tranmt')->where('fsono', $returNo)->update([
+                                'famountremain' => $newRemain,
+                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                            ]);
+                            DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
+                                'famountremain' => $newRemain,
+                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                            ]);
+                        }
+                    }
                 }
 
                 $headerUpdate = [
@@ -4668,4 +4707,34 @@ class InvoiceController extends Controller
             })
             ->all();
     }
+
+    public function customerReturs(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+        if ($customerCode === '') {
+            return response()->json([]);
+        }
+
+        $returs = DB::table('tranmt')
+            ->whereIn('ftrcode', ['REJ', 'RUJ'])
+            ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
+            ->whereRaw('COALESCE(famountremain, 0) > 0')
+            ->where(function ($q) {
+                $q->where('fapproval', 1)
+                    ->orWhere('fapproval', '1');
+            })
+            ->orderBy('fsodate', 'asc')
+            ->orderBy('fsono', 'asc')
+            ->get([
+                'ftranmtid',
+                'fsono',
+                'fsodate',
+                'fcustno',
+                DB::raw('COALESCE(famountso, 0) as famountso'),
+                DB::raw('COALESCE(famountremain, 0) as famountremain'),
+            ]);
+
+        return response()->json($returs);
+    }
 }
+

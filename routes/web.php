@@ -573,6 +573,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/penjualanretail/product-history', [PenjualanRetailController::class, 'productHistory'])->name('penjualanretail.product-history');
         Route::get('/penjualanretail/price-info', [PenjualanRetailController::class, 'priceInfo'])->name('penjualanretail.price-info');
         Route::post('/penjualanretail/credit-check', [PenjualanRetailController::class, 'creditCheck'])->name('penjualanretail.credit-check');
+        Route::get('/penjualanretail/customer-returs', [PenjualanRetailController::class, 'customerReturs'])->name('penjualanretail.customer-returs');
         Route::get('/penjualanretail/{ftranmtid}/view', [PenjualanRetailController::class, 'view'])->where('ftranmtid', '.*')->name('penjualanretail.view');
         Route::get('/penjualanretail/{ftranmtid}/edit', [PenjualanRetailController::class, 'edit'])->where('ftranmtid', '.*')->name('penjualanretail.edit');
         Route::get('/penjualanretail/{ftranmtid}/delete', [PenjualanRetailController::class, 'delete'])->name('penjualanretail.delete');
