@@ -56,12 +56,17 @@
 
             <!-- Biaya / Charge -->
             <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Biaya / Charge:</label>
-                <div class="col-span-8">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
-                        <input type="text" id="modal_biaya_charge" value="0,00"
-                            class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="col-span-4 font-semibold text-gray-700">Biaya / Charge (%):</label>
+                <div class="col-span-8 flex items-center gap-2">
+                    <div class="relative w-28 shrink-0">
+                        <input type="text" id="modal_biaya_charge_persen" value="0"
+                            class="w-full pr-7 pl-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 font-bold text-xs pointer-events-none">%</span>
+                    </div>
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
+                        <input type="text" id="modal_biaya_charge_nominal" value="0,00" readonly tabindex="-1"
+                            class="w-full pl-8 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-right font-medium text-gray-600 cursor-not-allowed text-sm">
                     </div>
                 </div>
             </div>
@@ -169,9 +174,23 @@
             return Number.isFinite(num) ? num : 0;
         }
 
+        function parsePercent(val) {
+            if (val === null || val === undefined || val === '') return 0;
+            let str = val.toString().trim().replace(/,/g, '.');
+            const num = parseFloat(str);
+            return Number.isFinite(num) ? Math.max(0, num) : 0;
+        }
+
         function recalculateRetailTotals() {
             const totalNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
-            const biaya = parseRetailMoney(document.getElementById('modal_biaya_charge')?.value || '0');
+            const persen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
+            const biaya = Math.round((totalNota * persen) / 100);
+
+            const biayaNominalEl = document.getElementById('modal_biaya_charge_nominal');
+            if (biayaNominalEl) {
+                biayaNominalEl.value = formatRetailMoney(biaya);
+            }
+
             const retur = parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0');
 
             const grandTotal = Math.max(0, totalNota + biaya - retur);
@@ -213,8 +232,10 @@
                 totalNotaEl.dataset.raw = totalNota;
             }
 
-            const biayaEl = document.getElementById('modal_biaya_charge');
-            if (biayaEl) biayaEl.value = '0,00';
+            const persenEl = document.getElementById('modal_biaya_charge_persen');
+            if (persenEl) persenEl.value = '0';
+            const biayaNominalEl = document.getElementById('modal_biaya_charge_nominal');
+            if (biayaNominalEl) biayaNominalEl.value = '0,00';
 
             const returEl = document.getElementById('modal_kurangi_retur');
             if (returEl) returEl.value = '0,00';
@@ -339,9 +360,7 @@
                 el.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        if (id === 'modal_biaya_charge') {
-                            document.getElementById('modal_kurangi_retur')?.focus();
-                        } else if (id === 'modal_kurangi_retur') {
+                        if (id === 'modal_kurangi_retur') {
                             document.getElementById('modal_total_bayar')?.focus();
                         } else if (id === 'modal_total_bayar') {
                             window.confirmRetailPaymentOk();
@@ -353,7 +372,30 @@
                 });
             };
 
-            attachMoneyEvents('modal_biaya_charge', false);
+            const persenEl = document.getElementById('modal_biaya_charge_persen');
+            if (persenEl) {
+                persenEl.addEventListener('focus', function() {
+                    this.select();
+                });
+                persenEl.addEventListener('input', function() {
+                    recalculateRetailTotals();
+                });
+                persenEl.addEventListener('blur', function() {
+                    const p = parsePercent(this.value);
+                    this.value = p > 0 ? (Number.isInteger(p) ? p.toString() : p.toString().replace('.', ',')) : '0';
+                    recalculateRetailTotals();
+                });
+                persenEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('modal_kurangi_retur')?.focus();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        window.closeRetailPaymentModal();
+                    }
+                });
+            }
+
             attachMoneyEvents('modal_kurangi_retur', false);
             attachMoneyEvents('modal_total_bayar', true);
 
