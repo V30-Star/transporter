@@ -550,6 +550,54 @@
                                 @enderror
                             </div>
 
+                            {{-- Pembayaran, Nomor Retur, Nilai RP Retur --}}
+                            <div class="col-span-3 grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Pembayaran</label>
+                                    <select name="fpembayaran" id="retailFpembayaran"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fpembayaran') border-red-500 @enderror">
+                                        <option value="">-- Pilih Pembayaran --</option>
+                                        @foreach ($typePembayarans ?? [] as $tp)
+                                            @php
+                                                $tpName = trim((string) ($tp->ftypepembayaranname ?? $tp->ftypepembayarankode ?? ''));
+                                                $currentPembayaran = trim((string) old('fpembayaran', $invoice->fpembayaran ?? ''));
+                                            @endphp
+                                            <option value="{{ $tpName }}" {{ $currentPembayaran === $tpName ? 'selected' : '' }} data-id="{{ $tp->ftypepembayaranid }}" data-account="{{ $tp->faccount }}">
+                                                {{ $tpName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('fpembayaran')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Nomor Retur</label>
+                                    <input type="text" name="frefretur" id="retailFrefretur" list="retailReturList"
+                                        value="{{ old('frefretur', $invoice->frefretur ?? '') }}"
+                                        placeholder="Nomor Retur"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefretur') border-red-500 @enderror">
+                                    <datalist id="retailReturList"></datalist>
+                                    @error('frefretur')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
+                                    <input type="text" name="famountretur" id="retailFamountretur"
+                                        value="{{ old('famountretur') !== null ? old('famountretur') : (($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '') }}"
+                                        placeholder="0,00"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('famountretur') border-red-500 @enderror"
+                                        onfocus="this.select()"
+                                        onblur="if(this.value){ let v = this.value.replace(/[^0-9,-]/g,'').replace(',','.'); let num = parseFloat(v); if(!isNaN(num)) this.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }">
+                                    @error('famountretur')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                                 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
                                         function calculateDueDate() {
@@ -568,18 +616,63 @@
                                             const day = String(date.getDate()).padStart(2, '0');
 
                                                 jatuhtempoEl.value = `${year}-${month}-${day}`;
-                                            } else {
+                                        } else {
                                                 jatuhtempoEl.value = '';
-                                            }
                                         }
+                                    }
 
-                                        const sodateEl = document.getElementById('fsodate');
-                                        const tempohrEl = document.getElementById('ftempohr');
-                                        if (sodateEl) sodateEl.addEventListener('change', calculateDueDate);
-                                        if (tempohrEl) tempohrEl.addEventListener('input', calculateDueDate);
+                                    // Event listeners
+                                        document.getElementById('fsodate')?.addEventListener('change', calculateDueDate);
+                                        document.getElementById('ftempohr')?.addEventListener('input', calculateDueDate);
 
                                     if (!@json(old('fjatuhtempo') !== null)) {
                                         calculateDueDate();
+                                    }
+
+                                    const custInput = document.getElementById('customerCodeHidden');
+                                    const returInput = document.getElementById('retailFrefretur');
+                                    const amountInput = document.getElementById('retailFamountretur');
+                                    const returList = document.getElementById('retailReturList');
+
+                                    function loadRetailCustomerReturs(custNo) {
+                                        if (!returList) return;
+                                        returList.innerHTML = '';
+                                        if (!custNo) return;
+                                        fetch('{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo))
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                if (Array.isArray(data)) {
+                                                    data.forEach(item => {
+                                                        const opt = document.createElement('option');
+                                                        opt.value = item.fsono;
+                                                        const remain = parseFloat(item.famountremain || 0);
+                                                        opt.label = 'Sisa: Rp ' + remain.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                                        opt.dataset.remain = remain;
+                                                        returList.appendChild(opt);
+                                                    });
+                                                }
+                                            })
+                                            .catch(() => {});
+                                    }
+
+                                    if (custInput && custInput.value) {
+                                        loadRetailCustomerReturs(custInput.value);
+                                    }
+                                    window.addEventListener('customer-selected', function(e) {
+                                        const cCode = e.detail?.fcustomercode || (custInput ? custInput.value : '');
+                                        if (cCode) loadRetailCustomerReturs(cCode);
+                                    });
+
+                                    if (returInput && amountInput) {
+                                        returInput.addEventListener('input', function() {
+                                            const val = this.value.trim();
+                                            const opts = returList ? Array.from(returList.querySelectorAll('option')) : [];
+                                            const matched = opts.find(o => o.value === val);
+                                            if (matched && matched.dataset.remain && (!amountInput.value || amountInput.value === '0,00')) {
+                                                const num = parseFloat(matched.dataset.remain);
+                                                amountInput.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                            }
+                                        });
                                     }
                                 });
                             </script>

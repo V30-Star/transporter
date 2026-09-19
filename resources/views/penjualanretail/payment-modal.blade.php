@@ -241,6 +241,13 @@
             const biayaNominalEl = document.getElementById('modal_biaya_charge_nominal');
             if (biayaNominalEl) biayaNominalEl.value = '0,00';
 
+            const curPaymentName = form.querySelector('[name="fpembayaran"]')?.value?.trim();
+            const paySelect = document.getElementById('modal_payment_type');
+            if (curPaymentName && paySelect) {
+                const opt = Array.from(paySelect.options).find(o => (o.getAttribute('data-kode') || o.text.trim()) === curPaymentName || o.text.trim() === curPaymentName);
+                if (opt) paySelect.value = opt.value;
+            }
+
             const returSelect = document.getElementById('modal_retur_select');
             const returEl = document.getElementById('modal_kurangi_retur');
             if (returSelect) {
@@ -296,7 +303,15 @@
                             }
                             if (returEl) {
                                 returEl.disabled = false;
-                                if (returs.length === 1) {
+                                const presetReturNo = (form.querySelector('[name="frefretur"]')?.value || '').trim();
+                                const presetReturNominal = parseRetailMoney(form.querySelector('[name="famountretur"]')?.value || '0');
+                                if (presetReturNo) {
+                                    returSelect.value = presetReturNo;
+                                    const selectedOpt = returSelect.options[returSelect.selectedIndex];
+                                    const maxRemain = parseFloat(selectedOpt?.getAttribute('data-remain') || '0');
+                                    returEl.dataset.maxRemain = maxRemain;
+                                    returEl.value = formatRetailMoney(presetReturNominal > 0 ? presetReturNominal : maxRemain);
+                                } else if (returs.length === 1) {
                                     returSelect.value = returs[0].fsono;
                                     const remain = parseFloat(returs[0].famountremain || 0);
                                     returEl.dataset.maxRemain = remain;
@@ -396,7 +411,7 @@
             }
             inputFaccount.value = faccount;
 
-            let inputFpembayaran = retailActiveForm.querySelector('input[name="fpembayaran"]');
+            let inputFpembayaran = retailActiveForm.querySelector('[name="fpembayaran"]');
             if (!inputFpembayaran) {
                 inputFpembayaran = document.createElement('input');
                 inputFpembayaran.type = 'hidden';
@@ -409,23 +424,41 @@
             const returFsono = returSelect?.value || '';
             const returNominal = parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0');
 
-            let inputReturNo = retailActiveForm.querySelector('input[name="retur_fsono"]');
+            let inputReturNo = retailActiveForm.querySelector('[name="frefretur"]');
             if (!inputReturNo) {
                 inputReturNo = document.createElement('input');
                 inputReturNo.type = 'hidden';
-                inputReturNo.name = 'retur_fsono';
+                inputReturNo.name = 'frefretur';
                 retailActiveForm.appendChild(inputReturNo);
             }
             inputReturNo.value = returFsono;
 
-            let inputReturNominal = retailActiveForm.querySelector('input[name="fkurangiretur"]');
+            let inputLegacyReturNo = retailActiveForm.querySelector('input[name="retur_fsono"]');
+            if (!inputLegacyReturNo) {
+                inputLegacyReturNo = document.createElement('input');
+                inputLegacyReturNo.type = 'hidden';
+                inputLegacyReturNo.name = 'retur_fsono';
+                retailActiveForm.appendChild(inputLegacyReturNo);
+            }
+            inputLegacyReturNo.value = returFsono;
+
+            let inputReturNominal = retailActiveForm.querySelector('[name="famountretur"]');
             if (!inputReturNominal) {
                 inputReturNominal = document.createElement('input');
                 inputReturNominal.type = 'hidden';
-                inputReturNominal.name = 'fkurangiretur';
+                inputReturNominal.name = 'famountretur';
                 retailActiveForm.appendChild(inputReturNominal);
             }
-            inputReturNominal.value = returNominal;
+            inputReturNominal.value = returNominal > 0 ? formatRetailMoney(returNominal) : '';
+
+            let inputLegacyReturNominal = retailActiveForm.querySelector('input[name="fkurangiretur"]');
+            if (!inputLegacyReturNominal) {
+                inputLegacyReturNominal = document.createElement('input');
+                inputLegacyReturNominal.type = 'hidden';
+                inputLegacyReturNominal.name = 'fkurangiretur';
+                retailActiveForm.appendChild(inputLegacyReturNominal);
+            }
+            inputLegacyReturNominal.value = returNominal;
 
             window.closeRetailPaymentModal();
 

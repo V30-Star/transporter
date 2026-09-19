@@ -2612,51 +2612,86 @@ class InvoiceController extends Controller
 
                 $cashAccount = null;
                 $fpembayaran = null;
-                if ($this->getRoutePrefix() === 'penjualanretail') {
-                    $paymentTypeId = $request->input('type_pembayaran_id');
-                    if (!empty($paymentTypeId)) {
-                        $paymentType = DB::table('tbmaster')
-                            ->where('ftblcode', 'TYPEBAYAR')
-                            ->where('fmasterid', $paymentTypeId)
-                            ->first();
-                        if ($paymentType) {
-                            if (!empty($paymentType->fnote1)) {
-                                $cashAccount = trim((string) $paymentType->fnote1);
-                            }
-                            if (!empty($paymentType->fmastername)) {
-                                $fpembayaran = trim((string) $paymentType->fmastername);
-                            }
+                $paymentTypeId = $request->input('type_pembayaran_id');
+                if (!empty($paymentTypeId)) {
+                    $paymentType = DB::table('tbmaster')
+                        ->where('ftblcode', 'TYPEBAYAR')
+                        ->where('fmasterid', $paymentTypeId)
+                        ->first();
+                    if ($paymentType) {
+                        if (!empty($paymentType->fnote1)) {
+                            $cashAccount = trim((string) $paymentType->fnote1);
                         }
-                    }
-                    if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
-                        $cashAccount = trim((string) $request->input('faccount_pembayaran'));
-                    }
-                    if (empty($fpembayaran) && $request->filled('fpembayaran')) {
-                        $fpembayaran = trim((string) $request->input('fpembayaran'));
-                    }
-
-                    $returNo = trim((string) $request->input('retur_fsono', ''));
-                    $returNominal = (float) $request->input('fkurangiretur', 0);
-                    if ($returNo !== '' && $returNominal > 0) {
-                        $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
-                        if ($retur) {
-                            $curRemain = (float) ($retur->famountremain ?? 0);
-                            $newRemain = round(max($curRemain - $returNominal, 0), 2);
-                            DB::table('tranmt')->where('fsono', $returNo)->update([
-                                'famountremain' => $newRemain,
-                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
-                            ]);
-                            DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
-                                'famountremain' => $newRemain,
-                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
-                            ]);
-                        }
-                        if (empty($headerInsert['frefno'])) {
-                            $headerInsert['frefno'] = $returNo;
+                        if (!empty($paymentType->fmastername)) {
+                            $fpembayaran = trim((string) $paymentType->fmastername);
                         }
                     }
                 }
+                if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
+                    $cashAccount = trim((string) $request->input('faccount_pembayaran'));
+                }
+                if (empty($fpembayaran) && $request->filled('fpembayaran')) {
+                    $rawPembayaran = trim((string) $request->input('fpembayaran'));
+                    if (is_numeric($rawPembayaran)) {
+                        $paymentType = DB::table('tbmaster')
+                            ->where('ftblcode', 'TYPEBAYAR')
+                            ->where('fmasterid', $rawPembayaran)
+                            ->first();
+                        if ($paymentType) {
+                            $fpembayaran = trim((string) $paymentType->fmastername);
+                            if (empty($cashAccount) && !empty($paymentType->fnote1)) {
+                                $cashAccount = trim((string) $paymentType->fnote1);
+                            }
+                        }
+                    } else {
+                        $fpembayaran = $rawPembayaran;
+                        $paymentType = DB::table('tbmaster')
+                            ->where('ftblcode', 'TYPEBAYAR')
+                            ->whereRaw('TRIM(fmastername) = ?', [$fpembayaran])
+                            ->first();
+                        if ($paymentType && empty($cashAccount) && !empty($paymentType->fnote1)) {
+                            $cashAccount = trim((string) $paymentType->fnote1);
+                        }
+                    }
+                }
+
+                $returNo = trim((string) ($request->input('frefretur', $request->input('retur_fsono', ''))));
+                $rawReturNominal = $request->input('famountretur', $request->input('fkurangiretur', 0));
+                $returNominal = 0.0;
+                if (is_numeric($rawReturNominal)) {
+                    $returNominal = (float) $rawReturNominal;
+                } elseif (is_string($rawReturNominal)) {
+                    $cleaned = trim($rawReturNominal);
+                    if (strpos($cleaned, ',') !== false && strpos($cleaned, '.') !== false) {
+                        $cleaned = str_replace('.', '', $cleaned);
+                        $cleaned = str_replace(',', '.', $cleaned);
+                    } elseif (strpos($cleaned, ',') !== false) {
+                        $cleaned = str_replace(',', '.', $cleaned);
+                    }
+                    $returNominal = (float) preg_replace('/[^0-9.-]/', '', $cleaned);
+                }
+
+                if ($returNo !== '' && $returNominal > 0) {
+                    $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
+                    if ($retur) {
+                        $curRemain = (float) ($retur->famountremain ?? 0);
+                        $newRemain = round(max($curRemain - $returNominal, 0), 2);
+                        DB::table('tranmt')->where('fsono', $returNo)->update([
+                            'famountremain' => $newRemain,
+                            'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                        ]);
+                        DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
+                            'famountremain' => $newRemain,
+                            'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                        ]);
+                    }
+                    if (empty($headerInsert['frefno'])) {
+                        $headerInsert['frefno'] = $returNo;
+                    }
+                }
                 $headerInsert['fpembayaran'] = $fpembayaran ? mb_substr($fpembayaran, 0, 30) : null;
+                $headerInsert['frefretur'] = $returNo !== '' ? mb_substr($returNo, 0, 25) : null;
+                $headerInsert['famountretur'] = $returNominal > 0 ? $returNominal : 0;
 
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerInsert['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
@@ -4038,45 +4073,96 @@ class InvoiceController extends Controller
 
                 $cashAccount = null;
                 $fpembayaran = null;
-                if ($isRetail) {
-                    $paymentTypeId = $request->input('type_pembayaran_id');
-                    if (!empty($paymentTypeId)) {
+                $paymentTypeId = $request->input('type_pembayaran_id');
+                if (!empty($paymentTypeId)) {
+                    $paymentType = DB::table('tbmaster')
+                        ->where('ftblcode', 'TYPEBAYAR')
+                        ->where('fmasterid', $paymentTypeId)
+                        ->first();
+                    if ($paymentType) {
+                        if (!empty($paymentType->fnote1)) {
+                            $cashAccount = trim((string) $paymentType->fnote1);
+                        }
+                        if (!empty($paymentType->fmastername)) {
+                            $fpembayaran = trim((string) $paymentType->fmastername);
+                        }
+                    }
+                }
+                if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
+                    $cashAccount = trim((string) $request->input('faccount_pembayaran'));
+                }
+                if (empty($fpembayaran) && $request->filled('fpembayaran')) {
+                    $rawPembayaran = trim((string) $request->input('fpembayaran'));
+                    if (is_numeric($rawPembayaran)) {
                         $paymentType = DB::table('tbmaster')
                             ->where('ftblcode', 'TYPEBAYAR')
-                            ->where('fmasterid', $paymentTypeId)
+                            ->where('fmasterid', $rawPembayaran)
                             ->first();
                         if ($paymentType) {
-                            if (!empty($paymentType->fnote1)) {
+                            $fpembayaran = trim((string) $paymentType->fmastername);
+                            if (empty($cashAccount) && !empty($paymentType->fnote1)) {
                                 $cashAccount = trim((string) $paymentType->fnote1);
                             }
-                            if (!empty($paymentType->fmastername)) {
-                                $fpembayaran = trim((string) $paymentType->fmastername);
-                            }
+                        }
+                    } else {
+                        $fpembayaran = $rawPembayaran;
+                        $paymentType = DB::table('tbmaster')
+                            ->where('ftblcode', 'TYPEBAYAR')
+                            ->whereRaw('TRIM(fmastername) = ?', [$fpembayaran])
+                            ->first();
+                        if ($paymentType && empty($cashAccount) && !empty($paymentType->fnote1)) {
+                            $cashAccount = trim((string) $paymentType->fnote1);
                         }
                     }
-                    if (empty($cashAccount) && $request->filled('faccount_pembayaran')) {
-                        $cashAccount = trim((string) $request->input('faccount_pembayaran'));
-                    }
-                    if (empty($fpembayaran) && $request->filled('fpembayaran')) {
-                        $fpembayaran = trim((string) $request->input('fpembayaran'));
-                    }
+                }
 
-                    $returNo = trim((string) $request->input('retur_fsono', ''));
-                    $returNominal = (float) $request->input('fkurangiretur', 0);
-                    if ($returNo !== '' && $returNominal > 0) {
-                        $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
-                        if ($retur) {
-                            $curRemain = (float) ($retur->famountremain ?? 0);
-                            $newRemain = round(max($curRemain - $returNominal, 0), 2);
-                            DB::table('tranmt')->where('fsono', $returNo)->update([
-                                'famountremain' => $newRemain,
-                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
-                            ]);
-                            DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
-                                'famountremain' => $newRemain,
-                                'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
-                            ]);
-                        }
+                $returNo = trim((string) ($request->input('frefretur', $request->input('retur_fsono', ''))));
+                $rawReturNominal = $request->input('famountretur', $request->input('fkurangiretur', 0));
+                $returNominal = 0.0;
+                if (is_numeric($rawReturNominal)) {
+                    $returNominal = (float) $rawReturNominal;
+                } elseif (is_string($rawReturNominal)) {
+                    $cleaned = trim($rawReturNominal);
+                    if (strpos($cleaned, ',') !== false && strpos($cleaned, '.') !== false) {
+                        $cleaned = str_replace('.', '', $cleaned);
+                        $cleaned = str_replace(',', '.', $cleaned);
+                    } elseif (strpos($cleaned, ',') !== false) {
+                        $cleaned = str_replace(',', '.', $cleaned);
+                    }
+                    $returNominal = (float) preg_replace('/[^0-9.-]/', '', $cleaned);
+                }
+
+                // Restore previous retur if changed or cleared
+                $oldReturNo = trim((string) ($header->frefretur ?? ''));
+                $oldReturNominal = (float) ($header->famountretur ?? 0);
+                if ($oldReturNo !== '' && $oldReturNominal > 0 && ($oldReturNo !== $returNo || $oldReturNominal != $returNominal)) {
+                    $prevRetur = DB::table('tranmt')->where('fsono', $oldReturNo)->first();
+                    if ($prevRetur) {
+                        $restoredRemain = (float) ($prevRetur->famountremain ?? 0) + $oldReturNominal;
+                        DB::table('tranmt')->where('fsono', $oldReturNo)->update([
+                            'famountremain' => $restoredRemain,
+                            'famountremain_rp' => round($restoredRemain * (float) ($prevRetur->frate ?? 1), 2),
+                        ]);
+                        DB::table('trstockmt')->where('fstockmtno', $oldReturNo)->update([
+                            'famountremain' => $restoredRemain,
+                            'famountremain_rp' => round($restoredRemain * (float) ($prevRetur->frate ?? 1), 2),
+                        ]);
+                    }
+                }
+
+                if ($returNo !== '' && $returNominal > 0 && ($oldReturNo !== $returNo || $oldReturNominal != $returNominal)) {
+                    $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
+                    if ($retur) {
+                        $curRemain = (float) ($retur->famountremain ?? 0);
+                        $newRemain = round(max($curRemain - $returNominal, 0), 2);
+                        DB::table('tranmt')->where('fsono', $returNo)->update([
+                            'famountremain' => $newRemain,
+                            'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                        ]);
+                        DB::table('trstockmt')->where('fstockmtno', $returNo)->update([
+                            'famountremain' => $newRemain,
+                            'famountremain_rp' => round($newRemain * (float) ($retur->frate ?? 1), 2),
+                        ]);
                     }
                 }
 
@@ -4119,7 +4205,9 @@ class InvoiceController extends Controller
                     'ftunai'           => $isTunai ? 1 : 0,
                     'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,
-                    'fpembayaran'      => $fpembayaran ? mb_substr($fpembayaran, 0, 30) : ($header->fpembayaran ?? null),
+                    'fpembayaran'      => $request->has('fpembayaran') ? ($fpembayaran ? mb_substr($fpembayaran, 0, 30) : null) : ($header->fpembayaran ?? null),
+                    'frefretur'        => ($request->has('frefretur') || $request->has('retur_fsono')) ? ($returNo !== '' ? mb_substr($returNo, 0, 25) : null) : ($header->frefretur ?? null),
+                    'famountretur'     => ($request->has('famountretur') || $request->has('fkurangiretur')) ? ($returNominal > 0 ? $returNominal : 0) : ($header->famountretur ?? 0),
                 ];
 
                 if ($this->tranmtHasInternalNoteColumn()) {

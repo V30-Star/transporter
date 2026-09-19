@@ -554,6 +554,7 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/invoice/product-history', [InvoiceController::class, 'productHistory'])->name('invoice.product-history');
         Route::get('/invoice/price-info', [InvoiceController::class, 'priceInfo'])->name('invoice.price-info');
         Route::post('/invoice/credit-check', [InvoiceController::class, 'creditCheck'])->name('invoice.credit-check');
+        Route::get('/invoice/customer-returs', [InvoiceController::class, 'customerReturs'])->name('invoice.customer-returs');
         Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->where('ftranmtid', '.*')->name('invoice.view');
         Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->where('ftranmtid', '.*')->name('invoice.edit');
         Route::get('/invoice/{ftranmtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');
