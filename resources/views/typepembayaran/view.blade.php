@@ -15,28 +15,19 @@
             </div>
 
             <div class="p-4 space-y-4">
-                {{-- Kode & Nama (2 kolom) --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Kode Type Pembayaran</label>
-                        <input type="text" value="{{ $typePembayaran->ftypepembayarankode }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
-                            readonly>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Type Pembayaran</label>
-                        <input type="text" value="{{ $typePembayaran->ftypepembayaranname }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
-                            readonly>
-                    </div>
+                {{-- Nama Type Pembayaran --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Nama Type Pembayaran</label>
+                    <input type="text" value="{{ $typePembayaran->fmastername }}"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly>
                 </div>
 
                 {{-- Account Kas/Bank --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Account Kas/Bank</label>
                     <input type="text"
-                        value="{{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->faccount ?: '-') }}"
+                        value="{{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->fnote1 ?: '-') }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                         readonly>
                 </div>
@@ -55,8 +46,8 @@
 
         {{-- FOOTER INFO --}}
         @php
-            $lastUpdate = $typePembayaran->fupdatedat ?: $typePembayaran->fcreatedat;
-            $updatedBy = $typePembayaran->fupdatedby ?: ($typePembayaran->fcreateby ?: '—');
+            $lastUpdate = $typePembayaran->fdatetime;
+            $updatedBy = $typePembayaran->fuserid ?: '—';
         @endphp
         <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
             <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>

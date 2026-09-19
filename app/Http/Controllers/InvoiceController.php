@@ -1444,9 +1444,15 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
-        $typePembayarans = DB::table('msttypepembayaran')
-            ->orderBy('ftypepembayarankode', 'asc')
-            ->get(['ftypepembayaranid', 'ftypepembayarankode', 'ftypepembayaranname', 'faccount']);
+        $typePembayarans = DB::table('tbmaster')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmastername', 'asc')
+            ->get([
+                'fmasterid as ftypepembayaranid',
+                'fmastername as ftypepembayarankode',
+                'fmastername as ftypepembayaranname',
+                'fnote1 as faccount',
+            ]);
 
         return view($this->getViewPrefix() . '.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -2609,15 +2615,16 @@ class InvoiceController extends Controller
                 if ($this->getRoutePrefix() === 'penjualanretail') {
                     $paymentTypeId = $request->input('type_pembayaran_id');
                     if (!empty($paymentTypeId)) {
-                        $paymentType = DB::table('msttypepembayaran')
-                            ->where('ftypepembayaranid', $paymentTypeId)
+                        $paymentType = DB::table('tbmaster')
+                            ->where('ftblcode', 'TYPEBAYAR')
+                            ->where('fmasterid', $paymentTypeId)
                             ->first();
                         if ($paymentType) {
-                            if (!empty($paymentType->faccount)) {
-                                $cashAccount = trim((string) $paymentType->faccount);
+                            if (!empty($paymentType->fnote1)) {
+                                $cashAccount = trim((string) $paymentType->fnote1);
                             }
-                            if (!empty($paymentType->ftypepembayarankode)) {
-                                $fpembayaran = trim((string) $paymentType->ftypepembayarankode);
+                            if (!empty($paymentType->fmastername)) {
+                                $fpembayaran = trim((string) $paymentType->fmastername);
                             }
                         }
                     }
@@ -3265,9 +3272,15 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
-        $typePembayarans = DB::table('msttypepembayaran')
-            ->orderBy('ftypepembayarankode', 'asc')
-            ->get(['ftypepembayaranid', 'ftypepembayarankode', 'ftypepembayaranname', 'faccount']);
+        $typePembayarans = DB::table('tbmaster')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmastername', 'asc')
+            ->get([
+                'fmasterid as ftypepembayaranid',
+                'fmastername as ftypepembayarankode',
+                'fmastername as ftypepembayaranname',
+                'fnote1 as faccount',
+            ]);
 
         $selectedTypePembayaranId = null;
         if (!empty($invoice->fpembayaran)) {
@@ -3408,9 +3421,15 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
-        $typePembayarans = DB::table('msttypepembayaran')
-            ->orderBy('ftypepembayarankode', 'asc')
-            ->get(['ftypepembayaranid', 'ftypepembayarankode', 'ftypepembayaranname', 'faccount']);
+        $typePembayarans = DB::table('tbmaster')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmastername', 'asc')
+            ->get([
+                'fmasterid as ftypepembayaranid',
+                'fmastername as ftypepembayarankode',
+                'fmastername as ftypepembayaranname',
+                'fnote1 as faccount',
+            ]);
 
         $selectedTypePembayaranId = null;
         if (!empty($invoice->fpembayaran)) {
@@ -4001,15 +4020,16 @@ class InvoiceController extends Controller
                 if ($isRetail) {
                     $paymentTypeId = $request->input('type_pembayaran_id');
                     if (!empty($paymentTypeId)) {
-                        $paymentType = DB::table('msttypepembayaran')
-                            ->where('ftypepembayaranid', $paymentTypeId)
+                        $paymentType = DB::table('tbmaster')
+                            ->where('ftblcode', 'TYPEBAYAR')
+                            ->where('fmasterid', $paymentTypeId)
                             ->first();
                         if ($paymentType) {
-                            if (!empty($paymentType->faccount)) {
-                                $cashAccount = trim((string) $paymentType->faccount);
+                            if (!empty($paymentType->fnote1)) {
+                                $cashAccount = trim((string) $paymentType->fnote1);
                             }
-                            if (!empty($paymentType->ftypepembayarankode)) {
-                                $fpembayaran = trim((string) $paymentType->ftypepembayarankode);
+                            if (!empty($paymentType->fmastername)) {
+                                $fpembayaran = trim((string) $paymentType->fmastername);
                             }
                         }
                     }

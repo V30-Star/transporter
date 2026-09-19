@@ -14,42 +14,25 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4 max-w-2xl mx-auto">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-bold text-gray-700">Kode Type Pembayaran</div>
-                <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
-                    {{ $typePembayaran->ftypepembayarankode }}
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-bold text-gray-700">Nama Type Pembayaran</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
-                    {{ $typePembayaran->ftypepembayaranname }}
+                    {{ $typePembayaran->fmastername }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-bold text-gray-700">Account Kas/Bank</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    {{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->faccount ?: '-') }}
+                    {{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->fnote1 ?: '-') }}
                 </div>
             </div>
 
-            @if ($typePembayaran->fcreateby)
+            @if ($typePembayaran->fdatetime)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-bold text-gray-700">Dibuat</div>
+                    <div class="text-sm font-bold text-gray-700">Terakhir Diupdate</div>
                     <div class="col-span-2 text-sm text-gray-700">
-                        {{ $typePembayaran->fcreateby ?? '-' }} -
-                        {{ $typePembayaran->fcreatedat ? \Carbon\Carbon::parse($typePembayaran->fcreatedat)->format('d/m/Y H:i') : '-' }}
-                    </div>
-                </div>
-            @endif
-
-            @if ($typePembayaran->fupdatedat)
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-bold text-gray-700">Diupdate</div>
-                    <div class="col-span-2 text-sm text-gray-700">
-                        {{ $typePembayaran->fupdatedby ?? '-' }} -
-                        {{ \Carbon\Carbon::parse($typePembayaran->fupdatedat)->format('d/m/Y H:i') }}
+                        {{ $typePembayaran->fuserid ?? '-' }} -
+                        {{ \Carbon\Carbon::parse($typePembayaran->fdatetime)->format('d/m/Y H:i') }}
                     </div>
                 </div>
             @endif
@@ -70,7 +53,7 @@
 
         <div class="mt-6 text-center text-sm text-gray-500">
             <p>Last updated:
-                {{ $typePembayaran->fupdatedat ? \Carbon\Carbon::parse($typePembayaran->fupdatedat)->format('d M Y, H:i') : ($typePembayaran->fcreatedat ? \Carbon\Carbon::parse($typePembayaran->fcreatedat)->format('d M Y, H:i') : '—') }}
+                {{ $typePembayaran->fdatetime ? \Carbon\Carbon::parse($typePembayaran->fdatetime)->format('d M Y, H:i') : '—' }}
             </p>
         </div>
     </div>
@@ -85,7 +68,7 @@
             </div>
             <div class="p-6">
                 <p class="text-gray-700 mb-4">
-                    Apakah Anda yakin ingin menghapus Type Pembayaran <strong class="text-gray-900">{{ $typePembayaran->ftypepembayarankode }} - {{ $typePembayaran->ftypepembayaranname }}</strong>?
+                    Apakah Anda yakin ingin menghapus Type Pembayaran <strong class="text-gray-900">{{ $typePembayaran->fmastername }}</strong>?
                 </p>
                 <p class="text-sm text-red-600 mb-6">
                     Tindakan ini tidak dapat dibatalkan dan data akan dihapus secara permanen.
@@ -131,7 +114,7 @@
             btnText.textContent = 'Menghapus...';
             btnLoading.classList.remove('hidden');
 
-            fetch('{{ route('typepembayaran.destroy', $typePembayaran->ftypepembayaranid) }}', {
+            fetch('{{ route('typepembayaran.destroy', $typePembayaran->fmasterid) }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

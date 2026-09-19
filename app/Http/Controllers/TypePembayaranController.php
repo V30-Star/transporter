@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\TypePembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class TypePembayaranController extends Controller
 {
@@ -41,7 +42,8 @@ class TypePembayaranController extends Controller
         }
 
         $typePembayarans = TypePembayaran::with('account')
-            ->orderBy('ftypepembayarankode', 'asc')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmastername', 'asc')
             ->get();
 
         $permsArr = explode(',', (string) session('user_restricted_permissions', ''));
@@ -71,27 +73,30 @@ class TypePembayaranController extends Controller
 
         try {
             $request->merge([
-                'ftypepembayarankode' => strtoupper(trim((string) $request->ftypepembayarankode)),
-                'ftypepembayaranname' => strtoupper(trim((string) $request->ftypepembayaranname)),
-                'faccount' => trim((string) $request->faccount),
+                'ftblcode' => 'TYPEBAYAR',
+                'fmastername' => strtoupper(trim((string) $request->fmastername)),
+                'fnote1' => trim((string) ($request->fnote1 ?? $request->faccount)),
             ]);
 
             $validated = $request->validate([
-                'ftypepembayarankode' => 'required|string|max:10|unique:msttypepembayaran,ftypepembayarankode',
-                'ftypepembayaranname' => 'required|string|max:50',
-                'faccount' => 'required|string|max:10',
+                'ftblcode' => 'required|string',
+                'fmastername' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('tbmaster', 'fmastername')->where(fn($q) => $q->where('ftblcode', 'TYPEBAYAR')),
+                ],
+                'fnote1' => 'required|string|max:10',
             ], [
-                'ftypepembayarankode.required' => 'Kode Type Pembayaran wajib diisi.',
-                'ftypepembayarankode.unique' => 'Kode Type Pembayaran sudah digunakan.',
-                'ftypepembayarankode.max' => 'Kode Type Pembayaran maksimal 10 karakter.',
-                'ftypepembayaranname.required' => 'Nama Type Pembayaran wajib diisi.',
-                'ftypepembayaranname.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
-                'faccount.required' => 'Account Kas/Bank wajib dipilih.',
+                'fmastername.required' => 'Nama Type Pembayaran wajib diisi.',
+                'fmastername.unique' => 'Nama Type Pembayaran sudah digunakan.',
+                'fmastername.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
+                'fnote1.required' => 'Account Kas/Bank wajib dipilih.',
             ]);
 
             $userLogin = auth('sysuser')->user() ?? auth()->user();
-            $validated['fcreateby'] = $userLogin->fname ?? ($userLogin->name ?? null);
-            $validated['fcreatedat'] = now();
+            $validated['fuserid'] = $userLogin->fname ?? ($userLogin->name ?? 'System');
+            $validated['fdatetime'] = now();
 
             TypePembayaran::create($validated);
 
@@ -114,7 +119,7 @@ class TypePembayaranController extends Controller
             return $guard;
         }
 
-        $typePembayaran = TypePembayaran::findOrFail($id);
+        $typePembayaran = TypePembayaran::where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
         $accounts = $this->getKasbankAccounts();
 
         return view('typepembayaran.edit', compact('typePembayaran', 'accounts'));
@@ -126,7 +131,7 @@ class TypePembayaranController extends Controller
             return $guard;
         }
 
-        $typePembayaran = TypePembayaran::with('account')->findOrFail($id);
+        $typePembayaran = TypePembayaran::with('account')->where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
 
         return view('typepembayaran.view', compact('typePembayaran'));
     }
@@ -137,30 +142,35 @@ class TypePembayaranController extends Controller
             return $guard;
         }
 
-        $typePembayaran = TypePembayaran::findOrFail($id);
+        $typePembayaran = TypePembayaran::where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
 
         $request->merge([
-            'ftypepembayarankode' => strtoupper(trim((string) $request->ftypepembayarankode)),
-            'ftypepembayaranname' => strtoupper(trim((string) $request->ftypepembayaranname)),
-            'faccount' => trim((string) $request->faccount),
+            'ftblcode' => 'TYPEBAYAR',
+            'fmastername' => strtoupper(trim((string) $request->fmastername)),
+            'fnote1' => trim((string) ($request->fnote1 ?? $request->faccount)),
         ]);
 
         $validated = $request->validate([
-            'ftypepembayarankode' => "required|string|max:10|unique:msttypepembayaran,ftypepembayarankode,{$id},ftypepembayaranid",
-            'ftypepembayaranname' => 'required|string|max:50',
-            'faccount' => 'required|string|max:10',
+            'ftblcode' => 'required|string',
+            'fmastername' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('tbmaster', 'fmastername')
+                    ->where(fn($q) => $q->where('ftblcode', 'TYPEBAYAR'))
+                    ->ignore($id, 'fmasterid'),
+            ],
+            'fnote1' => 'required|string|max:10',
         ], [
-            'ftypepembayarankode.required' => 'Kode Type Pembayaran wajib diisi.',
-            'ftypepembayarankode.unique' => 'Kode Type Pembayaran sudah digunakan.',
-            'ftypepembayarankode.max' => 'Kode Type Pembayaran maksimal 10 karakter.',
-            'ftypepembayaranname.required' => 'Nama Type Pembayaran wajib diisi.',
-            'ftypepembayaranname.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
-            'faccount.required' => 'Account Kas/Bank wajib dipilih.',
+            'fmastername.required' => 'Nama Type Pembayaran wajib diisi.',
+            'fmastername.unique' => 'Nama Type Pembayaran sudah digunakan.',
+            'fmastername.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
+            'fnote1.required' => 'Account Kas/Bank wajib dipilih.',
         ]);
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
-        $validated['fupdatedby'] = $userLogin->fname ?? ($userLogin->name ?? null);
-        $validated['fupdatedat'] = now();
+        $validated['fuserid'] = $userLogin->fname ?? ($userLogin->name ?? 'System');
+        $validated['fdatetime'] = now();
 
         $typePembayaran->update($validated);
 
@@ -175,7 +185,7 @@ class TypePembayaranController extends Controller
             return $guard;
         }
 
-        $typePembayaran = TypePembayaran::with('account')->findOrFail($id);
+        $typePembayaran = TypePembayaran::with('account')->where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
 
         return view('typepembayaran.delete', compact('typePembayaran'));
     }
@@ -196,13 +206,13 @@ class TypePembayaranController extends Controller
         }
 
         try {
-            $typePembayaran = TypePembayaran::findOrFail($id);
+            $typePembayaran = TypePembayaran::where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
             $typePembayaran->delete();
 
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Type Pembayaran ' . $typePembayaran->ftypepembayaranname . ' berhasil dihapus.',
+                    'message' => 'Type Pembayaran ' . $typePembayaran->fmastername . ' berhasil dihapus.',
                     'redirect' => route('typepembayaran.index'),
                 ]);
             }

@@ -47,7 +47,7 @@
                         @foreach($typePembayarans ?? [] as $tp)
                             <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tp->faccount }}" data-kode="{{ $tp->ftypepembayarankode }}"
                                 {{ (isset($selectedTypePembayaranId) && $selectedTypePembayaranId == $tp->ftypepembayaranid) ? 'selected' : '' }}>
-                                {{ $tp->ftypepembayarankode }} - {{ $tp->ftypepembayaranname }}
+                                {{ !empty($tp->ftypepembayarankode) && $tp->ftypepembayarankode !== $tp->ftypepembayaranname ? $tp->ftypepembayarankode . ' - ' : '' }}{{ $tp->ftypepembayaranname }}
                             </option>
                         @endforeach
                     </select>

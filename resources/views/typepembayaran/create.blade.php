@@ -7,6 +7,7 @@
     <div class="max-w-4xl mx-auto py-8 px-6">
         <form action="{{ route('typepembayaran.store') }}" method="POST" id="formTypePembayaran">
             @csrf
+            <input type="hidden" name="ftblcode" value="TYPEBAYAR">
 
             {{-- ─── CARD: Identitas Type Pembayaran ────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
@@ -18,33 +19,18 @@
                 </div>
 
                 <div class="p-4 space-y-4">
-                    {{-- Kode & Nama (2 kolom) --}}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">
-                                Kode Type Pembayaran <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" name="ftypepembayarankode" id="ftypepembayarankode"
-                                value="{{ old('ftypepembayarankode') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypepembayarankode') border-red-400 @enderror"
-                                maxlength="10" placeholder="cth. CASH, BCA, QRIS" autofocus>
-                            @error('ftypepembayarankode')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">
-                                Nama Type Pembayaran <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" name="ftypepembayaranname" id="ftypepembayaranname"
-                                value="{{ old('ftypepembayaranname') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftypepembayaranname') border-red-400 @enderror"
-                                maxlength="50" placeholder="cth. TUNAI / KAS, TRANSFER BCA">
-                            @error('ftypepembayaranname')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    {{-- Nama Type Pembayaran --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">
+                            Nama Type Pembayaran <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="fmastername" id="fmastername"
+                            value="{{ old('fmastername') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmastername') border-red-400 @enderror"
+                            maxlength="50" placeholder="cth. TUNAI, TRANSFER BCA, QRIS" autofocus>
+                        @error('fmastername')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     {{-- Account Kas/Bank --}}
@@ -52,16 +38,16 @@
                         <label class="block text-xs font-bold text-gray-600 mb-1">
                             Account Kas/Bank <span class="text-red-500">*</span>
                         </label>
-                        <select name="faccount" id="faccount"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white @error('faccount') border-red-400 @enderror">
+                        <select name="fnote1" id="fnote1"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white @error('fnote1') border-red-400 @enderror">
                             <option value="">-- Pilih Account Kas/Bank --</option>
                             @foreach ($accounts as $acc)
-                                <option value="{{ $acc->faccount }}" {{ old('faccount') == $acc->faccount ? 'selected' : '' }}>
+                                <option value="{{ $acc->faccount }}" {{ old('fnote1') == $acc->faccount ? 'selected' : '' }}>
                                     {{ $acc->faccount }} - {{ $acc->faccname }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('faccount')
+                        @error('fnote1')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>

@@ -20,7 +20,6 @@
             <table id="typePembayaranTable" class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="border px-2 py-2">Kode Type Pembayaran</th>
                         <th class="border px-2 py-2">Nama Type Pembayaran</th>
                         <th class="border px-2 py-2">Account Kas/Bank</th>
                         <th class="border px-2 py-2 col-aksi text-right">Aksi</th>
@@ -29,31 +28,30 @@
                 <tbody>
                     @foreach ($typePembayarans as $item)
                         <tr class="hover:bg-gray-50">
-                            <td class="border px-2 py-1 font-semibold">{{ $item->ftypepembayarankode }}</td>
-                            <td class="border px-2 py-1">{{ $item->ftypepembayaranname }}</td>
+                            <td class="border px-2 py-1 font-semibold">{{ $item->fmastername }}</td>
                             <td class="border px-2 py-1">
                                 @if ($item->account)
                                     <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded mr-1">{{ $item->account->faccount }}</span>
                                     <span>{{ $item->account->faccname }}</span>
                                 @else
-                                    <span class="text-gray-400">{{ $item->faccount ?: '-' }}</span>
+                                    <span class="text-gray-400">{{ $item->fnote1 ?: '-' }}</span>
                                 @endif
                             </td>
                             <td class="border px-2 py-1 space-x-1.5 text-right whitespace-nowrap">
-                                <a href="{{ route('typepembayaran.view', $item->ftypepembayaranid) }}">
+                                <a href="{{ route('typepembayaran.view', $item->fmasterid) }}">
                                     <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                         <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> View
                                     </button>
                                 </a>
                                 @if ($canEdit)
-                                    <a href="{{ route('typepembayaran.edit', $item->ftypepembayaranid) }}">
+                                    <a href="{{ route('typepembayaran.edit', $item->fmasterid) }}">
                                         <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> Edit
                                         </button>
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <a href="{{ route('typepembayaran.delete', $item->ftypepembayaranid) }}">
+                                    <a href="{{ route('typepembayaran.delete', $item->fmasterid) }}">
                                         <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                             <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> Hapus
                                         </button>
@@ -148,10 +146,6 @@
             });
 
             $container.on('input', '.dt-search .dt-input', function () {
-                const start = this.selectionStart;
-                const end   = this.selectionEnd;
-                this.value  = this.value.toUpperCase();
-                this.setSelectionRange(start, end);
                 table.search(this.value).draw();
             });
         });
