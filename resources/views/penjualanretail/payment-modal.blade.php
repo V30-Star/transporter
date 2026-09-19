@@ -45,7 +45,7 @@
                 <div class="col-span-8">
                     <select id="modal_payment_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         @foreach($typePembayarans ?? [] as $tp)
-                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tp->faccount }}"
+                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tp->faccount }}" data-kode="{{ $tp->ftypepembayarankode }}"
                                 {{ (isset($selectedTypePembayaranId) && $selectedTypePembayaranId == $tp->ftypepembayaranid) ? 'selected' : '' }}>
                                 {{ $tp->ftypepembayarankode }} - {{ $tp->ftypepembayaranname }}
                             </option>
@@ -261,6 +261,7 @@
             const paymentTypeId = selectEl?.value || '';
             const selectedOpt = selectEl?.options[selectEl.selectedIndex];
             const faccount = selectedOpt ? (selectedOpt.getAttribute('data-faccount') || '') : '';
+            const fkode = selectedOpt ? (selectedOpt.getAttribute('data-kode') || '') : '';
 
             if (!paymentTypeId) {
                 Swal.fire({
@@ -291,6 +292,15 @@
                 retailActiveForm.appendChild(inputFaccount);
             }
             inputFaccount.value = faccount;
+
+            let inputFpembayaran = retailActiveForm.querySelector('input[name="fpembayaran"]');
+            if (!inputFpembayaran) {
+                inputFpembayaran = document.createElement('input');
+                inputFpembayaran.type = 'hidden';
+                inputFpembayaran.name = 'fpembayaran';
+                retailActiveForm.appendChild(inputFpembayaran);
+            }
+            inputFpembayaran.value = fkode;
 
             window.closeRetailPaymentModal();
 
