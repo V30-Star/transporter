@@ -107,7 +107,7 @@ SVG;
 
         // Check if there is an active online session with live heartbeat for this account
         $lastHeartbeat = \Illuminate\Support\Facades\Cache::get("user_heartbeat:{$user->fsysuserid}");
-        $isLiveOnline = $lastHeartbeat && (now()->timestamp - (int) $lastHeartbeat) <= 20;
+        $isLiveOnline = $lastHeartbeat && (now()->timestamp - (int) $lastHeartbeat) <= 75;
 
         if (! $isLiveOnline) {
             // No active open window / window was closed -> close stale session
@@ -209,7 +209,7 @@ SVG;
         ]);
 
         \Illuminate\Support\Facades\Cache::put("user_active_device_token:{$user->fsysuserid}", $deviceToken, now()->addMinutes($sessionLifetime));
-        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 30);
+        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 90);
         cookie()->queue(cookie('app_session_device_token', $deviceToken, $sessionLifetime, null, null, false, true));
 
         return redirect()->intended(RouteServiceProvider::HOME);
@@ -227,7 +227,7 @@ SVG;
             return response()->noContent();
         }
 
-        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 30);
+        \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 90);
 
         return response()->noContent();
     }

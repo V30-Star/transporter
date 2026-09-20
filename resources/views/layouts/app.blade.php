@@ -2862,9 +2862,21 @@
                 const logId = "{{ session('login_log_id', '') }}";
                 const account = "{{ Auth::user()->fsysuserid ?? '' }}";
 
-                // 1. Send heartbeat every 10 seconds to indicate this window is alive
+                const PING_INTERVAL = 30000; // 30 seconds
+
+                // 1. Send heartbeat every 30 seconds with cross-tab coordination and visibility check
                 const pingHeartbeat = () => {
-                    if (!account || !heartbeatUrl) return;
+                    if (!account || !heartbeatUrl || document.hidden) return;
+
+                    const storageKey = 'app_last_heartbeat_' + account;
+                    const lastPing = parseInt(localStorage.getItem(storageKey) || '0', 10);
+                    const now = Date.now();
+
+                    // If another tab pinged recently, skip this interval
+                    if (now - lastPing < PING_INTERVAL - 2000) return;
+
+                    localStorage.setItem(storageKey, now.toString());
+
                     const data = new URLSearchParams({ account: account, log_id: logId });
                     fetch(heartbeatUrl, {
                         method: 'POST',
@@ -2873,7 +2885,18 @@
                         credentials: 'same-origin'
                     }).catch(() => {});
                 };
-                setInterval(pingHeartbeat, 10000);
+                setInterval(pingHeartbeat, PING_INTERVAL);
+
+                // Ping when tab becomes active if interval has passed
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        const storageKey = 'app_last_heartbeat_' + account;
+                        const lastPing = parseInt(localStorage.getItem(storageKey) || '0', 10);
+                        if (Date.now() - lastPing >= PING_INTERVAL) {
+                            pingHeartbeat();
+                        }
+                    }
+                });
 
                 // 2. On window / tab close: send close beacon immediately
                 const notifyClose = () => {

@@ -37,8 +37,8 @@ class EnsureSingleSession
                 }
             }
 
-            // 2. Verify database log record status
-            if (! $isInvalid && $logId) {
+            // 2. Verify database log record status (skip on lightweight heartbeat to prevent DB load)
+            if (! $isInvalid && $logId && ! $request->is('log-user/heartbeat')) {
                 $currentLog = LogUser::find($logId);
                 if (! $currentLog || $currentLog->log_out_date !== null) {
                     $isInvalid = true;
@@ -61,7 +61,7 @@ class EnsureSingleSession
                 return redirect()->route('login')->with('status', 'Sesi Anda telah berakhir karena akun ini telah login di perangkat lain.');
             }
 
-            \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 30);
+            \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$user->fsysuserid}", now()->timestamp, 90);
         }
 
         return $next($request);
