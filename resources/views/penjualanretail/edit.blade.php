@@ -550,52 +550,71 @@
                                 @enderror
                             </div>
 
-                            {{-- Pembayaran, Nomor Retur, Nilai RP Retur --}}
-                            <div class="col-span-3 grid grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Pembayaran</label>
-                                    <select name="fpembayaran" id="retailFpembayaran"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fpembayaran') border-red-500 @enderror">
-                                        <option value="">-- Pilih Pembayaran --</option>
-                                        @foreach ($typePembayarans ?? [] as $tp)
+                            {{-- Pembayaran --}}
+                            <div class="col-span-3">
+                                <label class="block text-xs font-bold mb-1">Pembayaran</label>
+                                <select name="fpembayaran" id="retailFpembayaran"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fpembayaran') border-red-500 @enderror">
+                                    <option value="">-- Pilih Pembayaran --</option>
+                                    @foreach ($typePembayarans ?? [] as $tp)
+                                        @php
+                                            $tpName = trim((string) ($tp->ftypepembayaranname ?? $tp->ftypepembayarankode ?? ''));
+                                            $currentPembayaran = trim((string) old('fpembayaran', $invoice->fpembayaran ?? ''));
+                                        @endphp
+                                        <option value="{{ $tpName }}" {{ $currentPembayaran === $tpName ? 'selected' : '' }} data-id="{{ $tp->ftypepembayaranid }}" data-account="{{ $tp->faccount }}">
+                                            {{ $tpName }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('fpembayaran')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Nomor Retur --}}
+                            <div class="col-span-3">
+                                <label class="block text-xs font-bold mb-1">Nomor Retur</label>
+                                <select name="frefretur" id="retailFrefretur"
+                                    {{ in_array($action ?? '', ['view', 'delete'], true) ? 'disabled' : '' }}
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefretur') border-red-500 @enderror">
+                                    <option value="">-- Pilih Nomor Retur --</option>
+                                    @if(isset($outstandingReturs))
+                                        @foreach($outstandingReturs as $ret)
                                             @php
-                                                $tpName = trim((string) ($tp->ftypepembayaranname ?? $tp->ftypepembayarankode ?? ''));
-                                                $currentPembayaran = trim((string) old('fpembayaran', $invoice->fpembayaran ?? ''));
+                                                $rem = (float) ($ret->famountremain ?? 0);
+                                                if ($ret->fsono === ($invoice->frefretur ?? '')) {
+                                                    $rem += (float) ($invoice->famountretur ?? 0);
+                                                }
+                                                $remFmt = number_format($rem, 2, ',', '.');
+                                                $isSel = old('frefretur', $invoice->frefretur ?? '') === $ret->fsono;
                                             @endphp
-                                            <option value="{{ $tpName }}" {{ $currentPembayaran === $tpName ? 'selected' : '' }} data-id="{{ $tp->ftypepembayaranid }}" data-account="{{ $tp->faccount }}">
-                                                {{ $tpName }}
+                                            <option value="{{ $ret->fsono }}"
+                                                data-custno="{{ trim($ret->fcustno ?? '') }}"
+                                                data-remain="{{ $rem }}"
+                                                {{ $isSel ? 'selected' : '' }}>
+                                                {{ $ret->fsono }} (Sisa: Rp {{ $remFmt }})
                                             </option>
                                         @endforeach
-                                    </select>
-                                    @error('fpembayaran')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                                    @endif
+                                </select>
+                                @error('frefretur')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Nomor Retur</label>
-                                    <input type="text" name="frefretur" id="retailFrefretur" list="retailReturList"
-                                        value="{{ old('frefretur', $invoice->frefretur ?? '') }}"
-                                        placeholder="Nomor Retur"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefretur') border-red-500 @enderror">
-                                    <datalist id="retailReturList"></datalist>
-                                    @error('frefretur')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
-                                    <input type="text" name="famountretur" id="retailFamountretur"
-                                        value="{{ old('famountretur') !== null ? old('famountretur') : (($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '') }}"
-                                        placeholder="0,00"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('famountretur') border-red-500 @enderror"
-                                        onfocus="this.select()"
-                                        onblur="if(this.value){ let v = this.value.replace(/[^0-9,-]/g,'').replace(',','.'); let num = parseFloat(v); if(!isNaN(num)) this.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }">
-                                    @error('famountretur')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                            {{-- Nilai RP Retur --}}
+                            <div class="col-span-3">
+                                <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
+                                <input type="text" name="famountretur" id="retailFamountretur"
+                                    value="{{ old('famountretur') !== null ? old('famountretur') : (($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '') }}"
+                                    placeholder="0,00"
+                                    {{ in_array($action ?? '', ['view', 'delete'], true) ? 'disabled' : '' }}
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('famountretur') border-red-500 @enderror"
+                                    onfocus="this.select()"
+                                    onblur="if(this.value){ let v = this.value.replace(/[^0-9,-]/g,'').replace(',','.'); let num = parseFloat(v); if(!isNaN(num)) this.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }">
+                                @error('famountretur')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                                 <script>
@@ -630,26 +649,49 @@
                                     }
 
                                     const custInput = document.getElementById('customerCodeHidden');
-                                    const returInput = document.getElementById('retailFrefretur');
+                                    const returSelect = document.getElementById('retailFrefretur');
                                     const amountInput = document.getElementById('retailFamountretur');
-                                    const returList = document.getElementById('retailReturList');
+
+                                    function formatReturMoney(val) {
+                                        return Number(val || 0).toLocaleString('id-ID', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                    }
 
                                     function loadRetailCustomerReturs(custNo) {
-                                        if (!returList) return;
-                                        returList.innerHTML = '';
-                                        if (!custNo) return;
-                                        fetch('{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo))
+                                        if (!returSelect) return;
+                                        const currentSelected = returSelect.value;
+                                        if (!custNo) {
+                                            Array.from(returSelect.options).forEach((opt) => {
+                                                opt.hidden = false;
+                                            });
+                                            return;
+                                        }
+                                        fetch('{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo) + '&current_retur=' + encodeURIComponent(currentSelected))
                                             .then(r => r.json())
                                             .then(data => {
                                                 if (Array.isArray(data)) {
+                                                    returSelect.innerHTML = '<option value="">-- Pilih Nomor Retur --</option>';
                                                     data.forEach(item => {
                                                         const opt = document.createElement('option');
                                                         opt.value = item.fsono;
-                                                        const remain = parseFloat(item.famountremain || 0);
-                                                        opt.label = 'Sisa: Rp ' + remain.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                                        let remain = parseFloat(item.famountremain || 0);
+                                                        if (item.fsono === '{{ $invoice->frefretur ?? '' }}') {
+                                                            remain += parseFloat('{{ (float) ($invoice->famountretur ?? 0) }}');
+                                                        }
+                                                        opt.textContent = `${item.fsono} (Sisa: Rp ${formatReturMoney(remain)})`;
                                                         opt.dataset.remain = remain;
-                                                        returList.appendChild(opt);
+                                                        opt.dataset.custno = item.fcustno || '';
+                                                        if (item.fsono === currentSelected) {
+                                                            opt.selected = true;
+                                                        }
+                                                        returSelect.appendChild(opt);
                                                     });
+                                                    if (currentSelected && returSelect.value !== currentSelected) {
+                                                        returSelect.value = '';
+                                                        if (amountInput) amountInput.value = '0,00';
+                                                    }
                                                 }
                                             })
                                             .catch(() => {});
@@ -663,15 +705,46 @@
                                         if (cCode) loadRetailCustomerReturs(cCode);
                                     });
 
-                                    if (returInput && amountInput) {
-                                        returInput.addEventListener('input', function() {
-                                            const val = this.value.trim();
-                                            const opts = returList ? Array.from(returList.querySelectorAll('option')) : [];
-                                            const matched = opts.find(o => o.value === val);
-                                            if (matched && matched.dataset.remain && (!amountInput.value || amountInput.value === '0,00')) {
-                                                const num = parseFloat(matched.dataset.remain);
-                                                amountInput.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                    function validateReturAmountLimit(showModal = false) {
+                                        if (!amountInput || !returSelect) return true;
+                                        const selectedOpt = returSelect.options[returSelect.selectedIndex];
+                                        const maxRemain = parseFloat(selectedOpt?.dataset?.remain || '0');
+                                        let raw = (amountInput.value || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+                                        let num = parseFloat(raw) || 0;
+
+                                        if (returSelect.value && maxRemain > 0 && num > maxRemain + 0.0001) {
+                                            amountInput.value = formatReturMoney(maxRemain);
+                                            if (showModal && typeof Swal !== 'undefined') {
+                                                Swal.fire({
+                                                    icon: 'warning',
+                                                    title: 'Nilai Retur Melebihi Batas',
+                                                    text: 'Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp ' + formatReturMoney(maxRemain) + ').',
+                                                    confirmButtonText: 'OK',
+                                                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                                                });
                                             }
+                                            return false;
+                                        }
+                                        return true;
+                                    }
+
+                                    if (returSelect && amountInput) {
+                                        returSelect.addEventListener('change', function() {
+                                            const selectedOpt = this.options[this.selectedIndex];
+                                            if (selectedOpt && selectedOpt.value && selectedOpt.dataset.remain) {
+                                                const num = parseFloat(selectedOpt.dataset.remain);
+                                                amountInput.value = formatReturMoney(num);
+                                            } else {
+                                                amountInput.value = '0,00';
+                                            }
+                                        });
+
+                                        amountInput.addEventListener('input', function() {
+                                            validateReturAmountLimit(false);
+                                        });
+
+                                        amountInput.addEventListener('change', function() {
+                                            validateReturAmountLimit(true);
                                         });
                                     }
                                 });
@@ -1599,6 +1672,36 @@
                 customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
             });
             return;
+        }
+
+        const returSelectEl = document.getElementById('retailFrefretur');
+        const amountInputEl = document.getElementById('retailFamountretur');
+        if (returSelectEl && amountInputEl) {
+            const selectedOpt = returSelectEl.options[returSelectEl.selectedIndex];
+            const maxRemain = parseFloat(selectedOpt?.dataset?.remain || '0');
+            const raw = (amountInputEl.value || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+            const num = parseFloat(raw) || 0;
+            if (num > 0 && !returSelectEl.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor Retur Wajib',
+                    text: 'Silakan pilih Nomor Retur jika ada Nilai RP Retur.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+            if (returSelectEl.value && maxRemain > 0 && num > maxRemain + 0.0001) {
+                amountInputEl.value = Number(maxRemain).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nilai Retur Melebihi Batas',
+                    text: 'Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp ' + Number(maxRemain).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ').',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
         }
 
         window.invoiceCreditApprovalGuard?.(form).then(ok => {

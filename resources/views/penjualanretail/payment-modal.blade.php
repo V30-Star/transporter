@@ -274,7 +274,8 @@
             // Ambil retur yg masih famountremain > 0 milik customer yang bersangkutan
             const custNo = (form.querySelector('input[name="fcustno"]')?.value || form.querySelector('[name="filter_customer_id"]')?.value || '').trim();
             if (custNo) {
-                const returUrl = '{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo);
+                const presetReturNo = (form.querySelector('[name="frefretur"]')?.value || '').trim();
+                const returUrl = '{{ route('penjualanretail.customer-returs') }}?fcustno=' + encodeURIComponent(custNo) + '&current_retur=' + encodeURIComponent(presetReturNo);
                 fetch(returUrl)
                     .then(res => res.json())
                     .then(returs => {
@@ -423,6 +424,29 @@
             const returSelect = document.getElementById('modal_retur_select');
             const returFsono = returSelect?.value || '';
             const returNominal = parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0');
+            const maxRemain = parseFloat(document.getElementById('modal_kurangi_retur')?.dataset?.maxRemain || '0');
+
+            if (returNominal > 0 && !returFsono) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor Retur Wajib',
+                    text: 'Silakan pilih Nomor Retur jika ada nilai pemotongan retur.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+
+            if (returFsono && maxRemain > 0 && returNominal > maxRemain + 0.0001) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nilai Retur Melebihi Batas',
+                    text: 'Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp ' + formatRetailMoney(maxRemain) + ').',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
 
             let inputReturNo = retailActiveForm.querySelector('[name="frefretur"]');
             if (!inputReturNo) {
@@ -430,6 +454,14 @@
                 inputReturNo.type = 'hidden';
                 inputReturNo.name = 'frefretur';
                 retailActiveForm.appendChild(inputReturNo);
+            }
+            if (inputReturNo.tagName === 'SELECT' && returFsono) {
+                if (!Array.from(inputReturNo.options).some(o => o.value === returFsono)) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = returFsono;
+                    newOpt.textContent = returFsono;
+                    inputReturNo.appendChild(newOpt);
+                }
             }
             inputReturNo.value = returFsono;
 

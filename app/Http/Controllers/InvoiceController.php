@@ -1472,6 +1472,7 @@ class InvoiceController extends Controller
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
+            'outstandingReturs' => $this->getOutstandingReturs(),
         ]);
     }
 
@@ -2503,6 +2504,13 @@ class InvoiceController extends Controller
         $fsono = $fsonoRaw !== '' ? $this->formatDisplayTransactionNumber($fsonoRaw, $fapplyppn === '0' && $fincludeppn === '0') : '';
         $hasSrjReference = ! empty($srjReferenceDocs);
 
+        if ($returError = $this->validateReturAmount($request)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $returError], 422);
+            }
+            return back()->withInput()->with('error', $returError);
+        }
+
         // 5. DATABASE TRANSACTION
         try {
             $ftranmtid = null;
@@ -2674,7 +2682,7 @@ class InvoiceController extends Controller
                 if ($returNo !== '' && $returNominal > 0) {
                     $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
                     if ($retur) {
-                        $curRemain = (float) ($retur->famountremain ?? 0);
+                        $curRemain = max((float) ($retur->famountremain ?? 0), (float) ($retur->famountremain_rp ?? 0));
                         $newRemain = round(max($curRemain - $returNominal, 0), 2);
                         DB::table('tranmt')->where('fsono', $returNo)->update([
                             'famountremain' => $newRemain,
@@ -3387,6 +3395,7 @@ class InvoiceController extends Controller
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
             'selectedTypePembayaranId' => $selectedTypePembayaranId,
+            'outstandingReturs' => $this->getOutstandingReturs($invoice->frefretur ?? null),
         ]);
     }
 
@@ -3535,6 +3544,7 @@ class InvoiceController extends Controller
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
             'selectedTypePembayaranId' => $selectedTypePembayaranId,
+            'outstandingReturs' => $this->getOutstandingReturs($invoice->frefretur ?? null),
         ]);
     }
 
@@ -4002,6 +4012,13 @@ class InvoiceController extends Controller
         $fsono = trim((string) $request->input('fsono', ''));
         $hasSrjReference = ! empty($srjReferenceDocs);
 
+        if ($returError = $this->validateReturAmount($request, $header)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $returError], 422);
+            }
+            return back()->withInput()->with('error', $returError);
+        }
+
         // 6. TRANSACTION
         try {
             $fprdoutVal = '0';
@@ -4138,7 +4155,8 @@ class InvoiceController extends Controller
                 if ($oldReturNo !== '' && $oldReturNominal > 0 && ($oldReturNo !== $returNo || $oldReturNominal != $returNominal)) {
                     $prevRetur = DB::table('tranmt')->where('fsono', $oldReturNo)->first();
                     if ($prevRetur) {
-                        $restoredRemain = (float) ($prevRetur->famountremain ?? 0) + $oldReturNominal;
+                        $curRemainPrev = max((float) ($prevRetur->famountremain ?? 0), (float) ($prevRetur->famountremain_rp ?? 0));
+                        $restoredRemain = $curRemainPrev + $oldReturNominal;
                         DB::table('tranmt')->where('fsono', $oldReturNo)->update([
                             'famountremain' => $restoredRemain,
                             'famountremain_rp' => round($restoredRemain * (float) ($prevRetur->frate ?? 1), 2),
@@ -4153,7 +4171,7 @@ class InvoiceController extends Controller
                 if ($returNo !== '' && $returNominal > 0 && ($oldReturNo !== $returNo || $oldReturNominal != $returNominal)) {
                     $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
                     if ($retur) {
-                        $curRemain = (float) ($retur->famountremain ?? 0);
+                        $curRemain = max((float) ($retur->famountremain ?? 0), (float) ($retur->famountremain_rp ?? 0));
                         $newRemain = round(max($curRemain - $returNominal, 0), 2);
                         DB::table('tranmt')->where('fsono', $returNo)->update([
                             'famountremain' => $newRemain,
@@ -4796,17 +4814,19 @@ class InvoiceController extends Controller
             ->all();
     }
 
-    public function customerReturs(Request $request)
+    protected function getOutstandingReturs(?string $currentReturNo = null, ?string $customerCode = null)
     {
-        $customerCode = trim((string) $request->input('fcustno', ''));
-        if ($customerCode === '') {
-            return response()->json([]);
-        }
-
-        $returs = DB::table('tranmt')
+        return DB::table('tranmt')
             ->whereIn('ftrcode', ['REJ', 'RUJ'])
-            ->whereRaw('TRIM(COALESCE(fcustno, \'\')) = ?', [$customerCode])
-            ->whereRaw('COALESCE(famountremain, 0) > 0')
+            ->when(!empty($customerCode), function ($q) use ($customerCode) {
+                $q->whereRaw("TRIM(COALESCE(fcustno, '')) = ?", [$customerCode]);
+            })
+            ->where(function ($q) use ($currentReturNo) {
+                $q->whereRaw('GREATEST(COALESCE(famountremain, 0), COALESCE(famountremain_rp, 0)) > 0');
+                if (!empty($currentReturNo)) {
+                    $q->orWhere('fsono', $currentReturNo);
+                }
+            })
             ->where(function ($q) {
                 $q->where('fapproval', 1)
                     ->orWhere('fapproval', '1');
@@ -4819,10 +4839,60 @@ class InvoiceController extends Controller
                 'fsodate',
                 'fcustno',
                 DB::raw('COALESCE(famountso, 0) as famountso'),
-                DB::raw('COALESCE(famountremain, 0) as famountremain'),
+                DB::raw('GREATEST(COALESCE(famountremain, 0), COALESCE(famountremain_rp, 0)) as famountremain'),
             ]);
+    }
 
-        return response()->json($returs);
+    public function customerReturs(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+        $currentRetur = trim((string) $request->input('current_retur', ''));
+        if ($customerCode === '') {
+            return response()->json([]);
+        }
+
+        return response()->json($this->getOutstandingReturs($currentRetur, $customerCode));
+    }
+
+    protected function validateReturAmount(Request $request, ?object $existingHeader = null): ?string
+    {
+        $returNo = trim((string) ($request->input('frefretur', $request->input('retur_fsono', ''))));
+        $rawReturNominal = $request->input('famountretur', $request->input('fkurangiretur', 0));
+        $returNominal = 0.0;
+        if (is_numeric($rawReturNominal)) {
+            $returNominal = (float) $rawReturNominal;
+        } elseif (is_string($rawReturNominal)) {
+            $cleaned = trim($rawReturNominal);
+            if (strpos($cleaned, ',') !== false && strpos($cleaned, '.') !== false) {
+                $cleaned = str_replace('.', '', $cleaned);
+                $cleaned = str_replace(',', '.', $cleaned);
+            } elseif (strpos($cleaned, ',') !== false) {
+                $cleaned = str_replace(',', '.', $cleaned);
+            }
+            $returNominal = (float) preg_replace('/[^0-9.-]/', '', $cleaned);
+        }
+
+        if ($returNo === '' && $returNominal > 0) {
+            return "Nomor retur wajib dipilih jika Nilai RP Retur diisi.";
+        }
+
+        if ($returNo !== '' && $returNominal > 0) {
+            $retur = DB::table('tranmt')->where('fsono', $returNo)->first();
+            if (!$retur) {
+                return "Nomor retur {$returNo} tidak ditemukan.";
+            }
+            $curRemain = max((float) ($retur->famountremain ?? 0), (float) ($retur->famountremain_rp ?? 0));
+            $oldReturNo = trim((string) ($existingHeader->frefretur ?? ''));
+            $oldReturNominal = (float) ($existingHeader->famountretur ?? 0);
+            $allowedRemain = $curRemain + ($oldReturNo === $returNo ? $oldReturNominal : 0);
+
+            if ($returNominal > $allowedRemain + 0.0001) {
+                $maxFmt = number_format($allowedRemain, 2, ',', '.');
+                return "Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp {$maxFmt}).";
+            }
+        }
+
+        return null;
     }
 }
 

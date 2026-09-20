@@ -483,22 +483,25 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Pembayaran</label>
-                                <input type="text" value="{{ trim((string) ($invoice->fpembayaran ?? '')) }}" disabled
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Nomor Retur</label>
-                                <input type="text" value="{{ trim((string) ($invoice->frefretur ?? '')) }}" disabled
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
-                                <input type="text" value="{{ ($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '0,00' }}" disabled
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                            </div>
+                        {{-- Pembayaran --}}
+                        <div class="col-span-3">
+                            <label class="block text-xs font-bold mb-1">Pembayaran</label>
+                            <input type="text" value="{{ trim((string) ($invoice->fpembayaran ?? '')) }}" disabled
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                        </div>
+
+                        {{-- Nomor Retur --}}
+                        <div class="col-span-3">
+                            <label class="block text-xs font-bold mb-1">Nomor Retur</label>
+                            <input type="text" value="{{ trim((string) ($invoice->frefretur ?? '')) }}" disabled
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                        </div>
+
+                        {{-- Nilai RP Retur --}}
+                        <div class="col-span-3">
+                            <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
+                            <input type="text" value="{{ ($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '0,00' }}" disabled
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
                         </div>
 
                         <script>
@@ -1249,8 +1252,8 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-3 gap-3">
-                                    <div>
+                                    {{-- Pembayaran --}}
+                                    <div class="col-span-3">
                                         <label class="block text-xs font-bold mb-1">Pembayaran</label>
                                         <select name="fpembayaran" id="invoiceFpembayaran"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fpembayaran') border-red-500 @enderror">
@@ -1269,18 +1272,39 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
+
+                                    {{-- Nomor Retur --}}
+                                    <div class="col-span-3">
                                         <label class="block text-xs font-bold mb-1">Nomor Retur</label>
-                                        <input type="text" name="frefretur" id="invoiceFrefretur" list="invoiceReturList"
-                                            value="{{ old('frefretur', $invoice->frefretur ?? '') }}"
-                                            placeholder="Nomor Retur"
+                                        <select name="frefretur" id="invoiceFrefretur"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefretur') border-red-500 @enderror">
-                                        <datalist id="invoiceReturList"></datalist>
+                                            <option value="">-- Pilih Nomor Retur --</option>
+                                            @if(isset($outstandingReturs))
+                                                @foreach($outstandingReturs as $ret)
+                                                    @php
+                                                        $rem = (float) ($ret->famountremain ?? 0);
+                                                        if ($ret->fsono === ($invoice->frefretur ?? '')) {
+                                                            $rem += (float) ($invoice->famountretur ?? 0);
+                                                        }
+                                                        $remFmt = number_format($rem, 2, ',', '.');
+                                                        $isSel = old('frefretur', $invoice->frefretur ?? '') === $ret->fsono;
+                                                    @endphp
+                                                    <option value="{{ $ret->fsono }}"
+                                                        data-custno="{{ trim($ret->fcustno ?? '') }}"
+                                                        data-remain="{{ $rem }}"
+                                                        {{ $isSel ? 'selected' : '' }}>
+                                                        {{ $ret->fsono }} (Sisa: Rp {{ $remFmt }})
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
                                         @error('frefretur')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
+
+                                    {{-- Nilai RP Retur --}}
+                                    <div class="col-span-3">
                                         <label class="block text-xs font-bold mb-1">Nilai RP Retur</label>
                                         <input type="text" name="famountretur" id="invoiceFamountretur"
                                             value="{{ old('famountretur') !== null ? old('famountretur') : (($invoice->famountretur ?? 0) > 0 ? number_format((float) $invoice->famountretur, 2, ',', '.') : '') }}"
@@ -1292,7 +1316,6 @@
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                </div>
 
                                 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
@@ -1324,26 +1347,49 @@
                                         }
 
                                         const custInput = document.getElementById('customerCodeHidden');
-                                        const returInput = document.getElementById('invoiceFrefretur');
+                                        const returSelect = document.getElementById('invoiceFrefretur');
                                         const amountInput = document.getElementById('invoiceFamountretur');
-                                        const returList = document.getElementById('invoiceReturList');
+
+                                        function formatReturMoney(val) {
+                                            return Number(val || 0).toLocaleString('id-ID', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            });
+                                        }
 
                                         function loadInvoiceCustomerReturs(custNo) {
-                                            if (!returList) return;
-                                            returList.innerHTML = '';
-                                            if (!custNo) return;
-                                            fetch('{{ route('invoice.customer-returs') }}?fcustno=' + encodeURIComponent(custNo))
+                                            if (!returSelect) return;
+                                            const currentSelected = returSelect.value;
+                                            if (!custNo) {
+                                                Array.from(returSelect.options).forEach((opt) => {
+                                                    opt.hidden = false;
+                                                });
+                                                return;
+                                            }
+                                            fetch('{{ route('invoice.customer-returs') }}?fcustno=' + encodeURIComponent(custNo) + '&current_retur=' + encodeURIComponent(currentSelected))
                                                 .then(r => r.json())
                                                 .then(data => {
                                                     if (Array.isArray(data)) {
+                                                        returSelect.innerHTML = '<option value="">-- Pilih Nomor Retur --</option>';
                                                         data.forEach(item => {
                                                             const opt = document.createElement('option');
                                                             opt.value = item.fsono;
-                                                            const remain = parseFloat(item.famountremain || 0);
-                                                            opt.label = 'Sisa: Rp ' + remain.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                                            let remain = parseFloat(item.famountremain || 0);
+                                                            if (item.fsono === '{{ $invoice->frefretur ?? '' }}') {
+                                                                remain += parseFloat('{{ (float) ($invoice->famountretur ?? 0) }}');
+                                                            }
+                                                            opt.textContent = `${item.fsono} (Sisa: Rp ${formatReturMoney(remain)})`;
                                                             opt.dataset.remain = remain;
-                                                            returList.appendChild(opt);
+                                                            opt.dataset.custno = item.fcustno || '';
+                                                            if (item.fsono === currentSelected) {
+                                                                opt.selected = true;
+                                                            }
+                                                            returSelect.appendChild(opt);
                                                         });
+                                                        if (currentSelected && returSelect.value !== currentSelected) {
+                                                            returSelect.value = '';
+                                                            if (amountInput) amountInput.value = '0,00';
+                                                        }
                                                     }
                                                 })
                                                 .catch(() => {});
@@ -1357,15 +1403,46 @@
                                             if (cCode) loadInvoiceCustomerReturs(cCode);
                                         });
 
-                                        if (returInput && amountInput) {
-                                            returInput.addEventListener('input', function() {
-                                                const val = this.value.trim();
-                                                const opts = returList ? Array.from(returList.querySelectorAll('option')) : [];
-                                                const matched = opts.find(o => o.value === val);
-                                                if (matched && matched.dataset.remain && (!amountInput.value || amountInput.value === '0,00')) {
-                                                    const num = parseFloat(matched.dataset.remain);
-                                                    amountInput.value = num.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                        function validateReturAmountLimit(showModal = false) {
+                                            if (!amountInput || !returSelect) return true;
+                                            const selectedOpt = returSelect.options[returSelect.selectedIndex];
+                                            const maxRemain = parseFloat(selectedOpt?.dataset?.remain || '0');
+                                            let raw = (amountInput.value || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+                                            let num = parseFloat(raw) || 0;
+
+                                            if (returSelect.value && maxRemain > 0 && num > maxRemain + 0.0001) {
+                                                amountInput.value = formatReturMoney(maxRemain);
+                                                if (showModal && typeof Swal !== 'undefined') {
+                                                    Swal.fire({
+                                                        icon: 'warning',
+                                                        title: 'Nilai Retur Melebihi Batas',
+                                                        text: 'Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp ' + formatReturMoney(maxRemain) + ').',
+                                                        confirmButtonText: 'OK',
+                                                        customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                                                    });
                                                 }
+                                                return false;
+                                            }
+                                            return true;
+                                        }
+
+                                        if (returSelect && amountInput) {
+                                            returSelect.addEventListener('change', function() {
+                                                const selectedOpt = this.options[this.selectedIndex];
+                                                if (selectedOpt && selectedOpt.value && selectedOpt.dataset.remain) {
+                                                    const num = parseFloat(selectedOpt.dataset.remain);
+                                                    amountInput.value = formatReturMoney(num);
+                                                } else {
+                                                    amountInput.value = '0,00';
+                                                }
+                                            });
+
+                                            amountInput.addEventListener('input', function() {
+                                                validateReturAmountLimit(false);
+                                            });
+
+                                            amountInput.addEventListener('change', function() {
+                                                validateReturAmountLimit(true);
                                             });
                                         }
                                     });
@@ -2561,6 +2638,36 @@
         if (n < 1) {
             if (alpineData) alpineData.showNoItems = true;
             return;
+        }
+
+        const returSelectEl = document.getElementById('invoiceFrefretur');
+        const amountInputEl = document.getElementById('invoiceFamountretur');
+        if (returSelectEl && amountInputEl) {
+            const selectedOpt = returSelectEl.options[returSelectEl.selectedIndex];
+            const maxRemain = parseFloat(selectedOpt?.dataset?.remain || '0');
+            const raw = (amountInputEl.value || '').replace(/[^0-9,-]/g, '').replace(',', '.');
+            const num = parseFloat(raw) || 0;
+            if (num > 0 && !returSelectEl.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nomor Retur Wajib',
+                    text: 'Silakan pilih Nomor Retur jika ada Nilai RP Retur.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
+            if (returSelectEl.value && maxRemain > 0 && num > maxRemain + 0.0001) {
+                amountInputEl.value = Number(maxRemain).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nilai Retur Melebihi Batas',
+                    text: 'Nilai RP Retur tidak boleh melebihi angka nota retur nya (maksimal Rp ' + Number(maxRemain).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ').',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
+                });
+                return;
+            }
         }
 
         if (window.invoiceReferenceQtyGuard?.(form) !== false) {
