@@ -1534,7 +1534,14 @@
         }
 
         window.invoiceCreditApprovalGuard?.(form).then(ok => {
-            if (ok) window.openRetailPaymentModal(form);
+            if (ok) {
+                const isCash = !!form.querySelector('input[name="ftunai"]')?.checked;
+                if (isCash) {
+                    window.openRetailPaymentModal(form);
+                } else {
+                    window.submitFormWithStockMinusConfirmation?.(form);
+                }
+            }
         });
     };
 

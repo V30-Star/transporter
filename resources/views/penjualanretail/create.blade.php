@@ -1252,7 +1252,13 @@
             if (ok) {
                 const approveInput = document.getElementById('approveNowInput');
                 if (approveInput) approveInput.value = '1';
-                window.openRetailPaymentModal(form);
+
+                const isCash = !!form.querySelector('input[name="ftunai"]')?.checked;
+                if (isCash) {
+                    window.openRetailPaymentModal(form);
+                } else {
+                    window.submitFormWithStockMinusConfirmation?.(form);
+                }
             }
         });
     };
