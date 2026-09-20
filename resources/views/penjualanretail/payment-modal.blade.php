@@ -71,14 +71,21 @@
                 </div>
             </div>
 
-            <!-- Kurangi Retur -->
-            <div class="grid grid-cols-12 items-start gap-3">
-                <label class="col-span-4 font-semibold text-gray-700 pt-1.5">Kurangi Retur:</label>
-                <div class="col-span-8 space-y-1.5">
+            <!-- Nomor Retur -->
+            <div class="grid grid-cols-12 items-center gap-3">
+                <label class="col-span-4 font-semibold text-gray-700">Nomor Retur:</label>
+                <div class="col-span-8">
                     <select id="modal_retur_select"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">-- Tanpa Retur --</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- Nilai RP Retur -->
+            <div class="grid grid-cols-12 items-center gap-3">
+                <label class="col-span-4 font-semibold text-gray-700">Nilai RP Retur:</label>
+                <div class="col-span-8">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
                         <input type="text" id="modal_kurangi_retur" value="0,00"
@@ -296,8 +303,14 @@
                                 if (returs.length > 1) {
                                     html += '<option value="">-- Pilih Retur / Tanpa Retur --</option>';
                                 }
+                                const initialReturNo = (form.querySelector('[name="frefretur"]')?.dataset?.initialRetur || '').trim();
+                                const initialReturNominal = parseFloat(form.querySelector('[name="famountretur"]')?.dataset?.initialNominal || '0') || 0;
+
                                 returs.forEach(r => {
-                                    const remain = parseFloat(r.famountremain || 0);
+                                    let remain = parseFloat(r.famountremain || 0);
+                                    if (initialReturNo && r.fsono === initialReturNo) {
+                                        remain += initialReturNominal;
+                                    }
                                     html += `<option value="${r.fsono}" data-remain="${remain}">[${r.fsono}] Sisa: Rp ${formatRetailMoney(remain)}</option>`;
                                 });
                                 returSelect.innerHTML = html;
@@ -314,7 +327,8 @@
                                     returEl.value = formatRetailMoney(presetReturNominal > 0 ? presetReturNominal : maxRemain);
                                 } else if (returs.length === 1) {
                                     returSelect.value = returs[0].fsono;
-                                    const remain = parseFloat(returs[0].famountremain || 0);
+                                    const selectedOpt = returSelect.options[returSelect.selectedIndex];
+                                    const remain = parseFloat(selectedOpt?.getAttribute('data-remain') || returs[0].famountremain || 0);
                                     returEl.dataset.maxRemain = remain;
                                     const curNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
                                     const curPersen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
