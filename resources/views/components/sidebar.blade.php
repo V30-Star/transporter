@@ -809,6 +809,16 @@
                         </li>
                     @endif
 
+                    @if ($hasSidebarPermission('printListingPenjualanRetail'))
+                        <li>
+                            <a href="{{ route('listingpenjualanretail.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-chart-line w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Listing Penjualan Retail' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
                     @if ($hasSidebarPermission('printListingPiutangPenjualan'))
                         <li>
                             <a href="{{ route('listingpiutangpenjualan.index') }}"

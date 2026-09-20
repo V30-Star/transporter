@@ -11,6 +11,10 @@ use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPenjualanController extends Controller
 {
+    protected string $viewPrefix = 'listingpenjualan';
+    protected string $reportTitle = 'LISTING PENJUALAN';
+    protected string $exportFilenamePrefix = 'listing_penjualan_';
+
     public function index()
     {
         $groups = DB::table('ms_groupprd')->get();
@@ -23,22 +27,23 @@ class ListingPenjualanController extends Controller
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
-        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches', 'products', 'customers', 'isAuthorized', 'userBranchCode'));
+        return view($this->viewPrefix . '.index', compact('groups', 'mereks', 'salesmans', 'branches', 'products', 'customers', 'isAuthorized', 'userBranchCode'));
     }
 
     // ─────────────────────────────────────────────────────────────
     //  QUERY BUILDER BERSAMA (dipakai oleh print & export)
     // ─────────────────────────────────────────────────────────────
-    private function buildQuery(Request $request)
+    protected function buildQuery(Request $request)
     {
         $query = DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-            ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->join('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
+            ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
+            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
+            ->leftJoin('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
             ->select(
                 'm.ftranmtid',
                 'm.fbranchcode',
+                'm.fwhcode',
                 'm.fsono',
                 'm.ftrcode',
                 'm.ftaxno',
@@ -54,6 +59,9 @@ class ListingPenjualanController extends Controller
                 'm.fuserid',
                 'm.fincludeppn',
                 'm.fppnpersen',
+                'm.frefretur',
+                'm.famountretur',
+                'm.fpembayaran',
                 DB::raw("
                     CASE 
                         WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount 
@@ -148,7 +156,7 @@ class ListingPenjualanController extends Controller
 
         $groupedData = $results->groupBy('fsono');
 
-        return view('listingpenjualan.print', [
+        return view($this->viewPrefix . '.print', [
             'groupedData' => $groupedData,
             'type' => $type,
             'user_session' => auth()->user(),
@@ -165,7 +173,7 @@ class ListingPenjualanController extends Controller
         $type = $request->display_type ?? 'rekap';
         $grouped = $results->groupBy('fsono');
 
-        $filename = 'listing_penjualan_' . date('Ymd_His') . '.xlsx';
+        $filename = $this->exportFilenamePrefix . date('Ymd_His') . '.xlsx';
 
         // ── Style preset (named constructor args, sama seperti ListingPenerimaan) ──────
         $styleTitle = new Style(fontBold: true, fontColor: 'C00000');
@@ -205,7 +213,7 @@ class ListingPenjualanController extends Controller
             default => 'Semua',
         };
 
-        $makeRow(['LISTING PENJUALAN'], $styleTitle);
+        $makeRow([$this->reportTitle], $styleTitle);
         $makeRow(["Periode: {$periodeFrom} s/d {$periodeTo}"], $styleInfo);
         $makeRow(["Cabang: {$selectedBranchesStr}"], $styleInfo);
         $makeRow(["Tipe Penjualan: {$salesType}"], $styleInfo);
@@ -284,7 +292,7 @@ class ListingPenjualanController extends Controller
         }
 
         // ── Baris penutup ─────────────────────────────────────────
-        $makeRow(['*** Akhir Laporan Penjualan ***'], $styleFooter);
+        $makeRow(["*** Akhir {$this->reportTitle} ***"], $styleFooter);
 
         $writer->close();
 

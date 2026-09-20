@@ -505,6 +505,10 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenjualanHpp" {{ in_array('printListingPenjualanHpp', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
+                                <td class="px-3 py-2 font-semibold">Listing Penjualan Retail</td>
+                                <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPenjualanRetail" {{ in_array('printListingPenjualanRetail', $selectedPermissions) ? 'checked' : '' }}></td>
+                            </tr>
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Listing Piutang Penjualan</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="printListingPiutangPenjualan" {{ in_array('printListingPiutangPenjualan', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
