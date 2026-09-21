@@ -69,9 +69,10 @@ class AdjstockController extends Controller
     public function index(Request $request)
     {
         // --- 1. PERMISSIONS ---
-        $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-        $canEdit = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
+        $perms = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate = in_array('createAdjstock', $perms) || in_array('createPenerimaanBarang', $perms);
+        $canEdit = in_array('updateAdjstock', $perms) || in_array('updatePenerimaanBarang', $perms);
+        $canDelete = in_array('deleteAdjstock', $perms) || in_array('deletePenerimaanBarang', $perms);
         $showActionsColumn = $canEdit || $canDelete;
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));

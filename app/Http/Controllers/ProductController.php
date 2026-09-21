@@ -338,6 +338,44 @@ class ProductController extends Controller
         return view('product.index', compact('canCreate', 'canEdit', 'canDelete', 'canViewHpp', 'canApproval'));
     }
 
+    public function browse(Request $request)
+    {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
+        try {
+            $query = Product::query()
+                ->select(
+                    'fprdid',
+                    'fprdcode',
+                    'fprdname',
+                    'fspecification',
+                    'ftype',
+                    'fsatuandefault',
+                    'fsatuankecil',
+                    'fsatuanbesar',
+                    'fsatuanbesar2',
+                    'fqtykecil',
+                    'fqtykecil2',
+                    'fminstock',
+                    'fhargajuallevel1'
+                )
+                ->whereRaw("COALESCE(TRIM(CAST(msprd.fnonactive AS TEXT)), '0') != '1'");
+
+            if ($search = $request->input('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('fprdcode', 'ILIKE', "%{$search}%")
+                      ->orWhere('fprdname', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            return response()->json($query->limit(100)->get());
+        } catch (\Throwable $e) {
+            return response()->json([], 500);
+        }
+    }
+
     public function suggestNames(Request $request)
     {
         if ($guard = $this->ensureProductPermission('viewProduct')) {

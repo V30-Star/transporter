@@ -138,15 +138,15 @@ class EnsureRoutePermission
         [$module, $action] = explode('.', $routeName, 2);
 
         if ($module === 'editperiode') {
-            return ['editPeriode'];
+            return ['editPeriode', 'roleaccess', 'viewEditperiode', 'createEditperiode', 'updateEditperiode', 'deleteEditperiode'];
         }
 
         if ($module === 'systemsetting') {
-            return ['systemSetting', 'editSystemSetting'];
+            return ['systemSetting', 'editSystemSetting', 'roleaccess'];
         }
 
         if ($module === 'penamaanperusahaan') {
-            return ['penamaanPerusahaan', 'editPenamaanPerusahaan'];
+            return ['penamaanPerusahaan', 'editPenamaanPerusahaan', 'roleaccess'];
         }
 
         if ($module === 'roleaccess') {
@@ -161,12 +161,92 @@ class EnsureRoutePermission
             return ['roleaccess', 'viewSysuser'];
         }
 
+        if ($module === 'sysuser') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return ['viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'];
+            }
+            return [$permissionAction . 'Sysuser', 'roleaccess'];
+        }
+
+        if ($module === 'pelunasancustomer') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return [
+                    'viewPelunasanCustomer', 'createPelunasanCustomer', 'updatePelunasanCustomer', 'deletePelunasanCustomer',
+                    'viewPenerimaanKas', 'createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas',
+                ];
+            }
+            return [
+                $permissionAction . 'PelunasanCustomer',
+                $permissionAction . 'PenerimaanKas',
+            ];
+        }
+
+        if ($module === 'bayarsupplier') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return [
+                    'viewBayarSupplier', 'createBayarSupplier', 'updateBayarSupplier', 'deleteBayarSupplier',
+                    'viewPenerimaanKas', 'createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas',
+                ];
+            }
+            return [
+                $permissionAction . 'BayarSupplier',
+                $permissionAction . 'PenerimaanKas',
+            ];
+        }
+
         if (isset(self::REPORT_PRINTS[$module])) {
             return [self::REPORT_PRINTS[$module]];
         }
 
         if (str_starts_with($module, 'listing') || str_starts_with($module, 'reporting')) {
             return ['view' . $module];
+        }
+
+        if ($module === 'pemakaianbarang') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return [
+                    'viewPemakaianbarang', 'viewPemakaianBarang',
+                    'createPemakaianbarang', 'createPemakaianBarang',
+                    'updatePemakaianbarang', 'updatePemakaianBarang',
+                    'deletePemakaianbarang', 'deletePemakaianBarang',
+                ];
+            }
+            return [
+                $permissionAction . 'Pemakaianbarang',
+                $permissionAction . 'PemakaianBarang',
+            ];
+        }
+
+        if ($module === 'adjstock') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return [
+                    'viewAdjstock', 'createAdjstock', 'updateAdjstock', 'deleteAdjstock',
+                    'viewPenerimaanBarang', 'createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang',
+                ];
+            }
+            return [
+                $permissionAction . 'Adjstock',
+                $permissionAction . 'PenerimaanBarang',
+            ];
+        }
+
+        if ($module === 'mutasi') {
+            $permissionAction = self::ACTIONS[$action] ?? $this->fallbackAction($method);
+            if ($action === 'index') {
+                return [
+                    'viewMutasi', 'createMutasi', 'updateMutasi', 'deleteMutasi',
+                    'viewPenerimaanBarang', 'createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang',
+                ];
+            }
+            return [
+                $permissionAction . 'Mutasi',
+                $permissionAction . 'PenerimaanBarang',
+            ];
         }
 
         $suffix = self::MODULES[$module] ?? null;
@@ -176,6 +256,15 @@ class EnsureRoutePermission
 
         if ($action === 'print') {
             return ['print' . $suffix, 'view' . $suffix];
+        }
+
+        if ($action === 'index') {
+            return [
+                'view' . $suffix,
+                'create' . $suffix,
+                'update' . $suffix,
+                'delete' . $suffix,
+            ];
         }
 
         $permissionAction = self::ACTIONS[$action] ?? null;

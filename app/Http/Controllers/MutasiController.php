@@ -67,10 +67,10 @@ class MutasiController extends Controller
     public function index(Request $request)
     {
         // --- 1. PERBAIKAN PERMISSIONS ---
-        // Saya asumsikan ini nama permission yang benar untuk modul ini
-        $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-        $canEdit = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
+        $perms = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate = in_array('createMutasi', $perms) || in_array('createPenerimaanBarang', $perms);
+        $canEdit = in_array('updateMutasi', $perms) || in_array('updatePenerimaanBarang', $perms);
+        $canDelete = in_array('deleteMutasi', $perms) || in_array('deletePenerimaanBarang', $perms);
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));

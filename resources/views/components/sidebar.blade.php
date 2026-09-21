@@ -101,7 +101,7 @@
                 <ul x-show="open && openSidebar" x-transition class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3"
                     x-cloak>
 
-                    @if ($hasSidebarPermission('viewAccount'))
+                    @if ($hasSidebarPermission('viewAccount', 'createAccount', 'updateAccount', 'deleteAccount'))
                         <li>
                             <a href="{{ route('account.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -111,7 +111,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSubAccount'))
+                    @if ($hasSidebarPermission('viewSubAccount', 'createSubAccount', 'updateSubAccount', 'deleteSubAccount'))
                         <li>
                             <a href="{{ route('subaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -121,7 +121,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewRekening'))
+                    @if ($hasSidebarPermission('viewRekening', 'createRekening', 'updateRekening', 'deleteRekening'))
                         <li>
                             <a href="{{ route('rekening.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -181,7 +181,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewGroupProduct'))
+                    @if ($hasSidebarPermission('viewGroupProduct', 'createGroupProduct', 'updateGroupProduct', 'deleteGroupProduct'))
                         <li>
                             <a href="{{ route('groupproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -191,7 +191,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewMerek'))
+                    @if ($hasSidebarPermission('viewMerek', 'createMerek', 'updateMerek', 'deleteMerek'))
                         <li>
                             <a href="{{ route('merek.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -201,7 +201,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSatuan'))
+                    @if ($hasSidebarPermission('viewSatuan', 'createSatuan', 'updateSatuan', 'deleteSatuan'))
                         <li>
                             <a href="{{ route('satuan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -232,7 +232,7 @@
                 <ul x-show="open && openSidebar" x-transition class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3"
                     x-cloak>
 
-                    @if ($hasSidebarPermission('viewGroupCustomer'))
+                    @if ($hasSidebarPermission('viewGroupCustomer', 'createGroupCustomer', 'updateGroupCustomer', 'deleteGroupCustomer'))
                         <li>
                             <a href="{{ route('groupcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -242,7 +242,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewCustomer'))
+                    @if ($hasSidebarPermission('viewCustomer', 'createCustomer', 'updateCustomer', 'deleteCustomer'))
                         <li>
                             <a href="{{ route('customer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -252,7 +252,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewWilayah'))
+                    @if ($hasSidebarPermission('viewWilayah', 'createWilayah', 'updateWilayah', 'deleteWilayah'))
                         <li>
                             <a href="{{ route('wilayah.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -262,7 +262,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSalesman'))
+                    @if ($hasSidebarPermission('viewSalesman', 'createSalesman', 'updateSalesman', 'deleteSalesman'))
                         <li>
                             <a href="{{ route('salesman.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -272,7 +272,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewDealer'))
+                    @if ($hasSidebarPermission('viewDealer', 'createDealer', 'updateDealer', 'deleteDealer'))
                         <li>
                             <a href="{{ route('dealer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -303,7 +303,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('viewGudang'))
+                    @if ($hasSidebarPermission('viewGudang', 'createGudang', 'updateGudang', 'deleteGudang'))
                         <li>
                             <a href="{{ route('gudang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -313,7 +313,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('viewSupplier'))
+                    @if ($hasSidebarPermission('viewSupplier', 'createSupplier', 'updateSupplier', 'deleteSupplier'))
                         <li>
                             <a href="{{ route('supplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -345,7 +345,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createjurnaltransaksi', 'updatejurnaltransaksi', 'deletejurnaltransaksi'))
+                    @if ($hasSidebarPermission('viewjurnaltransaksi', 'createjurnaltransaksi', 'updatejurnaltransaksi', 'deletejurnaltransaksi'))
                         <li>
                             <a href="{{ route('jurnaltransaksi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -394,7 +394,7 @@
                     <ul x-show="open && openSidebar" x-transition
                         class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                        @if ($hasSidebarPermission('createSuratJalan', 'updateSuratJalan', 'deleteSuratJalan'))
+                        @if ($hasSidebarPermission('viewSuratJalan', 'createSuratJalan', 'updateSuratJalan', 'deleteSuratJalan'))
                             <li>
                                 <a href="{{ route('suratjalan.index') }}"
                                     class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -411,7 +411,7 @@
                     <ul x-show="open && openSidebar" x-transition
                         class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                        @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
+                        @if ($hasSidebarPermission('viewInvoice', 'createInvoice', 'updateInvoice', 'deleteInvoice'))
                             <li>
                                 <a href="{{ route('invoice.index') }}"
                                     class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -444,7 +444,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createReturPenjualan', 'updateReturPenjualan', 'deleteReturPenjualan'))
+                    @if ($hasSidebarPermission('viewReturPenjualan', 'createReturPenjualan', 'updateReturPenjualan', 'deleteReturPenjualan'))
                         <li>
                             <a href="{{ route('returpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -460,7 +460,7 @@
                     <ul x-show="open && openSidebar" x-transition
                         class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                        @if ($hasSidebarPermission('createLembarPenagihan', 'updateLembarPenagihan', 'deleteLembarPenagihan'))
+                        @if ($hasSidebarPermission('viewLembarPenagihan', 'createLembarPenagihan', 'updateLembarPenagihan', 'deleteLembarPenagihan'))
                             <li>
                                 <a href="{{ route('lembarpenagihan.index') }}"
                                     class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -510,7 +510,7 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                    @if ($hasSidebarPermission('viewPenerimaanBarang', 'createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('penerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -521,10 +521,10 @@
                     @endif
                     @if (
                         $hasSidebarPermission(
+                            'viewFakturPembelian',
                             'createFakturPembelian',
                             'updateFakturPembelian',
-                            'deleteFakturPembelian',
-                            'printFakturPembelian'))
+                            'deleteFakturPembelian'))
                         <li>
                             <a href="{{ route('fakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -535,10 +535,10 @@
                     @endif
                     @if (
                         $hasSidebarPermission(
+                            'viewReturPembelian',
                             'createReturPembelian',
                             'updateReturPembelian',
-                            'deleteReturPembelian',
-                            'printReturPembelian'))
+                            'deleteReturPembelian'))
                         <li>
                             <a href="{{ route('returpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -569,7 +569,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                    @if ($hasSidebarPermission('viewAdjstock', 'createAdjstock', 'updateAdjstock', 'deleteAdjstock', 'viewPenerimaanBarang', 'createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('adjstock.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -578,7 +578,7 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                    @if ($hasSidebarPermission('viewMutasi', 'createMutasi', 'updateMutasi', 'deleteMutasi', 'viewPenerimaanBarang', 'createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('mutasi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -587,7 +587,7 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
+                    @if ($hasSidebarPermission('viewPemakaianbarang', 'viewPemakaianBarang', 'createPemakaianbarang', 'createPemakaianBarang', 'updatePemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianbarang', 'deletePemakaianBarang'))
                         <li>
                             <a href="{{ route('pemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -596,7 +596,7 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('createAssembling', 'updateAssembling', 'deleteAssembling'))
+                    @if ($hasSidebarPermission('viewAssembling', 'createAssembling', 'updateAssembling', 'deleteAssembling'))
                         <li>
                             <a href="{{ route('assembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -624,7 +624,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
+                    @if ($hasSidebarPermission('viewPengeluaranKas', 'createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
                         <li>
                             <a href="{{ route('pengeluarankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -633,7 +633,7 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
+                    @if ($hasSidebarPermission('viewPenerimaanKas', 'createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
                         <li>
                             <a href="{{ route('penerimaankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -641,6 +641,8 @@
                                 <span class="ml-3">{{ 'Penerimaan Kas/Bank' }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('viewPelunasanCustomer', 'createPelunasanCustomer', 'updatePelunasanCustomer', 'deletePelunasanCustomer', 'viewPenerimaanKas', 'createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
                         <li>
                             <a href="{{ route('pelunasancustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -648,6 +650,8 @@
                                 <span class="ml-3">{{ 'Pelunasan Customer' }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('viewBayarSupplier', 'createBayarSupplier', 'updateBayarSupplier', 'deleteBayarSupplier', 'viewPenerimaanKas', 'createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
                         <li>
                             <a href="{{ route('bayarsupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -908,7 +912,7 @@
                     @endif
                 </ul>
 
-                <!-- <ul x-show="open && openSidebar" x-transition
+                {{-- <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
 <li>
@@ -958,7 +962,7 @@
                             </a>
                         </li>
 @endif
-                </ul> -->
+                </ul> --}}
             </li>
 
             {{-- Reporting Pembelian --}}
@@ -1337,6 +1341,7 @@
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     @if (
                         $hasSidebarPermission(
+                            'editPeriode',
                             'viewEditperiode',
                             'createEditperiode',
                             'updateEditperiode',
@@ -1353,6 +1358,7 @@
                     @endif
                     @if (
                         $hasSidebarPermission(
+                            'editPeriode',
                             'viewEditperiode',
                             'createEditperiode',
                             'updateEditperiode',
