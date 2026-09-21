@@ -1445,17 +1445,19 @@ class InvoiceController extends Controller
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
         $typePembayarans = DB::table('tbmaster')
-            ->where('ftblcode', 'TYPEBAYAR')
-            ->orderBy('fmasternum', 'asc')
-            ->orderBy('fmastername', 'asc')
+            ->leftJoin('account', 'account.faccount', '=', 'tbmaster.fnote1')
+            ->where('tbmaster.ftblcode', 'TYPEBAYAR')
+            ->orderBy('tbmaster.fmasternum', 'asc')
+            ->orderBy('tbmaster.fmastername', 'asc')
             ->get([
-                'fmasterid as ftypepembayaranid',
-                'fmastername as ftypepembayarankode',
-                'fmastername as ftypepembayaranname',
-                'fmastername',
-                'fmasternum',
-                'fnumvalue',
-                'fnote1 as faccount',
+                'tbmaster.fmasterid as ftypepembayaranid',
+                'tbmaster.fmastername as ftypepembayarankode',
+                'tbmaster.fmastername as ftypepembayaranname',
+                'tbmaster.fmastername',
+                'tbmaster.fmasternum',
+                'tbmaster.fnumvalue',
+                'tbmaster.fnote1 as faccount',
+                'account.faccname',
             ]);
 
         return view($this->getViewPrefix() . '.create', [
@@ -3298,17 +3300,19 @@ class InvoiceController extends Controller
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
         $typePembayarans = DB::table('tbmaster')
-            ->where('ftblcode', 'TYPEBAYAR')
-            ->orderBy('fmasternum', 'asc')
-            ->orderBy('fmastername', 'asc')
+            ->leftJoin('account', 'account.faccount', '=', 'tbmaster.fnote1')
+            ->where('tbmaster.ftblcode', 'TYPEBAYAR')
+            ->orderBy('tbmaster.fmasternum', 'asc')
+            ->orderBy('tbmaster.fmastername', 'asc')
             ->get([
-                'fmasterid as ftypepembayaranid',
-                'fmastername as ftypepembayarankode',
-                'fmastername as ftypepembayaranname',
-                'fmastername',
-                'fmasternum',
-                'fnumvalue',
-                'fnote1 as faccount',
+                'tbmaster.fmasterid as ftypepembayaranid',
+                'tbmaster.fmastername as ftypepembayarankode',
+                'tbmaster.fmastername as ftypepembayaranname',
+                'tbmaster.fmastername',
+                'tbmaster.fmasternum',
+                'tbmaster.fnumvalue',
+                'tbmaster.fnote1 as faccount',
+                'account.faccname',
             ]);
 
         $selectedTypePembayaranId = null;
@@ -3451,17 +3455,19 @@ class InvoiceController extends Controller
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
         $typePembayarans = DB::table('tbmaster')
-            ->where('ftblcode', 'TYPEBAYAR')
-            ->orderBy('fmasternum', 'asc')
-            ->orderBy('fmastername', 'asc')
+            ->leftJoin('account', 'account.faccount', '=', 'tbmaster.fnote1')
+            ->where('tbmaster.ftblcode', 'TYPEBAYAR')
+            ->orderBy('tbmaster.fmasternum', 'asc')
+            ->orderBy('tbmaster.fmastername', 'asc')
             ->get([
-                'fmasterid as ftypepembayaranid',
-                'fmastername as ftypepembayarankode',
-                'fmastername as ftypepembayaranname',
-                'fmastername',
-                'fmasternum',
-                'fnumvalue',
-                'fnote1 as faccount',
+                'tbmaster.fmasterid as ftypepembayaranid',
+                'tbmaster.fmastername as ftypepembayarankode',
+                'tbmaster.fmastername as ftypepembayaranname',
+                'tbmaster.fmastername',
+                'tbmaster.fmasternum',
+                'tbmaster.fnumvalue',
+                'tbmaster.fnote1 as faccount',
+                'account.faccname',
             ]);
 
         $selectedTypePembayaranId = null;
@@ -4418,17 +4424,19 @@ class InvoiceController extends Controller
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
         $typePembayarans = DB::table('tbmaster')
-            ->where('ftblcode', 'TYPEBAYAR')
-            ->orderBy('fmasternum', 'asc')
-            ->orderBy('fmastername', 'asc')
+            ->leftJoin('account', 'account.faccount', '=', 'tbmaster.fnote1')
+            ->where('tbmaster.ftblcode', 'TYPEBAYAR')
+            ->orderBy('tbmaster.fmasternum', 'asc')
+            ->orderBy('tbmaster.fmastername', 'asc')
             ->get([
-                'fmasterid as ftypepembayaranid',
-                'fmastername as ftypepembayarankode',
-                'fmastername as ftypepembayaranname',
-                'fmastername',
-                'fmasternum',
-                'fnumvalue',
-                'fnote1 as faccount',
+                'tbmaster.fmasterid as ftypepembayaranid',
+                'tbmaster.fmastername as ftypepembayarankode',
+                'tbmaster.fmastername as ftypepembayaranname',
+                'tbmaster.fmastername',
+                'tbmaster.fmasternum',
+                'tbmaster.fnumvalue',
+                'tbmaster.fnote1 as faccount',
+                'account.faccname',
             ]);
 
         // Pass the data to the view

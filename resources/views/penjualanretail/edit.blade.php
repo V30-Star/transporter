@@ -569,24 +569,53 @@
                                         }
                                     @endphp
                                     @if ($selectedTp)
-                                        <div class="mt-1 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 space-y-0.5">
-                                            <div class="font-semibold text-blue-700">Tipe Pembayaran</div>
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-500">Nama</span>
-                                                <span class="font-medium">{{ $selectedTp->fmastername }}</span>
+                                        @php
+                                            $tpBiayaPersen = (float)($selectedTp->fnumvalue ?? 0);
+                                            $tpBiayaRp     = (float)($invoice->fongkosangkut ?? 0);
+                                            $isTunai       = (string)($invoice->ftunai ?? '0') === '1';
+                                        @endphp
+                                        <div class="mt-2 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 overflow-hidden text-xs shadow-sm">
+                                            {{-- Header badge --}}
+                                            <div class="flex items-center justify-between px-3 py-2 bg-indigo-600 text-white">
+                                                <span class="font-bold tracking-wide text-sm">Tipe Pembayaran</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $isTunai ? 'bg-emerald-400 text-white' : 'bg-yellow-300 text-yellow-900' }}">
+                                                    {{ $isTunai ? 'TUNAI' : 'NON-TUNAI' }}
+                                                </span>
                                             </div>
-                                            @if (!empty($selectedTp->faccount))
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-500">Account</span>
-                                                    <span class="font-medium">{{ $selectedTp->faccount }}</span>
+                                            {{-- Detail rows --}}
+                                            <div class="divide-y divide-indigo-100 px-3 py-1">
+                                                <div class="flex justify-between items-center py-1.5">
+                                                    <span class="text-gray-500 font-medium">Nama</span>
+                                                    <span class="font-bold text-indigo-800">{{ $selectedTp->fmastername }}</span>
                                                 </div>
-                                            @endif
-                                            @if ((float)($selectedTp->fnumvalue ?? 0) > 0)
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-500">Biaya/Charge</span>
-                                                    <span class="font-medium">{{ number_format((float)$selectedTp->fnumvalue, 2, ',', '.') }}%</span>
+                                                @if (!empty($selectedTp->faccount))
+                                                <div class="flex justify-between items-center py-1.5">
+                                                    <span class="text-gray-500 font-medium">Account</span>
+                                                    <span class="font-semibold text-gray-700">
+                                                        {{ !empty($selectedTp->faccname) ? $selectedTp->faccname : $selectedTp->faccount }}
+                                                        @if (!empty($selectedTp->faccname))
+                                                            <span class="text-gray-400 font-normal text-xs">({{ $selectedTp->faccount }})</span>
+                                                        @endif
+                                                    </span>
                                                 </div>
-                                            @endif
+                                                @endif
+                                                @if ($tpBiayaPersen > 0)
+                                                <div class="flex justify-between items-center py-1.5">
+                                                    <span class="text-gray-500 font-medium">Biaya/Charge</span>
+                                                    <span class="font-semibold text-orange-600">{{ number_format($tpBiayaPersen, 2, ',', '.') }}%</span>
+                                                </div>
+                                                @endif
+                                                @if ($tpBiayaRp > 0)
+                                                <div class="flex justify-between items-center py-1.5">
+                                                    <span class="text-gray-500 font-medium">Biaya (Rp)</span>
+                                                    <span class="font-semibold text-orange-600">{{ number_format($tpBiayaRp, 2, ',', '.') }}</span>
+                                                </div>
+                                                @endif
+                                                <div class="flex justify-between items-center py-1.5">
+                                                    <span class="text-gray-500 font-medium">Grand Total</span>
+                                                    <span class="font-extrabold text-blue-700">{{ number_format((float)($invoice->famountso ?? 0), 2, ',', '.') }}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endif
                                 @endif
