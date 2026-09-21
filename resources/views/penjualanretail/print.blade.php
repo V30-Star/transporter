@@ -24,15 +24,25 @@
             color: var(--fg);
         }
 
+        @page {
+            size: 5.5in auto;
+            margin: 0.25in 0.4in;
+        }
+
         .sheet {
-            width: 8.27in;
-            min-height: 5.83in;
+            width: 5.5in;
+            min-height: auto;
             margin: 0.2in auto;
             padding: 0.25in 0.4in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
+        }
+
+        @media print {
+            body { background: none; margin: 0; }
+            .sheet { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; }
         }
 
         .header-row {

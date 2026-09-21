@@ -778,6 +778,7 @@
                                 <input type="hidden" name="famountpajak" :value="ppnAmount">
                                 <input type="hidden" name="famountsonet" :value="netTotal">
                                 <input type="hidden" name="famountso" :value="grandTotal">
+                                <input type="hidden" name="total_sebelum_biaya" :value="totalSebelumBiaya">
                                 <input type="hidden" name="famountpopajak" :value="ppnAmount">
                                 <input type="hidden" name="fppnpersen" :value="ppnRate">
                                 <input type="hidden" name="fdiscount" :value="headerDiscAmount">
@@ -1550,8 +1551,16 @@
                 return +(total * (percent / 100)).toFixed(2);
             },
 
+            get totalSebelumBiaya() {
+                const total = this.totalSetelahDisc;
+                if (!this.includePPN) {
+                    return total;
+                }
+                return total + this.ppnAdded;
+            },
+
             get headerBiayaAmount() {
-                const total = +this.grandTotal || 0;
+                const total = this.totalSebelumBiaya;
                 const percent = Math.min(100, Math.max(0, +this.headerBiayaPercent || 0));
                 return Math.round(total * (percent / 100));
             },
@@ -1586,11 +1595,7 @@
             },
 
             get grandTotal() {
-                const total = this.totalSetelahDisc;
-                if (!this.includePPN) {
-                    return total;
-                }
-                return total + this.ppnAdded;
+                return this.totalSebelumBiaya + this.headerBiayaAmount;
             },
 
             fmt(n) {

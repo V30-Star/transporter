@@ -220,8 +220,9 @@
 
         window.openRetailPaymentModal = function(form) {
             retailActiveForm = form;
+            const totalSebelumBiayaInput = form.querySelector('input[name="total_sebelum_biaya"]');
             const amountInput = form.querySelector('input[name="famountso"]');
-            const totalNota = parseFloat(amountInput?.value || '0') || 0;
+            const totalNota = parseFloat(totalSebelumBiayaInput?.value || amountInput?.value || '0') || 0;
 
             const totalNotaEl = document.getElementById('modal_total_nota');
             if (totalNotaEl) {
