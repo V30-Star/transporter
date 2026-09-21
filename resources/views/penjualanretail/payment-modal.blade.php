@@ -329,6 +329,17 @@
             }
             inputFaccount.value = faccount;
 
+            // Kirim nilai biaya (Rp) ke tranmt.fongkosangkut
+            const biayaNominal = parseRetailMoney(document.getElementById('modal_biaya_charge_nominal')?.value || '0');
+            let inputFongkos = retailActiveForm.querySelector('input[name="fongkosangkut"]');
+            if (!inputFongkos) {
+                inputFongkos = document.createElement('input');
+                inputFongkos.type = 'hidden';
+                inputFongkos.name = 'fongkosangkut';
+                retailActiveForm.appendChild(inputFongkos);
+            }
+            inputFongkos.value = biayaNominal;
+
             let inputFpembayaran = retailActiveForm.querySelector('[name="fpembayaran"]');
             if (!inputFpembayaran) {
                 inputFpembayaran = document.createElement('input');

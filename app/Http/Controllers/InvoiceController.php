@@ -2611,7 +2611,8 @@ class InvoiceController extends Controller
                     'fprint' => 0,
                     'ftunai' => $isTunai ? 1 : 0,
                     'fwhcode' => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
-                    'fjatuhtempo' => $fjatuhtempo,
+                    'fjatuhtempo'      => $fjatuhtempo,
+                    'fongkosangkut'    => (float) $request->input('fongkosangkut', 0),
                 ];
 
                 $cashAccount = null;
@@ -4132,6 +4133,7 @@ class InvoiceController extends Controller
                     'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,
                     'fpembayaran'      => $request->has('fpembayaran') ? ($fpembayaran ? mb_substr($fpembayaran, 0, 30) : null) : ($header->fpembayaran ?? null),
+                    'fongkosangkut'    => (float) $request->input('fongkosangkut', 0),
                 ];
 
                 if ($this->tranmtHasInternalNoteColumn()) {
