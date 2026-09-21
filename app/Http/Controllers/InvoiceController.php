@@ -4417,6 +4417,20 @@ class InvoiceController extends Controller
             ->orderBy('fwhname', 'asc')
             ->get(['fwhid', 'fwhcode', 'fwhname', 'fbranchcode']);
 
+        $typePembayarans = DB::table('tbmaster')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
+            ->orderBy('fmastername', 'asc')
+            ->get([
+                'fmasterid as ftypepembayaranid',
+                'fmastername as ftypepembayarankode',
+                'fmastername as ftypepembayaranname',
+                'fmastername',
+                'fmasternum',
+                'fnumvalue',
+                'fnote1 as faccount',
+            ]);
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
@@ -4439,6 +4453,8 @@ class InvoiceController extends Controller
             'filterSalesmanId' => $request->query('filter_salesman_id'),
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
+            'typePembayarans' => $typePembayarans,
+            'selectedTypePembayaranId' => null,
             'action' => 'delete',
         ]);
     }
