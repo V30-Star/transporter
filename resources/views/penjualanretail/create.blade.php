@@ -256,8 +256,7 @@
             <input type="hidden" name="fuseracc" id="invoiceUserAcc" value="{{ old('fuseracc', '') }}">
             <input type="hidden" name="fgrosir" id="invoiceGrosir" value="0">
             <input type="hidden" name="ftypesales" id="ftypesales" value="0">
-            <input type="hidden" name="frefretur" id="retailFrefretur" value="{{ old('frefretur', '') }}">
-            <input type="hidden" name="famountretur" id="retailFamountretur" value="{{ old('famountretur', '') }}">
+
 
             {{-- ─── CARD 1: Identitas Penjualan Retail ────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">

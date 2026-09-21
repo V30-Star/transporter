@@ -59,8 +59,6 @@ class ListingPenjualanController extends Controller
                 'm.fuserid',
                 'm.fincludeppn',
                 'm.fppnpersen',
-                'm.frefretur',
-                'm.famountretur',
                 'm.fpembayaran',
                 DB::raw("
                     CASE 
