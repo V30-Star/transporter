@@ -557,6 +557,39 @@
                                     <input type="text" value="{{ $invoice->fpembayaran ?? '-' }}" readonly
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 cursor-not-allowed">
                                 </div>
+                                @if ($action === 'view')
+                                    @php
+                                        $selectedTp = isset($selectedTypePembayaranId)
+                                            ? ($typePembayarans ?? collect())->firstWhere('ftypepembayaranid', $selectedTypePembayaranId)
+                                            : null;
+                                        if (!$selectedTp && !empty($invoice->fpembayaran)) {
+                                            $selectedTp = ($typePembayarans ?? collect())->first(function($tp) use ($invoice) {
+                                                return strtoupper(trim($tp->fmastername)) === strtoupper(trim($invoice->fpembayaran));
+                                            });
+                                        }
+                                    @endphp
+                                    @if ($selectedTp)
+                                        <div class="mt-1 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 space-y-0.5">
+                                            <div class="font-semibold text-blue-700">Tipe Pembayaran</div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-500">Nama</span>
+                                                <span class="font-medium">{{ $selectedTp->fmastername }}</span>
+                                            </div>
+                                            @if (!empty($selectedTp->faccount))
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-500">Account</span>
+                                                    <span class="font-medium">{{ $selectedTp->faccount }}</span>
+                                                </div>
+                                            @endif
+                                            @if ((float)($selectedTp->fnumvalue ?? 0) > 0)
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-500">Biaya/Charge</span>
+                                                    <span class="font-medium">{{ number_format((float)$selectedTp->fnumvalue, 2, ',', '.') }}%</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endif
                             @endif
                             <input type="hidden" name="fpembayaran" id="retailFpembayaran"
                                 value="{{ old('fpembayaran', $invoice->fpembayaran ?? '') }}">
