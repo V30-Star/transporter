@@ -481,25 +481,7 @@
                             @enderror
                         </div>
 
-                        {{-- Pembayaran --}}
-                        <div class="col-span-3">
-                            <label class="block text-xs font-bold mb-1">Pembayaran</label>
-                            <select name="fpembayaran" id="retailFpembayaran"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fpembayaran') border-red-500 @enderror">
-                                <option value="">-- Pilih Pembayaran --</option>
-                                @foreach ($typePembayarans ?? [] as $tp)
-                                    @php
-                                        $tpName = trim((string) ($tp->ftypepembayaranname ?? $tp->ftypepembayarankode ?? ''));
-                                    @endphp
-                                    <option value="{{ $tpName }}" {{ old('fpembayaran') == $tpName ? 'selected' : '' }} data-id="{{ $tp->ftypepembayaranid }}" data-account="{{ $tp->faccount }}">
-                                        {{ $tpName }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('fpembayaran')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <input type="hidden" name="fpembayaran" id="retailFpembayaran" value="{{ old('fpembayaran', '') }}">
 
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {

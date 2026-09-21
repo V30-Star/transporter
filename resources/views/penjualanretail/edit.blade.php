@@ -556,26 +556,15 @@
                                 @enderror
                             </div>
 
-                            {{-- Pembayaran --}}
-                            <div class="col-span-3">
-                                <label class="block text-xs font-bold mb-1">Pembayaran</label>
-                                <select name="fpembayaran" id="retailFpembayaran"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fpembayaran') border-red-500 @enderror">
-                                    <option value="">-- Pilih Pembayaran --</option>
-                                    @foreach ($typePembayarans ?? [] as $tp)
-                                        @php
-                                            $tpName = trim((string) ($tp->ftypepembayaranname ?? $tp->ftypepembayarankode ?? ''));
-                                            $currentPembayaran = trim((string) old('fpembayaran', $invoice->fpembayaran ?? ''));
-                                        @endphp
-                                        <option value="{{ $tpName }}" {{ $currentPembayaran === $tpName ? 'selected' : '' }} data-id="{{ $tp->ftypepembayaranid }}" data-account="{{ $tp->faccount }}">
-                                            {{ $tpName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('fpembayaran')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @if ($action === 'view' || $action === 'delete')
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Pembayaran</label>
+                                    <input type="text" value="{{ $invoice->fpembayaran ?? '-' }}" readonly
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 cursor-not-allowed">
+                                </div>
+                            @endif
+                            <input type="hidden" name="fpembayaran" id="retailFpembayaran"
+                                value="{{ old('fpembayaran', $invoice->fpembayaran ?? '') }}">
                                 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
                                         function calculateDueDate() {

@@ -1,53 +1,59 @@
 {{-- Modal Konfirmasi Pembayaran Retail --}}
-<div id="retailPaymentModal" class="fixed inset-0 z-[100] hidden items-center justify-center" style="display: none;">
+<div id="retailPaymentModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-2 sm:p-4 overflow-y-auto" style="display: none;">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-black/60 transition-opacity" onclick="window.closeRetailPaymentModal()"></div>
 
     <!-- Modal Dialog -->
-    <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-lg overflow-hidden border border-gray-100 z-10">
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md my-auto flex flex-col max-h-[94vh] overflow-hidden border border-gray-100 z-10">
         <!-- Header -->
-        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shadow-inner">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shadow-inner">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold leading-tight">Konfirmasi Pembayaran</h3>
-                    <p class="text-xs text-blue-100">Penjualan Retail</p>
+                    <h3 class="text-sm font-bold leading-tight">Konfirmasi Pembayaran</h3>
+                    <p class="text-[10px] text-blue-100">Penjualan Retail</p>
                 </div>
             </div>
-            <button type="button" onclick="window.closeRetailPaymentModal()" class="text-white/80 hover:text-white rounded-lg p-1.5 hover:bg-white/10 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="button" onclick="window.closeRetailPaymentModal()" class="text-white/80 hover:text-white rounded p-1 hover:bg-white/10 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
 
         <!-- Body -->
-        <div class="p-6 space-y-3.5 text-sm text-gray-700 bg-gray-50/50">
+        <div class="px-4 py-2.5 space-y-2 text-xs text-gray-700 bg-gray-50/50 overflow-y-auto">
             <!-- Total Nota -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Total Nota:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-semibold text-gray-700 text-xs">Total Nota:</label>
                 <div class="col-span-8">
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
                         <input type="text" id="modal_total_nota" readonly
-                            class="w-full pl-9 pr-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-right font-bold text-gray-800 cursor-not-allowed">
+                            class="w-full pl-8 pr-2.5 py-1 bg-gray-100 border border-gray-300 rounded-lg text-right font-bold text-gray-800 cursor-not-allowed text-xs">
                     </div>
                 </div>
             </div>
 
             <!-- Pembayaran -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Pembayaran: <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-semibold text-gray-700 text-xs">Pembayaran: <span class="text-red-500">*</span></label>
                 <div class="col-span-8">
-                    <select id="modal_payment_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select id="modal_payment_type" class="w-full border border-gray-300 rounded-lg px-2.5 py-1 text-gray-800 font-medium bg-white text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Pilih Pembayaran --</option>
                         @foreach($typePembayarans ?? [] as $tp)
-                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tp->faccount }}" data-kode="{{ $tp->ftypepembayarankode }}"
+                            @php
+                                $tpCode = trim((string) ($tp->ftypepembayarankode ?? ''));
+                                $tpName = trim((string) ($tp->ftypepembayaranname ?? ''));
+                                $tpAcc = trim((string) ($tp->faccount ?? ''));
+                            @endphp
+                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tpAcc }}" data-kode="{{ $tpCode }}"
                                 {{ (isset($selectedTypePembayaranId) && $selectedTypePembayaranId == $tp->ftypepembayaranid) ? 'selected' : '' }}>
-                                {{ !empty($tp->ftypepembayarankode) && $tp->ftypepembayarankode !== $tp->ftypepembayaranname ? $tp->ftypepembayarankode . ' - ' : '' }}{{ $tp->ftypepembayaranname }}
+                                {{ !empty($tpCode) && $tpCode !== $tpName ? $tpCode . ' - ' : '' }}{{ $tpName }}
                             </option>
                         @endforeach
                     </select>
@@ -55,94 +61,94 @@
             </div>
 
             <!-- Biaya / Charge -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Biaya / Charge:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-semibold text-gray-700 text-xs">Biaya / Charge:</label>
                 <div class="col-span-8 flex items-center gap-2">
-                    <div class="relative w-28 shrink-0">
+                    <div class="relative w-20 shrink-0">
                         <input type="text" id="modal_biaya_charge_persen" value="0"
-                            class="w-full pr-7 pl-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 font-bold text-xs pointer-events-none">%</span>
+                            class="w-full pr-6 pl-2 py-1 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <span class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 font-bold text-xs pointer-events-none">%</span>
                     </div>
                     <div class="relative flex-1">
-                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
                         <input type="text" id="modal_biaya_charge_nominal" value="0,00" disabled
-                            class="w-full pl-8 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-right font-medium text-gray-600 cursor-not-allowed text-sm">
+                            class="w-full pl-7 pr-2.5 py-1 bg-gray-100 border border-gray-200 rounded-lg text-right font-medium text-gray-600 cursor-not-allowed text-xs">
                     </div>
                 </div>
             </div>
 
             <!-- Nomor Retur -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Nomor Retur:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-semibold text-gray-700 text-xs">Nomor Retur: <span class="text-[10px] text-gray-400 font-normal">(Opsional)</span></label>
                 <div class="col-span-8">
                     <select id="modal_retur_select"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-2.5 py-1 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">-- Tanpa Retur --</option>
                     </select>
                 </div>
             </div>
 
             <!-- Nilai RP Retur -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700">Nilai RP Retur:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-semibold text-gray-700 text-xs">Nilai RP Retur:</label>
                 <div class="col-span-8">
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 font-semibold text-xs">Rp</span>
                         <input type="text" id="modal_kurangi_retur" value="0,00"
-                            class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            class="w-full pl-8 pr-2.5 py-1 border border-gray-300 rounded-lg text-right font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs">
                     </div>
                 </div>
             </div>
 
             <!-- Divider -->
-            <div class="border-t border-gray-200 my-1"></div>
+            <div class="border-t border-gray-200 my-0.5"></div>
 
             <!-- Grand Total -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-bold text-gray-900 text-base">Grand Total:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-bold text-gray-900 text-xs">Grand Total:</label>
                 <div class="col-span-8">
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-blue-500 font-bold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-blue-500 font-bold text-xs">Rp</span>
                         <input type="text" id="modal_grand_total" readonly
-                            class="w-full pl-9 pr-3 py-2 bg-blue-50 border-2 border-blue-200 rounded-lg text-right font-extrabold text-lg text-blue-700 cursor-not-allowed">
+                            class="w-full pl-8 pr-2.5 py-1 bg-blue-50 border border-blue-300 rounded-lg text-right font-bold text-sm text-blue-700 cursor-not-allowed">
                     </div>
                 </div>
             </div>
 
             <!-- Total Pembayaran -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-bold text-gray-900 text-base">Total Pembayaran:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-bold text-gray-900 text-xs">Total Pembayaran:</label>
                 <div class="col-span-8">
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 font-bold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-emerald-600 font-bold text-xs">Rp</span>
                         <input type="text" id="modal_total_bayar" value="0,00"
-                            class="w-full pl-9 pr-3 py-2 border-2 border-emerald-500 rounded-lg text-right font-extrabold text-lg text-emerald-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            class="w-full pl-8 pr-2.5 py-1 border-2 border-emerald-500 rounded-lg text-right font-bold text-sm text-emerald-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                     </div>
                 </div>
             </div>
 
             <!-- Kembalian -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-bold text-gray-900 text-base">Kembalian:</label>
+            <div class="grid grid-cols-12 items-center gap-2">
+                <label class="col-span-4 font-bold text-gray-900 text-xs">Kembalian:</label>
                 <div class="col-span-8">
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold text-xs">Rp</span>
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-500 font-bold text-xs">Rp</span>
                         <input type="text" id="modal_kembalian" readonly
-                            class="w-full pl-9 pr-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-right font-extrabold text-lg text-emerald-600 cursor-not-allowed">
+                            class="w-full pl-8 pr-2.5 py-1 bg-gray-100 border border-gray-300 rounded-lg text-right font-bold text-sm text-emerald-600 cursor-not-allowed">
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="px-6 py-3.5 bg-gray-100 border-t border-gray-200 flex items-center justify-end gap-3">
+        <div class="px-4 py-2 bg-gray-100 border-t border-gray-200 flex items-center justify-end gap-2 shrink-0">
             <button type="button" onclick="window.closeRetailPaymentModal()"
-                class="px-5 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition">
+                class="px-4 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 hover:border-gray-400 transition">
                 Batal
             </button>
             <button type="button" onclick="window.confirmRetailPaymentOk()"
-                class="px-6 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-md hover:shadow-lg transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="px-5 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 shadow hover:shadow-md transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                 </svg>
                 Ok
@@ -299,10 +305,7 @@
                         } else {
                             if (returSelect) {
                                 returSelect.disabled = false;
-                                let html = '';
-                                if (returs.length > 1) {
-                                    html += '<option value="">-- Pilih Retur / Tanpa Retur --</option>';
-                                }
+                                let html = '<option value="">-- Tanpa Retur --</option>';
                                 const initialReturNo = (form.querySelector('[name="frefretur"]')?.dataset?.initialRetur || '').trim();
                                 const initialReturNominal = parseFloat(form.querySelector('[name="famountretur"]')?.dataset?.initialNominal || '0') || 0;
 
@@ -325,17 +328,8 @@
                                     const maxRemain = parseFloat(selectedOpt?.getAttribute('data-remain') || '0');
                                     returEl.dataset.maxRemain = maxRemain;
                                     returEl.value = formatRetailMoney(presetReturNominal > 0 ? presetReturNominal : maxRemain);
-                                } else if (returs.length === 1) {
-                                    returSelect.value = returs[0].fsono;
-                                    const selectedOpt = returSelect.options[returSelect.selectedIndex];
-                                    const remain = parseFloat(selectedOpt?.getAttribute('data-remain') || returs[0].famountremain || 0);
-                                    returEl.dataset.maxRemain = remain;
-                                    const curNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
-                                    const curPersen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
-                                    const curBiaya = Math.round((curNota * curPersen) / 100);
-                                    const deduction = Math.min(curNota + curBiaya, remain);
-                                    returEl.value = formatRetailMoney(deduction);
                                 } else {
+                                    returSelect.value = '';
                                     returEl.value = '0,00';
                                     returEl.dataset.maxRemain = '0';
                                 }
@@ -437,19 +431,8 @@
 
             const returSelect = document.getElementById('modal_retur_select');
             const returFsono = returSelect?.value || '';
-            const returNominal = parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0');
+            const returNominal = returFsono ? parseRetailMoney(document.getElementById('modal_kurangi_retur')?.value || '0') : 0;
             const maxRemain = parseFloat(document.getElementById('modal_kurangi_retur')?.dataset?.maxRemain || '0');
-
-            if (returNominal > 0 && !returFsono) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Nomor Retur Wajib',
-                    text: 'Silakan pilih Nomor Retur jika ada nilai pemotongan retur.',
-                    confirmButtonText: 'OK',
-                    customClass: { confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700' }
-                });
-                return;
-            }
 
             if (returFsono && maxRemain > 0 && returNominal > maxRemain + 0.0001) {
                 Swal.fire({
