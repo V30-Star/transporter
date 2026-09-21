@@ -53,6 +53,7 @@ class EnsureRoutePermission
     private const REPORT_PRINTS = [
         'listingpenjualan' => 'printListingPenjualan',
         'listingpenjualanhpp' => 'printListingPenjualanHpp',
+        'listingpenjualanretail' => 'printListingPenjualanRetail',
         'listingpiutangpenjualan' => 'printListingPiutangPenjualan',
         'reportingrekappenjualan' => 'printLaporanRekapPenjualan',
         'reportingrekappenjualancustomerproduk' => 'printLaporanRekapPenjualan',

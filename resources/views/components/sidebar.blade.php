@@ -789,7 +789,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('printListingPenjualan'))
+                    @if ($finitinvretail !== 'THE' && $hasSidebarPermission('printListingPenjualan'))
                         <li>
                             <a href="{{ route('listingpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
