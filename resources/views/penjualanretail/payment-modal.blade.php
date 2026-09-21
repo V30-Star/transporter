@@ -54,9 +54,10 @@
                                 $tpCode = trim((string) ($tp->ftypepembayarankode ?? $tpMasterName));
                                 $tpName = trim((string) ($tp->ftypepembayaranname ?? $tpMasterName));
                                 $tpAcc = trim((string) ($tp->faccount ?? ''));
+                                $tpNumValue = (float) ($tp->fnumvalue ?? 0);
                                 $isSelected = isset($defaultTypePembayaranId) && ($defaultTypePembayaranId == $tp->ftypepembayaranid);
                             @endphp
-                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tpAcc }}" data-kode="{{ $tpCode }}" data-name="{{ $tpMasterName }}"
+                            <option value="{{ $tp->ftypepembayaranid }}" data-faccount="{{ $tpAcc }}" data-kode="{{ $tpCode }}" data-name="{{ $tpMasterName }}" data-fnumvalue="{{ $tpNumValue }}"
                                 {{ $isSelected ? 'selected' : '' }}>
                                 {{ !empty($tpCode) && $tpCode !== $tpName ? $tpCode . ' - ' : '' }}{{ $tpName }}
                             </option>
@@ -180,6 +181,19 @@
             return Number.isFinite(num) ? Math.max(0, num) : 0;
         }
 
+        function updateBiayaFromSelect() {
+            const sel = document.getElementById('modal_payment_type');
+            const opt = sel?.options[sel.selectedIndex];
+            const fnumvalue = parseFloat(opt?.getAttribute('data-fnumvalue') || '0') || 0;
+            const persenEl = document.getElementById('modal_biaya_charge_persen');
+            if (persenEl) {
+                persenEl.value = fnumvalue > 0
+                    ? (Number.isInteger(fnumvalue) ? fnumvalue.toString() : fnumvalue.toString().replace('.', ','))
+                    : '0';
+            }
+            recalculateRetailTotals();
+        }
+
         function recalculateRetailTotals() {
             const totalNota = parseRetailMoney(document.getElementById('modal_total_nota')?.dataset?.raw || '0');
             const persen = parsePercent(document.getElementById('modal_biaya_charge_persen')?.value || '0');
@@ -255,7 +269,8 @@
                 if (opt) paySelect.value = opt.value;
             }
 
-            recalculateRetailTotals();
+            // Sync Biaya/Charge % from selected payment type
+            updateBiayaFromSelect();
 
             // Default Total Pembayaran diisi sebesar Grand Total
             const grandTotal = parseRetailMoney(document.getElementById('modal_grand_total')?.dataset?.raw || totalNota);
@@ -357,6 +372,12 @@
 
         // Attach input listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Update biaya when payment type changes
+            const paySelect = document.getElementById('modal_payment_type');
+            if (paySelect) {
+                paySelect.addEventListener('change', updateBiayaFromSelect);
+            }
+
             const attachMoneyEvents = function(id, isTotalBayar = false) {
                 const el = document.getElementById(id);
                 if (!el) return;
