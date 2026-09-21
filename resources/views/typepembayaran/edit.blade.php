@@ -20,6 +20,20 @@
                 </div>
 
                 <div class="p-4 space-y-4">
+                    {{-- No. Urut --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">
+                            No. Urut
+                        </label>
+                        <input type="number" name="fmasternum" id="fmasternum" min="0" step="1"
+                            value="{{ old('fmasternum', $typePembayaran->fmasternum) }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmasternum') border-red-400 @enderror"
+                            placeholder="cth. 1, 2, 3">
+                        @error('fmasternum')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     {{-- Nama Type Pembayaran --}}
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">
@@ -34,14 +48,31 @@
                         @enderror
                     </div>
 
-                    {{-- Account Kas/Bank --}}
+                    {{-- Biaya/Charge (%) --}}
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">
-                            Account Kas/Bank <span class="text-red-500">*</span>
+                            Biaya/Charge (%)
+                        </label>
+                        <div class="relative">
+                            <input type="number" name="fnumvalue" id="fnumvalue" min="0" max="100" step="0.01"
+                                value="{{ old('fnumvalue', (float) ($typePembayaran->fnumvalue ?? 0)) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fnumvalue') border-red-400 @enderror"
+                                placeholder="0.00">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm font-bold pointer-events-none">%</span>
+                        </div>
+                        @error('fnumvalue')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Account --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">
+                            Account <span class="text-red-500">*</span>
                         </label>
                         <select name="fnote1" id="fnote1"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white @error('fnote1') border-red-400 @enderror">
-                            <option value="">-- Pilih Account Kas/Bank --</option>
+                            <option value="">-- Pilih Account --</option>
                             @foreach ($accounts as $acc)
                                 <option value="{{ $acc->faccount }}" {{ old('fnote1', $typePembayaran->fnote1) == $acc->faccount ? 'selected' : '' }}>
                                     {{ $acc->faccount }} - {{ $acc->faccname }}

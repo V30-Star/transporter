@@ -480,7 +480,7 @@
                             @enderror
                         </div>
 
-                        <input type="hidden" name="fpembayaran" id="retailFpembayaran" value="{{ old('fpembayaran', '') }}">
+                        <input type="hidden" name="fpembayaran" id="retailFpembayaran" value="{{ old('fpembayaran', trim((string) ($typePembayarans->first()?->fmastername ?? ''))) }}">
 
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
@@ -749,6 +749,19 @@
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
                                         <span class="font-bold" x-text="rupiah(ppnAmount)"></span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-gray-800">Biaya</span>
+                                        <input type="number" min="0" max="100" step="0.01"
+                                            name="fbiayapersen" x-model.number="headerBiayaPercent"
+                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                [appearance:textfield]
+                                                [&::-webkit-outer-spin-button]:appearance-none
+                                                [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span class="font-bold text-right" x-text="rupiah(headerBiayaAmount)"></span>
                                     </div>
 
                                     <div class="border-t my-1"></div>
@@ -1514,6 +1527,7 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', 0)),
+            headerBiayaPercent: @json((float) old('fbiayapersen', 0)),
             ppnRate: @json((float) old('fppnpersen', old('ppn_rate', $defaultPpnTarif ?? 11))),
 
             initialGrandTotal: @json($famountso ?? 0),
@@ -1534,6 +1548,12 @@
                 const total = +this.totalHarga || 0;
                 const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
                 return +(total * (percent / 100)).toFixed(2);
+            },
+
+            get headerBiayaAmount() {
+                const total = +this.grandTotal || 0;
+                const percent = Math.min(100, Math.max(0, +this.headerBiayaPercent || 0));
+                return Math.round(total * (percent / 100));
             },
 
             get totalSetelahDisc() {
@@ -2677,6 +2697,12 @@
                         return;
                     }
                     this.recalcTotals();
+                });
+                this.$watch('headerBiayaPercent', (value) => {
+                    const normalized = Math.min(100, Math.max(0, Number(value) || 0));
+                    if (normalized !== Number(value)) {
+                        this.headerBiayaPercent = normalized;
+                    }
                 });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();

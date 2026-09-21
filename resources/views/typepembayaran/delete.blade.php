@@ -14,6 +14,13 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4 max-w-2xl mx-auto">
             <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-bold text-gray-700">No. Urut</div>
+                <div class="col-span-2 text-sm font-semibold text-gray-900">
+                    {{ $typePembayaran->fmasternum ?? '-' }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-bold text-gray-700">Nama Type Pembayaran</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $typePembayaran->fmastername }}
@@ -21,7 +28,14 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-bold text-gray-700">Account Kas/Bank</div>
+                <div class="text-sm font-bold text-gray-700">Biaya/Charge (%)</div>
+                <div class="col-span-2 text-sm font-semibold text-gray-900">
+                    {{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, ',', '.') }}%
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-bold text-gray-700">Account</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->fnote1 ?: '-') }}
                 </div>

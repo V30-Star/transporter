@@ -15,6 +15,14 @@
             </div>
 
             <div class="p-4 space-y-4">
+                {{-- No. Urut --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">No. Urut</label>
+                    <input type="text" value="{{ $typePembayaran->fmasternum ?? '-' }}"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly>
+                </div>
+
                 {{-- Nama Type Pembayaran --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Nama Type Pembayaran</label>
@@ -23,9 +31,17 @@
                         readonly>
                 </div>
 
-                {{-- Account Kas/Bank --}}
+                {{-- Biaya/Charge (%) --}}
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Account Kas/Bank</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Biaya/Charge (%)</label>
+                    <input type="text" value="{{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, ',', '.') }}%"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly>
+                </div>
+
+                {{-- Account --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Account</label>
                     <input type="text"
                         value="{{ $typePembayaran->account ? $typePembayaran->account->faccount . ' - ' . $typePembayaran->account->faccname : ($typePembayaran->fnote1 ?: '-') }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"

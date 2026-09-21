@@ -20,15 +20,19 @@
             <table id="typePembayaranTable" class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>
+                        <th class="border px-2 py-2 text-center w-20">No. Urut</th>
                         <th class="border px-2 py-2">Nama Type Pembayaran</th>
-                        <th class="border px-2 py-2">Account Kas/Bank</th>
+                        <th class="border px-2 py-2 text-right w-36">Biaya/Charge(%)</th>
+                        <th class="border px-2 py-2">Account</th>
                         <th class="border px-2 py-2 col-aksi text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($typePembayarans as $item)
                         <tr class="hover:bg-gray-50">
+                            <td class="border px-2 py-1 text-center font-mono text-xs">{{ $item->fmasternum ?? '-' }}</td>
                             <td class="border px-2 py-1 font-semibold">{{ $item->fmastername }}</td>
+                            <td class="border px-2 py-1 text-right font-mono text-xs">{{ number_format((float) ($item->fnumvalue ?? 0), 2, ',', '.') }}%</td>
                             <td class="border px-2 py-1">
                                 @if ($item->account)
                                     <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded mr-1">{{ $item->account->faccount }}</span>
@@ -89,8 +93,18 @@
 
         #typePembayaranTable th,
         #typePembayaranTable td {
-            text-align: left !important;
+            text-align: left;
             vertical-align: middle;
+        }
+
+        #typePembayaranTable th.text-center,
+        #typePembayaranTable td.text-center {
+            text-align: center !important;
+        }
+
+        #typePembayaranTable th.text-right,
+        #typePembayaranTable td.text-right {
+            text-align: right !important;
         }
 
         #typePembayaranTable th:last-child,

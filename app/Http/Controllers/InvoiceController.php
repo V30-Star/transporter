@@ -1446,11 +1446,15 @@ class InvoiceController extends Controller
 
         $typePembayarans = DB::table('tbmaster')
             ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
             ->orderBy('fmastername', 'asc')
             ->get([
                 'fmasterid as ftypepembayaranid',
                 'fmastername as ftypepembayarankode',
                 'fmastername as ftypepembayaranname',
+                'fmastername',
+                'fmasternum',
+                'fnumvalue',
                 'fnote1 as faccount',
             ]);
 
@@ -1472,7 +1476,6 @@ class InvoiceController extends Controller
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
-            'outstandingReturs' => $this->getOutstandingReturs(),
         ]);
     }
 
@@ -3295,11 +3298,15 @@ class InvoiceController extends Controller
 
         $typePembayarans = DB::table('tbmaster')
             ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
             ->orderBy('fmastername', 'asc')
             ->get([
                 'fmasterid as ftypepembayaranid',
                 'fmastername as ftypepembayarankode',
                 'fmastername as ftypepembayaranname',
+                'fmastername',
+                'fmasternum',
+                'fnumvalue',
                 'fnote1 as faccount',
             ]);
 
@@ -3444,11 +3451,15 @@ class InvoiceController extends Controller
 
         $typePembayarans = DB::table('tbmaster')
             ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
             ->orderBy('fmastername', 'asc')
             ->get([
                 'fmasterid as ftypepembayaranid',
                 'fmastername as ftypepembayarankode',
                 'fmastername as ftypepembayaranname',
+                'fmastername',
+                'fmasternum',
+                'fnumvalue',
                 'fnote1 as faccount',
             ]);
 

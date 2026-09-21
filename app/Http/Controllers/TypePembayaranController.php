@@ -43,6 +43,7 @@ class TypePembayaranController extends Controller
 
         $typePembayarans = TypePembayaran::with('account')
             ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
             ->orderBy('fmastername', 'asc')
             ->get();
 
@@ -74,12 +75,16 @@ class TypePembayaranController extends Controller
         try {
             $request->merge([
                 'ftblcode' => 'TYPEBAYAR',
+                'fmasternum' => $request->filled('fmasternum') ? (int) $request->fmasternum : null,
+                'fnumvalue' => $request->filled('fnumvalue') ? (float) str_replace(',', '.', (string) $request->fnumvalue) : 0,
                 'fmastername' => strtoupper(trim((string) $request->fmastername)),
                 'fnote1' => trim((string) ($request->fnote1 ?? $request->faccount)),
             ]);
 
             $validated = $request->validate([
                 'ftblcode' => 'required|string',
+                'fmasternum' => 'nullable|integer|min:0',
+                'fnumvalue' => 'nullable|numeric|min:0|max:100',
                 'fmastername' => [
                     'required',
                     'string',
@@ -88,10 +93,12 @@ class TypePembayaranController extends Controller
                 ],
                 'fnote1' => 'required|string|max:10',
             ], [
+                'fmasternum.integer' => 'No. Urut harus berupa angka.',
+                'fnumvalue.numeric' => 'Biaya/Charge (%) harus berupa angka.',
                 'fmastername.required' => 'Nama Type Pembayaran wajib diisi.',
                 'fmastername.unique' => 'Nama Type Pembayaran sudah digunakan.',
                 'fmastername.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
-                'fnote1.required' => 'Account Kas/Bank wajib dipilih.',
+                'fnote1.required' => 'Account wajib dipilih.',
             ]);
 
             $userLogin = auth('sysuser')->user() ?? auth()->user();
@@ -146,12 +153,16 @@ class TypePembayaranController extends Controller
 
         $request->merge([
             'ftblcode' => 'TYPEBAYAR',
+            'fmasternum' => $request->filled('fmasternum') ? (int) $request->fmasternum : null,
+            'fnumvalue' => $request->filled('fnumvalue') ? (float) str_replace(',', '.', (string) $request->fnumvalue) : 0,
             'fmastername' => strtoupper(trim((string) $request->fmastername)),
             'fnote1' => trim((string) ($request->fnote1 ?? $request->faccount)),
         ]);
 
         $validated = $request->validate([
             'ftblcode' => 'required|string',
+            'fmasternum' => 'nullable|integer|min:0',
+            'fnumvalue' => 'nullable|numeric|min:0|max:100',
             'fmastername' => [
                 'required',
                 'string',
@@ -162,10 +173,12 @@ class TypePembayaranController extends Controller
             ],
             'fnote1' => 'required|string|max:10',
         ], [
+            'fmasternum.integer' => 'No. Urut harus berupa angka.',
+            'fnumvalue.numeric' => 'Biaya/Charge (%) harus berupa angka.',
             'fmastername.required' => 'Nama Type Pembayaran wajib diisi.',
             'fmastername.unique' => 'Nama Type Pembayaran sudah digunakan.',
             'fmastername.max' => 'Nama Type Pembayaran maksimal 50 karakter.',
-            'fnote1.required' => 'Account Kas/Bank wajib dipilih.',
+            'fnote1.required' => 'Account wajib dipilih.',
         ]);
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
