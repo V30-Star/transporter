@@ -116,6 +116,27 @@
             font-weight: normal;
         }
 
+        .product-header-row {
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        .product-detail-row {
+            color: #dc2626;
+        }
+
+        .table-header-main {
+            color: #1d4ed8;
+            font-weight: bold;
+            text-align: center !important;
+        }
+
+        .table-header-detail {
+            color: #dc2626;
+            font-weight: bold;
+            text-align: center !important;
+        }
+
         .tb td {
             padding: 5px;
             vertical-align: top;
@@ -303,13 +324,9 @@
     @php
         $famountso = (float) ($hdr->famountso ?? 0);
         $famountgross = (float) ($hdr->famountgross ?? 0);
-        if ($famountgross <= 0) {
-            $famountgross = (float) ($hdr->famountsonet ?? 0);
-        }
         $fdiscount = (float) ($hdr->fdiscount ?? 0);
-        $totalSetelahDisc = $famountgross - $fdiscount;
-        $famountpajak = (float) ($hdr->famountpajak ?? 0);
         $fongkosangkut = (float) ($hdr->fongkosangkut ?? 0);
+        $totalQty = collect($dt)->sum(fn ($row) => (float) ($row->fqty ?? 0));
     @endphp
 
     <div id="print-container"></div>
@@ -363,36 +380,41 @@
         </div>
 
         {{-- Table Head Template --}}
-        <table id="tpl-table">
+        <table id="tpl-table" style="table-layout: fixed;">
+            <colgroup>
+                <col style="width: 8%;">
+                <col style="width: 42%;">
+                <col style="width: 18%;">
+                <col style="width: 11%;">
+                <col style="width: 11%;">
+                <col style="width: 10%;">
+            </colgroup>
             <thead id="tpl-thead">
                 <tr>
-                    <th style="width: 5%; text-align: center;" class="text-center">No.</th>
-                    <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 13%; text-align: right;" class="text-right">Qty</th>
-                    <th style="width: 13%; text-align: right;" class="text-right">@ Harga</th>
-                    <th style="width: 8%; text-align: center;" class="text-center">Disc.%</th>
-                    <th style="width: 16%; text-align: right;" class="text-right">Total Harga</th>
+                    <th style="width: 8%;" class="table-header-main">No.</th>
+                    <th style="width: 42%;" class="table-header-main">Nama Produk</th>
+                    <th colspan="4" style="width: 50%;"></th>
+                </tr>
+                <tr>
+                    <th style="width: 18%;" class="table-header-detail">Kode Produk</th>
+                    <th style="width: 10%;" class="table-header-detail">Quantity</th>
+                    <th style="width: 12%;" class="table-header-detail">@ Harga</th>
+                    <th style="width: 10%;" class="table-header-detail">Total Harga</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
-                    @php
-                        $discVal = $r->fdisc ?? '0';
-                        if (is_numeric($discVal)) {
-                            $formattedDisc = (float)$discVal == (int)$discVal ? (int)$discVal : number_format((float)$discVal, 2, ',', '.');
-                        } else {
-                            $formattedDisc = $discVal;
-                        }
-                    @endphp
                     <tr class="item-row">
-                        <td class="text-center row-no">{{ $i + 1 }}</td>
-                        <td>
-                            <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
+                        <td class="text-center row-no" style="color: #1d4ed8; font-weight: bold;">{{ $i + 1 }}</td>
+                        <td colspan="5" style="color: #1d4ed8; font-weight: bold;">
+                            <div style="white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</div>
                         </td>
-                        <td class="text-right">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->funit ?? ($r->fsatuan ?? '') }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-center">{{ $formattedDisc }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #dc2626;">{{ $r->fprdcode ?? '-' }}</td>
+                        <td class="text-right" style="color: #dc2626;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="color: #dc2626;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="color: #dc2626;">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -404,14 +426,18 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
                 {{-- Kolom Kiri & Tengah: Terbilang di atas, Hormat Kami & Rekening sejajar di bawahnya --}}
                 <div style="width: 70%; display: flex; flex-direction: column;">
-                    <div>
+                    <!-- <div>
                         <div style="font-style: italic; font-size: 11px;">Terbilang :</div>
                         <div style="font-weight: bold; font-style: italic; text-decoration: underline; font-size: 11px; margin-top: 2px;">
                             # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
                         </div>
-                    </div>
+                    </div> -->
 
                     <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
+                        <div style="width: 160px; min-width: 140px;">
+                            <div style="font-weight: bold;">Total Qty</div>
+                            <div style="font-size: 13px; margin-top: 4px;">{{ number_format($totalQty, 2, ',', '.') }}</div>
+                        </div>
                         <div style="width: 160px; min-width: 140px; text-align: center;">
                             <div style="font-size: 11px;">Dibuat Oleh,</div>
                             <div style="margin-top: 36px; font-size: 11px; font-weight: bold; white-space: nowrap;">
@@ -427,7 +453,7 @@
                 <div style="width: 28%;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
+                            <td style="padding: 1px 0; white-space: nowrap;">Total</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
                         </tr>
@@ -437,17 +463,7 @@
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Total Stlh Disc</td>
-                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($totalSetelahDisc, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">PPN</td>
-                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($famountpajak, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Ongkos Angkut</td>
+                            <td style="padding: 1px 0; white-space: nowrap;">Biaya/Charge</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
