@@ -447,6 +447,10 @@ class ProductController extends Controller
 
     private function generateProductCode($groupId, $merekId): string
     {
+        if ($this->isRetailThe()) {
+            return $this->generateTheProductCode();
+        }
+
         $paddedGroupId = str_pad($groupId, 3, '0', STR_PAD_LEFT);
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
@@ -465,6 +469,22 @@ class ProductController extends Controller
         }
 
         return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function generateTheProductCode(): string
+    {
+        $year = now()->format('y');
+        $lastCode = Product::whereRaw('fprdcode ~ ?', ['^' . $year . '[0-9]{6}$'])
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM 3 FOR 4) AS INTEGER) DESC')
+            ->value('fprdcode');
+
+        $nextNumber = $lastCode ? ((int) substr($lastCode, 2, 4)) + 1 : 1;
+
+        do {
+            $code = $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . str_pad((string) random_int(0, 99), 2, '0', STR_PAD_LEFT);
+        } while (Product::where('fprdcode', $code)->exists());
+
+        return $code;
     }
 
     public function create()
