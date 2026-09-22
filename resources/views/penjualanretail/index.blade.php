@@ -40,17 +40,6 @@
             @endif
         </div>
 
-        <div id="statusFilterTemplate" class="hidden">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1 w-24">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
-                </select>
-            </div>
-        </div>
-
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Tahun</span>
@@ -110,10 +99,8 @@
                                 data-column="3" placeholder="Cari customer...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">SO#</th>
                     <th class="border px-2 py-1">Nilai Faktur</th>
                     <th class="border px-2 py-1">Sisa Piutang</th>                  
-                    <th class="border px-2 py-1">Tagih?</th>
                     <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -442,10 +429,6 @@
                     name: 'fcustomername'
                 },
                 {
-                    data: 'fso_refs',
-                    name: 'fso_refs'
-                },
-                {
                     data: 'famountso',
                     name: 'famountso',
                     render: function(data) {
@@ -463,21 +446,6 @@
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }).format(data ?? 0);
-                    }
-                },
-                {
-                    data: 'fsudahtagih',
-                    name: 'fsudahtagih',
-                    render: function(data, type) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        const isFinished = (data ?? '0').toString().trim() === '1';
-                        
-                        return isFinished 
-                            ? '<span class="font-bold text-center block">✓</span>' 
-                            : '';
                     }
                 },
                 {
