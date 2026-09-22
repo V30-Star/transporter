@@ -552,11 +552,6 @@
                             </div>
 
                             @if ($action === 'view' || $action === 'delete')
-                                <div>
-                                    <label class="block text-xs font-bold mb-1">Pembayaran</label>
-                                    <input type="text" value="{{ $invoice->fpembayaran ?? '-' }}" readonly
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 cursor-not-allowed">
-                                </div>
                                 @if ($action === 'view')
                                     @php
                                         $selectedTp = isset($selectedTypePembayaranId)
@@ -567,57 +562,12 @@
                                                 return strtoupper(trim($tp->fmastername)) === strtoupper(trim($invoice->fpembayaran));
                                             });
                                         }
-                                    @endphp
-                                    @if ($selectedTp)
-                                        @php
+                                        if ($selectedTp) {
                                             $tpBiayaPersen = (float)($selectedTp->fnumvalue ?? 0);
                                             $tpBiayaRp     = (float)($invoice->fongkosangkut ?? 0);
                                             $isTunai       = (string)($invoice->ftunai ?? '0') === '1';
-                                        @endphp
-                                        <div class="mt-2 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 overflow-hidden text-xs shadow-sm">
-                                            {{-- Header badge --}}
-                                            <div class="flex items-center justify-between px-3 py-2 bg-indigo-600 text-white">
-                                                <span class="font-bold tracking-wide text-sm">Tipe Pembayaran</span>
-                                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $isTunai ? 'bg-emerald-400 text-white' : 'bg-yellow-300 text-yellow-900' }}">
-                                                    {{ $isTunai ? 'TUNAI' : 'NON-TUNAI' }}
-                                                </span>
-                                            </div>
-                                            {{-- Detail rows --}}
-                                            <div class="divide-y divide-indigo-100 px-3 py-1">
-                                                <div class="flex justify-between items-center py-1.5">
-                                                    <span class="text-gray-500 font-medium">Nama</span>
-                                                    <span class="font-bold text-indigo-800">{{ $selectedTp->fmastername }}</span>
-                                                </div>
-                                                @if (!empty($selectedTp->faccount))
-                                                <div class="flex justify-between items-center py-1.5">
-                                                    <span class="text-gray-500 font-medium">Account</span>
-                                                    <span class="font-semibold text-gray-700">
-                                                        {{ !empty($selectedTp->faccname) ? $selectedTp->faccname : $selectedTp->faccount }}
-                                                        @if (!empty($selectedTp->faccname))
-                                                            <span class="text-gray-400 font-normal text-xs">({{ $selectedTp->faccount }})</span>
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                                @endif
-                                                @if ($tpBiayaPersen > 0)
-                                                <div class="flex justify-between items-center py-1.5">
-                                                    <span class="text-gray-500 font-medium">Biaya/Charge</span>
-                                                    <span class="font-semibold text-orange-600">{{ number_format($tpBiayaPersen, 2, ',', '.') }}%</span>
-                                                </div>
-                                                @endif
-                                                @if ($tpBiayaRp > 0)
-                                                <div class="flex justify-between items-center py-1.5">
-                                                    <span class="text-gray-500 font-medium">Biaya (Rp)</span>
-                                                    <span class="font-semibold text-orange-600">{{ number_format($tpBiayaRp, 2, ',', '.') }}</span>
-                                                </div>
-                                                @endif
-                                                <div class="flex justify-between items-center py-1.5">
-                                                    <span class="text-gray-500 font-medium">Grand Total</span>
-                                                    <span class="font-extrabold text-blue-700">{{ number_format((float)($invoice->famountso ?? 0), 2, ',', '.') }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
+                                        }
+                                    @endphp
                                 @endif
                             @endif
                             <input type="hidden" name="fpembayaran" id="retailFpembayaran"
@@ -871,7 +821,55 @@
                                 </template>
                             </div>
 
-                            <div class="mt-3 flex justify-end w-full">
+                            <div class="mt-3 flex justify-between items-start gap-4 w-full">
+                                <!-- Kiri: Kartu Tipe Pembayaran (view only) -->
+                                @if ($action === 'view' && !empty($selectedTp))
+                                <div class="w-full sm:w-80 max-w-sm">
+                                    <div class="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 overflow-hidden text-xs shadow-sm">
+                                        <div class="flex items-center justify-between px-3 py-2 bg-indigo-600 text-white">
+                                            <span class="font-bold tracking-wide text-sm">Tipe Pembayaran</span>
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $isTunai ? 'bg-emerald-400 text-white' : 'bg-yellow-300 text-yellow-900' }}">
+                                                {{ $isTunai ? 'TUNAI' : 'NON-TUNAI' }}
+                                            </span>
+                                        </div>
+                                        <div class="divide-y divide-indigo-100 px-3 py-1">
+                                            <div class="flex justify-between items-center py-1.5">
+                                                <span class="text-gray-500 font-medium">Nama</span>
+                                                <span class="font-bold text-indigo-800">{{ $selectedTp->fmastername }}</span>
+                                            </div>
+                                            @if (!empty($selectedTp->faccount))
+                                            <div class="flex justify-between items-center py-1.5">
+                                                <span class="text-gray-500 font-medium">Account</span>
+                                                <span class="font-semibold text-gray-700">
+                                                    {{ !empty($selectedTp->faccname) ? $selectedTp->faccname : $selectedTp->faccount }}
+                                                    @if (!empty($selectedTp->faccname))
+                                                        <span class="text-gray-400 font-normal text-xs">({{ $selectedTp->faccount }})</span>
+                                                    @endif
+                                                </span>
+                                            </div>
+                                            @endif
+                                            @if ($tpBiayaPersen > 0)
+                                            <div class="flex justify-between items-center py-1.5">
+                                                <span class="text-gray-500 font-medium">Biaya/Charge</span>
+                                                <span class="font-semibold text-orange-600">{{ number_format($tpBiayaPersen, 2, ',', '.') }}%</span>
+                                            </div>
+                                            @endif
+                                            @if ($tpBiayaRp > 0)
+                                            <div class="flex justify-between items-center py-1.5">
+                                                <span class="text-gray-500 font-medium">Biaya (Rp)</span>
+                                                <span class="font-semibold text-orange-600">{{ number_format($tpBiayaRp, 2, ',', '.') }}</span>
+                                            </div>
+                                            @endif
+                                            <div class="flex justify-between items-center py-1.5">
+                                                <span class="text-gray-500 font-medium">Grand Total</span>
+                                                <span class="font-extrabold text-blue-700">{{ number_format((float)($invoice->famountso ?? 0), 2, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @else
+                                <div></div>
+                                @endif
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-full sm:w-96 max-w-md">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
