@@ -102,11 +102,15 @@ class ListingPenjualanController extends Controller
             $query->whereIn('m.fbranchcode', (array) $selectedBranches);
         }
 
-        if ($request->date_from) {
-            $query->where('m.fsodate', '>=', $request->date_from);
-        }
-        if ($request->date_to) {
-            $query->where('m.fsodate', '<=', $request->date_to . ' 23:59:59');
+        if ($request->filled('date')) {
+            $query->whereDate('m.fsodate', $request->date);
+        } else {
+            if ($request->date_from) {
+                $query->where('m.fsodate', '>=', $request->date_from);
+            }
+            if ($request->date_to) {
+                $query->where('m.fsodate', '<=', $request->date_to . ' 23:59:59');
+            }
         }
         $selectedProducts = collect(explode(',', (string) $request->selected_products))
             ->map(fn ($code) => trim($code))

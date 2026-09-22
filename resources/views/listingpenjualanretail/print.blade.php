@@ -496,9 +496,9 @@
         $displayText = request('display_type') === 'rekap' ? 'Rekap' : 'Detail';
         $returText = request()->boolean('include_retur_penjualan') ? 'Ya' : 'Tidak';
 
-        $dateFromFmt = request('date_from') ? date('d-m-Y', strtotime(request('date_from'))) : '...';
-        $dateToFmt = request('date_to') ? date('d-m-Y', strtotime(request('date_to'))) : '...';
-        $period = $dateFromFmt . ' s/d ' . $dateToFmt;
+        $period = request('date')
+            ? date('d-m-Y', strtotime(request('date')))
+            : ((request('date_from') ? date('d-m-Y', strtotime(request('date_from'))) : '...') . ' s/d ' . (request('date_to') ? date('d-m-Y', strtotime(request('date_to'))) : '...'));
     @endphp
 
     <div class="no-print">
@@ -556,41 +556,6 @@
                                 <td>{{ $branchText }}</td>
                             </tr>
                             <tr>
-                                <td class="info-col-label">Customer</td>
-                                <td>:</td>
-                                <td>{{ $customerText }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Produk</td>
-                                <td>:</td>
-                                <td>{{ $productText }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Group Produk</td>
-                                <td>:</td>
-                                <td>{{ $groupText }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Merek</td>
-                                <td>:</td>
-                                <td>{{ $merekText }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Salesman</td>
-                                <td>:</td>
-                                <td>{{ $salesmanText }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    {{-- Kanan --}}
-                    <div style="flex: 1; padding-left: 5px;">
-                        <table class="info-col-table">
-                            <tr>
-                                <td class="info-col-label">Periode</td>
-                                <td style="width: 8px;">:</td>
-                                <td style="font-weight: bold;">{{ $period }}</td>
-                            </tr>
-                            <tr>
                                 <td class="info-col-label">Tipe</td>
                                 <td>:</td>
                                 <td>{{ $salesTypeText }}</td>
@@ -605,10 +570,15 @@
                                 <td>:</td>
                                 <td>{{ $displayText }}</td>
                             </tr>
+                        </table>
+                    </div>
+                    {{-- Kanan --}}
+                    <div style="flex: 1; padding-left: 5px;">
+                        <table class="info-col-table">
                             <tr>
-                                <td class="info-col-label">Retur Penjualan</td>
-                                <td>:</td>
-                                <td>{{ $returText }}</td>
+                                <td class="info-col-label">Periode</td>
+                                <td style="width: 8px;">:</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
                             </tr>
                             <tr>
                                 <td class="info-col-label">Tanggal</td>
