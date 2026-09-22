@@ -1204,7 +1204,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('printLaporanUangKasir'))
+                    <!-- @if ($hasSidebarPermission('printLaporanUangKasir'))
                         <li>
                             <a href="{{ route('laporanuangkasir.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1212,7 +1212,7 @@
                                 <span class="ml-3">{{ 'Laporan Uang Kasir' }}</span>
                             </a>
                         </li>
-                    @endif
+                    @endif -->
 
                     @if ($hasSidebarPermission('printLaporanBayarSupplier'))
                         <li>
