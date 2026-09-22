@@ -374,6 +374,16 @@ class DashboardWewenangController extends Controller
                 'approve' => [],
                 'other' => [],
             ],
+            'Laporan Uang Kasir' => [
+                'group' => 'Kas & Bank',
+                'view' => [],
+                'create' => [],
+                'update' => [],
+                'delete' => [],
+                'print' => ['printLaporanUangKasir'],
+                'approve' => [],
+                'other' => [],
+            ],
             'Jurnal Transaksi' => [
                 'group' => 'Kas & Bank',
                 'view' => ['viewjurnaltransaksi'],

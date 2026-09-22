@@ -1204,6 +1204,16 @@
                         </li>
                     @endif
 
+                    @if ($hasSidebarPermission('printLaporanUangKasir'))
+                        <li>
+                            <a href="{{ route('laporanuangkasir.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-cash-register w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Laporan Uang Kasir' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
                     @if ($hasSidebarPermission('printLaporanBayarSupplier'))
                         <li>
                             <a href="{{ route('reportingpelunasansupplier.index') }}"

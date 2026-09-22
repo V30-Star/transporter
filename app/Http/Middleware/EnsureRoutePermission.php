@@ -82,6 +82,7 @@ class EnsureRoutePermission
         'reportingpelunasancustomer' => 'printLaporanPelunasanCustomer',
         'listingpenerimaankasbank' => 'printListingPenerimaanKasBank',
         'listingpengeluarankasbank' => 'printListingPengeluaranKasBank',
+        'laporanuangkasir' => 'printLaporanUangKasir',
         'reportingpelunasansupplier' => 'printLaporanBayarSupplier',
         'listingjurnal' => 'printListingJurnalTransaksi',
         'bukubesar' => 'printBukuBesar',

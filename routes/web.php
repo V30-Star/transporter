@@ -29,6 +29,7 @@ use App\Http\Controllers\ListingFakturPajakPenjualanController;
 use App\Http\Controllers\ListingHutangDagangController;
 use App\Http\Controllers\ListingJurnalController;
 use App\Http\Controllers\LaporanKartuStokController;
+use App\Http\Controllers\LaporanUangKasirController;
 use App\Http\Controllers\ListingMutasiStokController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenerimaanKasBankController;
@@ -737,6 +738,9 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/listingpengeluarankasbank', [ListingPengeluaranKasBankController::class, 'index'])->name('listingpengeluarankasbank.index');
         Route::get('/listingpengeluarankasbank/print', [ListingPengeluaranKasBankController::class, 'print'])->name('listingpengeluarankasbank.print');
         Route::get('/listingpengeluarankasbank/excel', [ListingPengeluaranKasBankController::class, 'exportExcel'])->name('listingpengeluarankasbank.excel');
+
+        Route::get('/laporanuangkasir', [LaporanUangKasirController::class, 'index'])->name('laporanuangkasir.index');
+        Route::get('/laporanuangkasir/print', [LaporanUangKasirController::class, 'print'])->name('laporanuangkasir.print');
 
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
