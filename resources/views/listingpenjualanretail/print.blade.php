@@ -673,6 +673,7 @@
             $totPajak = 0;
             $totOngkos = 0;
             $totGrand = 0;
+            $payBreakdown = [];
         @endphp
 
         @foreach ($groupedData as $fsono => $details)
@@ -691,6 +692,9 @@
                 $totPajak += (float) $h->famountpajak * $sign;
                 $totOngkos += (float) $h->fongkosangkut * $sign;
                 $totGrand += (float) $h->famountso * $sign;
+                $payKey = trim((string) ($h->fpembayaran ?? ''));
+                if ($payKey === '') $payKey = '-';
+                $payBreakdown[$payKey] = ($payBreakdown[$payKey] ?? 0) + (float) $h->famountso * $sign;
             @endphp
             <div class="journal-block">
                 <div class="sales-header {{ $isReturn ? 'text-rej' : '' }}">
@@ -736,10 +740,25 @@
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
-            <div class="po-totals-container">
-                <div class="po-total-row grand-total-row">
-                    <span>GRAND TOTAL NILAI FAKTUR</span>
-                    <span>Rp {{ number_format((float) $totGrand, 2, ',', '.') }}</span>
+            <div style="display: flex; gap: 24px; align-items: flex-start;">
+                {{-- Kiri: Perincian Pembayaran --}}
+                @if (!empty($payBreakdown))
+                <div style="font-size: 9px; min-width: 180px;">
+                    <div style="font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px;">Perincian Pembayaran</div>
+                    @foreach ($payBreakdown as $pay => $amt)
+                    <div style="display: flex; justify-content: space-between; gap: 12px; padding: 1px 0;">
+                        <span>{{ $pay }}</span>
+                        <span style="font-family: 'IBM Plex Mono', monospace;">{{ number_format((float) $amt, 2, ',', '.') }}</span>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+                {{-- Kanan: Grand Total --}}
+                <div class="po-totals-container" style="flex: 1;">
+                    <div class="po-total-row grand-total-row">
+                        <span>GRAND TOTAL NILAI FAKTUR</span>
+                        <span>Rp {{ number_format((float) $totGrand, 2, ',', '.') }}</span>
+                    </div>
                 </div>
             </div>
         </div>

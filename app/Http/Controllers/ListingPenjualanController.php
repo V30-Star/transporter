@@ -27,7 +27,13 @@ class ListingPenjualanController extends Controller
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
-        return view($this->viewPrefix . '.index', compact('groups', 'mereks', 'salesmans', 'branches', 'products', 'customers', 'isAuthorized', 'userBranchCode'));
+        $typePembayarans = DB::table('tbmaster')
+            ->where('ftblcode', 'TYPEBAYAR')
+            ->orderBy('fmasternum', 'asc')
+            ->orderBy('fmastername', 'asc')
+            ->pluck('fmastername');
+
+        return view($this->viewPrefix . '.index', compact('groups', 'mereks', 'salesmans', 'branches', 'products', 'customers', 'isAuthorized', 'userBranchCode', 'typePembayarans'));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -134,6 +140,12 @@ class ListingPenjualanController extends Controller
         }
         if ($request->filled('ftypesales')) {
             $query->where('m.ftypesales', $request->ftypesales);
+        }
+        if ($request->filled('fpembayaran')) {
+            $query->whereRaw('TRIM(UPPER(m.fpembayaran)) = ?', [strtoupper(trim($request->fpembayaran))]);
+        }
+        if ($request->filled('kasir')) {
+            $query->whereRaw('TRIM(m.fuserid) ILIKE ?', ['%' . trim($request->kasir) . '%']);
         }
         if ($request->has('belum_kirim')) {
             $query->where('d.fqtyremain', '>', 0);

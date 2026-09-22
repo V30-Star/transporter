@@ -146,27 +146,24 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Tipe Penjualan</label>
-                                <select name="ftypesales" class="w-full border rounded px-3 py-2 text-sm">
-                                    <option value="">-- Semua Tipe --</option>
-                                    <option value="1">Uang Muka (UM)</option>
-                                    <option value="0">Penjualan</option>
+                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Pembayaran</label>
+                                <select name="fpembayaran" class="w-full border rounded px-3 py-2 text-sm">
+                                    <option value="">-- Semua Pembayaran --</option>
+                                    @foreach ($typePembayarans as $tp)
+                                        <option value="{{ $tp }}">{{ $tp }}</option>
+                                    @endforeach
                                 </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Kasir</label>
+                                <input type="text" name="kasir" class="w-full border rounded px-3 py-2 text-sm" placeholder="Cari kasir...">
                             </div>
                         </div>
 
                         <!-- Options Row (Inline) -->
                         <div class="flex items-center gap-3">
-                            <div class="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
-                                <div class="flex gap-6">
-                                    <label class="flex items-center text-sm font-semibold cursor-pointer select-none">
-                                        <input type="checkbox" name="semua_faktur" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"> Semua Faktur
-                                    </label>
-                                    <label class="flex items-center text-sm font-semibold cursor-pointer select-none">
-                                        <input type="checkbox" name="belum_kirim" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"> Belum Di Kirim
-                                    </label>
-                                </div>
-                                <hr class="border-gray-200">
+                            <div class="flex-1 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                 <div class="flex gap-6">
                                     <label class="flex items-center text-sm font-semibold text-blue-700 cursor-pointer select-none">
                                         <input type="radio" name="display_type" value="detail" checked class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> DETAIL
