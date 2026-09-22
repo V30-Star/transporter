@@ -498,26 +498,24 @@
                                         <th class="px-3 py-2 text-left">Tanggal</th>
                                         <th class="px-3 py-2 text-left">Nama Customer</th>
                                         <th class="px-3 py-2 text-right">Qty</th>
-                                        <th class="px-3 py-2 text-left">Satuan</th>
                                         <th class="px-3 py-2 text-left">Salesman</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     <template x-for="(item, i) in $store.laporanStore.outstandingSoData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs" x-text="item.fcabangkode || '-'"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-600 font-mono text-xs" x-text="item.fbranchcode || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900">
                                                 <a :href="'{{ route('salesorder.index') }}/' + encodeURIComponent(item.fsono) + '/view'" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-medium" x-text="item.fsono"></a>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsodate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fcustname"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fcustomername || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsatuan || '-'"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsalesman || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
-                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
+                                        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Tidak ada data Outstanding SO.</td>
                                     </tr>
                                 </tbody>
                             </table>

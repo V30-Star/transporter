@@ -1385,31 +1385,57 @@ class ProductController extends Controller
         ]);
 
         $outstandingSo = DB::select("
-            SELECT 
+            SELECT
                 m.fsono,
-                m.fcustno,
-                c.fcustomername AS fcustname,
-                d.fprdcode,
+                m.fsalesman,
                 m.fsodate,
-                m.fcurrency,
-                d.fpricenet AS fpricefaktur,
-                d.fqty,
-                d.fsatuan,
-                s.fsalesmanname AS fsalesman,
-                m.fbranchcode AS fcabangkode
-            FROM tranmt m
-            INNER JOIN trandt d     ON m.fsono = d.fsono
-            INNER JOIN mscustomer c ON m.fcustno = c.fcustomercode
-            LEFT JOIN mssalesman s  ON m.fsalesman = s.fsalesmancode
-            WHERE m.ftrcode = 'INV'
+                m.fcustno,
+                c.fcustomername,
+                (d.fqty - COALESCE(s.fqtysrj, 0)) AS fqty,
+                d.fprdcode,
+                m.fbranchcode
+            FROM trsomt m
+            LEFT JOIN trsodt d ON m.fsono = d.fsono
+            LEFT JOIN (
+                SELECT
+                    frefdtno,
+                    fprdcode,
+                    fnoacak,
+                    SUM(fqty) AS fqtysrj
+                FROM trstockdt
+                WHERE fstockmtcode = 'SRJ'
+                  AND fcode = 'S'
+                GROUP BY frefdtno, fprdcode, fnoacak
+
+                UNION ALL
+
+                SELECT
+                    s.frefso AS frefdtno,
+                    s.fprdcode,
+                    n.fnoacak,
+                    SUM(s.fqty) AS fqtysrj
+                FROM trstockdt s
+                INNER JOIN trandt n
+                    ON s.frefdtno = n.fsono
+                   AND s.fprdcode = n.fprdcode
+                   AND s.fnoacak = n.fnou
+                WHERE s.fstockmtcode = 'SRJ'
+                  AND s.fcode = 'F'
+                GROUP BY s.frefso, s.fprdcode, n.fnoacak
+            ) s
+                ON m.fsono = s.frefdtno
+               AND d.fprdcode = s.fprdcode
+               AND d.fnoacak = s.fnoacak
+            LEFT JOIN mscustomer c ON m.fcustno = c.fcustomercode
+            WHERE (d.fqty - COALESCE(s.fqtysrj, 0)) > 0
+              AND m.fclose = '0'
               AND d.fprdcode = :fprdcode
-              AND m.fbranchcode = :fbranchcode
-            ORDER BY 
-                m.fsodate DESC 
+              AND m.fbranchcode >= :branchCode
+            ORDER BY m.fsono ASC
             LIMIT 100
         ", [
             'fprdcode' => $product->fprdcode,
-            'fbranchcode' => $branchCode,
+            'branchCode' => $branchCode,
         ]);
 
         return response()->json([

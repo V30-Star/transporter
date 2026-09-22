@@ -355,6 +355,16 @@
             }
             inputFongkos.value = biayaNominal;
 
+            const modalGrandTotal = parseRetailMoney(document.getElementById('modal_grand_total')?.dataset?.raw || '0');
+            let inputGrandTotal = retailActiveForm.querySelector('input[name="famountso"]');
+            if (!inputGrandTotal) {
+                inputGrandTotal = document.createElement('input');
+                inputGrandTotal.type = 'hidden';
+                inputGrandTotal.name = 'famountso';
+                retailActiveForm.appendChild(inputGrandTotal);
+            }
+            inputGrandTotal.value = modalGrandTotal;
+
             let inputFpembayaran = retailActiveForm.querySelector('[name="fpembayaran"]');
             if (!inputFpembayaran) {
                 inputFpembayaran = document.createElement('input');
