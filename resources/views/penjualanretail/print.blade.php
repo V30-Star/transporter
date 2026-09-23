@@ -15,33 +15,30 @@
 
         * {
             box-sizing: border-box;
-            -webkit-font-smoothing: none;
-            text-rendering: geometricPrecision;
         }
 
         body {
             margin: 0;
             background: #ececec;
-            font: bold 11px Consolas, 'Courier New', Courier, monospace;
+            font: 11px Consolas, 'Courier New', Courier, monospace;
             color: var(--fg);
         }
 
         @page {
-            size: A4 portrait;
-            margin: 4mm 8mm;
+            size: auto;
+            margin: 0;
         }
 
         .sheet {
-            width: 100%;
+            width: 7.1in;
             min-height: auto;
             margin: 0.15in auto;
-            padding: 0.15in 0.2in 0.1in 0.2in;
+            padding: 0.12in 0.2in 0.1in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
-            font-weight: bold;
         }
 
         .header-row {
@@ -80,25 +77,20 @@
             text-align: right;
         }
 
-        .customer-container {
+        fieldset.customer-container {
             border: 1.5px solid #000;
             border-radius: 0;
-            padding: 3px 5px;
+            padding: 2px 6px 4px 6px;
             width: 100%;
-            position: relative;
-            margin-top: 4px;
+            margin: 4px 0 0 0;
             box-sizing: border-box;
-            font-weight: bold;
         }
 
-        .customer-label {
-            position: absolute;
-            top: -7px;
-            left: 8px;
-            background: #fff;
-            padding: 0 4px;
+        legend.customer-label {
             font-size: 9.5px;
             font-weight: bold;
+            padding: 0 4px;
+            margin-left: 6px;
         }
 
         .info-table {
@@ -288,12 +280,12 @@
 
         @media print {
             @page {
-                size: 8.27in auto;
+                size: auto;
                 margin: 0;
             }
 
             html, body {
-                width: 8.27in !important;
+                width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -304,18 +296,12 @@
             * {
                 color: #000 !important;
                 -webkit-text-fill-color: #000 !important;
-                background: transparent !important;
                 box-shadow: none !important;
                 text-shadow: none !important;
-                font-weight: 700 !important;
             }
 
             body, table, th, td, div, span, p {
                 font-family: Consolas, 'Courier New', Courier, monospace !important;
-                font-size: 12px !important;
-                font-weight: 700 !important;
-                -webkit-font-smoothing: none !important;
-                text-rendering: optimizeSpeed !important;
                 letter-spacing: 0 !important;
             }
 
@@ -324,12 +310,12 @@
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 8.27in !important;
-                max-width: 8.27in !important;
+                width: 7.1in !important;
+                max-width: 7.1in !important;
                 height: auto !important;
                 min-height: unset !important;
                 max-height: unset !important;
-                padding: 0.2in 0.4in 0.1in 0.4in !important;
+                padding: 0.12in 0.2in 0.08in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: visible !important;
                 page-break-inside: avoid !important;
@@ -342,10 +328,6 @@
             .sheet:only-child {
                 page-break-after: avoid !important;
                 break-after: avoid !important;
-            }
-
-            .customer-label {
-                background: #fff !important;
             }
 
             .no-print, .print-hide, #raw-templates {
@@ -403,8 +385,8 @@
                 </div>
             </div>
 
-            <div class="customer-container">
-                <span class="customer-label">Customer</span>
+            <fieldset class="customer-container">
+                <legend class="customer-label">Customer</legend>
                 <div style="display: flex; justify-content: space-between; align-items: stretch;">
                     <div style="width: 50%; box-sizing: border-box; padding-right: 6px; border-right: 1px solid #000;">
                         <div style="font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -424,7 +406,7 @@
                             <tr>
                                 <td>Sales</td>
                                 <td>:</td>
-                                <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
+                                <td><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</span></td>
                             </tr>
                             <tr>
                                 <td>Hal</td>
@@ -434,7 +416,7 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            </fieldset>
         </div>
 
         {{-- Table Head Template --}}
@@ -560,7 +542,8 @@
             printContainer.innerHTML = '';
 
             // Usable content height for A4 portrait sheet (11in = ~1056px at 96dpi, minus padding)
-            const MAX_SHEET_CONTENT_HEIGHT = 950;
+            // Usable content height for 9.5 x 5.5 inch continuous form sheet (~528px at 96dpi minus margins)
+            const MAX_SHEET_CONTENT_HEIGHT = 485;
 
             function getContentHeight(sheet) {
                 let total = 0;
