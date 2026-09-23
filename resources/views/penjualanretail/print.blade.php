@@ -127,15 +127,19 @@
         }
 
         .table-header-main {
-            color: #1d4ed8;
+            color: #000;
             font-weight: bold;
-            text-align: center !important;
+            text-align: left !important;
         }
 
         .table-header-detail {
-            color: #dc2626;
+            color: #000;
             font-weight: bold;
-            text-align: center !important;
+            text-align: left !important;
+        }
+
+        .row-no {
+            text-align: left !important;
         }
 
         .tb td {
@@ -233,9 +237,9 @@
         }
 
         .meta-right {
-            font-size: 10px;
+            font-size: 7.5px;
             text-align: right;
-            white-space: nowrap;
+            line-height: 1.2;
         }
 
         .no-print, .print-hide {
@@ -360,6 +364,7 @@
         $fdiscount = (float) ($hdr->fdiscount ?? 0);
         $fongkosangkut = (float) ($hdr->fongkosangkut ?? 0);
         $totalQty = collect($dt)->sum(fn ($row) => (float) ($row->fqty ?? 0));
+        $totalQtyKecil = collect($dt)->sum(fn ($row) => (float) ($row->fqtykecil ?? 0));
 
         // Generator Plain-Text Nota 40 Kolom (Standar Dot Matrix ESC/P & POS)
         $lineWidth = 40;
@@ -385,23 +390,24 @@
         $plainLines[] = $pad("CUST  : " . substr($custName, 0, 16), 24) . $pad("SLS: " . substr($hdr->salesman_name ?? ($hdr->fsalesname ?? '-'), 0, 10), 16, STR_PAD_LEFT);
         $plainLines[] = $dividerDash;
         $plainLines[] = "NO NAMA BARANG";
-        $plainLines[] = "   KODE           QTY   @HARGA     TOTAL";
+        $plainLines[] = $pad("KODE", 14) . " " . $pad("QTY", 5, STR_PAD_LEFT) . " " . $pad("@HARGA", 9, STR_PAD_LEFT) . " " . $pad("TOTAL", 9, STR_PAD_LEFT);
         $plainLines[] = $dividerDash;
 
         foreach ($dt as $idx => $r) {
-            $no = str_pad($idx + 1, 2, ' ', STR_PAD_LEFT);
+            $no = str_pad($idx + 1, 2, ' ', STR_PAD_RIGHT);
             $pName = trim(format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: ($r->fdesc ?? '-'));
             $plainLines[] = $no . " " . substr($pName, 0, 37);
 
-            $code = $pad("   " . substr($r->fprdcode ?? '-', 0, 12), 15);
+            $code = $pad(substr($r->fprdcode ?? '-', 0, 14), 14);
             $qty = $pad($fmtNum($r->fqty ?? 0), 5, STR_PAD_LEFT);
             $price = $pad($fmtNum($r->fprice ?? 0), 9, STR_PAD_LEFT);
-            $amt = $pad($fmtNum($r->famount ?? 0), 10, STR_PAD_LEFT);
+            $amt = $pad($fmtNum($r->famount ?? 0), 9, STR_PAD_LEFT);
             $plainLines[] = $code . " " . $qty . " " . $price . " " . $amt;
         }
 
         $plainLines[] = $dividerDash;
         $plainLines[] = $pad("TOTAL QTY: " . $fmtNum($totalQty), 20) . $pad("TOTAL : " . $pad($fmtNum($famountgross), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
+        $plainLines[] = $pad("TOTAL ISI: " . $fmtNum($totalQtyKecil), 20) . ($fdiscount > 0 ? $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT) : $pad("", 20));
         if ($fdiscount > 0) {
             $plainLines[] = $pad("", 20) . $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         }
@@ -439,31 +445,26 @@
 
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
-                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 8px;">
-                    <div style="width: 52%; padding-right: 6px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold; font-size: 9.5px;">
+                <div style="display: flex; justify-content: space-between; align-items: stretch;">
+                    <div style="width: 50%; box-sizing: border-box; padding-right: 6px; border-right: 1px solid #000;">
+                        <div style="font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fcustno) ? ' (' . $hdr->fcustno . ')' : '') : ($hdr->fcustno ?: '-') }}
                         </div>
-                        <div style="font-size: 9px; margin-top: 2px; white-space: pre-line; line-height: 1.2;">
+                        <div style="font-size: 8.5px; margin-top: 1px; white-space: pre-line; line-height: 1.15; max-height: 28px; overflow: hidden;">
                             {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
-                    <div style="width: 48%;">
+                    <div style="width: 50%; box-sizing: border-box; padding-left: 6px;">
                         <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
-                                <td style="width: 42px;">Tanggal</td>
-                                <td style="width: 6px;">:</td>
+                                <td style="width: 38px;">Tanggal</td>
+                                <td style="width: 5px;">:</td>
                                 <td>{{ $fmt($hdr->fsodate) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Tempo</td>
-                                <td>:</td>
-                                <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
                             </tr>
                             <tr>
                                 <td>Sales</td>
                                 <td>:</td>
-                                <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
+                                <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
                             </tr>
                         </table>
                     </div>
@@ -472,41 +473,38 @@
         </div>
 
         {{-- Table Head Template --}}
-        <table id="tpl-table" style="table-layout: fixed;">
-            <colgroup>
-                <col style="width: 8%;">
-                <col style="width: 42%;">
-                <col style="width: 18%;">
-                <col style="width: 11%;">
-                <col style="width: 11%;">
-                <col style="width: 10%;">
-            </colgroup>
+        <table id="tpl-table">
             <thead id="tpl-thead">
                 <tr>
-                    <th style="width: 8%;" class="table-header-main">No.</th>
-                    <th style="width: 42%; text-align: left !important;" class="table-header-main">Nama Produk</th>
-                    <th colspan="4" style="width: 50%;"></th>
+                    <th colspan="6" style="padding: 2.5px 2px; text-align: left !important;" class="table-header-main">
+                        <div style="display: flex; align-items: flex-start; gap: 4px;">
+                            <span style="min-width: 20px; text-align: left !important;">No.</span>
+                            <span style="flex: 1; text-align: left !important;">Nama Produk</span>
+                        </div>
+                    </th>
                 </tr>
                 <tr>
-                    <th style="width: 18%; text-align: left !important;" class="table-header-detail">Kode Produk</th>
-                    <th style="width: 10%; text-align: right !important;" class="table-header-detail">Quantity</th>
-                    <th style="width: 12%; text-align: right !important;" class="table-header-detail">@ Harga</th>
-                    <th style="width: 10%; text-align: right !important;" class="table-header-detail" colspan="3">Total Harga</th>
+                    <th style="width: 26%; text-align: left !important;" class="table-header-detail">Kode Produk</th>
+                    <th style="width: 14%; text-align: right !important;" class="table-header-detail">Qty</th>
+                    <th style="width: 26%; text-align: right !important;" class="table-header-detail">@ Harga</th>
+                    <th style="width: 34%; text-align: right !important;" class="table-header-detail" colspan="3">Total Harga</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
-                        <td class="text-center row-no" style="color: #000; font-weight: bold;">{{ $i + 1 }}</td>
-                        <td colspan="5" style="color: #000; font-weight: bold;">
-                            <div style="white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</div>
+                        <td colspan="6" style="color: #000; text-align: left !important; padding: 2px 2px;">
+                            <div style="display: flex; align-items: flex-start; gap: 4px;">
+                                <span class="row-no" style="min-width: 20px; text-align: left !important;">{{ $i + 1 }}</span>
+                                <span style="flex: 1; text-align: left !important; white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
+                            </div>
                         </td>
                     </tr>
                     <tr>
-                        <td style="color: #000;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="color: #000;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="color: #000;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="color: #000;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td style="width: 26%; color: #000; text-align: left !important;">{{ $r->fprdcode ?? '-' }}</td>
+                        <td class="text-right" style="width: 14%; color: #000;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="width: 26%; color: #000;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="width: 34%; color: #000;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -514,45 +512,61 @@
 
         {{-- Summary & Signature Template (Last Page) --}}
         <div id="tpl-summary">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px;">
-                {{-- Kolom Kiri & Tengah: Terbilang di atas, Hormat Kami & Rekening sejajar di bawahnya --}}
-                <div style="width: 50%; display: flex; flex-direction: column;">
-                    <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 8px;">
-                        <div style="width: 100%; max-width: 120px; text-align: center;">
-                            <div style="font-size: 9.5px;">Dibuat Oleh,</div>
-                            <div style="margin-top: 28px; font-size: 9.5px; font-weight: bold; white-space: nowrap;">
-                                ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
-                            </div>
-                        </div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px; gap: 4px;">
+                {{-- Kolom Kiri: Dibuat Oleh --}}
+                <div style="flex: 0 0 20%; text-align: center;">
+                    <div style="font-size: 8.5px;">Dibuat Oleh,</div>
+                    <div style="margin-top: 30px; font-size: 8.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: Summary Total & Metadata --}}
-                <div style="width: 48%;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                {{-- Kolom Tengah: Total Qty & Total Isi --}}
+                <div style="flex: 0 0 24%; margin-top: 2px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Total</td>
-                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
+                            <td style="padding: 1px 0; white-space: nowrap;">Tot.Qty</td>
+                            <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQty, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
-                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Biaya/Charge</td>
-                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr style="font-weight: bold; color: var(--blue); font-size: 11px;">
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 2px 0; white-space: nowrap;">Grand Total</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; width: 8px; text-align: center; padding: 2px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 2px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                            <td style="padding: 1px 0; white-space: nowrap;">Tot.Isi</td>
+                            <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQtyKecil, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 4px; font-size: 8.5px;">
-                        <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                </div>
+
+                {{-- Kolom Kanan: Summary Total & Metadata --}}
+                <div style="flex: 0 0 52%;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8.5px;">
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap; width: 45px;">Total</td>
+                            <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
+                        </tr>
+                        @if($fdiscount > 0)
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
+                            <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        @if($fongkosangkut > 0)
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">Biaya</td>
+                            <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        <tr style="font-weight: bold; font-size: 9.5px;">
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                    <div class="meta-right" style="margin-top: 3px;">
+                        <div>Dicetak: {{ now()->format('d/m/y H:i') }} &nbsp;<span class="page-counter">Hal : 1 / 1</span></div>
                     </div>
                 </div>
             </div>
@@ -566,8 +580,8 @@
             </div>
             <div class="sign-container" style="margin-top: 10px;">
                 <div></div>
-                <div class="meta-right" style="font-size: 8.5px;">
-                    <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                <div class="meta-right">
+                    <div>Dicetak: {{ now()->format('d/m/y H:i') }} &nbsp;<span class="page-counter">Hal : 1 / 2</span></div>
                 </div>
             </div>
         </div>
@@ -585,7 +599,7 @@
             printContainer.innerHTML = '';
 
             // Usable content height for A6 portrait sheet (148mm = ~560px at 96dpi - padding/margins)
-            const MAX_SHEET_CONTENT_HEIGHT = 480;
+            const MAX_SHEET_CONTENT_HEIGHT = 455;
 
             function getContentHeight(sheet) {
                 let total = 0;
@@ -619,39 +633,58 @@
                 return { sheet, header, table, tbody, footerSlot };
             }
 
+            // Pair rows atomically per product item (name row + detail row)
+            const itemPairs = [];
+            for (let i = 0; i < rawRows.length; i += 2) {
+                const pair = [rawRows[i]];
+                if (i + 1 < rawRows.length) pair.push(rawRows[i + 1]);
+                itemPairs.push(pair);
+            }
+
             let currentSheet = createSheet();
             let sheets = [currentSheet];
 
-            for (let idx = 0; idx < rawRows.length; idx++) {
-                const row = rawRows[idx].cloneNode(true);
-                currentSheet.tbody.appendChild(row);
+            for (let itemIdx = 0; itemIdx < itemPairs.length; itemIdx++) {
+                const pair = itemPairs[itemIdx];
+                const clonedPair = pair.map(tr => tr.cloneNode(true));
+                clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
 
-                const isLastItem = (idx === rawRows.length - 1);
+                const isLastItem = (itemIdx === itemPairs.length - 1);
 
                 if (isLastItem) {
                     // Test if summary also fits on this sheet
                     currentSheet.footerSlot.innerHTML = '';
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
-
                     currentSheet.footerSlot.appendChild(summaryClone);
 
-                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
-                        // Move row and summary to next sheet
-                        currentSheet.tbody.removeChild(row);
-                        currentSheet.footerSlot.innerHTML = '';
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT) {
+                        if (currentSheet.tbody.children.length > clonedPair.length) {
+                            // Move this whole item pair to next sheet along with summary
+                            clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
+                            currentSheet.footerSlot.innerHTML = '';
 
-                        // Set continuation on current sheet
-                        const contClone = tplContinued.cloneNode(true);
-                        contClone.removeAttribute('id');
-                        currentSheet.footerSlot.appendChild(contClone);
+                            const contClone = tplContinued.cloneNode(true);
+                            contClone.removeAttribute('id');
+                            currentSheet.footerSlot.appendChild(contClone);
 
-                        // New sheet for the remaining item + summary
-                        currentSheet = createSheet();
-                        sheets.push(currentSheet);
+                            currentSheet = createSheet();
+                            sheets.push(currentSheet);
 
-                        currentSheet.tbody.appendChild(row);
-                        currentSheet.footerSlot.appendChild(summaryClone);
+                            clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        } else {
+                            // Only 1 item on this sheet, move summary to next sheet
+                            currentSheet.footerSlot.innerHTML = '';
+                            const contClone = tplContinued.cloneNode(true);
+                            contClone.removeAttribute('id');
+                            currentSheet.footerSlot.appendChild(contClone);
+
+                            currentSheet = createSheet();
+                            sheets.push(currentSheet);
+
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        }
                     }
                 } else {
                     // Test with continuation footer
@@ -660,14 +693,14 @@
                     contTest.removeAttribute('id');
                     currentSheet.footerSlot.appendChild(contTest);
 
-                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
-                        // Overflow! Move row to next sheet
-                        currentSheet.tbody.removeChild(row);
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > clonedPair.length) {
+                        // Overflow! Move this whole item pair to next sheet
+                        clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
 
                         currentSheet = createSheet();
                         sheets.push(currentSheet);
 
-                        currentSheet.tbody.appendChild(row);
+                        clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
                     }
                 }
             }
@@ -698,7 +731,7 @@
 
             // Re-index all rows globally 1..N
             let globalRow = 1;
-            document.querySelectorAll('#print-container tbody tr').forEach(tr => {
+            document.querySelectorAll('#print-container tbody tr.item-row').forEach(tr => {
                 const cell = tr.querySelector('.row-no');
                 if (cell) cell.innerText = globalRow++;
             });
@@ -709,6 +742,8 @@
         } else {
             runResponsivePagination();
         }
+
+        window.addEventListener('beforeprint', runResponsivePagination);
 
         let currentZoom = 1.0;
         function adjustZoom(delta) {
