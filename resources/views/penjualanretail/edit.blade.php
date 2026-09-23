@@ -6,9 +6,11 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
+        $permissionsLower = array_map('strtolower', array_filter(array_map('trim', $permissions)));
         $canEditPermission = in_array('updatePenjualanRetail', $permissions, true) || in_array('updateInvoice', $permissions, true);
         $canDeletePermission = in_array('deletePenjualanRetail', $permissions, true) || in_array('deleteInvoice', $permissions, true);
-        $canPenjualanTunai = in_array('BolehPenjualanTunai', $permissions, true);
+        $canPenjualanTunai = in_array('BolehPenjualanTunai', $permissions, true) || in_array('bolehpenjualantunai', $permissionsLower, true);
+        $canUbahHargaPenjualan = in_array('BolehUbahHargaPenjualan', $permissions, true) || in_array('bolehubahhargapenjualan', $permissionsLower, true);
     @endphp
     <style>
         input:focus,
@@ -755,7 +757,7 @@
                                                         @blur="activeRow = null; normalizeDiscountInput($event, it)"
                                                         @input="it.fdisc = $event.target.value; onRowUpdated(i)"
                                                         @keydown.enter.prevent="$event.target.blur()"
-                                                        {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
+                                                        :disabled="isDiscDisabled(it) || {{ in_array($action, ['view', 'delete'], true) ? 'true' : 'false' }}">
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
@@ -1831,6 +1833,7 @@
             savedItems: @json(count($initialEditInvoiceItems) ? $initialEditInvoiceItems : $savedItems ?? []),
             nextFormIndex: @json($nextInvoiceItemIndex),
             minimumVisibleRows: @json(count($initialEditInvoiceItems) ? count($initialEditInvoiceItems) + 5 : count($savedItems ?? []) + 5),
+            canUbahHarga: @json($canUbahHargaPenjualan),
             browseTarget: null,
             editingIndex: null,
             editRow: newRow(),
@@ -2139,6 +2142,12 @@
             },
 
             isPriceDisabled(row) {
+                if (!this.canUbahHarga) return true;
+                return false;
+            },
+
+            isDiscDisabled(row) {
+                if (!this.canUbahHarga) return true;
                 return false;
             },
 

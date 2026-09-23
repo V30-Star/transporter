@@ -4,7 +4,9 @@
 
 @section('content')
     @php
-        $canPenjualanTunai = in_array('BolehPenjualanTunai', explode(',', (string) session('user_restricted_permissions', '')), true);
+        $userPermissions = array_map('strtolower', array_filter(array_map('trim', explode(',', (string) session('user_restricted_permissions', '')))));
+        $canPenjualanTunai = in_array('bolehpenjualantunai', $userPermissions, true) || in_array('BolehPenjualanTunai', explode(',', (string) session('user_restricted_permissions', '')), true);
+        $canUbahHargaPenjualan = in_array('bolehubahhargapenjualan', $userPermissions, true) || in_array('BolehUbahHargaPenjualan', explode(',', (string) session('user_restricted_permissions', '')), true);
         $oldInvoiceItemCodes = old('fitemcode', []);
         $oldInvoiceItemNames = old('fitemname', []);
         $oldInvoiceUnits = old('fsatuan', []);
@@ -645,7 +647,8 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                    class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                                                    :disabled="isDiscDisabled(it)"
                                                     :id="'disc_row_' + i" :value="normalizeDiscountValue(it.fdisc)"
                                                     @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeDiscountInput($event, it)"
@@ -1520,6 +1523,7 @@
             savedItems: @json($initialInvoiceItems),
             nextFormIndex: @json($nextInvoiceItemIndex),
             minimumVisibleRows: 5,
+            canUbahHarga: @json($canUbahHargaPenjualan),
             browseTarget: null,
             descSavedIndex: null,
             showDescModal: false,
@@ -1842,10 +1846,16 @@
             },
 
             isPriceDisabled(row) {
+                if (!this.canUbahHarga) return true;
                 const code = String(row?.fitemcode || '').toUpperCase().trim();
                 if (!code || code.startsWith('UM')) return false;
                 const ref = String(row?.frefdtno || row?.frefno_display || row?.frefcode || row?.frefso || row?.frefsrj || row?.frefpr || '').trim();
                 return Boolean(ref);
+            },
+
+            isDiscDisabled(row) {
+                if (!this.canUbahHarga) return true;
+                return false;
             },
 
             blurPriceInput(row) {

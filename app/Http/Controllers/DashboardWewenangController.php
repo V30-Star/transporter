@@ -216,7 +216,7 @@ class DashboardWewenangController extends Controller
                 'delete' => ['deletePenjualanRetail'],
                 'print' => ['printListingPenjualanRetail', 'BOLEHPRINTLAGI', 'bolehprintlagi'],
                 'approve' => [],
-                'other' => ['BolehPenjualanTunai'],
+                'other' => ['BolehPenjualanTunai', 'BolehUbahHargaPenjualan'],
             ],
             'Retur Penjualan' => [
                 'group' => 'Penjualan',
