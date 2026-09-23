@@ -12,6 +12,7 @@ use App\Http\Controllers\TrialBalanceController;
 use App\Http\Controllers\StokDalamRupiahController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
+use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\BayarSupplierController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
@@ -233,6 +234,11 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::delete('/product/{fprdid}/photo/{field?}', [ProductController::class, 'deletePhoto'])->name('product.delete-photo');
         Route::get('/product/{fprdid}/photo/{field?}', [ProductController::class, 'photo'])->name('product.photo');
         Route::get('/product/{fprdid}/laporan', [ProductController::class, 'laporan'])->name('product.laporan');
+
+        Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
+        Route::get('/barcode/search-products', [BarcodeController::class, 'searchProducts'])->name('barcode.search-products');
+        Route::post('/barcode/print', [BarcodeController::class, 'printLabels'])->name('barcode.print');
+        Route::get('/barcode/print', [BarcodeController::class, 'printDirect'])->name('barcode.print.direct');
 
         Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
         Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');

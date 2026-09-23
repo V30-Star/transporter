@@ -12,6 +12,7 @@ class EnsureRoutePermission
         'account' => 'Account',
         'adjstock' => 'Adjstock',
         'assembling' => 'Assembling',
+        'barcode' => 'Product',
         'bayarsupplier' => 'BayarSupplier',
         'currency' => 'Currency',
         'customer' => 'Customer',

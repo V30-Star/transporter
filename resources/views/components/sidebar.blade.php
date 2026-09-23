@@ -179,6 +179,13 @@
                                 <span class="ml-3">{{ 'Produk' }}</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('barcode.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-barcode w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Barcode' }}</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('viewGroupProduct', 'createGroupProduct', 'updateGroupProduct', 'deleteGroupProduct'))

@@ -873,6 +873,9 @@
                                 </svg>
                                  Info
                             </button>
+                            <a href="{{ route('barcode.index') }}?fprdcode=${encodeURIComponent(row.fprdcode)}" class="inline-flex items-center bg-teal-600 text-white px-3 py-1.5 text-xs rounded hover:bg-teal-700" title="Cetak Barcode">
+                                <i class="fa-solid fa-barcode mr-1"></i> Barcode
+                            </a>
                         `;
 
                         if (canEdit) {
