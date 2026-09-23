@@ -62,7 +62,7 @@ class InvoiceController extends Controller
         return $this->todayCreateCount() >= self::DAILY_CREATE_LIMIT;
     }
 
-    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    protected function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
         if ($normalized === '') {
