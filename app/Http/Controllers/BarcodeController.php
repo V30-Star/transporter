@@ -55,8 +55,10 @@ class BarcodeController extends Controller
 
         $search = trim((string) $request->input('q', ''));
 
+        $limit = max(10, min(200, (int) $request->input('limit', 50)));
+
         $query = Product::query()
-            ->select('fprdid', 'fprdcode', 'fprdname', 'fbarcode', 'fhargajuallevel1', 'fsatuankecil')
+            ->select('fprdid', 'fprdcode', 'fprdname', 'fbarcode', 'fhargajuallevel1', 'fsatuankecil', 'fstok')
             ->whereRaw("COALESCE(TRIM(CAST(msprd.fnonactive AS TEXT)), '0') != '1'");
 
         if ($search !== '') {
@@ -67,7 +69,7 @@ class BarcodeController extends Controller
             });
         }
 
-        $items = $query->limit(30)->get()->map(function ($item) {
+        $items = $query->limit($limit)->get()->map(function ($item) {
             $barcode = !empty(trim((string) $item->fbarcode)) ? trim((string) $item->fbarcode) : trim((string) $item->fprdcode);
             return [
                 'id' => $item->fprdid,
@@ -76,6 +78,7 @@ class BarcodeController extends Controller
                 'fbarcode' => $barcode,
                 'price' => (float) ($item->fhargajuallevel1 ?? 0),
                 'satuan' => $item->fsatuankecil ?? '',
+                'stock' => (float) ($item->fstok ?? 0),
             ];
         });
 
