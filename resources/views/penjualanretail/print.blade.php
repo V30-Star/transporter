@@ -20,29 +20,25 @@
         body {
             margin: 0;
             background: #ececec;
-            font: 12px Arial, Helvetica, sans-serif;
+            font: 10px Arial, Helvetica, sans-serif;
             color: var(--fg);
         }
 
         @page {
-            size: 5.5in auto;
-            margin: 0.25in 0.4in;
+            size: 105mm 148mm;
+            margin: 0;
         }
 
         .sheet {
-            width: 5.5in;
-            min-height: auto;
+            width: 105mm;
+            min-height: 148mm;
             margin: 0.2in auto;
-            padding: 0.25in 0.4in;
+            padding: 4mm 5mm;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
-        }
-
-        @media print {
-            body { background: none; margin: 0; }
-            .sheet { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; }
+            box-sizing: border-box;
         }
 
         .header-row {
@@ -53,13 +49,13 @@
         }
 
         .comp-name {
-            font-size: 20px;
+            font-size: 13px;
             font-weight: bold;
             font-style: italic;
         }
 
         .title-so {
-            font-size: 20px;
+            font-size: 13px;
             color: var(--blue);
             text-decoration: underline;
             font-weight: bold;
@@ -69,52 +65,54 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 15px;
+            font-size: 11px;
             text-align: right;
         }
 
         .customer-container {
             border: 1px solid #000;
-            border-radius: 8px;
-            padding: 5px 12px;
+            border-radius: 6px;
+            padding: 4px 6px;
             width: 100%;
             position: relative;
-            margin-top: 6px;
+            margin-top: 4px;
+            box-sizing: border-box;
         }
 
         .customer-label {
             position: absolute;
-            top: -8px;
-            left: 15px;
+            top: -7px;
+            left: 10px;
             background: #fff;
-            padding: 0 5px;
-            font-size: 11px;
+            padding: 0 4px;
+            font-size: 9px;
         }
 
         .info-table {
-            font-size: 12px;
-            margin-top: 4px;
+            font-size: 9.5px;
+            margin-top: 0px;
             margin-left: auto;
         }
 
         .info-table td {
-            padding: 1px 2px;
+            padding: 0.5px 1px;
             vertical-align: top;
         }
 
         .tb {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
+            margin-top: 4px;
             border-bottom: 1.5px solid #000;
         }
 
         .tb th {
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            padding: 5px;
+            padding: 3px 2px;
             text-align: left;
             font-weight: normal;
+            font-size: 9.5px;
         }
 
         .product-header-row {
@@ -139,8 +137,9 @@
         }
 
         .tb td {
-            padding: 5px;
+            padding: 2.5px 2px;
             vertical-align: top;
+            font-size: 9.5px;
         }
 
         .text-center, .tb th.text-center {
@@ -273,14 +272,17 @@
             }
 
             .sheet {
-                margin: 0;
+                margin: 0 auto;
                 border: none;
                 box-shadow: none;
                 transform: none !important;
                 page-break-after: always;
-                height: 5.83in;
-                max-height: 5.83in;
-                padding: 0.2in 0.35in;
+                width: 105mm;
+                height: 148mm;
+                max-height: 148mm;
+                padding: 4mm 5mm;
+                box-sizing: border-box;
+                overflow: hidden;
             }
 
             .sheet:last-child {
@@ -292,7 +294,7 @@
             }
 
             @page {
-                size: 8.27in 5.83in;
+                size: 105mm 148mm;
                 margin: 0;
             }
         }
@@ -338,7 +340,7 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_city))<div style="font-size: 12px;">{{ $company_city }}</div>@endif
+                    @if(!empty($company_city))<div style="font-size: 9.5px;">{{ $company_city }}</div>@endif
                 </div>
                 <div>
                     <div class="title-so">Faktur Penjualan</div>
@@ -348,20 +350,20 @@
 
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
-                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
-                    <div style="width: 50%; padding-right: 15px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold;">
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 8px;">
+                    <div style="width: 52%; padding-right: 6px; border-right: 1px solid #000;">
+                        <div style="font-weight: bold; font-size: 9.5px;">
                             {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fcustno) ? ' (' . $hdr->fcustno . ')' : '') : ($hdr->fcustno ?: '-') }}
                         </div>
-                        <div style="font-size: 11px; margin-top: 2px; white-space: pre-line;">
+                        <div style="font-size: 9px; margin-top: 2px; white-space: pre-line; line-height: 1.2;">
                             {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
-                    <div style="width: 50%;">
+                    <div style="width: 48%;">
                         <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
-                                <td style="width: 70px;">Tanggal</td>
-                                <td style="width: 10px;">:</td>
+                                <td style="width: 42px;">Tanggal</td>
+                                <td style="width: 6px;">:</td>
                                 <td>{{ $fmt($hdr->fsodate) }}</td>
                             </tr>
                             <tr>
@@ -415,7 +417,7 @@
                         <td style="color: #dc2626;">{{ $r->fprdcode ?? '-' }}</td>
                         <td class="text-right" style="color: #dc2626;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right" style="color: #dc2626;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="color: #dc2626;">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="color: #dc2626;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -423,51 +425,44 @@
 
         {{-- Summary & Signature Template (Last Page) --}}
         <div id="tpl-summary">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px;">
                 {{-- Kolom Kiri & Tengah: Terbilang di atas, Hormat Kami & Rekening sejajar di bawahnya --}}
-                <div style="width: 62%; display: flex; flex-direction: column;">
-                    <!-- <div>
-                        <div style="font-style: italic; font-size: 11px;">Terbilang :</div>
-                        <div style="font-weight: bold; font-style: italic; text-decoration: underline; font-size: 11px; margin-top: 2px;">
-                            # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
-                        </div>
-                    </div> -->
-
-                    <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
-                        <div style="width: 160px; min-width: 140px; text-align: center;">
-                            <div style="font-size: 11px;">Dibuat Oleh,</div>
-                            <div style="margin-top: 36px; font-size: 11px; font-weight: bold; white-space: nowrap;">
-                                ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
+                <div style="width: 50%; display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 8px;">
+                        <div style="width: 100%; max-width: 120px; text-align: center;">
+                            <div style="font-size: 9.5px;">Dibuat Oleh,</div>
+                            <div style="margin-top: 28px; font-size: 9.5px; font-weight: bold; white-space: nowrap;">
+                                ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Kolom Kanan: Summary Total & Metadata --}}
-                <div style="width: 36%;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                <div style="width: 48%;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total</td>
-                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
-                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Biaya/Charge</td>
-                            <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="width: 8px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
-                        <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
-                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                        <tr style="font-weight: bold; color: var(--blue); font-size: 11px;">
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 2px 0; white-space: nowrap;">Grand Total</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; width: 8px; text-align: center; padding: 2px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 2px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 6px;">
+                    <div class="meta-right" style="margin-top: 4px; font-size: 8.5px;">
                         <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                     </div>
                 </div>
@@ -477,12 +472,12 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="margin-top: 8px; text-align: right; font-style: italic; font-weight: bold; font-size: 11px;">
+            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 9.5px;">
                 Bersambung ke halaman <span class="next-page-num">2</span>
             </div>
-            <div class="sign-container" style="margin-top: 20px;">
+            <div class="sign-container" style="margin-top: 10px;">
                 <div></div>
-                <div class="meta-right">
+                <div class="meta-right" style="font-size: 8.5px;">
                     <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
                 </div>
             </div>
@@ -500,8 +495,8 @@
 
             printContainer.innerHTML = '';
 
-            // Usable content height for 5.83in at 96dpi (560px - 40px padding = 520px)
-            const MAX_SHEET_CONTENT_HEIGHT = 490;
+            // Usable content height for A6 portrait sheet (148mm = ~560px at 96dpi - padding/margins)
+            const MAX_SHEET_CONTENT_HEIGHT = 480;
 
             function getContentHeight(sheet) {
                 let total = 0;
