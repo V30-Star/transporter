@@ -525,58 +525,83 @@
                             @endif
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4 mb-4">
-                            {{-- Kode Produk --}}
-                            <div x-data="{ autoCode: true }">
-                                <label class="field-label">Kode Produk</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="text" name="fprdcode" id="fprdcode"
-                                        class="field-input flex-1 uppercase" placeholder="Masukkan kode"
-                                        :disabled="autoCode" :value="autoCode ? '' : '{{ old('fprdcode') }}'"
-                                        :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : ''">
-                                    <label
-                                        class="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 cursor-pointer whitespace-nowrap">
-                                        <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600"
-                                            checked>
-                                        Auto
-                                    </label>
+                        <div x-data="{
+                            autoCode: @json(old('_token') ? (old('auto_code') === '1' || !old('fprdcode')) : true),
+                            prdCode: @json(old('fprdcode', '')),
+                            barcode: @json(old('fbarcode', '')),
+                            onPrdCodeInput(val) {
+                                this.prdCode = val;
+                                this.barcode = val;
+                            },
+                            toggleAuto(val) {
+                                this.autoCode = val;
+                                if (val) {
+                                    this.barcode = '';
+                                } else {
+                                    this.barcode = this.prdCode;
+                                }
+                            }
+                        }">
+                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                {{-- Kode Produk --}}
+                                <div>
+                                    <label class="field-label">Kode Produk</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" name="fprdcode" id="fprdcode"
+                                            class="field-input flex-1 uppercase" placeholder="Masukkan kode"
+                                            :disabled="autoCode" :value="autoCode ? '' : prdCode"
+                                            @input="onPrdCodeInput($event.target.value)"
+                                            :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : ''">
+                                        <label
+                                            class="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 cursor-pointer whitespace-nowrap">
+                                            <input type="checkbox" name="auto_code" value="1"
+                                                :checked="autoCode"
+                                                @change="toggleAuto($event.target.checked)"
+                                                class="form-checkbox text-indigo-600">
+                                            Auto
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Nama Produk --}}
+                                <div>
+                                    <label class="field-label">Nama Produk</label>
+                                    <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
+                                        class="field-input uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
+                                        autofocus>
+                                    @error('fprdname')
+                                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Spesifikasi --}}
+                                <div>
+                                    <label class="field-label">Spesifikasi/Type</label>
+                                    <input type="text" name="fspecification" id="fspecification"
+                                        value="{{ old('fspecification') }}"
+                                        class="field-input @error('fspecification') border-red-500 @enderror"
+                                        placeholder="Spesifikasi/Type produk">
+                                    @error('fspecification')
+                                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
 
-                            {{-- Nama Produk --}}
-                            <div>
-                                <label class="field-label">Nama Produk</label>
-                                <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
-                                    class="field-input uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
-                                    autofocus>
-                                @error('fprdname')
-                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Spesifikasi --}}
-                            <div>
-                                <label class="field-label">Spesifikasi/Type</label>
-                                <input type="text" name="fspecification" id="fspecification"
-                                    value="{{ old('fspecification') }}"
-                                    class="field-input @error('fspecification') border-red-500 @enderror"
-                                    placeholder="Spesifikasi/Type produk">
-                                @error('fspecification')
-                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            {{-- Barcode --}}
-                            <div>
-                                <label class="field-label">Barcode</label>
-                                <input type="text" name="fbarcode" value="{{ old('fbarcode') }}"
-                                    class="field-input @error('fbarcode') border-red-500 @enderror">
-                                @error('fbarcode')
-                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                {{-- Barcode --}}
+                                <div>
+                                    <label class="field-label">Barcode</label>
+                                    <input type="text" name="fbarcode" id="fbarcode"
+                                        :value="autoCode ? '' : barcode"
+                                        :disabled="autoCode"
+                                        :placeholder="autoCode ? 'Auto (Sesuai Kode Produk)' : 'Masukkan Barcode'"
+                                        :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : ''"
+                                        @input="barcode = $event.target.value"
+                                        class="field-input @error('fbarcode') border-red-500 @enderror">
+                                    @error('fbarcode')
+                                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
                             {{-- Jenis --}}
                             <div>
@@ -593,6 +618,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
                     {{-- ═══ SECTION 2: Satuan & HPP ═══ --}}
                     <div class="section-card" id="satuan-container">

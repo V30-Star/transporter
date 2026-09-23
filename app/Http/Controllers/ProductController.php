@@ -616,6 +616,12 @@ class ProductController extends Controller
                 $validated['fprdcode'] = $request->fprdcode;
             }
 
+            if (empty($request->fbarcode) || trim((string) $request->fbarcode) === '') {
+                $validated['fbarcode'] = $validated['fprdcode'];
+            } else {
+                $validated['fbarcode'] = $request->fbarcode;
+            }
+
             $numericFields = [
                 'fhpp',
                 'fhargajuallevel1',
@@ -876,6 +882,12 @@ class ProductController extends Controller
             } else {
                 $newCode = strtoupper(trim((string) $request->input('fprdcode', '')));
                 $validated['fprdcode'] = $newCode !== '' ? $newCode : $product->fprdcode;
+            }
+
+            if (empty($request->fbarcode) || trim((string) $request->fbarcode) === '') {
+                $validated['fbarcode'] = $validated['fprdcode'];
+            } else {
+                $validated['fbarcode'] = $request->fbarcode;
             }
             $validated['fprdname'] = strtoupper($validated['fprdname']);
             $validated['fdealer'] = $request->filled('fdealer') ? strtoupper($request->fdealer) : null;

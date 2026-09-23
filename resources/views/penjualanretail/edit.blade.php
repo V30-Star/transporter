@@ -1789,9 +1789,13 @@
 
     window.BARCODE_MAP = {
         @foreach ($products as $p)
-            @if (!empty(trim($p->fbarcode ?? '')))
-                @json(trim($p->fbarcode)): @json($p->fprdcode),
+            @php
+                $bCode = trim($p->fbarcode ?? '');
+            @endphp
+            @if (!empty($bCode))
+                @json($bCode): @json($p->fprdcode),
             @endif
+            @json(trim($p->fprdcode)): @json($p->fprdcode),
         @endforeach
     };
     window.INVOICE_PRICE_INFO_URL = @json(route('penjualanretail.price-info'));
@@ -2193,7 +2197,10 @@
 
             productMeta(code) {
                 const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key];
+                let meta = window.PRODUCT_MAP?.[key];
+                if (!meta && window.BARCODE_MAP?.[key]) {
+                    meta = window.PRODUCT_MAP?.[window.BARCODE_MAP[key]];
+                }
                 if (!meta) {
                     return {
                         name: '',
@@ -2483,7 +2490,7 @@
             },
 
             async onCodeTypedRow(row, index = null) {
-                const typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
+                let typedCode = (row.fitemcode || '').toString().trim().toUpperCase();
                 if (!typedCode) {
                     this.clearRow(row);
                     this.onRowUpdated(index);
@@ -2498,7 +2505,11 @@
                     this.showAlert("Tipe Faktur Uang Muka hanya boleh menggunakan produk kode UM.");
                     return;
                 }
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                if (!window.PRODUCT_MAP?.[typedCode] && window.BARCODE_MAP?.[typedCode]) {
+                    typedCode = window.BARCODE_MAP[typedCode];
+                    row.fitemcode = typedCode;
+                }
+                this.hydrateRowFromMeta(row, this.productMeta(typedCode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 await this.applyOutstandingDpRef(row);
                 if (!typedCode.startsWith('UM')) {

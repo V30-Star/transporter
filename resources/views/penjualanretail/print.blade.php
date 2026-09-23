@@ -502,7 +502,7 @@
                     </tr>
                     <tr>
                         <td style="width: 26%; color: #000; text-align: left !important;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="width: 14%; color: #000;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="width: 14%; color: #000; white-space: nowrap;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->fsatuan }}</td>
                         <td class="text-right" style="width: 26%; color: #000;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right" style="width: 34%; color: #000;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>

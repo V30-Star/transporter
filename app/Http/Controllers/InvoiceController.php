@@ -182,7 +182,7 @@ class InvoiceController extends Controller
                     'fprdid' => $product->fprdid,
                     'fprdcode' => $product->fprdcode,
                     'name' => $product->fprdname,
-                    'fbarcode' => trim((string) ($product->fbarcode ?? '')),
+                    'fbarcode' => trim((string) ($product->fbarcode ?? '')) !== '' ? trim((string) $product->fbarcode) : trim((string) $product->fprdcode),
                     'default_unit' => $defaultUnit,
                     'units' => $units,
                     'stock' => $product->fminstock ?? 0,
