@@ -407,10 +407,7 @@
 
         $plainLines[] = $dividerDash;
         $plainLines[] = $pad("TOTAL QTY: " . $fmtNum($totalQty), 20) . $pad("TOTAL : " . $pad($fmtNum($famountgross), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        $plainLines[] = $pad("TOTAL ISI: " . $fmtNum($totalQtyKecil), 20) . ($fdiscount > 0 ? $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT) : $pad("", 20));
-        if ($fdiscount > 0) {
-            $plainLines[] = $pad("", 20) . $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        }
+        $plainLines[] = $pad("TOTAL ISI: " . $fmtNum($totalQtyKecil), 20) . $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         if ($fongkosangkut > 0) {
             $plainLines[] = $pad("", 20) . $pad("BIAYA : " . $pad($fmtNum($fongkosangkut), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         }
@@ -545,13 +542,11 @@
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
                         </tr>
-                        @if($fdiscount > 0)
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
                         </tr>
-                        @endif
                         @if($fongkosangkut > 0)
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Biaya</td>
