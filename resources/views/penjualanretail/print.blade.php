@@ -22,7 +22,7 @@
         body {
             margin: 0;
             background: #ececec;
-            font: 10px 'Courier New', Consolas, 'Lucida Console', monospace;
+            font: bold 10.5px Consolas, 'Courier New', Courier, monospace;
             color: var(--fg);
         }
 
@@ -32,15 +32,16 @@
         }
 
         .sheet {
-            width: 105mm;
+            width: 96mm;
             min-height: 148mm;
             margin: 0.2in auto;
-            padding: 4mm 5mm;
+            padding: 2.5mm 3.5mm;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
+            font-weight: bold;
         }
 
         .header-row {
@@ -72,26 +73,29 @@
         }
 
         .customer-container {
-            border: 1px solid #000;
-            border-radius: 6px;
-            padding: 4px 6px;
+            border: 1.5px solid #000;
+            border-radius: 0;
+            padding: 3px 5px;
             width: 100%;
             position: relative;
             margin-top: 4px;
             box-sizing: border-box;
+            font-weight: bold;
         }
 
         .customer-label {
             position: absolute;
             top: -7px;
-            left: 10px;
+            left: 8px;
             background: #fff;
             padding: 0 4px;
-            font-size: 9px;
+            font-size: 9.5px;
+            font-weight: bold;
         }
 
         .info-table {
-            font-size: 9.5px;
+            font-size: 10px;
+            font-weight: bold;
             margin-top: 0px;
             margin-left: auto;
         }
@@ -99,22 +103,24 @@
         .info-table td {
             padding: 0.5px 1px;
             vertical-align: top;
+            font-weight: bold;
         }
 
         .tb {
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
-            border-bottom: 1.5px solid #000;
+            border-bottom: 2px solid #000;
+            font-weight: bold;
         }
 
         .tb th {
-            border-top: 1px solid #000;
-            border-bottom: 1px solid #000;
+            border-top: 1.5px solid #000;
+            border-bottom: 1.5px solid #000;
             padding: 3px 2px;
             text-align: left;
-            font-weight: normal;
-            font-size: 9.5px;
+            font-weight: bold;
+            font-size: 10px;
         }
 
         .product-header-row {
@@ -273,35 +279,68 @@
         }
 
         @media print {
-            body {
-                background: #fff;
+            @page {
+                size: 105mm 148mm;
+                margin: 0;
+            }
+
+            html, body {
+                width: 105mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            * {
+                color: #000 !important;
+                -webkit-text-fill-color: #000 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                font-weight: 700 !important;
+            }
+
+            body, table, th, td, div, span, p, pre {
+                font-family: Consolas, 'Courier New', Courier, monospace !important;
+                font-weight: 700 !important;
+                -webkit-font-smoothing: none !important;
+                text-rendering: geometricPrecision !important;
             }
 
             .sheet, .plain-sheet {
-                margin: 0 auto;
-                border: none;
-                box-shadow: none;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
                 transform: none !important;
-                page-break-after: always;
-                width: 105mm;
-                height: 148mm;
-                max-height: 148mm;
-                padding: 4mm 5mm;
-                box-sizing: border-box;
-                overflow: hidden;
+                width: 95mm !important;
+                max-width: 95mm !important;
+                height: 145mm !important;
+                max-height: 145mm !important;
+                padding: 2mm 3mm !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
 
-            .sheet:last-child, .plain-sheet:last-child {
-                page-break-after: auto;
+            .sheet {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .sheet:last-child,
+            .sheet:only-child,
+            .plain-sheet,
+            .plain-sheet:last-child,
+            .plain-sheet:only-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
 
             .no-print, .print-hide, #raw-templates {
                 display: none !important;
-            }
-
-            @page {
-                size: 105mm 148mm;
-                margin: 0;
             }
         }
 
@@ -484,27 +523,27 @@
                     </th>
                 </tr>
                 <tr>
-                    <th style="width: 26%; text-align: left !important;" class="table-header-detail">Kode Produk</th>
-                    <th style="width: 14%; text-align: right !important;" class="table-header-detail">Qty</th>
-                    <th style="width: 26%; text-align: right !important;" class="table-header-detail">@ Harga</th>
-                    <th style="width: 34%; text-align: right !important;" class="table-header-detail" colspan="3">Total Harga</th>
+                    <th style="width: 27%; text-align: left !important; font-weight: bold;" class="table-header-detail">Kode Produk</th>
+                    <th style="width: 18%; text-align: right !important; font-weight: bold;" class="table-header-detail">Qty</th>
+                    <th style="width: 25%; text-align: right !important; font-weight: bold;" class="table-header-detail">@ Harga</th>
+                    <th style="width: 30%; text-align: right !important; font-weight: bold;" class="table-header-detail" colspan="3">Total Harga</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
-                        <td colspan="6" style="color: #000; text-align: left !important; padding: 2px 2px;">
+                        <td colspan="6" style="color: #000; text-align: left !important; padding: 2px 2px; font-weight: bold;">
                             <div style="display: flex; align-items: flex-start; gap: 4px;">
-                                <span class="row-no" style="min-width: 20px; text-align: left !important;">{{ $i + 1 }}</span>
-                                <span style="flex: 1; text-align: left !important; white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
+                                <span class="row-no" style="min-width: 20px; text-align: left !important; font-weight: bold;">{{ $i + 1 }}</span>
+                                <span style="flex: 1; text-align: left !important; white-space: pre-line; font-weight: bold;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
                             </div>
                         </td>
                     </tr>
                     <tr>
-                        <td style="width: 26%; color: #000; text-align: left !important;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="width: 14%; color: #000; white-space: nowrap;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="text-right" style="width: 26%; color: #000;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="width: 34%; color: #000;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold;">{{ $r->fprdcode ?? '-' }}</td>
+                        <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->fsatuan }}</td>
+                        <td class="text-right" style="width: 25%; color: #000; font-weight: bold;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -515,15 +554,15 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px; gap: 4px;">
                 {{-- Kolom Kiri: Dibuat Oleh --}}
                 <div style="flex: 0 0 20%; text-align: center;">
-                    <div style="font-size: 8.5px;">Dibuat Oleh,</div>
-                    <div style="margin-top: 30px; font-size: 8.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-size: 9.5px; font-weight: bold;">Dibuat Oleh,</div>
+                    <div style="margin-top: 26px; font-size: 9.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                     </div>
                 </div>
 
                 {{-- Kolom Tengah: Total Qty & Total Isi --}}
                 <div style="flex: 0 0 24%; margin-top: 2px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; font-weight: bold;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Tot.Qty</td>
                             <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
@@ -539,7 +578,7 @@
 
                 {{-- Kolom Kanan: Summary Total & Metadata --}}
                 <div style="flex: 0 0 52%;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8.5px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap; width: 60px;">Total</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
@@ -555,13 +594,13 @@
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
-                        <tr style="font-weight: bold; font-size: 9.5px;">
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                        <tr style="font-weight: bold; font-size: 10.5px;">
+                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
+                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
+                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 3px;">
+                    <div class="meta-right" style="margin-top: 3px; font-size: 9px; font-weight: bold;">
                         <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
