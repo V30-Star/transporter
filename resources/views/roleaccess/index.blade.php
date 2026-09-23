@@ -392,7 +392,7 @@
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BolehPenjualanTunai" {{ in_array('BolehPenjualanTunai', $selectedPermissions) ? 'checked' : '' }}></td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Boleh Ubah Harga Penjualan Retail (@ Harga & Disc.%)</td>
+                                <td class="px-3 py-2 font-semibold">Boleh Ubah Harga Penjualan Retail</td>
                                 <td class="text-center" colspan="4"><input type="checkbox" name="permission[]" value="BolehUbahHargaPenjualan" {{ (in_array('BolehUbahHargaPenjualan', $selectedPermissions) || in_array('bolehubahhargapenjualan', $selectedPermissions)) ? 'checked' : '' }}></td>
                             </tr>
                             <tr class="bg-gray-50">
