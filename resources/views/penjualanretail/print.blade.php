@@ -27,15 +27,15 @@
         }
 
         @page {
-            size: 8.27in auto;
-            margin: 0;
+            size: A4 portrait;
+            margin: 4mm 8mm;
         }
 
         .sheet {
-            width: 8.27in;
+            width: 100%;
             min-height: auto;
             margin: 0.15in auto;
-            padding: 0.2in 0.4in 0.1in 0.4in;
+            padding: 0.15in 0.2in 0.1in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
