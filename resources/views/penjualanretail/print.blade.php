@@ -22,20 +22,20 @@
         body {
             margin: 0;
             background: #ececec;
-            font: bold 10.5px Consolas, 'Courier New', Courier, monospace;
+            font: bold 11px Consolas, 'Courier New', Courier, monospace;
             color: var(--fg);
         }
 
         @page {
-            size: 105mm 148mm;
+            size: 5.83in 8.27in;
             margin: 0;
         }
 
         .sheet {
-            width: 96mm;
-            min-height: 148mm;
+            width: 5.83in;
+            min-height: 8.27in;
             margin: 0.2in auto;
-            padding: 2.5mm 3.5mm;
+            padding: 0.25in 0.35in 0.15in 0.35in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -48,17 +48,25 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 0px;
+            margin-bottom: 5px;
         }
 
         .comp-name {
-            font-size: 13px;
+            font-size: 17px;
             font-weight: bold;
             font-style: italic;
+            text-align: left;
+        }
+
+        .comp-city {
+            font-size: 11px;
+            font-weight: bold;
+            text-align: left;
+            margin-top: 1px;
         }
 
         .title-so {
-            font-size: 13px;
+            font-size: 17px;
             color: var(--blue);
             text-decoration: underline;
             font-weight: bold;
@@ -68,7 +76,7 @@
         .so-no {
             color: var(--red);
             font-weight: bold;
-            font-size: 11px;
+            font-size: 13px;
             text-align: right;
         }
 
@@ -280,12 +288,12 @@
 
         @media print {
             @page {
-                size: 105mm 148mm;
+                size: 8.27in 5.83in;
                 margin: 0;
             }
 
             html, body {
-                width: 105mm !important;
+                width: 8.27in !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -310,22 +318,19 @@
             }
 
             .sheet {
-                margin: 0 auto !important;
+                margin: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 95mm !important;
-                max-width: 95mm !important;
-                height: 145mm !important;
-                max-height: 145mm !important;
-                padding: 2mm 3mm !important;
+                width: 8.27in !important;
+                max-width: 8.27in !important;
+                height: 5.83in !important;
+                max-height: 5.83in !important;
+                padding: 0.25in 0.35in 0.15in 0.35in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-            }
-
-            .sheet {
                 page-break-after: always !important;
                 break-after: page !important;
             }
@@ -383,7 +388,7 @@
             <div class="header-row">
                 <div>
                     <div class="comp-name">{{ strtoupper($company_name) }}</div>
-                    @if(!empty($company_city))<div style="font-size: 9.5px;">{{ $company_city }}</div>@endif
+                    @if(!empty($company_city))<div class="comp-city">{{ $company_city }}</div>@endif
                 </div>
                 <div>
                     <div class="title-so">Faktur Penjualan</div>
@@ -547,8 +552,8 @@
 
             printContainer.innerHTML = '';
 
-            // Usable content height for A6 portrait sheet (148mm = ~560px at 96dpi - padding/margins)
-            const MAX_SHEET_CONTENT_HEIGHT = 455;
+            // Usable content height for Setengah A4 sheet (5.83in / 148mm = ~560px at 96dpi - padding/margins)
+            const MAX_SHEET_CONTENT_HEIGHT = 485;
 
             function getContentHeight(sheet) {
                 let total = 0;
