@@ -27,7 +27,7 @@
         }
 
         @page {
-            size: 4.13in 5.83in;
+            size: A4 portrait;
             margin: 0;
         }
 
@@ -322,11 +322,11 @@
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 8.27in !important;
-                max-width: 8.27in !important;
+                width: 4.13in !important;
+                max-width: 4.13in !important;
                 height: 5.83in !important;
                 max-height: 5.83in !important;
-                padding: 0.25in 0.35in 0.15in 0.35in !important;
+                padding: 0.2in 0.25in 0.1in 0.25in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
