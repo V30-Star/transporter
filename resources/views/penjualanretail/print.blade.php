@@ -106,6 +106,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
+            border-bottom: 1.5px solid #000;
         }
 
         .tb th {
@@ -348,7 +349,7 @@
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
                 <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px;">
-                    <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
+                    <div style="width: 50%; padding-right: 15px; border-right: 1px solid #000;">
                         <div style="font-weight: bold;">
                             {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fcustno) ? ' (' . $hdr->fcustno . ')' : '') : ($hdr->fcustno ?: '-') }}
                         </div>
@@ -356,7 +357,7 @@
                             {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
-                    <div style="width: 290px;">
+                    <div style="width: 50%;">
                         <table class="info-table" style="margin-top: 0; width: 100%;">
                             <tr>
                                 <td style="width: 70px;">Tanggal</td>
@@ -392,21 +393,21 @@
             <thead id="tpl-thead">
                 <tr>
                     <th style="width: 8%;" class="table-header-main">No.</th>
-                    <th style="width: 42%;" class="table-header-main">Nama Produk</th>
+                    <th style="width: 42%; text-align: left !important;" class="table-header-main">Nama Produk</th>
                     <th colspan="4" style="width: 50%;"></th>
                 </tr>
                 <tr>
-                    <th style="width: 18%;" class="table-header-detail">Kode Produk</th>
-                    <th style="width: 10%;" class="table-header-detail">Quantity</th>
-                    <th style="width: 12%;" class="table-header-detail">@ Harga</th>
-                    <th style="width: 10%;" class="table-header-detail">Total Harga</th>
+                    <th style="width: 18%; text-align: left !important;" class="table-header-detail">Kode Produk</th>
+                    <th style="width: 10%; text-align: right !important;" class="table-header-detail">Quantity</th>
+                    <th style="width: 12%; text-align: right !important;" class="table-header-detail">@ Harga</th>
+                    <th style="width: 10%; text-align: right !important;" class="table-header-detail" colspan="3">Total Harga</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
-                        <td class="text-center row-no" style="color: #1d4ed8; font-weight: bold;">{{ $i + 1 }}</td>
-                        <td colspan="5" style="color: #1d4ed8; font-weight: bold;">
+                        <td class="text-center row-no" style="color: #1d4ed8;">{{ $i + 1 }}</td>
+                        <td colspan="5" style="color: #1d4ed8;">
                             <div style="white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</div>
                         </td>
                     </tr>
@@ -422,10 +423,9 @@
 
         {{-- Summary & Signature Template (Last Page) --}}
         <div id="tpl-summary">
-            <div class="footer-line"></div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
                 {{-- Kolom Kiri & Tengah: Terbilang di atas, Hormat Kami & Rekening sejajar di bawahnya --}}
-                <div style="width: 70%; display: flex; flex-direction: column;">
+                <div style="width: 62%; display: flex; flex-direction: column;">
                     <!-- <div>
                         <div style="font-style: italic; font-size: 11px;">Terbilang :</div>
                         <div style="font-weight: bold; font-style: italic; text-decoration: underline; font-size: 11px; margin-top: 2px;">
@@ -434,23 +434,17 @@
                     </div> -->
 
                     <div style="display: flex; align-items: flex-start; gap: 24px; margin-top: 14px;">
-                        <div style="width: 160px; min-width: 140px;">
-                            <div style="font-weight: bold;">Total Qty</div>
-                            <div style="font-size: 13px; margin-top: 4px;">{{ number_format($totalQty, 2, ',', '.') }}</div>
-                        </div>
                         <div style="width: 160px; min-width: 140px; text-align: center;">
                             <div style="font-size: 11px;">Dibuat Oleh,</div>
                             <div style="margin-top: 36px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                                 ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                             </div>
                         </div>
-
-
                     </div>
                 </div>
 
                 {{-- Kolom Kanan: Summary Total & Metadata --}}
-                <div style="width: 28%;">
+                <div style="width: 36%;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total</td>
