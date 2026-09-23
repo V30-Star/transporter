@@ -408,9 +408,7 @@
         $plainLines[] = $dividerDash;
         $plainLines[] = $pad("TOTAL QTY: " . $fmtNum($totalQty), 20) . $pad("TOTAL : " . $pad($fmtNum($famountgross), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         $plainLines[] = $pad("TOTAL ISI: " . $fmtNum($totalQtyKecil), 20) . $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        if ($fongkosangkut > 0) {
-            $plainLines[] = $pad("", 20) . $pad("BIAYA : " . $pad($fmtNum($fongkosangkut), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        }
+        $plainLines[] = $pad("", 20) . $pad("BIAYA : " . $pad($fmtNum($fongkosangkut), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         $plainLines[] = $pad("", 20) . $pad("--------------------", 20, STR_PAD_LEFT);
         $plainLines[] = $pad("Dibuat Oleh,", 20) . $pad("G.TOT : " . $pad($fmtNum($famountso), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
         $plainLines[] = "";
@@ -445,7 +443,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: stretch;">
                     <div style="width: 50%; box-sizing: border-box; padding-right: 6px; border-right: 1px solid #000;">
                         <div style="font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            {{ !empty($hdr->customer_name) ? $hdr->customer_name . (!empty($hdr->fcustno) ? ' (' . $hdr->fcustno . ')' : '') : ($hdr->fcustno ?: '-') }}
+                            {{ !empty(trim((string) ($hdr->customer_name ?? ''))) ? $hdr->customer_name : ($hdr->fcustno ?: '-') }}
                         </div>
                         <div style="font-size: 8.5px; margin-top: 1px; white-space: pre-line; line-height: 1.15; max-height: 28px; overflow: hidden;">
                             {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
@@ -538,7 +536,7 @@
                 <div style="flex: 0 0 52%;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 8.5px;">
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap; width: 45px;">Total</td>
+                            <td style="padding: 1px 0; white-space: nowrap; width: 60px;">Total</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
                         </tr>
@@ -547,13 +545,11 @@
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
                         </tr>
-                        @if($fongkosangkut > 0)
                         <tr>
-                            <td style="padding: 1px 0; white-space: nowrap;">Biaya</td>
+                            <td style="padding: 1px 0; white-space: nowrap;">Biaya/Charge</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
-                        @endif
                         <tr style="font-weight: bold; font-size: 9.5px;">
                             <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
                             <td style="border-top: 1px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
