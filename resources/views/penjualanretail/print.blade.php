@@ -27,15 +27,15 @@
         }
 
         @page {
-            size: A4 portrait;
+            size: 8.27in auto;
             margin: 0;
         }
 
         .sheet {
-            width: 4.13in;
-            min-height: 5.83in;
+            width: 8.27in;
+            min-height: auto;
             margin: 0.15in auto;
-            padding: 0.2in 0.25in 0.1in 0.25in;
+            padding: 0.2in 0.4in 0.1in 0.4in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -293,7 +293,7 @@
             }
 
             html, body {
-                width: 4.13in !important;
+                width: 8.27in !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -322,12 +322,12 @@
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 4.13in !important;
-                max-width: 4.13in !important;
+                width: 8.27in !important;
+                max-width: 8.27in !important;
                 height: auto !important;
                 min-height: unset !important;
                 max-height: unset !important;
-                padding: 0.2in 0.25in 0.1in 0.25in !important;
+                padding: 0.2in 0.4in 0.1in 0.4in !important;
                 box-sizing: border-box !important;
                 overflow: visible !important;
                 page-break-inside: avoid !important;
@@ -557,8 +557,8 @@
 
             printContainer.innerHTML = '';
 
-            // Usable content height for Setengah A4 sheet (5.83in / 148mm = ~560px at 96dpi - padding/margins)
-            const MAX_SHEET_CONTENT_HEIGHT = 485;
+            // Usable content height for A4 portrait sheet (11in = ~1056px at 96dpi, minus padding)
+            const MAX_SHEET_CONTENT_HEIGHT = 950;
 
             function getContentHeight(sheet) {
                 let total = 0;
