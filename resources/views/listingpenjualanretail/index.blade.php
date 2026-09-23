@@ -55,11 +55,17 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
+                            <div class="col-span-2">
                                 <label class="block text-xs font-bold uppercase mb-1">Tanggal</label>
-                                <input type="date" name="date" value="{{ date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <input type="date" name="date_from" value="{{ now()->subDays(7)->format('Y-m-d') }}"
+                                        class="flex-1 border rounded px-2 py-2 text-sm">
+                                    <span class="text-xs text-gray-500 whitespace-nowrap">s/d</span>
+                                    <input type="date" name="date_to" value="{{ now()->format('Y-m-d') }}"
+                                        class="flex-1 border rounded px-2 py-2 text-sm">
+                                </div>
                             </div>
+
                             <div>
                                 <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Pembayaran</label>
                                 <select name="fpembayaran" class="w-full border rounded px-3 py-2 text-sm">

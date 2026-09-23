@@ -142,7 +142,7 @@
         .sales-detail-labels,
         .sales-detail {
             display: grid;
-            grid-template-columns: 24mm 1fr 25mm 25mm 18mm 14mm 22mm 14mm 26mm;
+            grid-template-columns: 24mm 1fr 30mm 24mm 14mm 26mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 6px;
@@ -178,19 +178,17 @@
         }
 
         /* Alignment for Detail Columns */
-        .sales-detail-labels > div:nth-child(5),
-        .sales-detail-labels > div:nth-child(7),
-        .sales-detail-labels > div:nth-child(9),
-        .sales-detail > div:nth-child(5),
-        .sales-detail > div:nth-child(7),
-        .sales-detail > div:nth-child(9) {
+        .sales-detail-labels > div:nth-child(3),
+        .sales-detail-labels > div:nth-child(4),
+        .sales-detail-labels > div:nth-child(6),
+        .sales-detail > div:nth-child(3),
+        .sales-detail > div:nth-child(4),
+        .sales-detail > div:nth-child(6) {
             text-align: right;
         }
 
-        .sales-detail-labels > div:nth-child(6),
-        .sales-detail-labels > div:nth-child(8),
-        .sales-detail > div:nth-child(6),
-        .sales-detail > div:nth-child(8) {
+        .sales-detail-labels > div:nth-child(5),
+        .sales-detail > div:nth-child(5) {
             text-align: center;
         }
 
@@ -207,9 +205,7 @@
         .sales-detail > div:nth-child(3),
         .sales-detail > div:nth-child(4),
         .sales-detail > div:nth-child(5),
-        .sales-detail > div:nth-child(7),
-        .sales-detail > div:nth-child(8),
-        .sales-detail > div:nth-child(9) {
+        .sales-detail > div:nth-child(6) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -612,12 +608,12 @@
             <div>No.Faktur</div>
             <div>Tanggal</div>
             <div>Customer</div>
-            <div>Salesman</div>
+            <div>Pembayaran</div>
             <div class="text-right">Total Harga</div>
-            <div class="text-right">Disc</div>
-            <div class="text-right">Netto</div>
+            <div class="text-right">Disc.%</div>
+            <div class="text-right">Discount</div>
+            <div class="text-right">Tot.Stlh Disc</div>
             <div class="text-right">PPN</div>
-            <div class="text-right">Ongkos</div>
             <div class="text-right">Nilai Faktur</div>
         </div>
 
@@ -626,13 +622,10 @@
             <div class="sales-detail-labels">
                 <div>Kode Barang</div>
                 <div>Nama Barang</div>
-                <div>No. SO</div>
-                <div>No.Ref</div>
                 <div class="text-right">Qty</div>
-                <div class="text-center">Satuan</div>
-                <div class="text-right">@Harga</div>
-                <div class="text-center">Disc%</div>
-                <div class="text-right">Jumlah</div>
+                <div class="text-right">@.Harga</div>
+                <div class="text-center">Disc.%</div>
+                <div class="text-right">Jumlah Harga</div>
             </div>
         @endif
 
@@ -674,12 +667,12 @@
                     </div>
                     <div>{{ date('d-m-Y', strtotime($h->fsodate)) }}</div>
                     <div class="truncate" title="{{ $h->fcustomername }}">{{ $h->fcustomername }}</div>
-                    <div class="truncate" title="{{ $h->fsalesmanname ?? '-' }}">{{ $h->fsalesmanname ?? '-' }}</div>
+                    <div class="truncate" title="{{ trim((string)($h->fpembayaran ?? '-')) }}">{{ trim((string)($h->fpembayaran ?? '-')) ?: '-' }}</div>
                     <div>{{ number_format(abs((float) $h->famountgross) * $sign, 2, ',', '.') }}</div>
+                    <div>{{ number_format((float) ($h->fdiscpersen ?? 0), 2, ',', '.') }}</div>
                     <div>{{ number_format(abs((float) $h->fdiscount) * $sign, 2, ',', '.') }}</div>
                     <div>{{ number_format(abs((float) $h->famountsonet) * $sign, 2, ',', '.') }}</div>
                     <div>{{ number_format(abs((float) $h->famountpajak) * $sign, 2, ',', '.') }}</div>
-                    <div>{{ number_format(abs((float) $h->fongkosangkut) * $sign, 2, ',', '.') }}</div>
                     <div>{{ number_format(abs((float) $h->famountso) * $sign, 2, ',', '.') }}</div>
                 </div>
 
@@ -688,10 +681,7 @@
                         <div class="sales-detail {{ $isReturn ? 'text-rej' : '' }}">
                             <div class="truncate">{{ $d->fprdcode }}</div>
                             <div class="truncate" title="{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}">{{ format_product_name($d->fprdname, $d->fspecification ?? null) }}</div>
-                            <div class="truncate">{{ $d->frefso ?? '-' }}</div>
-                            <div class="truncate">{{ $d->frefsrj ?? '-' }}</div>
-                            <div>{{ number_format((float) $d->fqty, 2, ',', '.') }}</div>
-                            <div>{{ $d->fsatuan }}</div>
+                            <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->fsatuan }}</div>
                             <div>{{ number_format((float) $d->fprice, 2, ',', '.') }}</div>
                             <div>{{ $d->fdisc }}</div>
                             <div>{{ number_format(abs((float) $d->famount) * $sign, 2, ',', '.') }}</div>
@@ -725,8 +715,24 @@
                 @endif
                 {{-- Kanan: Grand Total --}}
                 <div class="po-totals-container" style="flex: 1;">
+                    <div class="po-total-row">
+                        <span>Total Harga</span>
+                        <span>Rp {{ number_format((float) $totGross, 2, ',', '.') }}</span>
+                    </div>
+                    <div class="po-total-row">
+                        <span>Discount</span>
+                        <span>Rp {{ number_format((float) $totDisc, 2, ',', '.') }}</span>
+                    </div>
+                    <div class="po-total-row">
+                        <span>PPN</span>
+                        <span>Rp {{ number_format((float) $totPajak, 2, ',', '.') }}</span>
+                    </div>
+                    <div class="po-total-row">
+                        <span>Biaya/Charge</span>
+                        <span>Rp {{ number_format((float) $totOngkos, 2, ',', '.') }}</span>
+                    </div>
                     <div class="po-total-row grand-total-row">
-                        <span>GRAND TOTAL NILAI FAKTUR</span>
+                        <span>Grand Total</span>
                         <span>Rp {{ number_format((float) $totGrand, 2, ',', '.') }}</span>
                     </div>
                 </div>
