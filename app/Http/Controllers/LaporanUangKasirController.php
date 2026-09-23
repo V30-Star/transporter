@@ -2,157 +2,197 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
+use App\Services\LaporanUangKasirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LaporanUangKasirController extends Controller
 {
+    public function __construct(private LaporanUangKasirService $service)
+    {
+    }
+
     public function index()
     {
+        $canAccessAllBranches = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+        $branchOptions = $this->service->getBranchOptions($canAccessAllBranches, $userBranchCode);
+        $serverDate = $this->service->serverDate()->toDateString();
+
         return view('laporanuangkasir.index', [
-            'branches' => DB::table('mscabang')->orderBy('fcabangkode')->get(),
-            'isAuthorized' => $this->canAccessAllBranches(),
-            'userBranchCode' => $this->getCurrentBranchCode(),
-            'date' => now()->format('Y-m-d'),
+            'branchOptions' => $branchOptions,
+            'canAccessAllBranches' => $canAccessAllBranches,
+            'userBranchCode' => $userBranchCode,
+            'serverDate' => $serverDate,
+            // Compatibility aliases
+            'branches' => $branchOptions,
+            'isAuthorized' => $canAccessAllBranches,
+            'date' => $serverDate,
         ]);
     }
 
     public function print(Request $request)
     {
-        $date = $request->input('date') ?: Carbon::now()->format('Y-m-d');
-        $kasir = trim((string) $request->input('kasir', ''));
-        $onlyCash = $request->boolean('only_cash');
-        $selectedBranches = array_filter((array) $request->input('branch_codes', []));
+        $filters = $this->validatedFilters($request);
+        $data = $this->service->generate($filters);
 
-        $salesQuery = DB::table('tranmt as m')
-            ->where('m.ftrcode', 'INV')
-            ->whereDate('m.fsodate', $date)
-            ->select([
-                'm.fbranchcode',
-                'm.fuserid',
-                'm.famountso',
-                'm.ftunai',
-            ]);
+        $company = function_exists('company_setting') ? (company_setting() ?: (object) []) : (object) [];
+        $operator = auth('sysuser')->user()?->fname ?? auth()->user()?->fname ?? 'User';
+        $printedAt = now();
 
-        $this->applyBranchVisibilityScope($salesQuery, 'm.fbranchcode');
-
-        if ($selectedBranches) {
-            $salesQuery->whereIn('m.fbranchcode', $selectedBranches);
-        }
-
-        if ($kasir !== '') {
-            $salesQuery->whereRaw('TRIM(m.fuserid) ILIKE ?', ['%' . $kasir . '%']);
-        }
-
-        if ($onlyCash) {
-            $salesQuery->where(function ($q) {
-                $q->where('m.ftunai', '1')
-                    ->orWhere('m.ftunai', 1);
-            });
-        }
-
-        $sales = $salesQuery->get();
-
-        $settlementQuery = DB::table('trkasmt as k')
-            ->join('trkasdt as d', 'd.fkasmtid', '=', 'k.fkasmtid')
-            ->leftJoin('account as a', 'a.faccount', '=', 'k.faccountno')
-            ->whereIn('k.ftrancode', ['RCP', 'BKM'])
-            ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'INV'")
-            ->whereDate('k.fkasmtdate', $date)
-            ->selectRaw("TRIM(k.fbranchcode) AS branch_code, COALESCE(NULLIF(TRIM(a.faccname), ''), NULLIF(TRIM(k.faccountno), ''), '-') AS account_name, SUM(COALESCE(d.fkasdtvalue, 0)) AS amount")
-            ->groupByRaw("TRIM(k.fbranchcode), COALESCE(NULLIF(TRIM(a.faccname), ''), NULLIF(TRIM(k.faccountno), ''), '-')");
-
-        $this->applyBranchVisibilityScope($settlementQuery, 'k.fbranchcode');
-        if ($selectedBranches) {
-            $settlementQuery->whereIn('k.fbranchcode', $selectedBranches);
-        }
-
-        $expenseQuery = DB::table('trkasmt as k')
-            ->leftJoin('account as a', 'a.faccount', '=', 'k.faccountno')
-            ->where('k.ftrancode', 'BKK')
-            ->whereDate('k.fkasmtdate', $date)
-            ->selectRaw("TRIM(k.fbranchcode) AS branch_code, COALESCE(NULLIF(TRIM(a.faccname), ''), NULLIF(TRIM(k.faccountno), ''), '-') AS account_name, SUM(COALESCE(k.famountpay, 0)) AS amount")
-            ->groupByRaw("TRIM(k.fbranchcode), COALESCE(NULLIF(TRIM(a.faccname), ''), NULLIF(TRIM(k.faccountno), ''), '-')");
-
-        $this->applyBranchVisibilityScope($expenseQuery, 'k.fbranchcode');
-        if ($selectedBranches) {
-            $expenseQuery->whereIn('k.fbranchcode', $selectedBranches);
-        }
-
-        $branchNames = DB::table('mscabang')
-            ->pluck('fcabangname', 'fcabangkode')
-            ->mapWithKeys(fn ($name, $code) => [trim((string) $code) => $name]);
-
-        $reports = collect();
-        $branchCodes = $sales->pluck('fbranchcode')
-            ->merge($settlementQuery->pluck('branch_code'))
-            ->merge($expenseQuery->pluck('branch_code'))
-            ->map(fn ($code) => trim((string) $code))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        $settlements = $settlementQuery->get()->groupBy('branch_code');
-        $expenses = $expenseQuery->get()->groupBy('branch_code');
-
-        foreach ($branchCodes as $branchCode) {
-            $branchSales = $sales->filter(fn ($row) => trim((string) $row->fbranchcode) === $branchCode);
-            $credit = $branchSales
-                ->filter(fn ($row) => (string) $row->ftunai !== '1')
-                ->sum(fn ($row) => (float) $row->famountso);
-            $cash = $branchSales
-                ->filter(fn ($row) => (string) $row->ftunai === '1')
-                ->sum(fn ($row) => (float) $row->famountso);
-
-            $accountRows = collect();
-            foreach ($settlements->get($branchCode, collect()) as $row) {
-                $accountRows->push([
-                    'account' => $row->account_name,
-                    'pelunasan' => (float) $row->amount,
-                    'pengeluaran' => 0,
-                ]);
-            }
-            foreach ($expenses->get($branchCode, collect()) as $row) {
-                $existing = $accountRows->firstWhere('account', $row->account_name);
-                if ($existing) {
-                    $existing['pengeluaran'] = (float) $row->amount;
-                    $accountRows = $accountRows->map(fn ($item) => $item['account'] === $row->account_name ? $existing : $item);
-                } else {
-                    $accountRows->push([
-                        'account' => $row->account_name,
-                        'pelunasan' => 0,
-                        'pengeluaran' => (float) $row->amount,
-                    ]);
-                }
-            }
-
-            $accountRows = $accountRows->map(function ($row) {
-                $row['saldo'] = $row['pelunasan'] - $row['pengeluaran'];
-                return $row;
-            })->values();
-
-            $reports->push([
-                'branch_code' => $branchCode,
-                'branch_name' => $branchNames->get($branchCode, $branchCode),
-                'credit' => $credit,
-                'cash' => $cash,
-                'total_sales' => $credit + $cash,
-                'accounts' => $accountRows,
-                'total_pelunasan' => $accountRows->sum('pelunasan'),
-                'total_pengeluaran' => $accountRows->sum('pengeluaran'),
-                'total_saldo' => $accountRows->sum('saldo'),
-            ]);
-        }
-
-        $company = company_setting() ?: (object) [];
-
-        return view('laporanuangkasir.print', compact(
-            'reports', 'date', 'kasir', 'onlyCash', 'company'
-        ) + [
-            'operator' => auth('sysuser')->user()?->fname ?? auth()->user()?->fname ?? 'User',
-            'printedAt' => now(),
+        return view('laporanuangkasir.print', compact('data', 'company', 'operator', 'printedAt') + [
+            // Aliases for template compatibility
+            'date' => $filters['tanggal'],
+            'kasir' => $filters['kasir'],
+            'onlyCash' => $filters['hanya_tunai'],
         ]);
+    }
+
+    public function show(Request $request)
+    {
+        return $this->print($request);
+    }
+
+    public function printRaw(Request $request)
+    {
+        $filters = $this->validatedFilters($request);
+        $data = $this->service->generate($filters);
+
+        $width = (int) $request->query('width', 80);
+        $escp = $request->boolean('escp');
+
+        $text = $this->service->toPlainText($data, $width);
+
+        if ($escp) {
+            $esc = "\x1B";
+            $reset = $esc.'@';                     // ESC @  — initialize printer
+            $nlq = $esc.'x'.chr(1);                // ESC x 1 — Near Letter Quality on
+            $condensed = $width > 80 ? "\x0F" : ''; // SI — condensed (17 cpi)
+            $formFeed = "\x0C";                     // form-feed eject
+            $text = $reset.$nlq.$condensed.$text.$formFeed;
+        }
+
+        $filename = 'laporan-uang-kasir-'.$data['meta']['tanggal'].($escp ? '.prn' : '.txt');
+
+        return response($text, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $filters = $this->validatedFilters($request);
+        $data = $this->service->generate($filters);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Uang Kasir');
+        $row = 1;
+
+        foreach ($data['sections'] as $section) {
+            $row = $this->writeBranchBlock($sheet, $row, $section['name'], $section['transaksi'], $section['total_uang'], $section['pelunasan'], $section['grand_total_pelunasan'], $section['penjualan_tunai']);
+            $row += 2;
+        }
+
+        if ($data['global']) {
+            $g = $data['global'];
+            $row += 1;
+            $sheet->setCellValue("A{$row}", 'Akumulasi');
+            $row++;
+            $row = $this->writeBranchBlock($sheet, $row, null, $g['transaksi'], $g['total_uang'], $g['pelunasan'], $g['grand_total_pelunasan'], $g['penjualan_tunai'], 'HQ');
+        }
+
+        $filename = 'laporan-uang-kasir-'.$data['meta']['tanggal'].'.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    private function writeBranchBlock($sheet, int $row, ?string $branchLabel, $transaksi, float $totalUang, $pelunasan, array $grandTotalPelunasan, float $penjualanTunai, ?string $grandTotalLabel = null): int
+    {
+        if ($branchLabel !== null) {
+            $sheet->setCellValue("A{$row}", $branchLabel);
+            $row++;
+        }
+
+        $sheet->setCellValue("A{$row}", 'Uang Penjualan : ');
+        $row++;
+
+        foreach ($transaksi as $t) {
+            $sheet->setCellValue("A{$row}", $t->fpembayaran);
+            $sheet->setCellValue("B{$row}", $t->bayar);
+            $row++;
+        }
+        $sheet->setCellValue("A{$row}", 'Total Uang');
+        $sheet->setCellValue("B{$row}", $totalUang);
+        $row += 2;
+
+        $sheet->setCellValue("A{$row}", 'Account');
+        $sheet->setCellValue("B{$row}", 'Pelunasan Faktur');
+        $sheet->setCellValue("C{$row}", 'Pengeluaran Kas');
+        $sheet->setCellValue("D{$row}", 'Saldo');
+        $row++;
+
+        foreach ($pelunasan as $p) {
+            $sheet->setCellValue("A{$row}", $p->faccname);
+            $sheet->setCellValue("B{$row}", $p->famountrcp);
+            $sheet->setCellValue("C{$row}", $p->famountbkk);
+            $sheet->setCellValue("D{$row}", $p->famountnet);
+            $row++;
+        }
+
+        if ($grandTotalPelunasan['rcp'] > 0 || $penjualanTunai > 0 || $totalUang > 0) {
+            $sheet->setCellValue("A{$row}", 'Grand Total Pelunasan');
+            $sheet->setCellValue("B{$row}", $grandTotalPelunasan['rcp']);
+            $sheet->setCellValue("C{$row}", $grandTotalPelunasan['bkk']);
+            $sheet->setCellValue("D{$row}", $grandTotalPelunasan['net']);
+            $row++;
+
+            $sheet->setCellValue("A{$row}", 'GT. Penjualan Tunai');
+            $sheet->setCellValue("D{$row}", $penjualanTunai);
+            $row++;
+
+            $sheet->setCellValue("A{$row}", 'Grand Total '.($grandTotalLabel ?? $branchLabel));
+            $sheet->setCellValue("D{$row}", $grandTotalPelunasan['net'] + $penjualanTunai);
+            $row++;
+        }
+
+        return $row;
+    }
+
+    private function validatedFilters(Request $request): array
+    {
+        $rawDate = $request->input('tanggal') ?: $request->input('date') ?: now()->toDateString();
+        $branchCodes = (array) $request->input('branch_codes', []);
+
+        if (empty($branchCodes)) {
+            if ($this->canAccessAllBranches()) {
+                $branchCodes = DB::table('mscabang')->pluck('fcabangkode')->map(fn ($c) => trim((string) $c))->all();
+            } else {
+                $code = $this->getCurrentBranchCode();
+                $branchCodes = $code ? [$code] : [];
+            }
+        }
+
+        $kasir = trim((string) $request->input('kasir', ''));
+        $hanyaTunai = $request->boolean('hanya_tunai') || $request->boolean('only_cash');
+        $currentBranchCode = $this->getCurrentBranchCode();
+        $totalBranches = DB::table('mscabang')->count();
+
+        return [
+            'tanggal' => $rawDate,
+            'branch_codes' => $branchCodes,
+            'kasir' => $kasir !== '' ? $kasir : null,
+            'hanya_tunai' => $hanyaTunai,
+            'current_branch_code' => $currentBranchCode,
+            'total_branch_count' => $totalBranches,
+        ];
     }
 }

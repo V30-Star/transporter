@@ -747,6 +747,15 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
         Route::get('/laporanuangkasir', [LaporanUangKasirController::class, 'index'])->name('laporanuangkasir.index');
         Route::get('/laporanuangkasir/print', [LaporanUangKasirController::class, 'print'])->name('laporanuangkasir.print');
+        Route::get('/laporanuangkasir/show', [LaporanUangKasirController::class, 'show'])->name('laporanuangkasir.show');
+        Route::get('/laporanuangkasir/export', [LaporanUangKasirController::class, 'export'])->name('laporanuangkasir.export');
+        Route::get('/laporanuangkasir/print-raw', [LaporanUangKasirController::class, 'printRaw'])->name('laporanuangkasir.print-raw');
+        Route::prefix('laporan/uang-kasir')->name('laporan.uang-kasir.')->group(function () {
+            Route::get('/', [LaporanUangKasirController::class, 'index'])->name('index');
+            Route::get('/show', [LaporanUangKasirController::class, 'show'])->name('show');
+            Route::get('/export', [LaporanUangKasirController::class, 'export'])->name('export');
+            Route::get('/print-raw', [LaporanUangKasirController::class, 'printRaw'])->name('print-raw');
+        });
 
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');

@@ -26,8 +26,11 @@
             box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
             border-radius: 4px;
             position: relative;
+            page-break-after: always;
         }
-        .page-a4-strict { height: 210mm; overflow: hidden; }
+        .page-a4:last-child {
+            page-break-after: auto;
+        }
         .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
         .comp-name { font-size: 18px; font-weight: 700; font-style: italic; }
         .comp-city { margin-top: 1px; font-size: 11px; color: #475569; }
@@ -66,7 +69,7 @@
         @media print {
             body { background: #fff; margin: 0; }
             .no-print { display: none !important; }
-            .page-a4 { width: 297mm; height: 210mm; min-height: 210mm; margin: 0 auto; padding: 12mm 18mm; box-shadow: none; border-radius: 0; page-break-after: always; overflow: hidden; }
+            .page-a4 { width: 297mm; min-height: 210mm; margin: 0 auto; padding: 12mm 18mm; box-shadow: none; border-radius: 0; page-break-after: always; }
             @page { size: A4 landscape; margin: 0; }
         }
     </style>
@@ -82,34 +85,168 @@
     @php
         $companyProject = $company->fproject ?? 'THE GROSIR';
         $companyCity = $company->fcity ?? 'Pangkalpinang - Babel';
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request('branch_codes')) : 'Semua';
+        $meta = $data['meta'] ?? [];
+        $tanggalReport = $meta['tanggal'] ?? $date ?? now()->toDateString();
+        $kasirReport = $meta['kasir_label'] ?? ($kasir ?: 'Semua');
+        $cabangReport = $meta['cabang_label'] ?? 'Semua';
+        $hanyaTunaiReport = !empty($meta['hanya_tunai']) || !empty($onlyCash);
+        $sections = $data['sections'] ?? collect();
+        $globalSection = $data['global'] ?? null;
+        $totalPages = $sections->count() + ($globalSection ? 1 : 0);
+        $pageNumber = 1;
     @endphp
 
     <div class="report-wrapper" id="reportWrapper">
-        @forelse ($reports as $report)
-            <section class="page-a4 page-a4-strict">
+        @forelse ($sections as $section)
+            <section class="page-a4">
                 <div class="header-row">
                     <div>
                         <div class="comp-name">{{ strtoupper($companyProject) }}</div>
                         <div class="comp-city">{{ $companyCity }}</div>
                     </div>
-                    <div class="title-so">Laporan Uang Kasir<br><span style="font-size: 11px; color: #111;">Tanggal : {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</span></div>
+                    <div class="title-so">Laporan Uang Kasir<br><span style="font-size: 11px; color: #111;">Tanggal : {{ \Carbon\Carbon::parse($tanggalReport)->format('d/m/Y') }}</span></div>
                 </div>
 
                 <div class="customer-container">
                     <div class="info-columns">
                         <div class="info-column">
                             <table class="info-col-table">
-                                <tr><td class="info-col-label">Kasir</td><td>:</td><td>{{ $kasir ?: 'Semua' }}</td></tr>
-                                <tr><td class="info-col-label">Cabang</td><td>:</td><td>{{ $branchText }}</td></tr>
-                                <tr><td class="info-col-label">Uang Tunai</td><td>:</td><td>{{ $onlyCash ? 'Ya' : 'Tidak' }}</td></tr>
+                                <tr><td class="info-col-label">Kasir</td><td>:</td><td>{{ $kasirReport }}</td></tr>
+                                <tr><td class="info-col-label">Cabang</td><td>:</td><td>{{ $cabangReport }}</td></tr>
+                                <tr><td class="info-col-label">Uang Tunai</td><td>:</td><td>{{ $hanyaTunaiReport ? 'Ya' : 'Tidak' }}</td></tr>
                             </table>
                         </div>
                         <div class="info-column">
                             <table class="info-col-table">
                                 <tr><td class="info-col-label">Tgl</td><td>:</td><td>{{ $printedAt->format('d/m/Y') }}</td></tr>
                                 <tr><td class="info-col-label">Jam</td><td>:</td><td>{{ $printedAt->format('g:i:s A') }}</td></tr>
-                                <tr><td class="info-col-label">Hal</td><td>:</td><td>{{ $loop->iteration }} / {{ $reports->count() }}</td></tr>
+                                <tr><td class="info-col-label">Hal</td><td>:</td><td>{{ $pageNumber++ }} / {{ max(1, $totalPages) }}</td></tr>
+                                <tr><td class="info-col-label">Opr</td><td>:</td><td>{{ $operator }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bagian Transaksi Penjualan --}}
+                <div class="report-section">
+                    <div class="section-title">Rincian Transaksi Cabang</div>
+                    <div class="branch-title">Cabang : {{ $section['code'] }} - {{ $section['name'] }}</div>
+                    <table class="report-table">
+                        <tbody>
+                            <tr><td class="label font-semibold">Uang Penjualan :</td><td></td></tr>
+                            @forelse ($section['transaksi'] as $trx)
+                                <tr>
+                                    <td class="label pl-4">{{ $trx->fpembayaran }} :</td>
+                                    <td>{{ number_format((float) $trx->bayar, 2, '.', ',') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td class="label pl-4 text-gray-400">Tidak ada transaksi penjualan</td><td>0.00</td></tr>
+                            @endforelse
+                            <tr class="sub-total">
+                                <td class="label font-bold">Total Uang :</td>
+                                <td>{{ number_format((float) $section['total_uang'], 2, '.', ',') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Bagian Pelunasan / Kas --}}
+                <div class="report-section">
+                    <div class="section-title">Pelunasan / Pengeluaran Kas :</div>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Pelunasan Faktur</th>
+                                <th>Pengeluaran Kas</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($section['pelunasan'] as $p)
+                                <tr>
+                                    <td class="label">{{ $p->faccname ?: $p->faccountno }}</td>
+                                    <td>{{ number_format((float) $p->famountrcp, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountbkk, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountnet, 2, '.', ',') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="empty">Tidak ada data pelunasan / pengeluaran kas.</td></tr>
+                            @endforelse
+                            <tr class="sub-total">
+                                <td class="label font-bold">Total Pelunasan :</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['net'] ?? 0), 2, '.', ',') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Bagian Grand Total --}}
+                @php
+                    $netPelunasan = (float) ($section['grand_total_pelunasan']['net'] ?? 0);
+                    $penjualanTunai = (float) ($section['penjualan_tunai'] ?? 0);
+                    $grandTotalCabang = $netPelunasan + $penjualanTunai;
+                @endphp
+                <div class="report-section">
+                    <div class="section-title">Ringkasan Akhir (Grand Total)</div>
+                    <table class="report-table">
+                        <tbody>
+                            <tr>
+                                <td class="label">Grand Total Pelunasan :</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }} | {{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }} | {{ number_format($netPelunasan, 2, '.', ',') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">GT. Penjualan Tunai :</td>
+                                <td>{{ number_format($penjualanTunai, 2, '.', ',') }}</td>
+                            </tr>
+                            <tr class="grand-total">
+                                <td class="label">Grand Total {{ $section['name'] }} :</td>
+                                <td>{{ number_format($grandTotalCabang, 2, '.', ',') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        @empty
+            <section class="page-a4">
+                <div class="header-row">
+                    <div>
+                        <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    </div>
+                    <div class="title-so">Laporan Uang Kasir<br><span style="font-size: 11px; color: #111;">Tanggal : {{ \Carbon\Carbon::parse($tanggalReport)->format('d/m/Y') }}</span></div>
+                </div>
+                <div class="empty">Tidak ada data transaksi ditemukan untuk filter yang dipilih.</div>
+            </section>
+        @endforelse
+
+        {{-- Bagian Akumulasi / HQ jika ada --}}
+        @if ($globalSection)
+            <section class="page-a4">
+                <div class="header-row">
+                    <div>
+                        <div class="comp-name">{{ strtoupper($companyProject) }}</div>
+                        <div class="comp-city">{{ $companyCity }}</div>
+                    </div>
+                    <div class="title-so">Laporan Uang Kasir<br><span style="font-size: 11px; color: #111;">Tanggal : {{ \Carbon\Carbon::parse($tanggalReport)->format('d/m/Y') }}</span></div>
+                </div>
+
+                <div class="customer-container">
+                    <div class="info-columns">
+                        <div class="info-column">
+                            <table class="info-col-table">
+                                <tr><td class="info-col-label">Kasir</td><td>:</td><td>{{ $kasirReport }}</td></tr>
+                                <tr><td class="info-col-label">Cabang</td><td>:</td><td>{{ $cabangReport }}</td></tr>
+                                <tr><td class="info-col-label">Uang Tunai</td><td>:</td><td>{{ $hanyaTunaiReport ? 'Ya' : 'Tidak' }}</td></tr>
+                            </table>
+                        </div>
+                        <div class="info-column">
+                            <table class="info-col-table">
+                                <tr><td class="info-col-label">Tgl</td><td>:</td><td>{{ $printedAt->format('d/m/Y') }}</td></tr>
+                                <tr><td class="info-col-label">Jam</td><td>:</td><td>{{ $printedAt->format('g:i:s A') }}</td></tr>
+                                <tr><td class="info-col-label">Hal</td><td>:</td><td>{{ $pageNumber++ }} / {{ max(1, $totalPages) }}</td></tr>
                                 <tr><td class="info-col-label">Opr</td><td>:</td><td>{{ $operator }}</td></tr>
                             </table>
                         </div>
@@ -117,57 +254,84 @@
                 </div>
 
                 <div class="report-section">
-                    <div class="section-title">Rincian Transaksi Cabang</div>
-                    <div class="branch-title">Cabang : {{ $report['branch_name'] }}</div>
+                    <div class="section-title">AKUMULASI (SELURUH CABANG TERPILIH)</div>
                     <table class="report-table">
                         <tbody>
-                            <tr><td class="label">Uang Penjualan :</td><td></td></tr>
-                            <tr><td class="label">Kredit :</td><td>{{ number_format($report['credit'], 2, '.', ',') }}</td></tr>
-                            <tr><td class="label">TUNAI :</td><td>{{ number_format($report['cash'], 2, '.', ',') }}</td></tr>
-                            <tr class="sub-total"><td class="label">Total Uang :</td><td>{{ number_format($report['total_sales'], 2, '.', ',') }}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="report-section">
-                    <div class="section-title">Pelunasan :</div>
-                    <table class="report-table">
-                        <thead><tr><th>Account</th><th>Pelunasan Faktur</th><th>Pengeluaran Kas</th><th>Saldo</th></tr></thead>
-                        <tbody>
-                            @forelse ($report['accounts'] as $account)
+                            <tr><td class="label font-semibold">Uang Penjualan :</td><td></td></tr>
+                            @forelse ($globalSection['transaksi'] as $trx)
                                 <tr>
-                                    <td class="label">{{ $account['account'] }}</td>
-                                    <td>{{ number_format($account['pelunasan'], 2, '.', ',') }}</td>
-                                    <td>{{ number_format($account['pengeluaran'], 2, '.', ',') }}</td>
-                                    <td>{{ number_format($account['saldo'], 2, '.', ',') }}</td>
+                                    <td class="label pl-4">{{ $trx->fpembayaran }} :</td>
+                                    <td>{{ number_format((float) $trx->bayar, 2, '.', ',') }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="empty">Tidak ada data pelunasan.</td></tr>
+                                <tr><td class="label pl-4 text-gray-400">Tidak ada transaksi penjualan</td><td>0.00</td></tr>
                             @endforelse
                             <tr class="sub-total">
-                                <td class="label">Total Pelunasan:</td>
-                                <td>{{ number_format($report['total_pelunasan'], 2, '.', ',') }}</td>
-                                <td>{{ number_format($report['total_pengeluaran'], 2, '.', ',') }}</td>
-                                <td>{{ number_format($report['total_saldo'], 2, '.', ',') }}</td>
+                                <td class="label font-bold">Total Uang :</td>
+                                <td>{{ number_format((float) $globalSection['total_uang'], 2, '.', ',') }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="report-section">
-                    <div class="section-title">Ringkasan Akhir (Grand Total)</div>
+                    <div class="section-title">Pelunasan / Pengeluaran Kas (Akumulasi) :</div>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Pelunasan Faktur</th>
+                                <th>Pengeluaran Kas</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($globalSection['pelunasan'] as $p)
+                                <tr>
+                                    <td class="label">{{ $p->faccname ?: $p->faccountno }}</td>
+                                    <td>{{ number_format((float) $p->famountrcp, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountbkk, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountnet, 2, '.', ',') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="empty">Tidak ada data pelunasan / pengeluaran kas.</td></tr>
+                            @endforelse
+                            <tr class="sub-total">
+                                <td class="label font-bold">Total Pelunasan :</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['net'] ?? 0), 2, '.', ',') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                @php
+                    $netGlobal = (float) ($globalSection['grand_total_pelunasan']['net'] ?? 0);
+                    $penjualanTunaiGlobal = (float) ($globalSection['penjualan_tunai'] ?? 0);
+                    $grandTotalGlobal = $netGlobal + $penjualanTunaiGlobal;
+                @endphp
+                <div class="report-section">
+                    <div class="section-title">Ringkasan Akhir (Grand Total Akumulasi)</div>
                     <table class="report-table">
                         <tbody>
-                            <tr><td class="label">Grand Total Pelunasan :</td><td>{{ number_format($report['total_pelunasan'], 2, '.', ',') }} | {{ number_format($report['total_pengeluaran'], 2, '.', ',') }} | {{ number_format($report['total_saldo'], 2, '.', ',') }}</td></tr>
-                            <tr><td class="label">GT. Penjualan Tunai :</td><td>{{ number_format($report['cash'], 2, '.', ',') }}</td></tr>
-                            <tr class="grand-total"><td class="label">Grand Total {{ $report['branch_name'] }} :</td><td>{{ number_format($report['total_sales'], 2, '.', ',') }}</td></tr>
+                            <tr>
+                                <td class="label">Grand Total Pelunasan :</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }} | {{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }} | {{ number_format($netGlobal, 2, '.', ',') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">GT. Penjualan Tunai :</td>
+                                <td>{{ number_format($penjualanTunaiGlobal, 2, '.', ',') }}</td>
+                            </tr>
+                            <tr class="grand-total">
+                                <td class="label">Grand Total HQ (Akumulasi) :</td>
+                                <td>{{ number_format($grandTotalGlobal, 2, '.', ',') }}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-        @empty
-            <section class="page-a4 page-a4-strict"><div class="empty">Tidak ada data ditemukan.</div></section>
-        @endforelse
+        @endif
     </div>
 
     <script>
