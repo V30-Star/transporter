@@ -288,7 +288,7 @@
 
         @media print {
             @page {
-                size: 8.27in 5.83in;
+                size: 8.27in auto;
                 margin: 0;
             }
 
@@ -312,9 +312,11 @@
 
             body, table, th, td, div, span, p {
                 font-family: Consolas, 'Courier New', Courier, monospace !important;
+                font-size: 12px !important;
                 font-weight: 700 !important;
                 -webkit-font-smoothing: none !important;
-                text-rendering: geometricPrecision !important;
+                text-rendering: optimizeSpeed !important;
+                letter-spacing: 0 !important;
             }
 
             .sheet {
