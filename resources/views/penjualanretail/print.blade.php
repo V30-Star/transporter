@@ -461,6 +461,11 @@
                                 <td>:</td>
                                 <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
                             </tr>
+                            <tr>
+                                <td>Hal</td>
+                                <td>:</td>
+                                <td><span class="page-counter">1 / 1</span></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -557,7 +562,7 @@
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px;">
-                        <div>Dicetak: {{ now()->format('d/m/y H:i') }} &nbsp;<span class="page-counter">Hal : 1 / 1</span></div>
+                        <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
             </div>
@@ -572,7 +577,7 @@
             <div class="sign-container" style="margin-top: 10px;">
                 <div></div>
                 <div class="meta-right">
-                    <div>Dicetak: {{ now()->format('d/m/y H:i') }} &nbsp;<span class="page-counter">Hal : 1 / 2</span></div>
+                    <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                 </div>
             </div>
         </div>
@@ -716,7 +721,7 @@
                 }
 
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
-                    el.innerText = `Hal : ${pageNum} / ${totalPages}`;
+                    el.innerText = `${pageNum} / ${totalPages}`;
                 });
             });
 
