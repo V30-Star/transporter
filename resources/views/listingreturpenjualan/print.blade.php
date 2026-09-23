@@ -652,10 +652,10 @@
                             <div class="po-detail">
                                 <div class="truncate">{{ $d->fitemcode }}</div>
                                 <div class="truncate" title="{{ format_product_name($d->fitemname ?? $d->fprdname, $d->fspecification ?? null) }}">{{ format_product_name($d->fitemname ?? $d->fprdname, $d->fspecification ?? null) }}</div>
-                                <div class="truncate" title="{{ $d->frefinvno }}">{{ $d->frefinvno }}</div>
-                                <div>{{ number_format((float) $d->fqty, 2, ',', '.') }} {{ $d->funit }}</div>
-                                <div>{{ number_format((float) $d->fprice, 2, ',', '.') }}</div>
-                                <div>{{ number_format((float) $d->fdetailtotal, 2, ',', '.') }}</div>
+                                <div class="truncate" title="{{ $d->frefinvno ?? $d->frefdtno ?? '' }}">{{ $d->frefinvno ?? $d->frefdtno ?? '-' }}</div>
+                                <div>{{ number_format((float) ($d->fqty ?? 0), 2, ',', '.') }} {{ $d->funit ?? '' }}</div>
+                                <div>{{ number_format((float) ($d->fprice ?? 0), 2, ',', '.') }}</div>
+                                <div>{{ number_format((float) ($d->fdetailtotal ?? $d->ftotprice ?? 0), 2, ',', '.') }}</div>
                             </div>
                         @endif
                     @endforeach

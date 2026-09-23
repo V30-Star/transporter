@@ -63,11 +63,13 @@ class ListingReturPenjualanController extends Controller
                 'p.fprdname as fitemname',
                 'p.fspecification',
                 DB::raw("CONCAT_WS(', ', NULLIF(TRIM(d.frefso), ''), NULLIF(TRIM(d.frefsrj), '')) as frefdtno"),
+                DB::raw("CONCAT_WS(', ', NULLIF(TRIM(d.frefso), ''), NULLIF(TRIM(d.frefsrj), '')) as frefinvno"),
                 DB::raw('COALESCE(d.fqty, 0) as fqty'),
                 'd.fsatuan',
                 'd.fsatuan as funit',
                 DB::raw('COALESCE(d.fprice, 0) as fprice'),
                 DB::raw('COALESCE(d.famount, 0) as ftotprice'),
+                DB::raw('COALESCE(d.famount, 0) as fdetailtotal'),
                 DB::raw('COALESCE(m.famountso, 0) as famountmt'),
                 DB::raw('COALESCE(m.famountgross, 0) as famount'),
                 DB::raw('COALESCE(m.famountpajak, 0) as famountpajak')
