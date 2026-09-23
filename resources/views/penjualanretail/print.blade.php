@@ -17,28 +17,41 @@
             box-sizing: border-box;
         }
 
+        /* Sans reguler kayak versi Delphi; bold/monospace kecil numpuk di dot matrix */
         body {
             margin: 0;
             background: #ececec;
-            font: 11px Consolas, 'Courier New', Courier, monospace;
+            font: 12px Arial, Helvetica, sans-serif;
             color: var(--fg);
         }
 
+        .sheet td {
+            font-weight: normal !important;
+        }
+
+        .sheet tr.gt td {
+            font-weight: bold !important;
+        }
+
+        /* Ukuran kertas: A5 portrait. Kalau form fisik beda, ganti di sini + .sheet (layar & print) */
         @page {
-            size: auto;
+            size: 5.83in 8.27in;
             margin: 0;
         }
 
+        /* Layar = print, biar pagination ngukur di lebar yang sama */
         .sheet {
-            width: 7.1in;
-            min-height: auto;
-            margin: 0.15in auto;
-            padding: 0.12in 0.2in 0.1in 0.2in;
+            width: 5.83in;
+            height: 8.27in;
+            overflow: hidden;
+            margin: 0.2in auto;
+            padding: 0.3in 0.45in 0.2in 0.45in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
+            font-weight: normal;
         }
 
         .header-row {
@@ -77,24 +90,29 @@
             text-align: right;
         }
 
-        fieldset.customer-container {
+        .customer-container {
             border: 1.5px solid #000;
             border-radius: 0;
-            padding: 2px 6px 4px 6px;
+            padding: 3px 5px;
             width: 100%;
-            margin: 4px 0 0 0;
+            position: relative;
+            margin-top: 4px;
             box-sizing: border-box;
+            font-weight: bold;
         }
 
-        legend.customer-label {
-            font-size: 9.5px;
-            font-weight: bold;
+        .customer-label {
+            position: absolute;
+            top: -7px;
+            left: 8px;
+            background: #fff;
             padding: 0 4px;
-            margin-left: 6px;
+            font-size: 11.5px;
+            font-weight: bold;
         }
 
         .info-table {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: bold;
             margin-top: 0px;
             margin-left: auto;
@@ -120,7 +138,7 @@
             padding: 3px 2px;
             text-align: left;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .product-header-row {
@@ -151,7 +169,7 @@
         .tb td {
             padding: 2.5px 2px;
             vertical-align: top;
-            font-size: 9.5px;
+            font-size: 11.5px;
         }
 
         .text-center, .tb th.text-center {
@@ -243,7 +261,7 @@
         }
 
         .meta-right {
-            font-size: 7.5px;
+            font-size: 9.5px;
             text-align: right;
             line-height: 1.2;
         }
@@ -279,13 +297,8 @@
         }
 
         @media print {
-            @page {
-                size: auto;
-                margin: 0;
-            }
-
             html, body {
-                width: 100% !important;
+                width: 5.83in !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -296,13 +309,9 @@
             * {
                 color: #000 !important;
                 -webkit-text-fill-color: #000 !important;
+                background: transparent !important;
                 box-shadow: none !important;
                 text-shadow: none !important;
-            }
-
-            body, table, th, td, div, span, p {
-                font-family: Consolas, 'Courier New', Courier, monospace !important;
-                letter-spacing: 0 !important;
             }
 
             .sheet {
@@ -310,14 +319,13 @@
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 7.1in !important;
-                max-width: 7.1in !important;
-                height: auto !important;
-                min-height: unset !important;
-                max-height: unset !important;
-                padding: 0.12in 0.2in 0.08in 0.2in !important;
+                width: 5.83in !important;
+                max-width: 5.83in !important;
+                height: 8.27in !important;
+                max-height: 8.27in !important;
+                padding: 0.3in 0.45in 0.2in 0.45in !important;
                 box-sizing: border-box !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 page-break-after: always !important;
@@ -326,8 +334,8 @@
 
             .sheet:last-child,
             .sheet:only-child {
-                page-break-after: avoid !important;
-                break-after: avoid !important;
+                page-break-after: auto !important;
+                break-after: auto !important;
             }
 
             .no-print, .print-hide, #raw-templates {
@@ -385,14 +393,14 @@
                 </div>
             </div>
 
-            <fieldset class="customer-container">
-                <legend class="customer-label">Customer</legend>
+            <div class="customer-container">
+                <span class="customer-label">Customer</span>
                 <div style="display: flex; justify-content: space-between; align-items: stretch;">
                     <div style="width: 50%; box-sizing: border-box; padding-right: 6px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-weight: bold; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {{ !empty(trim((string) ($hdr->customer_name ?? ''))) ? $hdr->customer_name : ($hdr->fcustno ?: '-') }}
                         </div>
-                        <div style="font-size: 8.5px; margin-top: 1px; white-space: pre-line; line-height: 1.15; max-height: 28px; overflow: hidden;">
+                        <div style="font-size: 11px; margin-top: 1px; white-space: pre-line; line-height: 1.15; max-height: 28px; overflow: hidden;">
                             {{ !empty(trim((string) ($hdr->falamatkirim ?? ''))) ? $hdr->falamatkirim : ($hdr->customer_address ?? '-') }}
                         </div>
                     </div>
@@ -406,7 +414,7 @@
                             <tr>
                                 <td>Sales</td>
                                 <td>:</td>
-                                <td><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</span></td>
+                                <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
                             </tr>
                             <tr>
                                 <td>Hal</td>
@@ -416,7 +424,7 @@
                         </table>
                     </div>
                 </div>
-            </fieldset>
+            </div>
         </div>
 
         {{-- Table Head Template --}}
@@ -462,15 +470,15 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px; gap: 4px;">
                 {{-- Kolom Kiri: Dibuat Oleh --}}
                 <div style="flex: 0 0 20%; text-align: center;">
-                    <div style="font-size: 9.5px; font-weight: bold;">Dibuat Oleh,</div>
-                    <div style="margin-top: 26px; font-size: 9.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-size: 11.5px; font-weight: bold;">Dibuat Oleh,</div>
+                    <div style="margin-top: 26px; font-size: 11.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                     </div>
                 </div>
 
                 {{-- Kolom Tengah: Total Qty & Total Isi --}}
                 <div style="flex: 0 0 24%; margin-top: 2px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; font-weight: bold;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; font-weight: bold;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Tot.Qty</td>
                             <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
@@ -486,7 +494,7 @@
 
                 {{-- Kolom Kanan: Summary Total & Metadata --}}
                 <div style="flex: 0 0 52%;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap; width: 60px;">Total</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
@@ -502,13 +510,13 @@
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
-                        <tr style="font-weight: bold; font-size: 10.5px;">
+                        <tr class="gt" style="font-weight: bold; font-size: 12.5px;">
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 3px; font-size: 9px; font-weight: bold;">
+                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: bold;">
                         <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
@@ -518,7 +526,7 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 9.5px;">
+            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 11.5px;">
                 Bersambung ke halaman <span class="next-page-num">2</span>
             </div>
             <div class="sign-container" style="margin-top: 10px;">
@@ -541,16 +549,19 @@
 
             printContainer.innerHTML = '';
 
-            // Usable content height for A4 portrait sheet (11in = ~1056px at 96dpi, minus padding)
-            // Usable content height for 9.5 x 5.5 inch continuous form sheet (~528px at 96dpi minus margins)
-            const MAX_SHEET_CONTENT_HEIGHT = 485;
+            // Batas tinggi diukur dari .sheet asli (ikut ukuran CSS), sisakan 6px buat jaga-jaga
+            const SAFETY_PX = 6;
 
+            function getMaxHeight(sheet) {
+                const cs = getComputedStyle(sheet);
+                return sheet.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - SAFETY_PX;
+            }
+
+            // Tinggi terpakai = bawah elemen terakhir (margin ikut kehitung, beda dgn jumlah offsetHeight)
             function getContentHeight(sheet) {
-                let total = 0;
-                for (let i = 0; i < sheet.children.length; i++) {
-                    total += sheet.children[i].offsetHeight;
-                }
-                return total;
+                const last = sheet.lastElementChild;
+                if (!last) return 0;
+                return last.offsetTop + last.offsetHeight - parseFloat(getComputedStyle(sheet).paddingTop);
             }
 
             function createSheet() {
@@ -602,7 +613,7 @@
                     summaryClone.removeAttribute('id');
                     currentSheet.footerSlot.appendChild(summaryClone);
 
-                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT) {
+                    if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet)) {
                         if (currentSheet.tbody.children.length > clonedPair.length) {
                             // Move this whole item pair to next sheet along with summary
                             clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
@@ -637,7 +648,7 @@
                     contTest.removeAttribute('id');
                     currentSheet.footerSlot.appendChild(contTest);
 
-                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > clonedPair.length) {
+                    if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet) && currentSheet.tbody.children.length > clonedPair.length) {
                         // Overflow! Move this whole item pair to next sheet
                         clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
 
