@@ -342,6 +342,10 @@
                 break-after: avoid !important;
             }
 
+            .customer-label {
+                background: #fff !important;
+            }
+
             .no-print, .print-hide, #raw-templates {
                 display: none !important;
             }
