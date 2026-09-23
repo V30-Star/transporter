@@ -154,7 +154,7 @@
             </li>
 
             <!-- Master Barang -->
-            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
+            <li x-data="{ open: {{ request()->routeIs('product.*', 'groupproduct.*', 'merek.*', 'satuan.*', 'barcode.*') ? 'true' : 'false' }} }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <i class="fa-solid fa-boxes w-5 text-center flex-shrink-0 text-lg"></i>
@@ -174,14 +174,14 @@
                     @if ($hasSidebarPermission('viewProduct', 'createProduct', 'updateProduct', 'deleteProduct'))
                         <li>
                             <a href="{{ route('product.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                class="flex items-center p-2 rounded hover:bg-gray-700 {{ request()->routeIs('product.*') ? 'bg-gray-700 text-white font-medium' : '' }}">
                                 <i class="fa-solid fa-box w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Produk' }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('barcode.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                class="flex items-center p-2 rounded hover:bg-gray-700 {{ request()->routeIs('barcode.*') ? 'bg-gray-700 text-white font-medium' : '' }}">
                                 <i class="fa-solid fa-barcode w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Barcode' }}</span>
                             </a>
@@ -1211,7 +1211,7 @@
                         </li>
                     @endif
 
-                    <!-- @if ($hasSidebarPermission('printLaporanUangKasir'))
+                    @if ($hasSidebarPermission('printLaporanUangKasir'))
                         <li>
                             <a href="{{ route('laporanuangkasir.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -1219,7 +1219,7 @@
                                 <span class="ml-3">{{ 'Laporan Uang Kasir' }}</span>
                             </a>
                         </li>
-                    @endif -->
+                    @endif
 
                     @if ($hasSidebarPermission('printLaporanBayarSupplier'))
                         <li>
