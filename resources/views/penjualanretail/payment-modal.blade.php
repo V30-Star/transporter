@@ -27,18 +27,6 @@
 
         <!-- Body -->
         <div class="px-6 py-4 space-y-3.5 text-sm text-gray-700 bg-gray-50/50 overflow-y-auto">
-            <!-- Total Nota -->
-            <div class="grid grid-cols-12 items-center gap-3">
-                <label class="col-span-4 font-semibold text-gray-700 text-sm">Total Nota:</label>
-                <div class="col-span-8">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold text-sm">Rp</span>
-                        <input type="text" id="modal_total_nota" readonly
-                            class="w-full pl-10 pr-3 py-2 bg-gray-100 border border-gray-300 rounded-xl text-right font-bold text-gray-800 cursor-not-allowed text-base">
-                    </div>
-                </div>
-            </div>
-
             <!-- Pembayaran -->
             <div class="grid grid-cols-12 items-center gap-3">
                 <label class="col-span-4 font-semibold text-gray-700 text-sm">Pembayaran: <span class="text-red-500">*</span></label>
@@ -63,6 +51,18 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+            </div>
+
+            <!-- Total Nota -->
+            <div class="grid grid-cols-12 items-center gap-3">
+                <label class="col-span-4 font-semibold text-gray-700 text-sm">Total Nota:</label>
+                <div class="col-span-8">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold text-sm">Rp</span>
+                        <input type="text" id="modal_total_nota" readonly
+                            class="w-full pl-10 pr-3 py-2 bg-gray-100 border border-gray-300 rounded-xl text-right font-bold text-gray-800 cursor-not-allowed text-base">
+                    </div>
                 </div>
             </div>
 

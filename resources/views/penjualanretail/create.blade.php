@@ -712,7 +712,7 @@
                                         <span class="font-bold text-gray-800">Discount</span>
                                         <input type="number" min="0" max="100" step="0.01"
                                             name="fdiscpersen" x-model.number="headerDiscPercent"
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                            class="w-16 h-7 px-1.5 py-0.5 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
                                                 [appearance:textfield]
                                                 [&::-webkit-outer-spin-button]:appearance-none
                                                 [&::-webkit-inner-spin-button]:appearance-none">
@@ -741,7 +741,7 @@
                                         <!-- Input Rate + Nominal -->
                                         <input type="number" min="0" max="100" name="ppn_rate"
                                             step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                            class="w-16 h-7 px-1.5 py-0.5 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
                                                     [appearance:textfield]
                                                     [&::-webkit-outer-spin-button]:appearance-none
                                                     [&::-webkit-inner-spin-button]:appearance-none
@@ -756,7 +756,7 @@
                                         <input type="number" min="0" max="100" step="0.01"
                                             x-model.number="headerBiayaPercent"
                                             disabled
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-200 rounded transition-opacity bg-gray-100 opacity-60 cursor-not-allowed
+                                            class="w-16 h-7 px-1.5 py-0.5 text-sm leading-tight text-right border border-gray-200 rounded transition-opacity bg-gray-100 opacity-60 cursor-not-allowed
                                                 [appearance:textfield]
                                                 [&::-webkit-outer-spin-button]:appearance-none
                                                 [&::-webkit-inner-spin-button]:appearance-none">
