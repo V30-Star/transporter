@@ -27,15 +27,15 @@
         }
 
         @page {
-            size: 5.83in 8.27in;
+            size: 4.13in 5.83in;
             margin: 0;
         }
 
         .sheet {
-            width: 5.83in;
-            min-height: 8.27in;
-            margin: 0.2in auto;
-            padding: 0.25in 0.35in 0.15in 0.35in;
+            width: 4.13in;
+            min-height: 5.83in;
+            margin: 0.15in auto;
+            padding: 0.2in 0.25in 0.1in 0.25in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
