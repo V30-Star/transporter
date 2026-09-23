@@ -302,15 +302,15 @@
                 font-weight: 700 !important;
             }
 
-            body, table, th, td, div, span, p, pre {
+            body, table, th, td, div, span, p {
                 font-family: Consolas, 'Courier New', Courier, monospace !important;
                 font-weight: 700 !important;
                 -webkit-font-smoothing: none !important;
                 text-rendering: geometricPrecision !important;
             }
 
-            .sheet, .plain-sheet {
-                margin: 0 !important;
+            .sheet {
+                margin: 0 auto !important;
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
@@ -331,10 +331,7 @@
             }
 
             .sheet:last-child,
-            .sheet:only-child,
-            .plain-sheet,
-            .plain-sheet:last-child,
-            .plain-sheet:only-child {
+            .sheet:only-child {
                 page-break-after: avoid !important;
                 break-after: avoid !important;
             }
@@ -343,40 +340,12 @@
                 display: none !important;
             }
         }
-
-        .plain-sheet {
-            font-family: 'Courier New', Consolas, 'Lucida Console', monospace;
-            font-size: 10px;
-            line-height: 1.25;
-            white-space: pre;
-            margin: 0.2in auto;
-            width: 105mm;
-            min-height: 148mm;
-            padding: 4mm 5mm;
-            background: #fff;
-            border: 1px solid #cfcfcf;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
-            box-sizing: border-box;
-            color: #000;
-        }
     </style>
 </head>
 
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Dokumen</button>
-
-        {{-- Toggle Mode Dot Matrix / Grafis --}}
-        <button id="btnToggleMode" onclick="togglePrintMode()"
-            style="padding: 6px 12px; background: #1e293b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">
-            📄 Mode Teks Dot Matrix
-        </button>
-
-        {{-- Salin Teks --}}
-        <button id="btnCopyText" onclick="copyPlainText()"
-            style="display: none; padding: 6px 10px; background: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">
-            📋 Salin Teks Nota
-        </button>
 
         {{-- Zoom Out --}}
         <button onclick="adjustZoom(-0.1)"
@@ -404,64 +373,9 @@
         $fongkosangkut = (float) ($hdr->fongkosangkut ?? 0);
         $totalQty = collect($dt)->sum(fn ($row) => (float) ($row->fqty ?? 0));
         $totalQtyKecil = collect($dt)->sum(fn ($row) => (float) ($row->fqtykecil ?? 0));
-
-        // Generator Plain-Text Nota 40 Kolom (Standar Dot Matrix ESC/P & POS)
-        $lineWidth = 40;
-        $pad = fn($str, $len, $dir = STR_PAD_RIGHT) => mb_substr(str_pad((string)$str, $len, ' ', $dir), 0, $len);
-        $fmtNum = fn($n) => number_format((float)$n, 0, ',', '.');
-
-        $compLine = strtoupper(substr($company_name ?? 'THE GROSIR', 0, $lineWidth));
-        $compCentered = str_pad($compLine, $lineWidth, ' ', STR_PAD_BOTH);
-        $cityCentered = str_pad(substr($company_city ?? '', 0, $lineWidth), $lineWidth, ' ', STR_PAD_BOTH);
-
-        $dividerEqual = str_repeat('=', $lineWidth);
-        $dividerDash = str_repeat('-', $lineWidth);
-
-        $plainLines = [];
-        $plainLines[] = $dividerEqual;
-        $plainLines[] = $compCentered;
-        if (!empty($company_city)) {
-            $plainLines[] = $cityCentered;
-        }
-        $plainLines[] = $dividerEqual;
-        $plainLines[] = $pad("FAKTUR: " . ($displayFsono ?? ($hdr->fsono ?? '-')), 24) . $pad("TGL: " . ($hdr->fsodate ? \Carbon\Carbon::parse($hdr->fsodate)->format('d/m/y') : '-'), 16, STR_PAD_LEFT);
-        $custName = trim(!empty($hdr->customer_name) ? $hdr->customer_name : ($hdr->fcustno ?: 'UMUM'));
-        $plainLines[] = $pad("CUST  : " . substr($custName, 0, 16), 24) . $pad("SLS: " . substr($hdr->salesman_name ?? ($hdr->fsalesname ?? '-'), 0, 10), 16, STR_PAD_LEFT);
-        $plainLines[] = $dividerDash;
-        $plainLines[] = "NO NAMA BARANG";
-        $plainLines[] = $pad("KODE", 14) . " " . $pad("QTY", 5, STR_PAD_LEFT) . " " . $pad("@HARGA", 9, STR_PAD_LEFT) . " " . $pad("TOTAL", 9, STR_PAD_LEFT);
-        $plainLines[] = $dividerDash;
-
-        foreach ($dt as $idx => $r) {
-            $no = str_pad($idx + 1, 2, ' ', STR_PAD_RIGHT);
-            $pName = trim(format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: ($r->fdesc ?? '-'));
-            $plainLines[] = $no . " " . substr($pName, 0, 37);
-
-            $code = $pad(substr($r->fprdcode ?? '-', 0, 14), 14);
-            $qty = $pad($fmtNum($r->fqty ?? 0), 5, STR_PAD_LEFT);
-            $price = $pad($fmtNum($r->fprice ?? 0), 9, STR_PAD_LEFT);
-            $amt = $pad($fmtNum($r->famount ?? 0), 9, STR_PAD_LEFT);
-            $plainLines[] = $code . " " . $qty . " " . $price . " " . $amt;
-        }
-
-        $plainLines[] = $dividerDash;
-        $plainLines[] = $pad("TOTAL QTY: " . $fmtNum($totalQty), 20) . $pad("TOTAL : " . $pad($fmtNum($famountgross), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        $plainLines[] = $pad("TOTAL ISI: " . $fmtNum($totalQtyKecil), 20) . $pad("DISC  : " . $pad($fmtNum($fdiscount), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        $plainLines[] = $pad("", 20) . $pad("BIAYA : " . $pad($fmtNum($fongkosangkut), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        $plainLines[] = $pad("", 20) . $pad("--------------------", 20, STR_PAD_LEFT);
-        $plainLines[] = $pad("Dibuat Oleh,", 20) . $pad("G.TOT : " . $pad($fmtNum($famountso), 11, STR_PAD_LEFT), 20, STR_PAD_LEFT);
-        $plainLines[] = "";
-        $plainLines[] = "( " . str_pad(!empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '              '), 16, ' ', STR_PAD_BOTH) . " )";
-        $plainLines[] = $dividerEqual;
-        $plainLines[] = $pad("Dicetak: " . now()->format('d/m/y H:i'), 40, STR_PAD_BOTH);
-
-        $plainTextNota = implode("\n", $plainLines);
     @endphp
 
     <div id="print-container"></div>
-    <div id="plaintext-wrapper" style="display: none;">
-        <pre class="plain-sheet" id="plaintextContent">{{ $plainTextNota }}</pre>
-    </div>
 
     <div id="raw-templates" style="display: none;">
         {{-- Header Template --}}
@@ -783,49 +697,11 @@
         let currentZoom = 1.0;
         function adjustZoom(delta) {
             currentZoom = Math.min(Math.max(currentZoom + delta, 0.5), 2.0);
-            document.querySelectorAll('.sheet, .plain-sheet').forEach(target => {
+            document.querySelectorAll('.sheet').forEach(target => {
                 target.style.transform = `scale(${currentZoom})`;
                 target.style.transformOrigin = "top center";
             });
             document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
-        }
-
-        let isTextMode = false;
-        function togglePrintMode() {
-            isTextMode = !isTextMode;
-            const printContainer = document.getElementById('print-container');
-            const plaintextWrapper = document.getElementById('plaintext-wrapper');
-            const btnToggle = document.getElementById('btnToggleMode');
-            const btnCopy = document.getElementById('btnCopyText');
-
-            if (isTextMode) {
-                printContainer.style.display = 'none';
-                plaintextWrapper.style.display = 'block';
-                btnToggle.innerText = '📋 Mode Format Tabel';
-                btnToggle.style.background = '#475569';
-                btnCopy.style.display = 'inline-block';
-            } else {
-                printContainer.style.display = 'block';
-                plaintextWrapper.style.display = 'none';
-                btnToggle.innerText = '📄 Mode Teks Dot Matrix';
-                btnToggle.style.background = '#1e293b';
-                btnCopy.style.display = 'none';
-            }
-        }
-
-        function copyPlainText() {
-            const text = document.getElementById('plaintextContent').innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Teks nota berhasil disalin ke clipboard!');
-            }).catch(() => {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                alert('Teks nota berhasil disalin!');
-            });
         }
     </script>
 </body>
