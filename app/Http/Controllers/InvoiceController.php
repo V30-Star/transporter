@@ -1313,7 +1313,7 @@ class InvoiceController extends Controller
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
-    public function print(string $fsono)
+    protected function getInvoicePrintData(string $fsono)
     {
         $fsono = trim($fsono);
 
@@ -1364,9 +1364,6 @@ class InvoiceController extends Controller
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
 
-        // Use header ID (integer) for detail FK
-        $ftranmtid = (int) $hdr->ftranmtid;
-
         // Detail: join dengan product
         $dt = DB::table('trandt')
             ->leftJoin('msprd as p', function ($j) {
@@ -1390,14 +1387,55 @@ class InvoiceController extends Controller
 
         log_print_transaction($hdr->fsono);
 
-        return view($this->getViewPrefix() . '.print', [
+        $setting = company_setting();
+
+        return [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
-        ]);
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
+            'namattdpo' => $setting->fnamattdpo ?? '',
+        ];
+    }
+
+    public function print(string $fsono)
+    {
+        $payload = $this->getInvoicePrintData($fsono);
+        if ($payload instanceof \Illuminate\Http\RedirectResponse) {
+            return $payload;
+        }
+
+        return view($this->getViewPrefix() . '.print', $payload);
+    }
+
+    public function printTextDirect(string $fsono)
+    {
+        $payload = $this->getInvoicePrintData($fsono);
+        if ($payload instanceof \Illuminate\Http\RedirectResponse) {
+            return response()->json([
+                'success' => false,
+                'message' => session('error') ?? 'Faktur tidak ditemukan atau tidak dapat diakses.',
+            ], 404);
+        }
+
+        try {
+            $builder = \App\Support\NotaTextBuilder::fromData($payload);
+            $target = config('app.printer_target', env('PRINTER_LX310_TARGET', '\\\\localhost\\LX310TEXT'));
+            $builder->printTo($target);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Faktur berhasil dikirim ke printer ({$target}).",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function create(Request $request)

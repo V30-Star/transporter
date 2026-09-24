@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Penjualan Retail - {{ $displayFsono ?? ($hdr->fsono ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         :root {
             --fg: #000;
@@ -355,6 +356,13 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Dokumen</button>
+
+        {{-- Button Print Mode Text (Baru) --}}
+        <button type="button" id="btnTextPrint" class="print-button" onclick="printModeText()"
+            style="background: #198754;" title="Cetak langsung ke Epson LX-310 (ESC/P Text Mode)">
+            ⚡ Print Mode Text
+        </button>
+        <span id="textPrintStatus" style="font-size: 12px; font-weight: bold; margin-left: 4px; display: none;"></span>
 
         {{-- Zoom Out --}}
         <button onclick="adjustZoom(-0.1)"
@@ -715,6 +723,49 @@
                 target.style.transformOrigin = "top center";
             });
             document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        async function printModeText() {
+            const btn = document.getElementById('btnTextPrint');
+            const status = document.getElementById('textPrintStatus');
+            const originalText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Mengirim...';
+            status.style.display = 'inline';
+            status.style.color = '#0d6efd';
+            status.textContent = 'Mengirim ke printer...';
+
+            try {
+                const res = await fetch(@json(route('penjualanretail.print-text', $hdr->fsono ?? ($displayFsono ?? ''))), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    status.style.color = '#15803d';
+                    status.textContent = '✅ ' + (data.message || 'Terkirim ke printer');
+                } else {
+                    status.style.color = '#b91c1c';
+                    status.textContent = '❌ ' + (data.message || 'Gagal mencetak');
+                    alert(data.message || 'Gagal mengirim ke printer');
+                }
+            } catch (err) {
+                status.style.color = '#b91c1c';
+                status.textContent = '❌ Gagal: ' + err.message;
+                alert('Gagal mengirim ke printer: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 8000);
+            }
         }
     </script>
 </body>

@@ -593,6 +593,9 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/penjualanretail/{fstockmtno}/print', [PenjualanRetailController::class, 'print'])
             ->where('fstockmtno', '.*')
             ->name('penjualanretail.print');
+        Route::post('/penjualanretail/{fstockmtno}/print-text', [PenjualanRetailController::class, 'printTextDirect'])
+            ->where('fstockmtno', '.*')
+            ->name('penjualanretail.print-text');
         Route::get('/penjualanretail/{id}/items', [PenjualanRetailController::class, 'items'])
             ->name('penjualanretail.items');
         Route::get('/penjualanretail/pickable', [PenjualanRetailController::class, 'pickable'])
