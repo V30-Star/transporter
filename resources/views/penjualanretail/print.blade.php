@@ -45,8 +45,8 @@
             height: 8.27in;
             overflow: hidden;
             margin: 0.2in auto;
-            /* Kanan 1.85in: area aman kertas ~3.78in (5.83 - 0.2 - 1.85). Sesuaikan kalau kertas beda */
-            padding: 0.3in 1.85in 0.2in 0.2in;
+            /* Kanan 1.90in: area aman kertas ~3.68in (5.83 - 0.2 - 1.95). Sesuaikan kalau kertas beda */
+            padding: 0.3in 1.90in 0.2in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -326,7 +326,7 @@
                 max-width: 5.83in !important;
                 height: 8.27in !important;
                 max-height: 8.27in !important;
-                padding: 0.3in 1.85in 0.2in 0.2in !important;
+                padding: 0.3in 1.90in 0.2in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
