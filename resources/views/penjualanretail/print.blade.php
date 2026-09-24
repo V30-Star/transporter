@@ -45,8 +45,8 @@
             height: 8.27in;
             overflow: hidden;
             margin: 0.2in auto;
-            /* Kanan 1.53in: area aman kertas cuma ~4in (5.83 - 0.3 - 1.53). Sesuaikan kalau kertas beda */
-            padding: 0.3in 1.53in 0.2in 0.3in;
+            /* Kanan 1.65in: area aman kertas cuma ~3.98in (5.83 - 0.2 - 1.65). Sesuaikan kalau kertas beda */
+            padding: 0.3in 1.65in 0.2in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -110,6 +110,8 @@
             padding: 0 4px;
             font-size: 11.5px;
             font-weight: bold;
+            line-height: 1;
+            z-index: 2;
         }
 
         .info-table {
@@ -324,7 +326,7 @@
                 max-width: 5.83in !important;
                 height: 8.27in !important;
                 max-height: 8.27in !important;
-                padding: 0.3in 1.53in 0.2in 0.3in !important;
+                padding: 0.3in 1.65in 0.2in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
@@ -337,6 +339,10 @@
             .sheet:only-child {
                 page-break-after: auto !important;
                 break-after: auto !important;
+            }
+
+            .customer-label {
+                background: #fff !important;
             }
 
             .no-print, .print-hide, #raw-templates {
@@ -451,8 +457,8 @@
                     <tr class="item-row">
                         <td colspan="6" style="color: #000; text-align: left !important; padding: 2px 2px; font-weight: bold;">
                             <div style="display: flex; align-items: flex-start; gap: 4px;">
-                                <span class="row-no" style="min-width: 20px; text-align: left !important; font-weight: bold;">{{ $i + 1 }}</span>
-                                <span style="flex: 1; text-align: left !important; white-space: pre-line; font-weight: bold;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
+                                <span class="row-no" style="min-width: 20px; text-align: left !important;">{{ $i + 1 }}</span>
+                                <span style="flex: 1; text-align: left !important; white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
                             </div>
                         </td>
                     </tr>
