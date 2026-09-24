@@ -1423,7 +1423,7 @@ class InvoiceController extends Controller
 
         try {
             $builder = \App\Support\NotaTextBuilder::fromData($payload);
-            $target = config('app.printer_target', env('PRINTER_LX310_TARGET', '\\\\localhost\\LX310TEXT'));
+            $target = config('app.printer_target', env('PRINTER_LX310_TARGET', 'LPT1'));
             $builder->printTo($target);
 
             return response()->json([

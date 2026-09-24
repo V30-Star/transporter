@@ -79,25 +79,38 @@ class NotaTextBuilder
         return $out;
     }
 
-    /** Kirim ke printer: nama share (\\localhost\LX310TEXT), LPT1, atau PRN. */
+    /** Kirim ke printer: nama share (\\localhost\LX-310), LPT1, atau PRN. */
     public function printTo(?string $target = null): void
     {
-        $target = $target ?: config('app.printer_target', env('PRINTER_LX310_TARGET', '\\\\localhost\\LX310TEXT'));
+        $target = $target ?: config('app.printer_target', env('PRINTER_LX310_TARGET', 'LPT1'));
 
-        $prevHandler = set_error_handler(function ($severity, $message) {
-            throw new \ErrorException($message);
-        });
+        $targets = array_unique(array_filter([
+            $target,
+            'LPT1',
+            '\\\\localhost\\LX-310',
+            '\\\\127.0.0.1\\LX-310',
+        ]));
 
-        try {
-            $bytes = file_put_contents($target, $this->raw());
-            if ($bytes === false) {
-                throw new \RuntimeException("Gagal menulis data ke printer target: {$target}");
+        $lastException = null;
+        foreach ($targets as $tryTarget) {
+            $prevHandler = set_error_handler(function ($severity, $message) {
+                throw new \ErrorException($message);
+            });
+
+            try {
+                $bytes = file_put_contents($tryTarget, $this->raw());
+                if ($bytes !== false) {
+                    restore_error_handler();
+                    return;
+                }
+            } catch (\Throwable $e) {
+                $lastException = $e;
+            } finally {
+                restore_error_handler();
             }
-        } catch (\Throwable $e) {
-            throw new \RuntimeException("Tidak dapat menulis ke target printer [{$target}]. Pastikan printer terhubung/dishare. Detail: " . $e->getMessage(), 0, $e);
-        } finally {
-            restore_error_handler();
         }
+
+        throw new \RuntimeException("Tidak dapat menulis ke target printer [{$target}]. Detail: " . ($lastException?->getMessage() ?? 'Unknown error'), 0, $lastException);
     }
 
     // ------------------------------------------------------------------
