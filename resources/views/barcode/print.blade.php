@@ -109,8 +109,9 @@
             align-items: center;
             text-align: center;
             overflow: hidden;
-            padding: 0.8mm 1mm;
-            line-height: 1.1;
+            padding: {{ $labelHeight <= 18 ? '0.4mm 0.8mm' : '0.8mm 1mm' }};
+            line-height: 1.05;
+            box-sizing: border-box;
         }
 
         .label-item:last-child {
@@ -118,7 +119,7 @@
         }
 
         .item-company {
-            font-size: {{ $fontSize * 0.95 }}pt;
+            font-size: {{ $fontSize * 0.9 }}pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: -0.2px;
@@ -126,43 +127,54 @@
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
+            line-height: 1;
+            flex-shrink: 0;
         }
 
         .item-name {
-            font-size: {{ $fontSize * 0.9 }}pt;
+            font-size: {{ $fontSize * 0.85 }}pt;
             font-weight: bold;
             color: #000;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: {{ $labelHeight <= 18 ? 1 : 2 }};
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
             word-break: break-word;
+            line-height: 1.05;
+            margin: 0.5px 0;
+            flex-shrink: 0;
         }
 
         .item-barcode {
             width: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            margin: 0.5px 0;
         }
 
         .item-barcode svg {
             max-width: 100%;
+            max-height: 100%;
             height: auto;
             shape-rendering: crispEdges;
         }
 
         .item-price {
-            font-size: {{ $fontSize * 1.05 }}pt;
+            font-size: {{ $fontSize * 0.95 }}pt;
             font-weight: 900;
             color: #000;
             letter-spacing: -0.2px;
             white-space: nowrap;
             overflow: hidden;
             width: 100%;
+            line-height: 1;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -195,19 +207,23 @@
                             <div class="item-name">{{ $label['name'] }}</div>
                         @endif
 
-                        <div class="item-barcode">
-                            <svg class="barcode"
-                                jsbarcode-format="CODE128"
-                                jsbarcode-value="{{ $label['barcode'] ?: $label['code'] }}"
-                                jsbarcode-text="{{ $showCode ? ($label['barcode'] ?: $label['code']) : '' }}"
-                                jsbarcode-displayvalue="{{ $showCode ? 'true' : 'false' }}"
-                                jsbarcode-width="1.2"
-                                jsbarcode-height="{{ $barcodeHeight }}"
-                                jsbarcode-fontsize="{{ $fontSize * 1.1 }}"
-                                jsbarcode-margin="0"
-                                jsbarcode-textmargin="1">
-                            </svg>
-                        </div>
+                        @if ($showCode)
+                            <div class="item-barcode">
+                                <svg class="barcode"
+                                    jsbarcode-format="CODE128"
+                                    jsbarcode-value="{{ $label['barcode'] ?: $label['code'] }}"
+                                    jsbarcode-text="{{ $label['barcode'] ?: $label['code'] }}"
+                                    jsbarcode-displayvalue="true"
+                                    jsbarcode-width="1.1"
+                                    jsbarcode-height="{{ $labelHeight <= 18 ? min(16, (int)$barcodeHeight) : $barcodeHeight }}"
+                                    jsbarcode-font="Arial"
+                                    jsbarcode-fontoptions="bold"
+                                    jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
+                                    jsbarcode-margin="0"
+                                    jsbarcode-textmargin="1">
+                                </svg>
+                            </div>
+                        @endif
 
                         @if ($showPrice && $label['price'] > 0)
                             <div class="item-price">Rp {{ number_format($label['price'], 0, ',', '.') }}</div>

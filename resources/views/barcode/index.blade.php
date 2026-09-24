@@ -167,7 +167,7 @@
                         <div class="bp-dim-row pt-2.5 mt-2.5 border-t border-[var(--app-border)]">
                             <div class="bp-dim-col">
                                 <label class="bp-label">Tinggi Barcode (px)</label>
-                                <input type="number" min="15" max="80" name="barcode_height" id="barcodeHeight" value="20" class="bp-input font-mono">
+                                <input type="number" min="15" max="80" name="barcode_height" id="barcodeHeight" value="16" class="bp-input font-mono">
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Ukuran Font (pt)</label>
@@ -1281,12 +1281,12 @@ let recentSettingsList = @json($recentSettings ?? []);
 
 // Preset definitions
 const presets = {
-    '33x15_3col': { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 20, fontS: 7 },
+    '33x15_3col': { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 16, fontS: 7 },
     '40x30_1col': { width: 40, height: 30, cols: 1, gapX: 0, barcodeH: 28, fontS: 8 },
     '50x20_1col': { width: 50, height: 20, cols: 1, gapX: 0, barcodeH: 22, fontS: 8 },
     '50x30_1col': { width: 50, height: 30, cols: 1, gapX: 0, barcodeH: 30, fontS: 8.5 },
     '70x50_1col': { width: 70, height: 50, cols: 1, gapX: 0, barcodeH: 42, fontS: 10 },
-    'custom':     { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 20, fontS: 7 }
+    'custom':     { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 16, fontS: 7 }
 };
 
 $(document).ready(function() {
@@ -1640,14 +1640,20 @@ function updatePreview() {
 
     container.css('gap', `${gapXPx}px`);
 
+    const padY = heightMm <= 18 ? 2 : 3;
+    const padX = 3;
+    const nameClamp = heightMm <= 18 ? 1 : 2;
+    const effectiveBarH = heightMm <= 18 ? Math.min(16, barcodeH) : barcodeH;
+    const effectiveFontCode = Math.max(10, Math.min(12, Math.round(fontS * 1.4)));
+
     for (let c = 0; c < columns; c++) {
         const svgId = `prevBarcodeSvg_${c}`;
         const labelHtml = `
-            <div style="width: ${cardWidthPx}px; height: ${cardHeightPx}px; box-sizing: border-box; background: #ffffff; border: 1px solid #94a3b8; border-radius: 2px; padding: 3px 4px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; overflow: hidden; flex-shrink: 0; font-family: Arial, sans-serif;">
-                ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">${companyName}</div>` : ''}
-                ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-top: 1px;">${sampleItem.fprdname}</div>` : ''}
-                ${showCode ? `<div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 1px 0;"><svg id="${svgId}" style="max-width: 100%;"></svg></div>` : ''}
-                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 900; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%;">Rp ${Number(sampleItem.price).toLocaleString('id-ID')}</div>` : ''}
+            <div style="width: ${cardWidthPx}px; height: ${cardHeightPx}px; box-sizing: border-box; background: #ffffff; border: 1px solid #94a3b8; border-radius: 2px; padding: ${padY}px ${padX}px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; overflow: hidden; flex-shrink: 0; font-family: Arial, sans-serif;">
+                ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${companyName}</div>` : ''}
+                ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 1px 0; flex-shrink: 0;">${sampleItem.fprdname}</div>` : ''}
+                ${showCode ? `<div style="width: 100%; flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 0.5px 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
+                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 900; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0;">Rp ${Number(sampleItem.price).toLocaleString('id-ID')}</div>` : ''}
             </div>
         `;
         container.append(labelHtml);
@@ -1657,9 +1663,11 @@ function updatePreview() {
                 JsBarcode(`#${svgId}`, sampleItem.fbarcode || sampleItem.fprdcode, {
                     format: "CODE128",
                     width: 1.1,
-                    height: barcodeH,
+                    height: effectiveBarH,
                     displayValue: true,
-                    fontSize: Math.max(8, fontS * 1.1),
+                    font: "Arial",
+                    fontOptions: "bold",
+                    fontSize: effectiveFontCode,
                     margin: 0,
                     textMargin: 1
                 });
@@ -1667,10 +1675,13 @@ function updatePreview() {
                 JsBarcode(`#${svgId}`, "12345678", {
                     format: "CODE128",
                     width: 1.1,
-                    height: barcodeH,
+                    height: effectiveBarH,
                     displayValue: true,
-                    fontSize: 8,
-                    margin: 0
+                    font: "Arial",
+                    fontOptions: "bold",
+                    fontSize: effectiveFontCode,
+                    margin: 0,
+                    textMargin: 1
                 });
             }
         }

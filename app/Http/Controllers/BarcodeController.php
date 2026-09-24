@@ -100,11 +100,11 @@ class BarcodeController extends Controller
         $columns = max(1, min(6, (int) $request->input('columns', 3)));
         $gapX = max(0, (float) $request->input('gap_x', 2));
         $gapY = max(0, (float) $request->input('gap_y', 0));
-        $showCompany = (bool) $request->input('show_company', true);
+        $showCompany = $request->boolean('show_company');
         $companyName = trim((string) $request->input('company_name', function_exists('company_name') ? company_name() : ''));
-        $showName = (bool) $request->input('show_name', true);
-        $showPrice = (bool) $request->input('show_price', true);
-        $showCode = (bool) $request->input('show_code', true);
+        $showName = $request->boolean('show_name');
+        $showPrice = $request->boolean('show_price');
+        $showCode = $request->boolean('show_code');
         $barcodeHeight = max(15, min(80, (int) $request->input('barcode_height', 24)));
         $fontSize = max(6, min(14, (float) $request->input('font_size', 7.5)));
 
@@ -190,6 +190,10 @@ class BarcodeController extends Controller
             'label_width' => $request->input('label_width', 33),
             'label_height' => $request->input('label_height', 15),
             'columns' => $request->input('columns', 3),
+            'show_company' => $request->input('show_company', 1),
+            'show_name' => $request->input('show_name', 1),
+            'show_code' => $request->input('show_code', 1),
+            'show_price' => $request->input('show_price', 1),
         ]);
 
         return $this->printLabels($request);
@@ -220,11 +224,11 @@ class BarcodeController extends Controller
         $gapX = max(0, (float) $request->input('gap_x', 2));
         $barcodeHeight = max(15, min(80, (int) $request->input('barcode_height', 20)));
         $fontSize = max(6, min(14, (float) $request->input('font_size', 7)));
-        $showCompany = filter_var($request->input('show_company', true), FILTER_VALIDATE_BOOLEAN);
+        $showCompany = $request->boolean('show_company');
         $companyName = trim((string) $request->input('company_name', ''));
-        $showName = filter_var($request->input('show_name', true), FILTER_VALIDATE_BOOLEAN);
-        $showCode = filter_var($request->input('show_code', true), FILTER_VALIDATE_BOOLEAN);
-        $showPrice = filter_var($request->input('show_price', true), FILTER_VALIDATE_BOOLEAN);
+        $showName = $request->boolean('show_name');
+        $showCode = $request->boolean('show_code');
+        $showPrice = $request->boolean('show_price');
         $preset = trim((string) $request->input('preset', 'custom'));
         $userId = session('user_id') ?? auth()->user()?->fsysuserid ?? null;
 
