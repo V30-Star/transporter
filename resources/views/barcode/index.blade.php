@@ -1795,7 +1795,7 @@ function renderRecentSettings() {
     }
 
     $container.empty();
-    recentSettingsList.forEach((item, idx) => {
+    recentSettingsList.slice(0, 5).forEach((item, idx) => {
         const d = item.timestamp ? new Date(item.timestamp) : new Date();
         const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
         const tooltip = `${item.labelWidth}×${item.labelHeight} mm, ${item.columns} Kolom, Font ${item.fontSize}pt`;

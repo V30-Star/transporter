@@ -260,7 +260,7 @@ class BarcodeController extends Controller
                 'preset' => $preset,
             ]);
 
-            $keepIds = Barcode::latest('updated_at')->limit(10)->pluck('id');
+            $keepIds = Barcode::latest('updated_at')->limit(5)->pluck('id');
             Barcode::whereNotIn('id', $keepIds)->delete();
         }
     }
