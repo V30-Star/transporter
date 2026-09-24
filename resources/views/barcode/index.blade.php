@@ -1332,14 +1332,41 @@ $(document).ready(function() {
 
     // Clear recent settings
     $('#btnClearRecent').on('click', function() {
-        if (!confirm('Hapus semua riwayat recent setting dari database?')) return;
-        $.ajax({
-            url: '{{ route('barcode.recent-settings.clear') }}',
-            type: 'POST',
-            data: { _token: '{{ csrf_token() }}' },
-            success: function() {
-                recentSettingsList = [];
-                renderRecentSettings();
+        Swal.fire({
+            title: 'Hapus Recent Setting?',
+            text: 'Hapus semua riwayat recent setting?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route('barcode.recent-settings.clear') }}',
+                    type: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function() {
+                        recentSettingsList = [];
+                        renderRecentSettings();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Semua riwayat recent setting telah dihapus.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Terjadi kesalahan saat menghapus riwayat setting.'
+                        });
+                    }
+                });
             }
         });
     });
