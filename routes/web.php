@@ -237,6 +237,8 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
         Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
         Route::get('/barcode/search-products', [BarcodeController::class, 'searchProducts'])->name('barcode.search-products');
+        Route::post('/barcode/recent-settings', [BarcodeController::class, 'saveRecentSettings'])->name('barcode.recent-settings.save');
+        Route::post('/barcode/recent-settings/clear', [BarcodeController::class, 'clearRecentSettings'])->name('barcode.recent-settings.clear');
         Route::post('/barcode/print', [BarcodeController::class, 'printLabels'])->name('barcode.print');
         Route::get('/barcode/print', [BarcodeController::class, 'printDirect'])->name('barcode.print.direct');
 

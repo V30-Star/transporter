@@ -50,6 +50,20 @@
                     </div>
 
                     <div class="bp-card-body">
+                        {{-- Recent Setting Section --}}
+                        <div id="recentSettingSection" class="bp-recent-section" style="display: none;">
+                            <div class="bp-recent-header">
+                                <span class="bp-recent-title">
+                                    <i class="fa-solid fa-clock-rotate-left text-amber-500 mr-1.5"></i>
+                                    Recent Setting
+                                </span>
+                                <button type="button" id="btnClearRecent" class="bp-recent-clear-btn" title="Hapus riwayat setting">
+                                    Hapus
+                                </button>
+                            </div>
+                            <div id="recentChipsList" class="bp-recent-chips"></div>
+                        </div>
+
                         <div class="bp-form-group">
                             <label class="bp-label">Pilih Preset Ukuran Stiker Fisik</label>
                             <div class="bp-preset-grid">
@@ -614,6 +628,86 @@
         color: var(--app-text-muted);
         margin-top: 1px;
         line-height: 1.1;
+    }
+
+    /* Recent Setting Section */
+    .bp-recent-section {
+        background: var(--app-surface-soft, #f8fafc);
+        border: 1px dashed var(--app-border, #cbd5e1);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 12px;
+    }
+    html[data-theme="dark"] .bp-recent-section {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+    .bp-recent-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+    .bp-recent-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--app-text);
+        display: flex;
+        align-items: center;
+    }
+    .bp-recent-clear-btn {
+        font-size: 10px;
+        color: var(--app-text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0 4px;
+        border-radius: 3px;
+        transition: color 0.15s;
+    }
+    .bp-recent-clear-btn:hover {
+        color: #ef4444;
+    }
+    .bp-recent-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .bp-recent-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--app-surface, #ffffff);
+        border: 1px solid var(--app-border, #e2e8f0);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--app-text);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        line-height: 1.2;
+    }
+    .bp-recent-chip:hover {
+        border-color: #3b82f6;
+        background: var(--app-surface-soft);
+        color: #2563eb;
+    }
+    .bp-recent-chip.active {
+        border-color: #f59e0b !important;
+        background: #fffbeb !important;
+        color: #b45309 !important;
+        box-shadow: 0 0 0 1px #f59e0b;
+    }
+    html[data-theme="dark"] .bp-recent-chip.active {
+        background: rgba(245, 158, 11, 0.15) !important;
+        color: #fde68a !important;
+        border-color: #f59e0b !important;
+    }
+    .bp-recent-chip .chip-time {
+        font-size: 9px;
+        font-weight: 400;
+        color: var(--app-text-muted);
     }
 
     /* Dimensions Inputs (4 Kolom Rapi 1 Baris) */
@@ -1183,6 +1277,7 @@ let queueItems = [];
 let selectedSearchData = null;
 let currentZoom = 1;
 let modalProductList = [];
+let recentSettingsList = @json($recentSettings ?? []);
 
 // Preset definitions
 const presets = {
@@ -1206,6 +1301,7 @@ $(document).ready(function() {
     $('.bp-preset-btn').on('click', function() {
         $('.bp-preset-btn').removeClass('active');
         $(this).addClass('active');
+        $('.bp-recent-chip').removeClass('active');
 
         const presetKey = $(this).data('preset');
         if (presets[presetKey] && presetKey !== 'custom') {
@@ -1220,10 +1316,36 @@ $(document).ready(function() {
         }
     });
 
-    // Inputs change listeners for live preview
+    // Inputs change listeners for live preview & auto-save recent setting
+    let recentSaveTimer = null;
     $('#labelWidth, #labelHeight, #labelColumns, #gapX, #barcodeHeight, #fontSize, #showCompany, #companyName, #showName, #showCode, #showPrice').on('input change', function() {
         updatePreview();
+        $('.bp-recent-chip').removeClass('active');
+        clearTimeout(recentSaveTimer);
+        recentSaveTimer = setTimeout(saveCurrentAsRecent, 800);
     });
+
+    // Auto-save on print submit
+    $('#barcodeForm').on('submit', function() {
+        saveCurrentAsRecent();
+    });
+
+    // Clear recent settings
+    $('#btnClearRecent').on('click', function() {
+        if (!confirm('Hapus semua riwayat recent setting dari database?')) return;
+        $.ajax({
+            url: '{{ route('barcode.recent-settings.clear') }}',
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}' },
+            success: function() {
+                recentSettingsList = [];
+                renderRecentSettings();
+            }
+        });
+    });
+
+    // Load recent settings on ready
+    renderRecentSettings();
 
     // Select2 Product Search
     $('#productSearchSelect').select2({
@@ -1526,6 +1648,144 @@ function updatePreview() {
             }
         }
     }
+}
+
+// Recent Settings Helpers
+function getCurrentSettings() {
+    return {
+        labelWidth: parseFloat($('#labelWidth').val()) || 33,
+        labelHeight: parseFloat($('#labelHeight').val()) || 15,
+        columns: Math.max(1, parseInt($('#labelColumns').val(), 10) || 1),
+        gapX: parseFloat($('#gapX').val()) || 0,
+        barcodeHeight: parseInt($('#barcodeHeight').val(), 10) || 20,
+        fontSize: parseFloat($('#fontSize').val()) || 7,
+        showCompany: $('#showCompany').is(':checked'),
+        companyName: $('#companyName').val() || '',
+        showName: $('#showName').is(':checked'),
+        showCode: $('#showCode').is(':checked'),
+        showPrice: $('#showPrice').is(':checked'),
+        preset: $('.bp-preset-btn.active').data('preset') || 'custom',
+        timestamp: Date.now()
+    };
+}
+
+let isSavingRecent = false;
+function saveCurrentAsRecent() {
+    if (isSavingRecent) return;
+    const cur = getCurrentSettings();
+
+    // Check if duplicate of first item to avoid needless DB writes
+    if (recentSettingsList && recentSettingsList.length > 0) {
+        const top = recentSettingsList[0];
+        if (
+            top.labelWidth === cur.labelWidth &&
+            top.labelHeight === cur.labelHeight &&
+            top.columns === cur.columns &&
+            top.gapX === cur.gapX &&
+            top.barcodeHeight === cur.barcodeHeight &&
+            top.fontSize === cur.fontSize &&
+            Boolean(top.showCompany) === Boolean(cur.showCompany) &&
+            (top.companyName || '') === (cur.companyName || '') &&
+            Boolean(top.showName) === Boolean(cur.showName) &&
+            Boolean(top.showCode) === Boolean(cur.showCode) &&
+            Boolean(top.showPrice) === Boolean(cur.showPrice)
+        ) {
+            return;
+        }
+    }
+
+    isSavingRecent = true;
+
+    $.ajax({
+        url: '{{ route('barcode.recent-settings.save') }}',
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            label_width: cur.labelWidth,
+            label_height: cur.labelHeight,
+            columns: cur.columns,
+            gap_x: cur.gapX,
+            barcode_height: cur.barcodeHeight,
+            font_size: cur.fontSize,
+            show_company: cur.showCompany ? 1 : 0,
+            company_name: cur.companyName,
+            show_name: cur.showName ? 1 : 0,
+            show_code: cur.showCode ? 1 : 0,
+            show_price: cur.showPrice ? 1 : 0,
+            preset: cur.preset
+        },
+        success: function(res) {
+            if (res && res.recents) {
+                recentSettingsList = res.recents;
+                renderRecentSettings();
+            }
+        },
+        complete: function() {
+            isSavingRecent = false;
+        }
+    });
+}
+
+function applySettings(s, chipEl) {
+    $('#labelWidth').val(s.labelWidth);
+    $('#labelHeight').val(s.labelHeight);
+    $('#labelColumns').val(s.columns);
+    $('#gapX').val(s.gapX);
+    $('#barcodeHeight').val(s.barcodeHeight);
+    $('#fontSize').val(s.fontSize);
+    $('#showCompany').prop('checked', !!s.showCompany);
+    $('#companyName').val(s.companyName || '');
+    $('#showName').prop('checked', !!s.showName);
+    $('#showCode').prop('checked', !!s.showCode);
+    $('#showPrice').prop('checked', !!s.showPrice);
+
+    let matchedPreset = s.preset || 'custom';
+    if (!presets[matchedPreset] || matchedPreset === 'custom') {
+        matchedPreset = 'custom';
+        for (const [key, p] of Object.entries(presets)) {
+            if (key !== 'custom' && p.width == s.labelWidth && p.height == s.labelHeight && p.cols == s.columns) {
+                matchedPreset = key;
+                break;
+            }
+        }
+    }
+    $('.bp-preset-btn').removeClass('active');
+    $(`.bp-preset-btn[data-preset="${matchedPreset}"]`).addClass('active');
+
+    $('.bp-recent-chip').removeClass('active');
+    if (chipEl) $(chipEl).addClass('active');
+
+    updatePreview();
+}
+
+function renderRecentSettings() {
+    const $container = $('#recentChipsList');
+    const $section = $('#recentSettingSection');
+
+    if (!recentSettingsList || recentSettingsList.length === 0) {
+        $section.hide();
+        return;
+    }
+
+    $container.empty();
+    recentSettingsList.forEach((item, idx) => {
+        const d = item.timestamp ? new Date(item.timestamp) : new Date();
+        const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        const tooltip = `${item.labelWidth}×${item.labelHeight} mm, ${item.columns} Kolom, Font ${item.fontSize}pt`;
+        const $chip = $(`
+            <button type="button" class="bp-recent-chip" data-index="${idx}" title="${tooltip}">
+                <i class="fa-solid fa-tag text-[10px] text-amber-500"></i>
+                <span>${item.labelWidth}×${item.labelHeight}mm (${item.columns}K)</span>
+                <span class="chip-time">${timeStr}</span>
+            </button>
+        `);
+        $chip.on('click', function() {
+            applySettings(item, this);
+        });
+        $container.append($chip);
+    });
+
+    $section.show();
 }
 
 // Modal functions

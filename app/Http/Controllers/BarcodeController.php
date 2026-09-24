@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barcode;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,9 @@ class BarcodeController extends Controller
             }
         }
 
-        return view('barcode.index', compact('companyName', 'preloaded'));
+        $recentSettings = $this->getFormattedRecentSettings();
+
+        return view('barcode.index', compact('companyName', 'preloaded', 'recentSettings'));
     }
 
     public function searchProducts(Request $request)
@@ -88,6 +91,9 @@ class BarcodeController extends Controller
     public function printLabels(Request $request)
     {
         $this->checkAccess();
+
+        // Auto-save setting to barcode table on print
+        $this->storeSetting($request);
 
         $labelWidth = max(10, (float) $request->input('label_width', 33));
         $labelHeight = max(10, (float) $request->input('label_height', 15));
@@ -187,5 +193,101 @@ class BarcodeController extends Controller
         ]);
 
         return $this->printLabels($request);
+    }
+
+    public function saveRecentSettings(Request $request)
+    {
+        $this->checkAccess();
+        $this->storeSetting($request);
+        return response()->json([
+            'success' => true,
+            'recents' => $this->getFormattedRecentSettings(),
+        ]);
+    }
+
+    public function clearRecentSettings(Request $request)
+    {
+        $this->checkAccess();
+        Barcode::query()->delete();
+        return response()->json(['success' => true]);
+    }
+
+    private function storeSetting(Request $request)
+    {
+        $width = max(10, (float) $request->input('label_width', 33));
+        $height = max(8, (float) $request->input('label_height', 15));
+        $columns = max(1, min(6, (int) $request->input('columns', 3)));
+        $gapX = max(0, (float) $request->input('gap_x', 2));
+        $barcodeHeight = max(15, min(80, (int) $request->input('barcode_height', 20)));
+        $fontSize = max(6, min(14, (float) $request->input('font_size', 7)));
+        $showCompany = filter_var($request->input('show_company', true), FILTER_VALIDATE_BOOLEAN);
+        $companyName = trim((string) $request->input('company_name', ''));
+        $showName = filter_var($request->input('show_name', true), FILTER_VALIDATE_BOOLEAN);
+        $showCode = filter_var($request->input('show_code', true), FILTER_VALIDATE_BOOLEAN);
+        $showPrice = filter_var($request->input('show_price', true), FILTER_VALIDATE_BOOLEAN);
+        $preset = trim((string) $request->input('preset', 'custom'));
+        $userId = session('user_id') ?? auth()->user()?->fsysuserid ?? null;
+
+        $existing = Barcode::where('label_width', $width)
+            ->where('label_height', $height)
+            ->where('columns', $columns)
+            ->where('gap_x', $gapX)
+            ->where('barcode_height', $barcodeHeight)
+            ->where('font_size', $fontSize)
+            ->where('show_company', $showCompany)
+            ->where('company_name', $companyName)
+            ->where('show_name', $showName)
+            ->where('show_code', $showCode)
+            ->where('show_price', $showPrice)
+            ->first();
+
+        if ($existing) {
+            $existing->touch();
+        } else {
+            Barcode::create([
+                'fsysuserid' => $userId,
+                'label_width' => $width,
+                'label_height' => $height,
+                'columns' => $columns,
+                'gap_x' => $gapX,
+                'barcode_height' => $barcodeHeight,
+                'font_size' => $fontSize,
+                'show_company' => $showCompany,
+                'company_name' => $companyName,
+                'show_name' => $showName,
+                'show_code' => $showCode,
+                'show_price' => $showPrice,
+                'preset' => $preset,
+            ]);
+
+            $keepIds = Barcode::latest('updated_at')->limit(10)->pluck('id');
+            Barcode::whereNotIn('id', $keepIds)->delete();
+        }
+    }
+
+    private function getFormattedRecentSettings()
+    {
+        return Barcode::query()
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'labelWidth' => (float) $item->label_width,
+                    'labelHeight' => (float) $item->label_height,
+                    'columns' => (int) $item->columns,
+                    'gapX' => (float) $item->gap_x,
+                    'barcodeHeight' => (int) $item->barcode_height,
+                    'fontSize' => (float) $item->font_size,
+                    'showCompany' => (bool) $item->show_company,
+                    'companyName' => $item->company_name ?? '',
+                    'showName' => (bool) $item->show_name,
+                    'showCode' => (bool) $item->show_code,
+                    'showPrice' => (bool) $item->show_price,
+                    'preset' => $item->preset ?? 'custom',
+                    'timestamp' => $item->updated_at ? $item->updated_at->timestamp * 1000 : null,
+                ];
+            });
     }
 }
