@@ -518,60 +518,105 @@
                                 @enderror
                             </div>
 
-                            {{-- TOP (Hari) --}}
-                            <div>
-                                <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                <input type="number" id="ftempohr" name="ftempohr"
-                                    value="{{ old('ftempohr', $invoiceTempoDays) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
-                                    placeholder="Masukkan jumlah hari">
-                                @error('ftempohr')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Tgl. Jatuh Tempo --}}
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                    readonly
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
-                                @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Keterangan --}}
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                <textarea name="fket" rows="2"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                    placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @php
+                                $selectedTp = isset($selectedTypePembayaranId)
+                                    ? ($typePembayarans ?? collect())->firstWhere('ftypepembayaranid', $selectedTypePembayaranId)
+                                    : null;
+                                if (!$selectedTp && !empty($invoice->fpembayaran)) {
+                                    $selectedTp = ($typePembayarans ?? collect())->first(function($tp) use ($invoice) {
+                                        return strtoupper(trim($tp->fmastername)) === strtoupper(trim($invoice->fpembayaran));
+                                    });
+                                }
+                                if ($selectedTp) {
+                                    $tpBiayaPersen = (float)($selectedTp->fnumvalue ?? 0);
+                                    $tpBiayaRp     = (float)($invoice->fongkosangkut ?? 0);
+                                    $isTunai       = (string)($invoice->ftunai ?? '0') === '1';
+                                }
+                            @endphp
 
                             @if ($action === 'view' || $action === 'delete')
-                                @if ($action === 'view')
-                                    @php
-                                        $selectedTp = isset($selectedTypePembayaranId)
-                                            ? ($typePembayarans ?? collect())->firstWhere('ftypepembayaranid', $selectedTypePembayaranId)
-                                            : null;
-                                        if (!$selectedTp && !empty($invoice->fpembayaran)) {
-                                            $selectedTp = ($typePembayarans ?? collect())->first(function($tp) use ($invoice) {
-                                                return strtoupper(trim($tp->fmastername)) === strtoupper(trim($invoice->fpembayaran));
-                                            });
-                                        }
-                                        if ($selectedTp) {
-                                            $tpBiayaPersen = (float)($selectedTp->fnumvalue ?? 0);
-                                            $tpBiayaRp     = (float)($invoice->fongkosangkut ?? 0);
-                                            $isTunai       = (string)($invoice->ftunai ?? '0') === '1';
-                                        }
-                                    @endphp
-                                @endif
+                                {{-- Row 3 Col 1: TOP (Hari) & Tgl. Jatuh Tempo --}}
+                                <div>
+                                    <div class="flex gap-2">
+                                        <div class="w-28">
+                                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                            <input type="number" id="ftempohr" name="ftempohr"
+                                                value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                                placeholder="Hari">
+                                            @error('ftempohr')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="flex-1">
+                                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                                value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                                readonly
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                            @error('fjatuhtempo')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Row 3 Col 2: Tipe Pembayaran --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Tipe Pembayaran</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 font-bold cursor-not-allowed border-gray-200"
+                                        value="{{ $selectedTp->fmastername ?? ($invoice->fpembayaran ?? '-') }}"
+                                        readonly disabled>
+                                </div>
+
+                                {{-- Row 3 Col 3: Keterangan --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                    <textarea name="fket" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                    @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @else
+                                {{-- TOP (Hari) --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                    <input type="number" id="ftempohr" name="ftempohr"
+                                        value="{{ old('ftempohr', $invoiceTempoDays) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                        placeholder="Masukkan jumlah hari">
+                                    @error('ftempohr')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Tgl. Jatuh Tempo --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                    <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                        readonly
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                    @error('fjatuhtempo')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Keterangan --}}
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
+                                    <textarea name="fket" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                    @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             @endif
+
                             <input type="hidden" name="fpembayaran" id="retailFpembayaran"
                                 value="{{ old('fpembayaran', $invoice->fpembayaran ?? '') }}">
                                 <script>
@@ -823,22 +868,7 @@
                                 </template>
                             </div>
 
-                            <div class="mt-3 flex justify-between items-start gap-4 w-full">
-                                <!-- Kiri: Tipe Pembayaran (view only) -->
-                                @if ($action === 'view' && (!empty($selectedTp) || !empty($invoice->fpembayaran)))
-                                <div class="w-full sm:w-80 max-w-sm">
-                                    <div class="rounded-lg border bg-gray-50 p-3">
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-bold text-gray-800">Tipe Pembayaran</span>
-                                            <span class="font-bold text-indigo-700 text-sm">
-                                                {{ $selectedTp->fmastername ?? ($invoice->fpembayaran ?? '-') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                @else
-                                <div></div>
-                                @endif
+                            <div class="mt-3 flex justify-end items-start gap-4 w-full">
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-full sm:w-96 max-w-md">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
