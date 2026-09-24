@@ -131,7 +131,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
-            border-bottom: 2px solid #000;
+            border-bottom: 1px solid #000;
             font-weight: bold;
         }
 
@@ -199,7 +199,7 @@
         }
 
         .footer-line {
-            border-top: 1.5px solid #000;
+            border-top: 1px solid #000;
             margin-top: 2px;
         }
 
@@ -518,12 +518,12 @@
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 0, ',', '.') }}</td>
                         </tr>
                         <tr class="gt" style="font-weight: bold; font-size: 12.5px;">
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 0, ',', '.') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 0, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: bold;">
+                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: normal;">
                         <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
