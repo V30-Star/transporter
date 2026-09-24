@@ -252,6 +252,7 @@
             }
         }
     </style>
+    @include('partials.print-the-retail')
 </head>
 
 <body>
@@ -445,7 +446,7 @@
             printContainer.innerHTML = '';
 
             // Usable content height for A4 (11.69in at 96dpi = 1122px - 80px padding = ~1040px)
-            const MAX_SHEET_CONTENT_HEIGHT = 1000;
+            const MAX_SHEET_CONTENT_HEIGHT = (typeof window.IS_RETAIL_THE !== 'undefined' && window.IS_RETAIL_THE) ? 720 : 1000;
 
             function getContentHeight(sheet) {
                 let total = 0;

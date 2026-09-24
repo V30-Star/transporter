@@ -219,6 +219,25 @@ if (!function_exists('company_name')) {
   }
 }
 
+if (!function_exists('is_retail_the')) {
+  function is_retail_the(): bool
+  {
+    static $cached = null;
+    if ($cached !== null) {
+      return $cached;
+    }
+
+    try {
+      $val = \Illuminate\Support\Facades\DB::table('setini')->value('finitinvretail');
+      $cached = strtoupper(trim((string) $val)) === 'THE';
+    } catch (\Throwable $e) {
+      $cached = false;
+    }
+
+    return $cached;
+  }
+}
+
 if (!function_exists('log_print_transaction')) {
   function log_print_transaction(?string $trxNo): void
   {

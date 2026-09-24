@@ -252,6 +252,7 @@
             }
         }
     </style>
+    @include('partials.print-the-retail')
 </head>
 
 <body>
@@ -439,7 +440,7 @@
             printContainer.innerHTML = '';
 
             // Usable content height for 5.83in at 96dpi (560px - 48px padding = 512px)
-            const MAX_SHEET_CONTENT_HEIGHT = 490;
+            const MAX_SHEET_CONTENT_HEIGHT = (typeof window.IS_RETAIL_THE !== 'undefined' && window.IS_RETAIL_THE) ? 720 : 490;
 
             function getContentHeight(sheet) {
                 let total = 0;
