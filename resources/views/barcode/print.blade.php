@@ -199,9 +199,11 @@
             <div class="label-row">
                 @foreach ($row as $label)
                     <div class="label-item">
+                        {{-- Header Toko (uncomment jika ingin digunakan)
                         @if ($showCompany && !empty($companyName))
                             <div class="item-company">{{ $companyName }}</div>
                         @endif
+                        --}}
 
                         @if ($showName && !empty($label['name']))
                             <div class="item-name">{{ $label['name'] }}</div>

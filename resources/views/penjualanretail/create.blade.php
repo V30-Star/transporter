@@ -474,7 +474,7 @@
                         {{-- Keterangan --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Keterangan</label>
-                            <textarea name="fket" rows="2"
+                            <textarea name="fket" rows="1"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
                             @error('fket')

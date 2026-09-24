@@ -572,7 +572,7 @@
                             {{-- Row 3 Col 3: Keterangan --}}
                             <div>
                                 <label class="block text-xs font-bold mb-1">Keterangan</label>
-                                <textarea name="fket" rows="2"
+                                <textarea name="fket" rows="1"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
                                     placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
                                 @error('fket')

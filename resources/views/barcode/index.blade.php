@@ -134,6 +134,7 @@
 
                     <div class="bp-card-body">
                         <div class="bp-check-grid">
+                            {{-- Header Toko (uncomment jika ingin digunakan)
                             <div class="bp-check-item">
                                 <label class="bp-checkbox-label">
                                     <input type="checkbox" name="show_company" id="showCompany" value="1" checked class="bp-chk">
@@ -141,6 +142,7 @@
                                 </label>
                                 <input type="text" name="company_name" id="companyName" value="{{ $companyName }}" class="bp-input bp-inline-input" placeholder="Nama Toko">
                             </div>
+                            --}}
 
                             <div class="bp-check-item">
                                 <label class="bp-checkbox-label">
