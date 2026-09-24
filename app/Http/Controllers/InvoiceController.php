@@ -4439,6 +4439,28 @@ class InvoiceController extends Controller
                 'account.faccname',
             ]);
 
+        $selectedTypePembayaranId = null;
+        if (!empty($invoice->fpembayaran)) {
+            $matchedType = $typePembayarans->firstWhere('ftypepembayarankode', trim((string) $invoice->fpembayaran));
+            if ($matchedType) {
+                $selectedTypePembayaranId = $matchedType->ftypepembayaranid;
+            }
+        }
+        if (!$selectedTypePembayaranId && !empty($invoice->fsono)) {
+            $journalDebit = DB::table('jurnaldt')
+                ->where('frefno', $invoice->fsono)
+                ->where('fjurnaltype', 'SLS')
+                ->where('fdk', 'D')
+                ->where('flineno', 1)
+                ->first();
+            if ($journalDebit && !empty($journalDebit->faccount)) {
+                $matchedType = $typePembayarans->firstWhere('faccount', $journalDebit->faccount);
+                if ($matchedType) {
+                    $selectedTypePembayaranId = $matchedType->ftypepembayaranid;
+                }
+            }
+        }
+
         // Pass the data to the view
         return view($this->getViewPrefix() . '.edit', [
             'customers' => $customers,
@@ -4462,7 +4484,7 @@ class InvoiceController extends Controller
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'typePembayarans' => $typePembayarans,
-            'selectedTypePembayaranId' => null,
+            'selectedTypePembayaranId' => $selectedTypePembayaranId,
             'action' => 'delete',
         ]);
     }
