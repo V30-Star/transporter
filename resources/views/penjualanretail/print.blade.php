@@ -464,9 +464,9 @@
                     </tr>
                     <tr>
                         <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold;">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="text-right" style="width: 25%; color: #000; font-weight: bold;">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold;">{{ number_format($r->fqty ?? 0, 0, ',', '.') }} {{ $r->fsatuan }}</td>
+                        <td class="text-right" style="width: 25%; color: #000; font-weight: bold;">{{ number_format($r->fprice ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format($r->famount ?? 0, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -489,12 +489,12 @@
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Tot.Qty</td>
                             <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQty, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQty, 0, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Tot.Isi</td>
                             <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQtyKecil, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0; font-weight: bold;">{{ number_format($totalQtyKecil, 0, ',', '.') }}</td>
                         </tr>
                     </table>
                 </div>
@@ -505,22 +505,22 @@
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap; width: 60px;">Total</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($famountgross, 0, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fdiscount, 0, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Biaya/Charge</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 0, ',', '.') }}</td>
                         </tr>
                         <tr class="gt" style="font-weight: bold; font-size: 12.5px;">
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 0, ',', '.') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: bold;">
