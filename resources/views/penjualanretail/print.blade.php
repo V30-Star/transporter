@@ -45,8 +45,8 @@
             height: 8.27in;
             overflow: hidden;
             margin: 0.2in auto;
-            /* Kanan 1.65in: area aman kertas cuma ~3.98in (5.83 - 0.2 - 1.65). Sesuaikan kalau kertas beda */
-            padding: 0.3in 1.65in 0.2in 0.2in;
+            /* Kanan 1.65in. Kiri 0 (dirapatkan 3 karakter/0.2in dari sebelumnya). */
+            padding: 0.3in 1.65in 0.2in 0;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -326,7 +326,7 @@
                 max-width: 5.83in !important;
                 height: 8.27in !important;
                 max-height: 8.27in !important;
-                padding: 0.3in 1.65in 0.2in 0.2in !important;
+                padding: 0.3in 1.65in 0.2in 0 !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
@@ -523,7 +523,7 @@
                             <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: bold;">
+                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px;">
                         <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
@@ -533,7 +533,7 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 11.5px;">
+            <div style="margin-top: 6px; text-align: right; font-style: italic; font-size: 11.5px;">
                 Bersambung ke halaman <span class="next-page-num">2</span>
             </div>
             <div class="sign-container" style="margin-top: 10px;">
