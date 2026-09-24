@@ -92,7 +92,7 @@
         }
 
         .customer-container {
-            border: 1.5px solid #000;
+            border: 1px solid #000;
             border-radius: 0;
             padding: 9px 5px 3px;
             width: 100%;
@@ -131,13 +131,13 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
-            border-bottom: 2px solid #000;
+            border-bottom: 1px solid #000;
             font-weight: bold;
         }
 
         .tb th {
-            border-top: 1.5px solid #000;
-            border-bottom: 1.5px solid #000;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
             padding: 3px 2px;
             text-align: left;
             font-weight: bold;
@@ -199,7 +199,7 @@
         }
 
         .footer-line {
-            border-top: 1.5px solid #000;
+            border-top: 1px solid #000;
             margin-top: 2px;
         }
 
@@ -227,7 +227,7 @@
 
         .grand-total {
             border-top: 1px solid #000;
-            border-bottom: 3px double #000;
+            border-bottom: 1x solid #000;
             margin-top: 5px;
             padding: 4px 0;
             font-weight: bold;
@@ -518,9 +518,9 @@
                             <td style="text-align: right; padding: 1px 0;">{{ number_format($fongkosangkut, 2, ',', '.') }}</td>
                         </tr>
                         <tr class="gt" style="font-weight: bold; font-size: 12.5px;">
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1.5px solid #000; border-bottom: 2px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 2, ',', '.') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px; font-size: 11.5px;">
