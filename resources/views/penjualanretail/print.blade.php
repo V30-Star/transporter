@@ -99,7 +99,7 @@
             position: relative;
             margin-top: 4px;
             box-sizing: border-box;
-            font-weight: bold;
+            font-weight: normal;
         }
 
         .customer-label {
@@ -109,7 +109,7 @@
             background: #fff;
             padding: 0 4px;
             font-size: 11.5px;
-            font-weight: bold;
+            font-weight: normal;
             line-height: 1;
             z-index: 2;
         }
@@ -404,7 +404,7 @@
                 <span class="customer-label">Customer</span>
                 <div style="display: flex; justify-content: space-between; align-items: stretch;">
                     <div style="width: 50%; box-sizing: border-box; padding-right: 6px; border-right: 1px solid #000;">
-                        <div style="font-weight: bold; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {{ !empty(trim((string) ($hdr->customer_name ?? ''))) ? $hdr->customer_name : ($hdr->fcustno ?: '-') }}
                         </div>
                         <div style="font-size: 11px; margin-top: 1px; white-space: pre-line; line-height: 1.15; max-height: 28px; overflow: hidden;">
@@ -477,8 +477,8 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px; gap: 4px;">
                 {{-- Kolom Kiri: Dibuat Oleh --}}
                 <div style="flex: 0 0 20%; text-align: center;">
-                    <div style="font-size: 11.5px; font-weight: bold;">Dibuat Oleh,</div>
-                    <div style="margin-top: 26px; font-size: 11.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-size: 11.5px; font-weight: normal;">Dibuat Oleh,</div>
+                    <div style="margin-top: 26px; font-size: 11.5px; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                     </div>
                 </div>
