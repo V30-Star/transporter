@@ -34,19 +34,19 @@
             font-weight: bold !important;
         }
 
-        /* Ukuran kertas: 5.5in x 5.5in. Kalau form fisik beda, ganti di sini + .sheet (layar & print) */
+        /* Ukuran kertas: A5 portrait. Kalau form fisik beda, ganti di sini + .sheet (layar & print) */
         @page {
-            size: 5.5in 5.5in;
+            size: 5.83in 8.27in;
             margin: 0;
         }
 
         /* Layar = print, biar pagination ngukur di lebar yang sama */
         .sheet {
-            width: 5.5in;
-            height: 5.5in;
+            width: 5.83in;
+            height: 8.27in;
             overflow: hidden;
             margin: 0.2in auto;
-            /* Kanan 1.90in: area aman kertas ~3.40in (5.5 - 0.2 - 1.90). Sesuaikan kalau kertas beda */
+            /* Kanan 1.90in: area aman kertas ~3.68in (5.83 - 0.2 - 1.95). Sesuaikan kalau kertas beda */
             padding: 0.3in 1.90in 0.2in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
@@ -302,7 +302,7 @@
 
         @media print {
             html, body {
-                width: 5.5in !important;
+                width: 5.83in !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -323,10 +323,10 @@
                 border: none !important;
                 box-shadow: none !important;
                 transform: none !important;
-                width: 5.5in !important;
-                max-width: 5.5in !important;
-                height: 5.5in !important;
-                max-height: 5.5in !important;
+                width: 5.83in !important;
+                max-width: 5.83in !important;
+                height: 8.27in !important;
+                max-height: 8.27in !important;
                 padding: 0.3in 1.90in 0.2in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
