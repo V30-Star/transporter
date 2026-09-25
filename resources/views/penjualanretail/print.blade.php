@@ -36,14 +36,14 @@
 
         /* Ukuran kertas: A5 portrait. Kalau form fisik beda, ganti di sini + .sheet (layar & print) */
         @page {
-            size: 5.5in 5.5in;
+            size: 5.5in 5in;
             margin: 0;
         }
 
         /* Layar = print, biar pagination ngukur di lebar yang sama */
         .sheet {
             width: 5.5in;
-            height: 5.5in;
+            height: 5in;
             overflow: hidden;
             margin: 0.2in auto;
             /* Kanan 1.90in: area aman kertas ~3.68in (5.83 - 0.2 - 1.95). Sesuaikan kalau kertas beda */
@@ -325,8 +325,8 @@
                 transform: none !important;
                 width: 5.5in !important;
                 max-width: 5.5in !important;
-                height: 5.5in !important;
-                max-height: 5.5in !important;
+                height: 5in !important;
+                max-height: 5in !important;
                 padding: 0.3in 1.90in 0.2in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
