@@ -625,9 +625,6 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
         Route::get('/returpenjualan/{fstockmtno}/print', [ReturPenjualanController::class, 'print'])
             ->where('fstockmtno', '.*')
             ->name('returpenjualan.print');
-        Route::post('/returpenjualan/{fstockmtno}/print-text', [ReturPenjualanController::class, 'printTextDirect'])
-            ->where('fstockmtno', '.*')
-            ->name('returpenjualan.print-text');
 
         // Alias master prefix routes for returpenjualan
         Route::get('/master/returpenjualan', [ReturPenjualanController::class, 'index']);
