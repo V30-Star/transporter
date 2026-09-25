@@ -2511,6 +2511,32 @@
                     typedCode = window.BARCODE_MAP[typedCode];
                     row.fitemcode = typedCode;
                 }
+
+                let existingIndex = this.savedItems.findIndex((r, idx) =>
+                    idx !== index &&
+                    String(r.fitemcode || '').toUpperCase().trim() === typedCode &&
+                    !r.frefso && !r.frefsrj && !r.frefdtno
+                );
+                if (existingIndex >= 0) {
+                    const existingRow = this.savedItems[existingIndex];
+                    const addQty = Number(row.fqty) > 0 ? Number(row.fqty) : 1;
+                    existingRow.fqty = (Number(existingRow.fqty) || 0) + addQty;
+                    existingRow.fqtyInput = this.fmt(existingRow.fqty);
+                    this.enforceQtyRow(existingRow);
+                    this.recalc(existingRow);
+                    this.onRowUpdated(existingIndex);
+
+                    this.clearRow(row);
+                    this.onRowUpdated(index);
+
+                    const meta = this.productMeta(typedCode);
+                    if (typeof window.toast?.success === 'function') {
+                        window.toast.success(`Produk "${meta?.name || typedCode}" sudah ada di detail, Qty ditambahkan.`);
+                    }
+                    this.$nextTick(() => this.focusRowQty(existingIndex));
+                    return;
+                }
+
                 this.hydrateRowFromMeta(row, this.productMeta(typedCode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 await this.applyOutstandingDpRef(row);
@@ -2802,6 +2828,7 @@
             },
 
             focusRowUnit(row, index) {
+                if (!row || !row.fitemcode) return;
                 if (row.units && row.units.length > 1) {
                     this.$nextTick(() => document.getElementById(`unit_row_${index}`)?.focus());
                     return;
@@ -2864,7 +2891,7 @@
                     if (!rawBarcode) return;
                     await this.addProductByBarcode(rawBarcode, e.detail?.input);
                 });
-                window.addEventListener('product-chosen', (e) => {
+                window.addEventListener('product-chosen', async (e) => {
                     const {
                         product
                     } = e.detail || {};
@@ -2878,10 +2905,12 @@
                     if (index < 0 || !this.savedItems[index]) return;
                     const targetRow = this.savedItems[index];
                     targetRow.fitemcode = (product.fprdcode || '').toString();
-                    this.onCodeTypedRow(targetRow, index);
-                    targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(
-                        targetRow.uid);
-                    this.focusRowQty(index);
+                    await this.onCodeTypedRow(targetRow, index);
+                    if (targetRow.fitemcode) {
+                        targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak(
+                            targetRow.uid);
+                        this.focusRowQty(index);
+                    }
                 }, {
                     passive: true
                 });

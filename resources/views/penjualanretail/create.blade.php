@@ -2220,6 +2220,32 @@
                     typedCode = window.BARCODE_MAP[typedCode];
                     row.fitemcode = typedCode;
                 }
+
+                let existingIndex = this.savedItems.findIndex((r, idx) =>
+                    idx !== index &&
+                    String(r.fitemcode || '').toUpperCase().trim() === typedCode &&
+                    !r.frefso && !r.frefsrj && !r.frefdtno
+                );
+                if (existingIndex >= 0) {
+                    const existingRow = this.savedItems[existingIndex];
+                    const addQty = Number(row.fqty) > 0 ? Number(row.fqty) : 1;
+                    existingRow.fqty = (Number(existingRow.fqty) || 0) + addQty;
+                    existingRow.fqtyInput = this.fmt(existingRow.fqty);
+                    this.enforceQtyRow(existingRow);
+                    this.recalc(existingRow);
+                    this.onRowUpdated(existingIndex);
+
+                    this.clearRow(row);
+                    this.onRowUpdated(index);
+
+                    const meta = this.productMeta(typedCode);
+                    if (typeof window.toast?.success === 'function') {
+                        window.toast.success(`Produk "${meta?.name || typedCode}" sudah ada di detail, Qty ditambahkan.`);
+                    }
+                    this.$nextTick(() => this.focusRowQty(existingIndex));
+                    return;
+                }
+
                 this.hydrateRowFromMeta(row, this.productMeta(typedCode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 await this.applyOutstandingDpRef(row);
@@ -2657,6 +2683,7 @@
             },
 
             focusRowUnit(row, index) {
+                if (!row || !row.fitemcode) return;
                 if (row.units && row.units.length > 1) {
                     this.$nextTick(() => document.getElementById(`unit_row_${index}`)?.focus());
                     return;
@@ -2767,14 +2794,10 @@
                     const row = this.savedItems[index];
                     row.fitemcode = (product.fprdcode || '').toString();
                     row.frefcode = product.fprdcode || product.id || '';
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
-                    await this.applyOutstandingDpRef(row);
-                    if (!prodCode.startsWith('UM')) {
-                        this.applyInvoicePrice(row);
+                    await this.onCodeTypedRow(row, index);
+                    if (row.fitemcode) {
+                        this.focusRowQty(index);
                     }
-                    this.onRowUpdated(index);
-                    this.focusRowQty(index);
                 }, {
                     passive: true
                 });
