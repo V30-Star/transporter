@@ -681,7 +681,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2">
@@ -720,7 +720,7 @@
                                                             @change="applyInvoicePrice(it); enforceQtyRow(it); onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowQty(i)"
                                                             {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}>
-                                                            <template x-for="u in it.units" :key="u">
+                                                            <template x-for="(u, uIdx) in it.units" :key="uIdx">
                                                                 <option :value="u"
                                                                     :selected="u === it.fsatuan" x-text="u">
                                                                 </option>
@@ -786,7 +786,7 @@
                             </div>
 
                             <div class="hidden">
-                                <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid ? (it.uid + '_' + i) : i)">
                                     <div>
                                         <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
                                             :value="it.fitemcode">

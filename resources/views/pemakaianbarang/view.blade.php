@@ -271,7 +271,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                         <tr class="border-t align-top hover:bg-gray-55">
                                             <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                             <td class="p-2">

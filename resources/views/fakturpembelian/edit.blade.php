@@ -522,7 +522,7 @@
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
                                         </tr>
                                     </thead>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                         <tbody>
                                             <tr class="border-t align-top hover:bg-gray-50">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
@@ -1054,7 +1054,7 @@
                                                 <th class="p-2 text-center w-16 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                             <tbody>
                                                 <tr class="border-t border-gray-150 align-top hover:bg-gray-50">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
@@ -1112,7 +1112,7 @@
                                                                 @change="onRowUpdated(i)"
                                                                 @focus="activeRow = it.uid" @blur="activeRow = null"
                                                                 @keydown.enter.prevent="$refs['qty_saved_' + i]?.focus()">
-                                                                <template x-for="u in it.units" :key="u">
+                                                                <template x-for="(u, uIdx) in it.units" :key="uIdx">
                                                                     <option :value="u" :selected="u === it.fsatuan" x-text="u"></option>
                                                                 </template>
                                                             </select>

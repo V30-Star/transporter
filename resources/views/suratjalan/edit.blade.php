@@ -501,7 +501,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                             <tr class="border-t align-top hover:bg-gray-55">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                 <td class="p-2">
@@ -847,7 +847,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                            <template x-for="(it, i) in savedItems" :key="it.uid">
+                                            <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                                 <tr class="border-t align-top hover:bg-gray-50">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2">
@@ -885,7 +885,7 @@
                                                                 :id="'unit_row_' + i" x-model="it.fsatuan"
                                                                 x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
                                                                 @keydown.enter.prevent="focusRowQty(i)">
-                                                                <template x-for="u in it.units" :key="u">
+                                                                <template x-for="(u, uIdx) in it.units" :key="uIdx">
                                                                     <option :value="u"
                                                                         :selected="u === it.fsatuan" x-text="u"></option>
                                                                 </template>
@@ -927,7 +927,7 @@
                                 </div>
 
                                 <div class="hidden">
-                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid ? (it.uid + '_' + i) : i)">
                                         <div>
                                             <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
                                             <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">

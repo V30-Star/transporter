@@ -3252,7 +3252,7 @@ class InvoiceController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
-        $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $invoice->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $refCode = trim($d->frefcode ?? '');
             if (empty($refCode)) {
                 if (! empty(trim($d->frefso ?? ''))) {
@@ -3448,7 +3448,7 @@ class InvoiceController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
-        $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $invoice->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $trimSo = trim($d->frefso ?? '');
             $trimSrj = trim($d->frefsrj ?? '');
             $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
@@ -4417,7 +4417,7 @@ class InvoiceController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
-        $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $invoice->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $trimSo = trim($d->frefso ?? '');
             $trimSrj = trim($d->frefsrj ?? '');
             $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');

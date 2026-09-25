@@ -296,7 +296,7 @@
                                              <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
                                          </tr>
                                      </thead>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                         <tbody>
                                             <tr class="border-t align-top hover:bg-gray-55">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
