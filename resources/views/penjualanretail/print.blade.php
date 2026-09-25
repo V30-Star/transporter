@@ -47,20 +47,26 @@
             overflow: hidden;
             margin: 0.2in auto;
             /* Kanan 1.90in: area aman kertas ~3.68in (5.83 - 0.2 - 1.95). Sesuaikan kalau kertas beda */
-            padding: 0.3in 1.90in 0.2in 0.2in;
+            padding: 0.2in 1.90in 0.15in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
             font-weight: normal;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet.paginated .footer-slot {
+            margin-top: auto;
         }
 
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .comp-name {
@@ -95,10 +101,10 @@
         .customer-container {
             border: 1.5px solid #000;
             border-radius: 0;
-            padding: 9px 5px 3px;
+            padding: 5px 5px 2px;
             width: 100%;
             position: relative;
-            margin-top: 4px;
+            margin-top: 2px;
             box-sizing: border-box;
             font-weight: normal;
         }
@@ -131,7 +137,7 @@
         .tb {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            margin-top: 2px;
             border-bottom: 1px solid #000;
             font-weight: bold;
         }
@@ -139,10 +145,11 @@
         .tb th {
             border-top: 1.5px solid #000;
             border-bottom: 1.5px solid #000;
-            padding: 3px 2px;
+            padding: 2px 2px;
             text-align: left;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 11.5px;
+            line-height: 1.15;
         }
 
         .product-header-row {
@@ -171,9 +178,10 @@
         }
 
         .tb td {
-            padding: 2.5px 2px;
+            padding: 1.5px 2px;
             vertical-align: top;
-            font-size: 11.5px;
+            font-size: 11px;
+            line-height: 1.15;
         }
 
         .text-center, .tb th.text-center {
@@ -327,13 +335,15 @@
                 max-width: 5.5in !important;
                 height: 5in !important;
                 max-height: 5in !important;
-                padding: 0.3in 1.90in 0.2in 0.2in !important;
+                padding: 0.2in 1.90in 0.15in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 page-break-after: always !important;
                 break-after: page !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
 
             .sheet:last-child,
@@ -463,7 +473,7 @@
             <tbody id="raw-rows">
                 @foreach ($dt as $i => $r)
                     <tr class="item-row">
-                        <td colspan="6" style="color: #000; text-align: left !important; padding: 2px 2px; font-weight: bold;">
+                        <td colspan="6" style="color: #000; text-align: left !important; padding: 1.5px 2px; font-weight: bold; line-height: 1.15;">
                             <div style="display: flex; align-items: flex-start; gap: 4px;">
                                 <span class="row-no" style="min-width: 20px; text-align: left !important;">{{ $i + 1 }}</span>
                                 <span style="flex: 1; text-align: left !important; white-space: pre-line;">{{ format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: (trim((string) ($r->fdesc ?? '')) ?: '-') }}</span>
@@ -471,10 +481,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold;">{{ number_format($r->fqty ?? 0, 0, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="text-right" style="width: 25%; color: #000; font-weight: bold;">{{ number_format($r->fprice ?? 0, 0, ',', '.') }}</td>
-                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format($r->famount ?? 0, 0, ',', '.') }}</td>
+                        <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ $r->fprdcode ?? '-' }}</td>
+                        <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ number_format($r->fqty ?? 0, 0, ',', '.') }} {{ $r->fsatuan }}</td>
+                        <td class="text-right" style="width: 25%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ number_format($r->fprice ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;" colspan="3">{{ number_format($r->famount ?? 0, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -541,14 +551,9 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 11.5px;">
-                Bersambung ke halaman <span class="next-page-num">2</span>
-            </div>
-            <div class="sign-container" style="margin-top: 10px;">
-                <div></div>
-                <div class="meta-right">
-                    <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px; font-size: 10px;">
+                <span style="font-style: italic; font-weight: bold;">Bersambung ke halaman <span class="next-page-num">2</span></span>
+                <span class="meta-right" style="font-size: 9.5px; font-weight: normal;">Dicetak: {{ now()->format('d/m/y H:i') }}</span>
             </div>
         </div>
     </div>
@@ -564,8 +569,8 @@
 
             printContainer.innerHTML = '';
 
-            // Batas tinggi diukur dari .sheet asli (ikut ukuran CSS), sisakan 6px buat jaga-jaga
-            const SAFETY_PX = 6;
+            // Batas tinggi diukur dari .sheet asli (ikut ukuran CSS), sisakan 4px buat jaga-jaga
+            const SAFETY_PX = 4;
 
             function getMaxHeight(sheet) {
                 const cs = getComputedStyle(sheet);
@@ -697,6 +702,7 @@
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
                     el.innerText = `${pageNum} / ${totalPages}`;
                 });
+                s.sheet.classList.add('paginated');
             });
 
             // Re-index all rows globally 1..N
