@@ -561,7 +561,21 @@
                     currentSheet.footerSlot.appendChild(summaryClone);
 
                     if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet)) {
-                        if (currentSheet.tbody.children.length > clonedPair.length) {
+                        // Summary tidak muat di sheet ini bersama seluruh item.
+                        // Uji apakah item terakhir masih muat jika footer hanya baris "Bersambung":
+                        currentSheet.footerSlot.innerHTML = '';
+                        const contTest = tplContinued.cloneNode(true);
+                        contTest.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(contTest);
+
+                        if (getContentHeight(currentSheet.sheet) <= getMaxHeight(currentSheet.sheet)) {
+                            // Seluruh item (termasuk item terakhir) muat di sheet ini!
+                            // Biarkan seluruh item di sheet ini, buat sheet baru khusus summary:
+                            currentSheet = createSheet(false);
+                            sheets.push(currentSheet);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        } else if (currentSheet.tbody.children.length > clonedPair.length) {
+                            // Item terakhir tidak muat walau hanya dengan footer bersambung, pindahkan item ke sheet baru:
                             clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
                             currentSheet.footerSlot.innerHTML = '';
 
@@ -575,6 +589,7 @@
                             clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
                             currentSheet.footerSlot.appendChild(summaryClone);
                         } else {
+                            // Hanya ada 1 item di sheet ini, pindahkan summary ke sheet baru
                             currentSheet.footerSlot.innerHTML = '';
                             const contClone = tplContinued.cloneNode(true);
                             contClone.removeAttribute('id');
@@ -621,6 +636,10 @@
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
                     s.footerSlot.appendChild(summaryClone);
+                }
+
+                if (s.tbody.children.length === 0) {
+                    s.table.style.display = 'none';
                 }
 
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
@@ -1168,23 +1187,44 @@
                     currentSheet.footerSlot.appendChild(summaryClone);
                     currentSheet.footerSlot.appendChild(signClone);
 
-                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT && currentSheet.tbody.children.length > 1) {
-                        // Move row and summary to next sheet
-                        currentSheet.tbody.removeChild(row);
+                    if (getContentHeight(currentSheet.sheet) > MAX_SHEET_CONTENT_HEIGHT) {
+                        // Summary & sign tidak muat bersama row ini.
+                        // Uji apakah row ini masih muat jika footer hanya baris "Bersambung":
                         currentSheet.footerSlot.innerHTML = '';
+                        const contTest = tplContinued.cloneNode(true);
+                        contTest.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(contTest);
 
-                        // Set continuation on current sheet
-                        const contClone = tplContinued.cloneNode(true);
-                        contClone.removeAttribute('id');
-                        currentSheet.footerSlot.appendChild(contClone);
+                        if (getContentHeight(currentSheet.sheet) <= MAX_SHEET_CONTENT_HEIGHT) {
+                            // Row muat di sheet ini! Buat sheet baru khusus summary & sign:
+                            currentSheet = createSheet();
+                            sheets.push(currentSheet);
 
-                        // New sheet for the remaining item + summary
-                        currentSheet = createSheet();
-                        sheets.push(currentSheet);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                            currentSheet.footerSlot.appendChild(signClone);
+                        } else if (currentSheet.tbody.children.length > 1) {
+                            // Row tidak muat walau hanya dengan footer bersambung, pindahkan row ke sheet baru:
+                            currentSheet.tbody.removeChild(row);
+                            currentSheet.footerSlot.innerHTML = '';
 
-                        currentSheet.tbody.appendChild(row);
-                        currentSheet.footerSlot.appendChild(summaryClone);
-                        currentSheet.footerSlot.appendChild(signClone);
+                            const contClone = tplContinued.cloneNode(true);
+                            contClone.removeAttribute('id');
+                            currentSheet.footerSlot.appendChild(contClone);
+
+                            currentSheet = createSheet();
+                            sheets.push(currentSheet);
+
+                            currentSheet.tbody.appendChild(row);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                            currentSheet.footerSlot.appendChild(signClone);
+                        } else {
+                            // Hanya ada 1 row di sheet ini, pindahkan summary & sign ke sheet baru:
+                            currentSheet = createSheet();
+                            sheets.push(currentSheet);
+
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                            currentSheet.footerSlot.appendChild(signClone);
+                        }
                     }
                 } else {
                     // Test with continuation footer
@@ -1225,6 +1265,10 @@
                     signClone.removeAttribute('id');
                     s.footerSlot.appendChild(summaryClone);
                     s.footerSlot.appendChild(signClone);
+                }
+
+                if (s.tbody.children.length === 0) {
+                    s.table.style.display = 'none';
                 }
 
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
