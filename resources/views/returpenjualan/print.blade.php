@@ -358,6 +358,7 @@
                                 <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
                             </tr>
                         </table>
+                        <div class="page-counter" style="font-size: 11px; margin-top: 2px; white-space: pre-line;">Hal : 1 / 1</div>
                     </div>
                 </div>
             </div>
@@ -395,10 +396,10 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px;">
                 {{-- Kolom Kiri: Terbilang di atas, TTD di bawahnya --}}
                 <div style="width: 62%; display: flex; flex-direction: column;">
-                    <div class="terbilang-box" style="float: none; width: 100%; margin-top: 0;">
+                    <!-- <div class="terbilang-box" style="float: none; width: 100%; margin-top: 0;">
                         Terbilang : <br>
                         # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
-                    </div>
+                    </div> -->
 
                     <div style="display: flex; align-items: flex-start; gap: 40px; margin-top: 12px;">
                         <div style="width: 160px; min-width: 140px; text-align: center;">
@@ -407,18 +408,18 @@
                                 ( {!! !empty($namattdfakturpenjualan) ? strtoupper($namattdfakturpenjualan) : (!empty($namattdpo) ? strtoupper($namattdpo) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') !!} )
                             </div>
                         </div>
-                        <div style="width: 160px; min-width: 140px; text-align: center;">
+                        <!-- <div style="width: 160px; min-width: 140px; text-align: center;">
                             <div style="font-size: 11px;">Disetujui,</div>
                             <div style="margin-top: 45px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                                 ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
                 {{-- Kolom Kanan: Summary Total & Metadata --}}
-                <div style="width: 35%;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                <div style="width: 50%;">
+                    <table style="width: 50%; border-collapse: collapse; font-size: 11px;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
@@ -447,7 +448,7 @@
                     </table>
 
                     <div class="meta-right" style="margin-top: 8px;">
-                        <div>Dicetak: {{ now()->format('d-m-Y H:i') }} <span class="page-counter">Hal : 1 / 1</span></div>
+                        <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
                     </div>
                 </div>
             </div>
