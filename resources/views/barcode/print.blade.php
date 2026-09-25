@@ -65,6 +65,7 @@
             .label-row {
                 background: #ffffff;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin-bottom: {{ $gapY ?: 2 }}mm;
             }
             .label-item {
                 outline: 1px dashed #cbd5e1;
@@ -73,15 +74,39 @@
 
         /* Print media styling */
         @media print {
+            html, body {
+                width: {{ $pageWidth }}mm !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: transparent !important;
+                overflow: hidden !important;
+            }
             .no-print-bar {
                 display: none !important;
             }
-            body {
-                background: transparent !important;
-            }
             .print-container {
-                margin: 0;
-                padding: 0;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            .label-row {
+                width: {{ $pageWidth }}mm !important;
+                height: {{ $pageHeight }}mm !important;
+                max-height: {{ $pageHeight }}mm !important;
+                margin: 0 !important;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+            }
+            .label-row:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
             }
             .label-item {
                 outline: none !important;
@@ -91,17 +116,27 @@
         .label-row {
             width: {{ $pageWidth }}mm;
             height: {{ $labelHeight }}mm;
+            max-height: {{ $labelHeight }}mm;
             display: flex;
             flex-direction: row;
             page-break-after: always;
             break-after: page;
+            page-break-inside: avoid;
+            break-inside: avoid;
             overflow: hidden;
-            margin-bottom: {{ $gapY }}mm;
+            box-sizing: border-box;
+        }
+
+        .label-row:last-child {
+            page-break-after: auto;
+            break-after: auto;
         }
 
         .label-item {
             width: {{ $labelWidth }}mm;
+            max-width: {{ $labelWidth }}mm;
             height: {{ $labelHeight }}mm;
+            max-height: {{ $labelHeight }}mm;
             margin-right: {{ $gapX }}mm;
             display: flex;
             flex-direction: column;
@@ -109,7 +144,7 @@
             align-items: center;
             text-align: center;
             overflow: hidden;
-            padding: {{ $labelHeight <= 18 ? '0.4mm 0.8mm' : '0.8mm 1mm' }};
+            padding: {{ $labelHeight <= 18 ? '0.3mm 0.6mm' : '0.6mm 0.8mm' }};
             line-height: 1.05;
             box-sizing: border-box;
         }

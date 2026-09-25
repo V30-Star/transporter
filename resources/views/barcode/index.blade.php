@@ -71,6 +71,14 @@
                                     <div class="bp-preset-name">33 × 15 mm</div>
                                     <div class="bp-preset-desc">3 Kol (Retail)</div>
                                 </button>
+                                <button type="button" data-preset="35x20_2col" class="bp-preset-btn">
+                                    <div class="bp-preset-name">35 × 20 mm</div>
+                                    <div class="bp-preset-desc">2 Kol (Retail)</div>
+                                </button>
+                                <button type="button" data-preset="33x15_2col" class="bp-preset-btn">
+                                    <div class="bp-preset-name">33 × 15 mm</div>
+                                    <div class="bp-preset-desc">2 Kol (Retail)</div>
+                                </button>
                                 <button type="button" data-preset="40x30_1col" class="bp-preset-btn">
                                     <div class="bp-preset-name">40 × 30 mm</div>
                                     <div class="bp-preset-desc">1 Kol (Standar)</div>
@@ -1284,6 +1292,8 @@ let recentSettingsList = @json($recentSettings ?? []);
 // Preset definitions
 const presets = {
     '33x15_3col': { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 16, fontS: 7 },
+    '35x20_2col': { width: 35, height: 20, cols: 2, gapX: 2, barcodeH: 18, fontS: 7.5 },
+    '33x15_2col': { width: 33, height: 15, cols: 2, gapX: 2, barcodeH: 16, fontS: 7 },
     '40x30_1col': { width: 40, height: 30, cols: 1, gapX: 0, barcodeH: 28, fontS: 8 },
     '50x20_1col': { width: 50, height: 20, cols: 1, gapX: 0, barcodeH: 22, fontS: 8 },
     '50x30_1col': { width: 50, height: 30, cols: 1, gapX: 0, barcodeH: 30, fontS: 8.5 },
