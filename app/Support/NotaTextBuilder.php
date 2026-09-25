@@ -37,6 +37,7 @@ class NotaTextBuilder
         return new self($h, $d['dt'] ?? [], [
             'company_name' => $d['company_name'] ?? '',
             'company_city' => $d['company_city'] ?? '',
+            'title'        => $d['title'] ?? 'FAKTUR PENJUALAN',
             'no'           => $d['displayFsono'] ?? ($h->fsono ?? '-'),
             'date'         => is_callable($fmt) ? $fmt($h->fsodate ?? null) : ($h->fsodate ?? ''),
             'signer'       => $signer,
@@ -183,7 +184,7 @@ class NotaTextBuilder
         $a = $this->wrap($addr, $W - 11);
 
         return [
-            self::BOLD . $this->lr(strtoupper($this->t($this->opt['company_name'] ?? '')), 'FAKTUR PENJUALAN'),
+            self::BOLD . $this->lr(strtoupper($this->t($this->opt['company_name'] ?? '')), $this->opt['title'] ?? 'FAKTUR PENJUALAN'),
             $this->lr($this->t($this->opt['company_city'] ?? ''), 'No. ' . $this->t($this->opt['no'] ?? '-')),
             $this->sep(),
             'Customer : ' . substr($cust, 0, $W - 11),
