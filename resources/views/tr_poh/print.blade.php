@@ -43,20 +43,26 @@
             height: 5in;
             overflow: hidden;
             margin: 0.2in auto;
-            padding: 0.3in 1.90in 0.2in 0.2in;
+            padding: 0.2in 1.90in 0.15in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
             font-weight: normal;
+        }
+
+        .sheet.paginated .footer-slot {
+            margin-top: auto;
         }
 
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .comp-name {
@@ -91,10 +97,10 @@
         .customer-container {
             border: 1.5px solid #000;
             border-radius: 0;
-            padding: 9px 5px 3px;
+            padding: 5px 5px 2px;
             width: 100%;
             position: relative;
-            margin-top: 4px;
+            margin-top: 2px;
             box-sizing: border-box;
             font-weight: normal;
         }
@@ -127,7 +133,7 @@
         .tb {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            margin-top: 2px;
             border-bottom: 1px solid #000;
             font-weight: bold;
         }
@@ -135,7 +141,7 @@
         .tb th {
             border-top: 1.5px solid #000;
             border-bottom: 1.5px solid #000;
-            padding: 3px 2px;
+            padding: 2px 2px; line-height: 1.15;
             text-align: left;
             font-weight: bold;
             font-size: 12px;
@@ -152,7 +158,7 @@
         }
 
         .tb td {
-            padding: 2.5px 2px;
+            padding: 1.5px 2px; line-height: 1.15;
             vertical-align: top;
             font-size: 11.5px;
         }
@@ -242,14 +248,20 @@
                 max-width: 5.5in !important;
                 height: 5in !important;
                 max-height: 5in !important;
-                padding: 0.3in 1.90in 0.2in 0.2in !important;
+                padding: 0.2in 1.90in 0.15in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 page-break-after: always !important;
                 break-after: page !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
+
+        .sheet.paginated .footer-slot {
+            margin-top: auto;
+        }
 
             .sheet:last-child,
             .sheet:only-child {
@@ -357,7 +369,7 @@
         <table id="tpl-table">
             <thead id="tpl-thead">
                 <tr>
-                    <th colspan="6" style="padding: 2.5px 2px; text-align: left !important;" class="table-header-main">
+                    <th colspan="6" style="padding: 1.5px 2px; line-height: 1.15; text-align: left !important;" class="table-header-main">
                         <div style="display: flex; align-items: flex-start; gap: 4px;">
                             <span style="min-width: 20px; text-align: left !important;">No.</span>
                             <span style="flex: 1; text-align: left !important;">Nama Produk</span>
@@ -393,7 +405,7 @@
 
         {{-- Summary & Signature Template (Last Page) --}}
         <div id="tpl-summary">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 2px; gap: 4px;">
                 {{-- Kolom Kiri: Dibuat Oleh --}}
                 <div style="flex: 0 0 20%; text-align: center;">
                     <div style="font-size: 11.5px; font-weight: normal;">Dibuat Oleh,</div>
@@ -456,15 +468,11 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="margin-top: 6px; text-align: right; font-style: italic; font-weight: bold; font-size: 11.5px;">
-                Bersambung ke halaman <span class="next-page-num">2</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px; font-size: 10px;">
+                <span style="font-style: italic; font-weight: bold;">Bersambung ke halaman <span class="next-page-num">2</span></span>
+                <span class="meta-right" style="font-size: 9.5px; font-weight: normal;">Dicetak: {{ now()->format('d/m/y H:i') }}</span>
             </div>
-            <div class="sign-container" style="margin-top: 10px;">
-                <div></div>
-                <div class="meta-right">
-                    <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
-                </div>
-            </div>
+        </div>
         </div>
     </div>
 
@@ -479,7 +487,7 @@
 
             printContainer.innerHTML = '';
 
-            const SAFETY_PX = 6;
+            const SAFETY_PX = 4;
 
             function getMaxHeight(sheet) {
                 const cs = getComputedStyle(sheet);
@@ -633,6 +641,7 @@
 </body>
 
 </html>
+
 @else
 <!doctype html>
 <html lang="id">

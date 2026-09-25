@@ -30,19 +30,25 @@
             height: 5in;
             overflow: hidden;
             margin: 0.2in auto;
-            padding: 0.3in 1.90in 0.2in 0.2in;
+            padding: 0.2in 1.90in 0.15in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
             position: relative;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet.paginated .footer-slot {
+            margin-top: auto;
         }
 
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .comp-name {
@@ -132,7 +138,7 @@
         .summary-container {
             display: flex;
             align-items: flex-start;
-            margin-top: 4px;
+            margin-top: 2px;
             font-size: 10px;
         }
 
@@ -207,6 +213,10 @@
                 max-height: 5in;
             }
 
+        .sheet.paginated .footer-slot {
+            margin-top: auto;
+        }
+
             .sheet:last-child {
                 page-break-after: auto;
             }
@@ -270,7 +280,7 @@
                         <div style="font-size: 10px;">
                             <strong>Dari Gudang:</strong> {{ $hdr->ffrom ?? '-' }} - {{ $hdr->wh_from_name ?? ($hdr->ffromname ?? '') }}
                         </div>
-                        <div style="font-size: 10px; margin-top: 4px;">
+                        <div style="font-size: 10px; margin-top: 2px;">
                             <strong>Ke Gudang:</strong> {{ $hdr->fto ?? '-' }} - {{ $hdr->wh_to_name ?? ($hdr->ftoname ?? '') }}
                         </div>
                     </div>
@@ -367,7 +377,7 @@
         {{-- Continued Template (Non-last Page) --}}
         <div id="tpl-continued">
             <div class="footer-line"></div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
                 <div style="font-style: italic; font-weight: bold; font-size: 10px;">
                     Bersambung ke halaman <span class="next-page-num">2</span>
                 </div>
@@ -381,7 +391,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const TARGET_PAGE_HEIGHT = 8.27 * 96; // 793.92px
+            const TARGET_PAGE_HEIGHT = 5 * 96; // 793.92px
             const printContainer = document.getElementById('print-container');
             const tplHeader = document.getElementById('tpl-header');
             const tplThead = document.getElementById('tpl-thead');
@@ -476,6 +486,7 @@
 </body>
 
 </html>
+
 @else
 <!doctype html>
 <html lang="id">
