@@ -1536,7 +1536,7 @@ class InvoiceController extends Controller
                 ->join('tranmt as m', 'm.fsono', '=', 's.fsono')
                 ->leftJoin('trandt as d', function ($j) {
                     $j->on('d.fsono', '=', 's.fsono')
-                      ->where('d.fprdcode', '=', 'UM');
+                      ->whereRaw("TRIM(COALESCE(d.fprdcode, '')) = 'UM'");
                 })
                 ->where('m.ftrcode', '=', 'INV')
                 ->whereRaw('TRIM(COALESCE(s.fcustno, \'\')) = ?', [$customerCode])
@@ -1554,7 +1554,7 @@ class InvoiceController extends Controller
                 ->get();
 
             return response()->json([
-                'data' => $rows->map(function ($row) {
+                'data' => $rows->unique('fsono')->map(function ($row) {
                     $docQty = (float) ($row->remain_qty ?? $row->ref_qty ?? 1);
                     return [
                         'fsono' => (string) ($row->fsono ?? ''),

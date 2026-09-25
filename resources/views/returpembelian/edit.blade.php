@@ -1052,7 +1052,7 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <template x-for="row in historyRows" :key="row.fstockmtno + row.fstockmtdate">
+                                                        <template x-for="(row, idx) in historyRows" :key="idx">
                                                             <tr class="border-t">
                                                                 <td class="p-2" x-text="row.fstockmtno"></td>
                                                                 <td class="p-2" x-text="row.fstockmtdate"></td>

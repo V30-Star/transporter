@@ -1671,8 +1671,7 @@
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    <template x-for="row in historyRows"
-                                                                        :key="row.fsono + row.fsodate">
+                                                                    <template x-for="(row, idx) in historyRows" :key="idx">
                                                                         <tr class="border-t">
                                                                             <td class="p-2" x-text="row.fsono"></td>
                                                                             <td class="p-2" x-text="row.fsodate"></td>
