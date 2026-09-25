@@ -646,8 +646,21 @@
                     currentSheet.footerSlot.appendChild(summaryClone);
 
                     if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet)) {
-                        if (currentSheet.tbody.children.length > clonedPair.length) {
-                            // Move this whole item pair to next sheet along with summary
+                        // Summary tidak muat di sheet ini bersama seluruh item.
+                        // Uji apakah item terakhir masih muat jika footer hanya baris "Bersambung":
+                        currentSheet.footerSlot.innerHTML = '';
+                        const contTest = tplContinued.cloneNode(true);
+                        contTest.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(contTest);
+
+                        if (getContentHeight(currentSheet.sheet) <= getMaxHeight(currentSheet.sheet)) {
+                            // Seluruh item (termasuk item terakhir) muat di sheet ini!
+                            // Biarkan seluruh item di sheet ini, buat sheet baru khusus summary:
+                            currentSheet = createSheet(false);
+                            sheets.push(currentSheet);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        } else if (currentSheet.tbody.children.length > clonedPair.length) {
+                            // Item terakhir tidak muat walau hanya dengan footer bersambung, pindahkan item ke sheet baru:
                             clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
                             currentSheet.footerSlot.innerHTML = '';
 
@@ -661,7 +674,7 @@
                             clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
                             currentSheet.footerSlot.appendChild(summaryClone);
                         } else {
-                            // Only 1 item on this sheet, move summary to next sheet
+                            // Hanya ada 1 item di sheet ini, pindahkan summary ke sheet baru
                             currentSheet.footerSlot.innerHTML = '';
                             const contClone = tplContinued.cloneNode(true);
                             contClone.removeAttribute('id');
@@ -711,6 +724,10 @@
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
                     s.footerSlot.appendChild(summaryClone);
+                }
+
+                if (s.tbody.children.length === 0) {
+                    s.table.style.display = 'none';
                 }
 
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
