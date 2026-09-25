@@ -828,6 +828,8 @@ class Tr_pohController extends Controller
 
         log_print_transaction($hdr->fpono);
 
+        $setting = company_setting();
+
         return view('tr_poh.print', [
             'hdr' => $hdr,
             'dt' => $dt,
@@ -838,7 +840,9 @@ class Tr_pohController extends Controller
             'ppnAmount' => $ppnAmount,
             'grandTotal' => $grandTotal,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
         ]);
     }
 

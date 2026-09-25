@@ -1706,6 +1706,8 @@ class PelunasanCustomerController extends Controller
 
         log_print_transaction($header->fkasmtno);
 
+        $setting = company_setting();
+
         return view('pelunasancustomer.print', [
             'hdr' => $header,
             'dt' => $details,
@@ -1713,7 +1715,9 @@ class PelunasanCustomerController extends Controller
             'totalAmount' => $totalAmount,
             'totalDiscount' => $totalDiscount,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 }

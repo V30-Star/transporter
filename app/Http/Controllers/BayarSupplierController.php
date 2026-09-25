@@ -1597,6 +1597,8 @@ class BayarSupplierController extends Controller
 
         log_print_transaction($header->fkasmtno);
 
+        $setting = company_setting();
+
         return view('bayarsupplier.print', [
             'hdr' => $header,
             'dt' => $details,
@@ -1604,7 +1606,8 @@ class BayarSupplierController extends Controller
             'totalAmount' => $totalAmount,
             'totalDiscount' => $totalDiscount,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 }

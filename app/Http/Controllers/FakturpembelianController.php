@@ -1433,13 +1433,17 @@ class FakturpembelianController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
+        $setting = company_setting();
+
         return view('fakturpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
         ]);
     }
 

@@ -558,12 +558,16 @@ class LembarPenagihanController extends Controller
 
         log_print_transaction($hdr->ftagihanno);
 
+        $setting = company_setting();
+
         return view('lembarpenagihan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 

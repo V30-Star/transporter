@@ -967,13 +967,17 @@ class SalesOrderController extends Controller
 
         log_print_transaction($hdr->fsono);
 
+        $setting = company_setting();
+
         return view('salesorder.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 0) === 0 && (int) ($hdr->fincludeppn ?? 0) === 0),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 

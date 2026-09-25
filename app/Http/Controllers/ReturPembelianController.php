@@ -602,13 +602,17 @@ class ReturPembelianController extends Controller
 
         log_print_transaction($hdr->fstockmtno);
 
+        $setting = company_setting();
+
         return view('returpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fapplyppn ?? '0') === '0' && (string) ($hdr->fincludeppn ?? '0') === '0'),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => company_setting()->fcity ?? config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
         ]);
     }
 

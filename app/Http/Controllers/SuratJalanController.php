@@ -675,13 +675,17 @@ class SuratJalanController extends Controller
 
         log_print_transaction($hdr->fstockmtno);
 
+        $setting = company_setting();
+
         return view('suratjalan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, false),
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdfakturpenjualan' => $setting->fnamattdfakturpenjualan ?? '',
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 

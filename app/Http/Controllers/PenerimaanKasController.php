@@ -589,13 +589,16 @@ class PenerimaanKasController extends Controller
 
         log_print_transaction($header->fkasmtno);
 
+        $setting = company_setting();
+
         return view('penerimaankas.print', [
             'hdr' => $header,
             'dt' => $details,
             'fmt' => $fmt,
             'totalAmount' => $totalAmount,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 

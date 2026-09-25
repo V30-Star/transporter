@@ -601,12 +601,15 @@ class JurnalTransaksiController extends Controller
 
         log_print_transaction($hdr->fjurnalno);
 
+        $setting = company_setting();
+
         return view('jurnaltransaksi.print', [
             'hdr'          => $hdr,
             'dt'           => $dt,
             'fmt'          => $fmt,
             'company_name' => company_name(),
-            'company_city' => company_setting()->fcity ?? '',
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo'    => $setting->fnamattdpo ?? '',
         ]);
     }
 

@@ -346,12 +346,15 @@ class Tr_prhController extends Controller
 
         log_print_transaction($hdr->fprno);
 
+        $setting = company_setting();
+
         return view('tr_prh.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 

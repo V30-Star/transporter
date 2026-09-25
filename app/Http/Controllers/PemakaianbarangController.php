@@ -404,12 +404,15 @@ class PemakaianbarangController extends Controller
 
         log_print_transaction($hdr->fstockmtno);
 
+        $setting = company_setting();
+
         return view('pemakaianbarang.print', [
             'hdr' => $hdr,
             'dt' => $dt,
             'fmt' => $fmt,
             'company_name' => company_name(),
-            'company_city' => config('app.company_city', 'Tangerang'),
+            'company_city' => $setting->fcity ?: config('app.company_city', 'Tangerang'),
+            'namattdpo' => $setting->fnamattdpo ?? '',
         ]);
     }
 
