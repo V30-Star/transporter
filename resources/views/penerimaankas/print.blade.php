@@ -40,8 +40,12 @@
             flex-direction: column;
         }
 
-        .sheet.paginated .footer-slot {
+        .tpl-continued, #tpl-continued {
             margin-top: auto;
+        }
+
+        .sheet:last-child .tb {
+            border-bottom: 1px solid #000;
         }
 
         .header-row {
@@ -213,8 +217,12 @@
                 max-height: 5in;
             }
 
-        .sheet.paginated .footer-slot {
+        .tpl-continued, #tpl-continued {
             margin-top: auto;
+        }
+
+        .sheet:last-child .tb {
+            border-bottom: 1px solid #000;
         }
 
             .sheet:last-child {
@@ -425,20 +433,26 @@
             let currentPage = null;
             let currentTbody = null;
 
-            function createNewPage() {
+            function createNewPage(isFirst = false) {
                 const sheet = document.createElement('div');
                 sheet.className = 'sheet';
 
-                const headerClone = tplHeader.cloneNode(true);
-                headerClone.removeAttribute('id');
-                sheet.appendChild(headerClone);
+                // Header hanya di halaman 1
+                if (isFirst) {
+                    const headerClone = tplHeader.cloneNode(true);
+                    headerClone.removeAttribute('id');
+                    sheet.appendChild(headerClone);
+                }
 
                 const table = document.createElement('table');
                 table.className = 'tb';
 
-                const theadClone = tplThead.cloneNode(true);
-                theadClone.removeAttribute('id');
-                table.appendChild(theadClone);
+                // Judul Kolom (thead) hanya di halaman 1
+                if (isFirst) {
+                    const theadClone = tplThead.cloneNode(true);
+                    theadClone.removeAttribute('id');
+                    table.appendChild(theadClone);
+                }
 
                 const tbody = document.createElement('tbody');
                 table.appendChild(tbody);
@@ -451,7 +465,7 @@
                 pages.push(sheet);
             }
 
-            createNewPage();
+            createNewPage(true);
 
             // Items are paired in 2 rows
             for (let i = 0; i < rawRows.length; i += 2) {
@@ -467,9 +481,10 @@
 
                     const contClone = tplContinued.cloneNode(true);
                     contClone.removeAttribute('id');
+                    contClone.classList.add('tpl-continued');
                     currentPage.appendChild(contClone);
 
-                    createNewPage();
+                    createNewPage(false);
 
                     currentTbody.appendChild(row1);
                     if (row2) currentTbody.appendChild(row2);
@@ -485,9 +500,10 @@
 
                 const contClone = tplContinued.cloneNode(true);
                 contClone.removeAttribute('id');
+                    contClone.classList.add('tpl-continued');
                 currentPage.appendChild(contClone);
 
-                createNewPage();
+                createNewPage(false);
                 currentPage.appendChild(summaryClone);
             }
 

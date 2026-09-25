@@ -54,8 +54,12 @@
             font-weight: normal;
         }
 
-        .sheet.paginated .footer-slot {
+        .sheet.paginated .footer-slot.is-continued {
             margin-top: auto;
+        }
+
+        .sheet.paginated .footer-slot.is-summary {
+            margin-top: 0;
         }
 
         .header-row {
@@ -134,8 +138,11 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 2px;
-            border-bottom: 1px solid #000;
             font-weight: bold;
+        }
+
+        .sheet:last-child .tb {
+            border-bottom: 1px solid #000;
         }
 
         .tb th {
@@ -259,8 +266,12 @@
                 flex-direction: column !important;
             }
 
-        .sheet.paginated .footer-slot {
+        .sheet.paginated .footer-slot.is-continued {
             margin-top: auto;
+        }
+
+        .sheet.paginated .footer-slot.is-summary {
+            margin-top: 0;
         }
 
             .sheet:last-child,
@@ -471,8 +482,8 @@
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($famountso, 0, ',', '.') }}</td>
                         </tr>
                     </table>
-                    <div class="meta-right" style="margin-top: 3px; font-size: 11.5px; font-weight: normal;">
-                        <div>Dicetak: {{ now()->format('d/m/y H:i') }}</div>
+                    <div class="meta-right" style="margin-top: 3px; font-size: 10.5px; font-weight: normal;">
+                        <div>Hal <span class="page-counter">1 / 1</span> &nbsp;|&nbsp; Dicetak: {{ now()->format('d/m/y H:i') }}</div>
                     </div>
                 </div>
             </div>
@@ -483,7 +494,7 @@
             <div class="footer-line"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px; font-size: 10px;">
                 <span style="font-style: italic; font-weight: bold;">Bersambung ke halaman <span class="next-page-num">2</span></span>
-                <span class="meta-right" style="font-size: 9.5px; font-weight: normal;">Dicetak: {{ now()->format('d/m/y H:i') }}</span>
+                <span class="meta-right" style="font-size: 9.5px; font-weight: normal;">Hal <span class="page-counter">1 / 1</span> &nbsp;|&nbsp; Dicetak: {{ now()->format('d/m/y H:i') }}</span>
             </div>
         </div>
         </div>
@@ -513,17 +524,22 @@
                 return last.offsetTop + last.offsetHeight - parseFloat(getComputedStyle(sheet).paddingTop);
             }
 
-            function createSheet() {
+            function createSheet(isFirst = false) {
                 const sheet = document.createElement('div');
                 sheet.className = 'sheet';
 
-                const header = tplHeader.cloneNode(true);
-                header.removeAttribute('id');
-                sheet.appendChild(header);
+                // Header hanya ditampilkan di halaman 1
+                if (isFirst) {
+                    const header = tplHeader.cloneNode(true);
+                    header.removeAttribute('id');
+                    sheet.appendChild(header);
+                }
 
                 const table = document.createElement('table');
                 table.className = 'tb';
-                table.appendChild(tplThead.cloneNode(true));
+                if (isFirst) {
+                    table.appendChild(tplThead.cloneNode(true));
+                }
 
                 const tbody = document.createElement('tbody');
                 table.appendChild(tbody);
@@ -534,7 +550,7 @@
                 sheet.appendChild(footerSlot);
 
                 printContainer.appendChild(sheet);
-                return { sheet, header, table, tbody, footerSlot };
+                return { sheet, table, tbody, footerSlot };
             }
 
             const itemPairs = [];
@@ -544,7 +560,7 @@
                 itemPairs.push(pair);
             }
 
-            let currentSheet = createSheet();
+            let currentSheet = createSheet(true);
             let sheets = [currentSheet];
 
             for (let itemIdx = 0; itemIdx < itemPairs.length; itemIdx++) {
@@ -569,7 +585,7 @@
                             contClone.removeAttribute('id');
                             currentSheet.footerSlot.appendChild(contClone);
 
-                            currentSheet = createSheet();
+                            currentSheet = createSheet(false);
                             sheets.push(currentSheet);
 
                             clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
@@ -580,7 +596,7 @@
                             contClone.removeAttribute('id');
                             currentSheet.footerSlot.appendChild(contClone);
 
-                            currentSheet = createSheet();
+                            currentSheet = createSheet(false);
                             sheets.push(currentSheet);
 
                             currentSheet.footerSlot.appendChild(summaryClone);
@@ -595,7 +611,7 @@
                     if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet) && currentSheet.tbody.children.length > clonedPair.length) {
                         clonedPair.forEach(tr => currentSheet.tbody.removeChild(tr));
 
-                        currentSheet = createSheet();
+                        currentSheet = createSheet(false);
                         sheets.push(currentSheet);
 
                         clonedPair.forEach(tr => currentSheet.tbody.appendChild(tr));
@@ -610,12 +626,14 @@
 
                 s.footerSlot.innerHTML = '';
                 if (!isLast) {
+                    s.footerSlot.className = 'footer-slot is-continued';
                     const cont = tplContinued.cloneNode(true);
                     cont.removeAttribute('id');
                     const nextNum = cont.querySelector('.next-page-num');
                     if (nextNum) nextNum.innerText = (pageNum + 1);
                     s.footerSlot.appendChild(cont);
                 } else {
+                    s.footerSlot.className = 'footer-slot is-summary';
                     const summaryClone = tplSummary.cloneNode(true);
                     summaryClone.removeAttribute('id');
                     s.footerSlot.appendChild(summaryClone);
@@ -624,6 +642,7 @@
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
                     el.innerText = `${pageNum} / ${totalPages}`;
                 });
+                s.sheet.classList.add('paginated');
             });
 
             let globalRow = 1;
@@ -1256,7 +1275,6 @@
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
                     el.innerText = `Hal : ${pageNum} / ${totalPages}`;
                 });
-            });
 
             // Re-index all rows globally 1..N
             let globalRow = 1;
