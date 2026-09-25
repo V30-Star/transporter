@@ -510,7 +510,7 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                 <div class="p-4">
-                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+                    <div class="space-y-2">
 
                             <div class="overflow-auto border rounded">
                                 <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table"
@@ -538,7 +538,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                        <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                             <tr class="border-t align-top hover:bg-gray-55">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                 <td class="p-2">
@@ -1051,7 +1051,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                            <template x-for="(it, i) in savedItems" :key="(it.uid ? (it.uid + '_' + i) : ('item-' + i))">
                                                 <tr class="border-t align-top hover:bg-gray-50" :class="it.qtyInvalid ? 'bg-red-50' : ''">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2">
@@ -1096,8 +1096,8 @@
                                                                         :id="'unit_row_' + i" x-model="it.fsatuan"
                                                                         @change="onRowUpdated(i)"
                                                                         @keydown.enter.prevent="focusRowQty(i)">
-                                                                        <template x-for="u in it.units"
-                                                                            :key="u">
+                                                                        <template x-for="(u, uIdx) in it.units"
+                                                                            :key="uIdx">
                                                                             <option :value="u" x-text="u">
                                                                             </option>
                                                                         </template>
@@ -1175,7 +1175,7 @@
                                 </div>
 
                                 <div class="hidden">
-                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid ? (it.uid + '_' + i) : i)">
                                         <div>
                                             <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
                                                 :value="it.fitemcode">
@@ -1462,7 +1462,7 @@
                                                         </p>
                                                         <div
                                                             class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
-                                                            <template x-for="d in dupSample">
+                                                            <template x-for="(d, dIdx) in dupSample" :key="dIdx">
                                                                 <div class="p-2 text-xs border-b border-amber-100">
                                                                     <span x-text="d.fitemcode" class="font-bold"></span> -
                                                                     <span x-text="d.fitemname"></span>

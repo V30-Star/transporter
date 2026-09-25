@@ -2553,7 +2553,7 @@ class ReturPenjualanController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $returpenjualan->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -2714,7 +2714,7 @@ class ReturPenjualanController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $returpenjualan->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -3606,7 +3606,7 @@ class ReturPenjualanController extends Controller
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
+        $savedItems = $returpenjualan->details->unique('ftrandtid')->values()->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
