@@ -43,7 +43,7 @@
             height: 5in;
             overflow: hidden;
             margin: 0.2in auto;
-            padding: 0.2in 1.90in 0.15in 0.2in;
+            padding: 0.2in 1.80in 0.15in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -255,7 +255,7 @@
                 max-width: 5.5in !important;
                 height: 5in !important;
                 max-height: 5in !important;
-                padding: 0.2in 1.90in 0.15in 0.2in !important;
+                padding: 0.2in 1.80in 0.15in 0.2in !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
@@ -289,6 +289,7 @@
             }
         }
     </style>
+    @include('partials.print-the-retail')
 </head>
 
 <body>

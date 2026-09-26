@@ -30,7 +30,7 @@
             height: 5in;
             overflow: hidden;
             margin: 0.2in auto;
-            padding: 0.2in 1.90in 0.15in 0.2in;
+            padding: 0.2in 1.80in 0.15in 0.2in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
@@ -40,8 +40,12 @@
             flex-direction: column;
         }
 
-        .tpl-continued, #tpl-continued {
+        .sheet.paginated .footer-slot.is-continued {
             margin-top: auto;
+        }
+
+        .sheet.paginated .footer-slot.is-summary {
+            margin-top: 0;
         }
 
         .sheet:last-child .tb {
@@ -431,8 +435,7 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const TARGET_PAGE_HEIGHT = 5 * 96; // 793.92px
+        function runResponsivePagination() {
             const printContainer = document.getElementById('print-container');
             const tplHeader = document.getElementById('tpl-header');
             const tplThead = document.getElementById('tpl-thead');
@@ -440,13 +443,44 @@
             const tplContinued = document.getElementById('tpl-continued');
             const rawRowsContainer = document.getElementById('raw-rows');
 
-            // Group rows into atomic blocks
+            printContainer.innerHTML = '';
+
+            const SAFETY_PX = 4;
+
+            function getMaxHeight(sheet) {
+                const cs = getComputedStyle(sheet);
+                return sheet.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - SAFETY_PX;
+            }
+
+            function getContentHeight(sheet) {
+                const last = sheet.lastElementChild;
+                if (!last) return 0;
+                return last.offsetTop + last.offsetHeight - parseFloat(getComputedStyle(sheet).paddingTop);
+            }
+
+            function createSheet(isFirst = false) {
+                const sheet = document.createElement('div');
+                sheet.className = 'sheet';
+                if (isFirst) { const h = tplHeader.cloneNode(true); h.removeAttribute('id'); sheet.appendChild(h); }
+                const table = document.createElement('table');
+                table.className = 'tb';
+                if (isFirst) table.appendChild(tplThead.cloneNode(true));
+                const tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+                sheet.appendChild(table);
+                const footerSlot = document.createElement('div');
+                footerSlot.className = 'footer-slot';
+                sheet.appendChild(footerSlot);
+                printContainer.appendChild(sheet);
+                return { sheet, table, tbody, footerSlot };
+            }
+
+            // Group rows into atomic blocks (same logic as before)
             const blocks = [];
             const rows = Array.from(rawRowsContainer.children);
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 if (row.classList.contains('item-block-single')) {
-                    // Check if next row is pair-1, keep them together to avoid orphan section header
                     if (rows[i + 1] && rows[i + 1].classList.contains('item-block-pair-1')) {
                         blocks.push([row, rows[i + 1], rows[i + 2]]);
                         i += 2;
@@ -462,90 +496,88 @@
                 }
             }
 
-            let pages = [];
-            let currentPage = null;
-            let currentTbody = null;
+            let currentSheet = createSheet(true);
+            let sheets = [currentSheet];
 
-            function createNewPage(isFirst = false) {
-                const sheet = document.createElement('div');
-                sheet.className = 'sheet';
+            for (let blockIdx = 0; blockIdx < blocks.length; blockIdx++) {
+                const block = blocks[blockIdx];
+                const clonedBlock = block.map(r => r.cloneNode(true));
+                clonedBlock.forEach(r => currentSheet.tbody.appendChild(r));
 
-                // Header hanya di halaman 1
-                if (isFirst) {
-                    const headerClone = tplHeader.cloneNode(true);
-                    headerClone.removeAttribute('id');
-                    sheet.appendChild(headerClone);
-                }
+                const isLastBlock = (blockIdx === blocks.length - 1);
 
-                const table = document.createElement('table');
-                table.className = 'tb';
+                if (isLastBlock) {
+                    currentSheet.footerSlot.innerHTML = '';
+                    const summaryClone = tplSummary.cloneNode(true);
+                    summaryClone.removeAttribute('id');
+                    currentSheet.footerSlot.appendChild(summaryClone);
 
-                // Judul Kolom (thead) hanya di halaman 1
-                if (isFirst) {
-                    const theadClone = tplThead.cloneNode(true);
-                    theadClone.removeAttribute('id');
-                    table.appendChild(theadClone);
-                }
+                    if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet)) {
+                        currentSheet.footerSlot.innerHTML = '';
+                        const ct = tplContinued.cloneNode(true); ct.removeAttribute('id');
+                        currentSheet.footerSlot.appendChild(ct);
 
-                const tbody = document.createElement('tbody');
-                table.appendChild(tbody);
-                sheet.appendChild(table);
+                        if (getContentHeight(currentSheet.sheet) <= getMaxHeight(currentSheet.sheet)) {
+                            currentSheet = createSheet(false); sheets.push(currentSheet);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        } else if (currentSheet.tbody.children.length > clonedBlock.length) {
+                            clonedBlock.forEach(r => currentSheet.tbody.removeChild(r));
+                            currentSheet.footerSlot.innerHTML = '';
+                            const c2 = tplContinued.cloneNode(true); c2.removeAttribute('id');
+                            currentSheet.footerSlot.appendChild(c2);
+                            currentSheet = createSheet(false); sheets.push(currentSheet);
+                            clonedBlock.forEach(r => currentSheet.tbody.appendChild(r));
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        } else {
+                            currentSheet.footerSlot.innerHTML = '';
+                            const c3 = tplContinued.cloneNode(true); c3.removeAttribute('id');
+                            currentSheet.footerSlot.appendChild(c3);
+                            currentSheet = createSheet(false); sheets.push(currentSheet);
+                            currentSheet.footerSlot.appendChild(summaryClone);
+                        }
+                    }
+                } else {
+                    currentSheet.footerSlot.innerHTML = '';
+                    const ct = tplContinued.cloneNode(true); ct.removeAttribute('id');
+                    currentSheet.footerSlot.appendChild(ct);
 
-                printContainer.appendChild(sheet);
-
-                currentPage = sheet;
-                currentTbody = tbody;
-                pages.push(sheet);
-            }
-
-            createNewPage(true);
-
-            for (const block of blocks) {
-                block.forEach(r => currentTbody.appendChild(r));
-
-                if (currentPage.scrollHeight > TARGET_PAGE_HEIGHT) {
-                    block.forEach(r => currentTbody.removeChild(r));
-
-                    const contClone = tplContinued.cloneNode(true);
-                    contClone.removeAttribute('id');
-                    contClone.classList.add('tpl-continued');
-                    currentPage.appendChild(contClone);
-
-                    createNewPage(false);
-
-                    block.forEach(r => currentTbody.appendChild(r));
+                    if (getContentHeight(currentSheet.sheet) > getMaxHeight(currentSheet.sheet) && currentSheet.tbody.children.length > clonedBlock.length) {
+                        clonedBlock.forEach(r => currentSheet.tbody.removeChild(r));
+                        currentSheet = createSheet(false); sheets.push(currentSheet);
+                        clonedBlock.forEach(r => currentSheet.tbody.appendChild(r));
+                    }
                 }
             }
 
-            const summaryClone = tplSummary.cloneNode(true);
-            summaryClone.removeAttribute('id');
-            currentPage.appendChild(summaryClone);
-
-            if (currentPage.scrollHeight > TARGET_PAGE_HEIGHT) {
-                currentPage.removeChild(summaryClone);
-
-                const contClone = tplContinued.cloneNode(true);
-                contClone.removeAttribute('id');
-                    contClone.classList.add('tpl-continued');
-                currentPage.appendChild(contClone);
-
-                createNewPage(false);
-                currentPage.appendChild(summaryClone);
-            }
-
-            const totalPages = pages.length;
-            pages.forEach((page, index) => {
-                const pageNum = index + 1;
-                const counter = page.querySelector('.page-counter');
-                if (counter) {
-                    counter.innerText = `Hal : ${pageNum} / ${totalPages}`;
+            const totalPages = sheets.length;
+            sheets.forEach((s, i) => {
+                const pageNum = i + 1;
+                s.footerSlot.innerHTML = '';
+                if (pageNum < totalPages) {
+                    s.footerSlot.className = 'footer-slot is-continued';
+                    const cont = tplContinued.cloneNode(true); cont.removeAttribute('id');
+                    const nn = cont.querySelector('.next-page-num'); if (nn) nn.innerText = pageNum + 1;
+                    s.footerSlot.appendChild(cont);
+                } else {
+                    s.footerSlot.className = 'footer-slot is-summary';
+                    const sc = tplSummary.cloneNode(true); sc.removeAttribute('id');
+                    s.footerSlot.appendChild(sc);
                 }
-                const nextNum = page.querySelector('.next-page-num');
-                if (nextNum) {
-                    nextNum.innerText = `${pageNum + 1}`;
-                }
+                if (s.tbody.children.length === 0) s.table.style.display = 'none';
+                s.sheet.querySelectorAll('.page-counter').forEach(el => el.innerText = `${pageNum} / ${totalPages}`);
+                s.sheet.classList.add('paginated');
             });
-        });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runResponsivePagination);
+        } else { runResponsivePagination(); }
+        window.addEventListener('beforeprint', runResponsivePagination);
+        let currentZoom = 1.0;
+        function adjustZoom(delta) {
+            currentZoom = Math.min(Math.max(currentZoom + delta, 0.5), 2.0);
+            document.querySelectorAll('.sheet').forEach(t => { t.style.transform = `scale(${currentZoom})`; t.style.transformOrigin = 'top center'; });
+            const zl = document.getElementById('zoomLabel'); if (zl) zl.innerText = `${Math.round(currentZoom * 100)}%`;
+        }
     </script>
 </body>
 

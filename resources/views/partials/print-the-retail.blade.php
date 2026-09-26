@@ -26,31 +26,43 @@
         font-weight: bold !important;
     }
 
-    /* Ukuran kertas A5 Portrait sesuai retail */
+    /* Ukuran kertas Continuous Form 5.5in x 5in sesuai penjualan retail */
     @page {
-        size: 5.83in 8.27in !important;
+        size: 5.5in 5in !important;
         margin: 0 !important;
     }
 
     .sheet {
-        width: 5.83in !important;
-        height: 8.27in !important;
+        width: 5.5in !important;
+        max-width: 5.5in !important;
+        height: 5in !important;
+        max-height: 5in !important;
         overflow: hidden !important;
         margin: 0.2in auto !important;
-        padding: 0.3in 1.90in 0.2in 0.2in !important;
+        padding: 0.2in 1.80in 0.15in 0.2in !important;
         background: #fff;
         border: 1px solid #cfcfcf;
         box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         position: relative;
         box-sizing: border-box !important;
         font-weight: normal !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .sheet.paginated .footer-slot.is-continued {
+        margin-top: auto !important;
+    }
+
+    .sheet.paginated .footer-slot.is-summary {
+        margin-top: 0 !important;
     }
 
     .header-row {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 5px;
+        margin-bottom: 2px !important;
     }
 
     .comp-name {
@@ -85,10 +97,10 @@
     .customer-container {
         border: 1.5px solid #000 !important;
         border-radius: 0 !important;
-        padding: 9px 5px 3px !important;
+        padding: 5px 5px 2px !important;
         width: 100% !important;
         position: relative;
-        margin-top: 4px;
+        margin-top: 2px !important;
         box-sizing: border-box !important;
         font-weight: normal !important;
     }
@@ -121,7 +133,7 @@
     .tb {
         width: 100% !important;
         border-collapse: collapse;
-        margin-top: 4px;
+        margin-top: 2px !important;
         border-bottom: 1px solid #000 !important;
         font-weight: bold !important;
     }
@@ -129,16 +141,18 @@
     .tb th {
         border-top: 1.5px solid #000 !important;
         border-bottom: 1.5px solid #000 !important;
-        padding: 3px 2px !important;
+        padding: 2px 2px !important;
         text-align: left;
         font-weight: bold !important;
-        font-size: 12px !important;
+        font-size: 11.5px !important;
+        line-height: 1.15;
     }
 
     .tb td {
-        padding: 2.5px 2px !important;
+        padding: 1.5px 2px !important;
         vertical-align: top;
-        font-size: 11.5px !important;
+        font-size: 11px !important;
+        line-height: 1.15;
     }
 
     .grand-total, .gt, tr.gt td {
@@ -156,12 +170,11 @@
     }
 
     .meta-right {
-        font-size: 11.5px !important;
+        font-size: 9.5px !important;
         text-align: right;
         line-height: 1.2;
     }
 
-    /* Penyesuaian layout sempit A5 Portrait (area cetak ~3.73in) */
     .summary-box, .terbilang-box {
         float: none !important;
         width: 100% !important;
@@ -173,7 +186,7 @@
 
     @media print {
         html, body {
-            width: 5.83in !important;
+            width: 5.5in !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #fff !important;
@@ -194,17 +207,19 @@
             border: none !important;
             box-shadow: none !important;
             transform: none !important;
-            width: 5.83in !important;
-            max-width: 5.83in !important;
-            height: 8.27in !important;
-            max-height: 8.27in !important;
-            padding: 0.3in 1.90in 0.2in 0.2in !important;
+            width: 5.5in !important;
+            max-width: 5.5in !important;
+            height: 5in !important;
+            max-height: 5in !important;
+            padding: 0.2in 1.80in 0.15in 0.2in !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             page-break-after: always !important;
             break-after: page !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
 
         .sheet:last-child,
