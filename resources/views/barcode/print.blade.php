@@ -95,7 +95,7 @@
                 height: {{ $labelHeight }}mm !important;
                 max-height: {{ $labelHeight }}mm !important;
                 margin: 0 !important;
-                margin-bottom: 0 !important;
+                margin-bottom: {{ $gapY }}mm !important;   /* <-- tambahkan ini, ganti dari 0 */
                 padding: 0 !important;
                 page-break-after: always !important;
                 break-after: page !important;

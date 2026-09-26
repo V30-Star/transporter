@@ -18,6 +18,7 @@ class Barcode extends Model
         'label_height' => 'float',
         'columns' => 'integer',
         'gap_x' => 'float',
+        'gap_y' => 'float',
         'barcode_height' => 'integer',
         'font_size' => 'float',
         'show_company' => 'boolean',

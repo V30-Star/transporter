@@ -123,9 +123,16 @@
                                 <input type="number" min="1" max="5" name="columns" id="labelColumns" value="3" class="bp-input font-mono">
                             </div>
                             <div class="bp-dim-col">
-                                <label class="bp-label">Gap (mm)</label>
+                                <label class="bp-label">Gap X (mm)</label>
                                 <div class="bp-input-unit">
                                     <input type="number" step="0.5" min="0" max="20" name="gap_x" id="gapX" value="2" class="bp-input font-mono">
+                                    <span class="unit">mm</span>
+                                </div>
+                            </div>
+                            <div class="bp-dim-col">
+                                <label class="bp-label">Gap Y (mm)</label>
+                                <div class="bp-input-unit">
+                                    <input type="number" step="0.5" min="0" max="20" name="gap_y" id="gapY" value="0" class="bp-input font-mono">
                                     <span class="unit">mm</span>
                                 </div>
                             </div>
@@ -723,7 +730,7 @@
     /* Dimensions Inputs (4 Kolom Rapi 1 Baris) */
     .bp-dim-row-4 {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 8px;
         margin-top: 8px;
     }
@@ -1330,7 +1337,7 @@ $(document).ready(function() {
 
     // Inputs change listeners for live preview & auto-save recent setting
     let recentSaveTimer = null;
-    $('#labelWidth, #labelHeight, #labelColumns, #gapX, #barcodeHeight, #fontSize, #showCompany, #companyName, #showName, #showCode, #showPrice').on('input change', function() {
+    $('#labelWidth, #labelHeight, #labelColumns, #gapX, #gapY, #barcodeHeight, #fontSize, #showCompany, #companyName, #showName, #showCode, #showPrice').on('input change', function() {
         updatePreview();
         $('.bp-recent-chip').removeClass('active');
         clearTimeout(recentSaveTimer);
@@ -1707,6 +1714,7 @@ function getCurrentSettings() {
         labelHeight: parseFloat($('#labelHeight').val()) || 15,
         columns: Math.max(1, parseInt($('#labelColumns').val(), 10) || 1),
         gapX: parseFloat($('#gapX').val()) || 0,
+        gapY: parseFloat($('#gapY').val()) || 0,
         barcodeHeight: parseInt($('#barcodeHeight').val(), 10) || 20,
         fontSize: parseFloat($('#fontSize').val()) || 7,
         showCompany: $('#showCompany').is(':checked'),
@@ -1732,6 +1740,7 @@ function saveCurrentAsRecent() {
             top.labelHeight === cur.labelHeight &&
             top.columns === cur.columns &&
             top.gapX === cur.gapX &&
+            top.gapY === cur.gapY && 
             top.barcodeHeight === cur.barcodeHeight &&
             top.fontSize === cur.fontSize &&
             Boolean(top.showCompany) === Boolean(cur.showCompany) &&
@@ -1755,6 +1764,7 @@ function saveCurrentAsRecent() {
             label_height: cur.labelHeight,
             columns: cur.columns,
             gap_x: cur.gapX,
+            gap_y: cur.gapY, 
             barcode_height: cur.barcodeHeight,
             font_size: cur.fontSize,
             show_company: cur.showCompany ? 1 : 0,
@@ -1781,6 +1791,7 @@ function applySettings(s, chipEl) {
     $('#labelHeight').val(s.labelHeight);
     $('#labelColumns').val(s.columns);
     $('#gapX').val(s.gapX);
+    $('#gapY').val(s.gapY || 0);
     $('#barcodeHeight').val(s.barcodeHeight);
     $('#fontSize').val(s.fontSize);
     $('#showCompany').prop('checked', !!s.showCompany);
@@ -1821,7 +1832,7 @@ function renderRecentSettings() {
     recentSettingsList.slice(0, 5).forEach((item, idx) => {
         const d = item.timestamp ? new Date(item.timestamp) : new Date();
         const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-        const tooltip = `${item.labelWidth}×${item.labelHeight} mm, ${item.columns} Kolom, Font ${item.fontSize}pt`;
+        const tooltip = `${item.labelWidth}×${item.labelHeight} mm, ${item.columns} Kolom, Gap Y ${item.gapY || 0}mm, Font ${item.fontSize}pt`;
         const $chip = $(`
             <button type="button" class="bp-recent-chip" data-index="${idx}" title="${tooltip}">
                 <i class="fa-solid fa-tag text-[10px] text-amber-500"></i>

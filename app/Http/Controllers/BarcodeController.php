@@ -136,11 +136,10 @@ class BarcodeController extends Controller
 
         // Calculate total page width for continuous roll
         $pageWidth = ($labelWidth * $columns) + ($gapX * ($columns - 1));
-        $pageHeight = $labelHeight;
+        $pageHeight = $labelHeight + $gapY;
 
         // Group into rows by column count
-        $rows = array_chunk($labels, $columns);
-        $pageHeight = $labelHeight;
+        $rows = array_chunk($labels, $columns); 
 
         return view('barcode.print', compact(
             'rows',
@@ -223,6 +222,7 @@ class BarcodeController extends Controller
         $height = max(8, (float) $request->input('label_height', 15));
         $columns = max(1, min(6, (int) $request->input('columns', 3)));
         $gapX = max(0, (float) $request->input('gap_x', 2));
+        $gapY = max(0, (float) $request->input('gap_y', 0));           // <-- baru
         $barcodeHeight = max(15, min(80, (int) $request->input('barcode_height', 20)));
         $fontSize = max(6, min(14, (float) $request->input('font_size', 7)));
         $showCompany = $request->boolean('show_company');
@@ -237,6 +237,7 @@ class BarcodeController extends Controller
             ->where('label_height', $height)
             ->where('columns', $columns)
             ->where('gap_x', $gapX)
+            ->where('gap_y', $gapY)                                    // <-- baru
             ->where('barcode_height', $barcodeHeight)
             ->where('font_size', $fontSize)
             ->where('show_company', $showCompany)
@@ -255,6 +256,7 @@ class BarcodeController extends Controller
                 'label_height' => $height,
                 'columns' => $columns,
                 'gap_x' => $gapX,
+                'gap_y' => $gapY,                                       // <-- baru
                 'barcode_height' => $barcodeHeight,
                 'font_size' => $fontSize,
                 'show_company' => $showCompany,
@@ -283,6 +285,7 @@ class BarcodeController extends Controller
                     'labelHeight' => (float) $item->label_height,
                     'columns' => (int) $item->columns,
                     'gapX' => (float) $item->gap_x,
+                    'gapY' => (float) $item->gap_y,                     // <-- baru
                     'barcodeHeight' => (int) $item->barcode_height,
                     'fontSize' => (float) $item->font_size,
                     'showCompany' => (bool) $item->show_company,
