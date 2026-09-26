@@ -3844,6 +3844,7 @@
                         ...row,
                         uid: cryptoRandom(),
                     };
+                    nextRow.fqtyInput = nextRow.fqtyInput ?? this.formatQtyValue(nextRow.fqty ?? 0);
                     nextRow.fpriceInput = this.fmt(nextRow.fprice);
                     this.savedItems.push(nextRow);
                     this.$nextTick(() => {
