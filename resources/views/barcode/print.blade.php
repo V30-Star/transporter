@@ -92,8 +92,8 @@
             }
             .label-row {
                 width: {{ $pageWidth }}mm !important;
-                height: {{ $pageHeight }}mm !important;
-                max-height: {{ $pageHeight }}mm !important;
+                height: {{ $labelHeight }}mm !important;
+                max-height: {{ $labelHeight }}mm !important;
                 margin: 0 !important;
                 margin-bottom: 0 !important;
                 padding: 0 !important;
