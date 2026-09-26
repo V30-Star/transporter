@@ -3420,7 +3420,7 @@
             },
 
             getRowReferenceQty(row) {
-                const value = row?.faktur_qty ?? row?.qty_faktur ?? row?.srj_qty ?? row?.qty_asal ?? row?.ref_qty ?? row?.fsono_qty;
+                const value = row?.faktur_qty ?? row?.qty_faktur ?? row?.srj_qty ?? row?.qty_asal ?? row?.ref_qty ?? row?.fsono_qty ?? row?.fqtyremain ?? row?.maxqty;
                 if (value === undefined || value === null || value === '') return 0;
                 const qty = this.parseQtyValue(value);
                 return Number.isFinite(qty) ? qty : 0;
