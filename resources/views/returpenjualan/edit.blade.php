@@ -1133,14 +1133,14 @@
                                                             <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatQtyValue(it.fqty)"></div>
                                                         </template>
                                                         <template x-if="action !== 'view'">
-                                                            <input type="number"
-                                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                                :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
-                                                                :min="@json(stock_boleh_minus()) ? null : 0" step="0.01" :id="'qty_row_' + i"
-                                                                x-model.number="it.fqty"
-                                                                @input="enforceQtyRow(it); onRowUpdated(i)"
-                                                                @change="enforceQtyRow(it); onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowPrice(i)">
+                                                             <input type="text" inputmode="decimal"
+                                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                                 :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
+                                                                 :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                                 @focus="$event.target.select()"
+                                                                 @input="onQtyInput(it, $event); enforceQtyRow(it); onRowUpdated(i)"
+                                                                 @blur="blurQtyInput(it); enforceQtyRow(it); onRowUpdated(i)"
+                                                                 @keydown.enter.prevent="focusRowPrice(i)">
                                                         </template>
                                                     </td>
                                                     <td class="p-2 text-right">
@@ -3038,11 +3038,28 @@
 
             formatQtyValue(value) {
                 const num = Number(value);
-                if (!Number.isFinite(num)) return '0,00';
+                if (!Number.isFinite(num)) return '0';
                 return num.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
+                    minimumFractionDigits: 0,
                     maximumFractionDigits: 2
                 });
+            },
+
+            onQtyInput(row, event) {
+                const raw = event.target.value;
+                if (raw.includes('.') || !/^\d*(,\d{0,2})?$/.test(raw)) {
+                    row.fqtyInput = row._lastQtyInput ?? '';
+                    event.target.value = row.fqtyInput;
+                    return;
+                }
+                row._lastQtyInput = raw;
+                row.fqty = this.parseQtyValue(raw);
+            },
+
+            blurQtyInput(row) {
+                row.fqty = this.parseQtyValue(row.fqtyInput);
+                row.fqtyInput = this.formatQtyValue(row.fqty);
+                row._lastQtyInput = row.fqtyInput;
             },
 
             rupiah(n) {
@@ -4222,6 +4239,7 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
+                    row.fqtyInput = item.fqtyInput ?? this.formatQtyValue(item.fqty);
                     row.fpriceInput = item.fpriceInput ?? this.fmt(item.fprice);
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     if (item.fitemname) {
@@ -4334,6 +4352,7 @@
                 fnoacak: '',
                 frefnoacak: '',
                 fqty: 0,
+                fqtyInput: '0',
                 fterima: 0,
                 maxqty: 0,
                 maxqty_unit: '',

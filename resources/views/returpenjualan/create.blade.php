@@ -563,13 +563,14 @@
                                                  </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number"
-                                                    class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
-                                                    min="0" step="0.01" :id="'qty_row_' + i"
-                                                    x-model.number="it.fqty" @input="enforceQtyRow(it); onRowUpdated(i)"
-                                                    @change="enforceQtyRow(it); onRowUpdated(i)"
-                                                    @keydown.enter.prevent="focusRowPrice(i)">
+                                                 <input type="text" inputmode="decimal"
+                                                     class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                                     :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
+                                                     :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                     @focus="$event.target.select()"
+                                                     @input="onQtyInput(it, $event); enforceQtyRow(it); onRowUpdated(i)"
+                                                     @blur="blurQtyInput(it); enforceQtyRow(it); onRowUpdated(i)"
+                                                     @keydown.enter.prevent="focusRowPrice(i)">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
                                                     x-show="it.fitemcode">
                                                     <div x-html="formatStockLimit(it)"></div>
@@ -2153,11 +2154,28 @@
 
             formatQtyValue(value) {
                 const num = Number(value);
-                if (!Number.isFinite(num)) return '0,00';
+                if (!Number.isFinite(num)) return '0';
                 return num.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
+                    minimumFractionDigits: 0,
                     maximumFractionDigits: 2
                 });
+            },
+
+            onQtyInput(row, event) {
+                const raw = event.target.value;
+                if (raw.includes('.') || !/^\d*(,\d{0,2})?$/.test(raw)) {
+                    row.fqtyInput = row._lastQtyInput ?? '';
+                    event.target.value = row.fqtyInput;
+                    return;
+                }
+                row._lastQtyInput = raw;
+                row.fqty = this.parseQtyValue(raw);
+            },
+
+            blurQtyInput(row) {
+                row.fqty = this.parseQtyValue(row.fqtyInput);
+                row.fqtyInput = this.formatQtyValue(row.fqty);
+                row._lastQtyInput = row.fqtyInput;
             },
 
             rupiah(n) {
@@ -3296,6 +3314,7 @@
                         fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                     };
+                    row.fqtyInput = item.fqtyInput ?? this.formatQtyValue(item.fqty);
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     if (item.fitemname) {
                         row.fitemname = item.fitemname;
@@ -3406,6 +3425,7 @@
                 fnoacak: '',
                 frefnoacak: '',
                 fqty: 0,
+                fqtyInput: '0',
                 fterima: 0,
                 fprice: 0,
                 fpriceInput: '0,00',
