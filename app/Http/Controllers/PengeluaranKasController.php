@@ -584,7 +584,7 @@ class PengeluaranKasController extends Controller
             ]);
 
         $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
-        $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
+        $fmt = fn($date) => $this->formatPrintDate($date);
 
         log_print_transaction($header->fkasmtno);
 

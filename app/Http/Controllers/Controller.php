@@ -11,6 +11,27 @@ use Illuminate\Validation\ValidationException;
 
 abstract class Controller
 {
+    protected function formatPrintDate($date): string
+    {
+        if (! $date) {
+            return '-';
+        }
+
+        $value = Carbon::parse($date)->locale('id');
+        if (strtoupper(trim((string) DB::table('setini')->value('finitinvretail'))) !== 'THE') {
+            return $value->translatedFormat('d F Y');
+        }
+
+        $months = [
+            'Januari' => 'Jan', 'Februari' => 'Feb', 'Maret' => 'Mar',
+            'April' => 'Apr', 'Mei' => 'Mei', 'Juni' => 'Jun',
+            'Juli' => 'Jul', 'Agustus' => 'Agt', 'September' => 'Sept',
+            'Oktober' => 'Okt', 'November' => 'Nov', 'Desember' => 'Des',
+        ];
+
+        return $value->format('d') . ' ' . ($months[$value->translatedFormat('F')] ?? $value->translatedFormat('M')) . ' ' . $value->format('Y');
+    }
+
     protected function getRestrictedPermissions(): array
     {
         $user = Auth::guard('sysuser')->user() ?? Auth::user();

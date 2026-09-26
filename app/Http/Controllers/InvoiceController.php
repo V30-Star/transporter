@@ -1381,9 +1381,7 @@ class InvoiceController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn($d) => $d
-            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-            : '-';
+        $fmt = fn($d) => $this->formatPrintDate($d);
 
         log_print_transaction($hdr->fsono);
 
@@ -4811,4 +4809,3 @@ class InvoiceController extends Controller
         return response()->json([]);
     }
 }
-

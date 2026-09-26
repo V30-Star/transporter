@@ -822,9 +822,7 @@ class Tr_pohController extends Controller
         $ppnAmount = $hdr->fincludeppn == '1' ? round($subtotal * $ppnPersen / 100, 2) : 0;
         $grandTotal = round($subtotal + $ppnAmount, 2);
 
-        $fmt = fn($d) => $d
-            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-            : '-';
+        $fmt = fn($d) => $this->formatPrintDate($d);
 
         log_print_transaction($hdr->fpono);
 

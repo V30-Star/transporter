@@ -669,9 +669,7 @@ class SuratJalanController extends Controller
                 'p.fspecification as product_specification',
             ]);
 
-        $fmt = fn($d) => $d
-            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-            : '-';
+        $fmt = fn($d) => $this->formatPrintDate($d);
 
         log_print_transaction($hdr->fstockmtno);
 

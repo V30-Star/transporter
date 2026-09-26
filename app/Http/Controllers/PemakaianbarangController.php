@@ -398,9 +398,7 @@ class PemakaianbarangController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn ($d) => $this->formatPrintDate($d);
 
         log_print_transaction($hdr->fstockmtno);
 

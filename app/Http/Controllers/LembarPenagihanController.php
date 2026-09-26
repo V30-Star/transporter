@@ -552,9 +552,7 @@ class LembarPenagihanController extends Controller
                 DB::raw('COALESCE(i.fongkosangkut, 0) as fongkos'),
             ]);
 
-        $fmt = fn($d) => $d
-            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-            : '-';
+        $fmt = fn($d) => $this->formatPrintDate($d);
 
         log_print_transaction($hdr->ftagihanno);
 

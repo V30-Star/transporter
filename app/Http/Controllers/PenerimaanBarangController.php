@@ -857,7 +857,7 @@ class PenerimaanBarangController extends Controller
                 'trstockdt.fqtykecil',
             ]);
 
-        $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+        $fmt = fn($d) => $this->formatPrintDate($d);
 
         $setting = company_setting();
 
