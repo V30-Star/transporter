@@ -372,6 +372,22 @@
                     disabled>{{ old('fket', $mutasi->fket) }}</textarea>
                 <input type="hidden" name="fket" value="{{ old('fket', $mutasi->fket) }}">
             </div>
+            <div class="lg:col-span-12">
+                {{-- Barcode (Paling bawah memanjang) --}}
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-barcode text-sm text-amber-600"></i>
+                        <span>Barcode</span>
+                    </label>
+                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Scanner</span>
+                </div>
+                <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}"
+                    class="w-full border-2 border-amber-400 bg-amber-50 text-amber-950 font-semibold rounded-lg px-3 py-2 text-sm placeholder-amber-600/60 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:bg-white transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 disabled:cursor-not-allowed"
+                    placeholder="Scan / Masukkan Barcode" autocomplete="off"
+                    {{ in_array($action, ['view', 'delete'], true) ? 'disabled' : '' }}
+                    @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
+                    @paste="setTimeout(() => { const val = ($event.target.value || '').trim(); if (val) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: val, input: $event.target } })); }, 50)">
+            </div>
         </div>
     </div>
 </div>
@@ -388,15 +404,6 @@
                 </div>
                 <div class="p-4">
                      <div x-data="itemsTable()" x-init="init()" class="space-y-2">
-                         @if ($action !== 'view' && $action !== 'delete')
-                             <div class="mb-3 flex gap-2">
-                                 <input type="text" id="mutasiBarcode" class="flex-1 border rounded px-3 py-2 text-sm"
-                                     placeholder="Scan barcode produk"
-                                     @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
-                                     @paste="setTimeout(() => { const value = ($event.target.value || '').trim(); if (value) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: value, input: $event.target } })); }, 50)">
-                                 <i class="fa-solid fa-barcode mt-2 text-gray-500"></i>
-                             </div>
-                         @endif
 
                             <div class="overflow-auto border rounded">
                                 <table class="mutasi-detail-table min-w-full text-sm balanced-detail-table"
