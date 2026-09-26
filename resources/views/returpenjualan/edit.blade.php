@@ -4222,6 +4222,7 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
+                    row.fpriceInput = item.fpriceInput ?? this.fmt(item.fprice);
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     if (item.fitemname) {
                         row.fitemname = item.fitemname;
