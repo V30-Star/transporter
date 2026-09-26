@@ -1136,7 +1136,8 @@
                                                              <input type="text" inputmode="decimal"
                                                                  class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                                  :class="it.qtyInvalid ? 'border-red-500 bg-red-50' : ''"
-                                                                 :id="'qty_row_' + i" x-model="it.fqtyInput"
+                                                                 :id="'qty_row_' + i" :value="it.fqtyInput || formatQtyValue(it.fqty)"
+                                                                 x-init="it.fqtyInput = formatQtyValue(it.fqty); $el.value = it.fqtyInput"
                                                                  @focus="$event.target.select()"
                                                                  @input="onQtyInput(it, $event); enforceQtyRow(it); onRowUpdated(i)"
                                                                  @blur="blurQtyInput(it); enforceQtyRow(it); onRowUpdated(i)"
@@ -3053,6 +3054,7 @@
                     return;
                 }
                 row._lastQtyInput = raw;
+                row.fqtyInput = raw;
                 row.fqty = this.parseQtyValue(raw);
             },
 
@@ -3844,7 +3846,7 @@
                         ...row,
                         uid: cryptoRandom(),
                     };
-                    nextRow.fqtyInput = nextRow.fqtyInput ?? this.formatQtyValue(nextRow.fqty ?? 0);
+                    nextRow.fqtyInput = this.formatQtyValue(nextRow.fqty ?? 0);
                     nextRow.fpriceInput = this.fmt(nextRow.fprice);
                     this.savedItems.push(nextRow);
                     this.$nextTick(() => {
@@ -4240,7 +4242,7 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
-                    row.fqtyInput = item.fqtyInput ?? this.formatQtyValue(item.fqty);
+                    row.fqtyInput = this.formatQtyValue(item.fqty ?? 0);
                     row.fpriceInput = item.fpriceInput ?? this.fmt(item.fprice);
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     if (item.fitemname) {
