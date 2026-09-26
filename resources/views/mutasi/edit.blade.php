@@ -387,7 +387,16 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                 <div class="p-4">
-                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+                     <div x-data="itemsTable()" x-init="init()" class="space-y-2">
+                         @if ($action !== 'view' && $action !== 'delete')
+                             <div class="mb-3 flex gap-2">
+                                 <input type="text" id="mutasiBarcode" class="flex-1 border rounded px-3 py-2 text-sm"
+                                     placeholder="Scan barcode produk"
+                                     @keydown.enter.prevent="window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: $event.target.value, input: $event.target } }))"
+                                     @paste="setTimeout(() => { const value = ($event.target.value || '').trim(); if (value) window.dispatchEvent(new CustomEvent('scan-barcode', { detail: { barcode: value, input: $event.target } })); }, 50)">
+                                 <i class="fa-solid fa-barcode mt-2 text-gray-500"></i>
+                             </div>
+                         @endif
 
                             <div class="overflow-auto border rounded">
                                 <table class="mutasi-detail-table min-w-full text-sm balanced-detail-table"
@@ -1495,11 +1504,24 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
+                barcode: @json(trim((string) ($p->fbarcode ?? ''))),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0)
             },
         @endforeach
-    };
+     };
+
+     window.addEventListener('scan-barcode', (event) => {
+         const barcode = String(event.detail?.barcode || '').trim().toUpperCase();
+         const entry = Object.entries(window.PRODUCT_MAP || {}).find(([code, meta]) =>
+             String(meta?.barcode || '').trim().toUpperCase() === barcode || code.toUpperCase() === barcode
+         );
+         if (!entry) return;
+         window.dispatchEvent(new CustomEvent('product-chosen', {
+             detail: { product: { fprdcode: entry[0] } }
+         }));
+         if (event.detail?.input) event.detail.input.value = '';
+     });
 
     // id unik
     window.cryptoRandom = function() {
