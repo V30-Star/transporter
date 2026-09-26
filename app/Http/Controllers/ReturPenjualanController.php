@@ -2862,6 +2862,7 @@ class ReturPenjualanController extends Controller
             return abort(404, 'Faktur penjualan tidak ada.');
         }
         $this->ensureBranchAccess($header->fbranchcode);
+        $isApproved = (int) ($header->fapproval ?? 0) === 1;
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
             if ($request->expectsJson()) {
@@ -2941,7 +2942,7 @@ class ReturPenjualanController extends Controller
             return back()->withInput()->with('error', $umPriceValidation);
         }
 
-        if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $qtys, (string) $request->input('fcustno'), $returpenjualan->fsono)) {
+        if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($itemCodes, $frefsrj, $frefso, $frefdtno, $qtys, (string) $request->input('fcustno'), $header->fsono)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $umQtyValidation], 422);
             }
@@ -3515,10 +3516,10 @@ class ReturPenjualanController extends Controller
                 );
             });
 
-            $successMessage = "Retur Penjualan {$fstockmtno} berhasil diupdate.";
+            $successMessage = "Retur Penjualan {$stockMtNo} berhasil diupdate.";
             $successPrompt = $isApproved ? [
                 'type' => 'returpenjualan_edit',
-                'redirect_url' => route('returpenjualan.print', $fstockmtno),
+                'redirect_url' => route('returpenjualan.print', $stockMtNo),
             ] : null;
 
             if ($request->expectsJson()) {

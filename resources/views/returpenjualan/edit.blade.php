@@ -1754,11 +1754,11 @@
                                         <input type="hidden" name="famountpopajak" :value="ppnAmount">
                                         <input type="hidden" name="fppnpersen" :value="ppnRate">
 
-                                        <!-- Modal backdrop -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                                            @keydown.escape.window="closeModal()"></div>
+                                        <div x-data="prhFormModal()">
+                                            <!-- Modal backdrop -->
+                                            <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                                @keydown.escape.window="closeModal()"></div>
 
-                                        <div>
                                             {{-- MODAL PR --}}
                                             <div x-show="show" x-cloak x-transition.opacity
                                                 class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
