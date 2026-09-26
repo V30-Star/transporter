@@ -334,6 +334,11 @@
                                 <td>:</td>
                                 <td>{{ $hdr->fket ?? '-' }}</td>
                             </tr>
+                            <tr>
+                                <td>Hal</td>
+                                <td>:</td>
+                                <td><span class="page-counter">1 / 1</span></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -341,14 +346,19 @@
         </div>
 
         {{-- Table Head Template --}}
+        @php
+            $totalMutasiQty = (float) $dt->sum('fqty');
+            $totalMutasiPrice = (float) $dt->sum('ftotprice');
+        @endphp
         <table id="tpl-table">
             <thead id="tpl-thead">
                 <tr>
                     <th style="width: 25px;" class="text-center">No.</th>
-                    <th style="width: 85px;">Kode Produk</th>
-                    <th class="text-right" style="width: 60px;">Qty</th>
-                    <th style="width: 45px;">Satuan</th>
-                    <th>Keterangan</th>
+                    <th style="width: 75px;">Kode Produk</th>
+                    <th class="text-right" style="width: 45px;">Qty</th>
+                    <th style="width: 40px;">Satuan</th>
+                    <th class="text-right" style="width: 65px;">@ Harga</th>
+                    <th class="text-right" style="width: 75px;">Total Harga</th>
                 </tr>
             </thead>
             <tbody id="raw-rows">
@@ -359,15 +369,16 @@
                     {{-- Row 1: No & Product Name --}}
                     <tr class="item-row item-row-main">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
-                        <td colspan="4" style="font-weight: bold;">{{ $productDisplayName }}</td>
+                        <td colspan="5" style="font-weight: bold;">{{ $productDisplayName }}</td>
                     </tr>
-                    {{-- Row 2: Code, Qty, Satuan, Keterangan --}}
+                    {{-- Row 2: Code, Qty, Satuan, Harga, Total Harga --}}
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
                         <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td>{{ $r->fsatuan ?? '' }}</td>
-                        <td style="font-size: 9px;">{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? 0), 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -393,16 +404,28 @@
                 </div>
 
                 {{-- Middle: Tot Qty --}}
-                <div style="width: 36%; padding: 0 8px;">
-                    <div style="font-size: 10px; font-weight: bold;">
-                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, ',', '.') }}
-                    </div>
+                <div style="width: 32%; padding: 0 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
+                        <tr>
+                            <td style="padding: 1px 0; white-space: nowrap;">Total Qty</td>
+                            <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($totalMutasiQty, 2, ',', '.') }}</td>
+                        </tr>
+                    </table>
                 </div>
 
-                {{-- Right: Metadata --}}
-                <div style="width: 32%; text-align: right;" class="meta-right">
-                    <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
-                    <div><span class="page-counter">Hal : 1 / 1</span></div>
+                {{-- Right: Total & Metadata --}}
+                <div style="width: 36%;" class="meta-right">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
+                        <tr>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">Total</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; width: 4px; text-align: center; padding: 1.5px 0;">:</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($totalMutasiPrice, 2, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                    <div style="margin-top: 3px; text-align: left; white-space: nowrap;">
+                        <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
+                    </div>
                 </div>
             </div>
         </div>
