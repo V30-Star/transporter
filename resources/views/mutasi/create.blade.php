@@ -437,19 +437,27 @@
                                 <colgroup>
                                     <col style="width:2%;">
                                     <col style="width:18%;">
-                                    <col style="width:40%;">
-                                    <col style="width:12%;">
-                                    <col style="width:18%;">
-                                    <col style="width:10%;">
+                                     <col style="width:{{ $showMutasiPrices ? '30%' : '40%' }};">
+                                     <col style="width:{{ $showMutasiPrices ? '8%' : '12%' }};">
+                                     <col style="width:{{ $showMutasiPrices ? '12%' : '18%' }};">
+                                     @if ($showMutasiPrices)
+                                         <col style="width:12%;">
+                                         <col style="width:12%;">
+                                     @endif
+                                     <col style="width:{{ $showMutasiPrices ? '6%' : '10%' }};">
                                 </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
                                         <th class="p-2 text-left w-[20rem]">Nama Produk</th>
-                                        <th class="p-2 text-left w-24">Sat</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-center w-36">Aksi</th>
+                                         <th class="p-2 text-left w-24">Sat</th>
+                                         <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                         @if ($showMutasiPrices)
+                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                         @endif
+                                         <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -499,15 +507,29 @@
                                                         x-text="it.fsatuan || '-'"></div>
                                                 </template>
                                             </td>
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                             <td class="p-2 text-right">
+                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
                                                     :min="@json(stock_boleh_minus()) ? null : 0" step="0.01"
                                                     :id="'mutasi_qty_row_' + i"
                                                     x-model.number="it.fqty"
                                                     @input="onRowUpdated(i)"
-                                                    @change="onRowUpdated(i)">
-                                            </td>
-                                            <td class="p-2 text-center text-xs">
+                                                     @change="onRowUpdated(i)">
+                                             </td>
+                                             @if ($showMutasiPrices)
+                                                 <td class="p-2 text-right">
+                                                     <input type="number" min="0" step="0.01"
+                                                         class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                                         :id="'mutasi_price_row_' + i"
+                                                         x-model.number="it.fprice"
+                                                         @input="onRowUpdated(i)"
+                                                         @change="onRowUpdated(i)">
+                                                 </td>
+                                                 <td class="p-2 text-right">
+                                                     <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium"
+                                                         x-text="fmtMoney(it.ftotal)"></div>
+                                                 </td>
+                                             @endif
+                                             <td class="p-2 text-center text-xs">
                                                 <button type="button" @click="removeSaved(i)"
                                                     class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                                                     title="Hapus baris">-</button>
@@ -527,8 +549,11 @@
                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                     <input type="hidden" name="frefso[]" :value="it.frefso">
                                     <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                     <input type="hidden" name="fqty[]" :value="it.fqty">
+                                     @if ($showMutasiPrices)
+                                         <input type="hidden" name="fprice[]" :value="it.fprice">
+                                     @endif
+                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                 </div>
                             </template>

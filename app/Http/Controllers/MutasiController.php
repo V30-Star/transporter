@@ -613,6 +613,8 @@ class MutasiController extends Controller
             ->latest('fstockmtid')
             ->first(['ffrom', 'fto']);
 
+        $showMutasiPrices = strtoupper(trim((string) DB::table('setini')->value('finitinvretail'))) === 'THE';
+
         return view('mutasi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
@@ -624,6 +626,7 @@ class MutasiController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'showMutasiPrices' => $showMutasiPrices,
         ]);
     }
 
@@ -1046,6 +1049,7 @@ class MutasiController extends Controller
             'famountpo' => (float) ($mutasi->famountpo ?? 0),
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
+            'showMutasiPrices' => strtoupper(trim((string) DB::table('setini')->value('finitinvretail'))) === 'THE',
             'action' => 'edit',
         ]);
     }
