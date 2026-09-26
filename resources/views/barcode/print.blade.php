@@ -97,8 +97,8 @@
                 margin: 0 !important;
                 margin-bottom: 0 !important;
                 padding: 0 !important;
-                page-break-after: always !important;
-                break-after: page !important;
+                page-break-after: auto !important;
+                break-after: auto !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 overflow: hidden !important;
@@ -119,8 +119,8 @@
             max-height: {{ $labelHeight }}mm;
             display: flex;
             flex-direction: row;
-            page-break-after: always;
-            break-after: page;
+            page-break-after: auto;
+            break-after: auto;
             page-break-inside: avoid;
             break-inside: avoid;
             overflow: hidden;

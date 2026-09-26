@@ -140,6 +140,7 @@ class BarcodeController extends Controller
 
         // Group into rows by column count
         $rows = array_chunk($labels, $columns);
+        $pageHeight = ($labelHeight * count($rows)) + ($gapY * max(0, count($rows) - 1));
 
         return view('barcode.print', compact(
             'rows',
