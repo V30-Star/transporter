@@ -486,8 +486,114 @@
                         </div>
                     </div>
 
+                @else
                     {{-- ============================================ --}}
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
+                    <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
+                        data-form-draft="true"
+                        data-draft-key="pemakaianbarang:edit:{{ $pemakaianbarang->fstockmtid }}"
+                        @submit.prevent="window.pemakaianBarangEditItemsState?.onSubmit($event)">
+                        @csrf
+                        @method('PATCH')
+
+                        @if (session('error'))
+                            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 class="text-sm font-bold text-red-800">{{ session('error') }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 class="text-sm font-bold text-red-800">Terjadi Kesalahan Validasi</h3>
+                                        <ul class="mt-1.5 list-disc list-inside text-xs space-y-1">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- ─── CARD 1: Identitas Pemakaian ────────────────────── --}}
+                        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Pemakaian</p>
+                            </div>
+                            <div class="p-4">
+                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                    <div class="lg:col-span-4">
+                                        <label class="block text-xs font-bold mb-1">Cabang</label>
+                                        <input type="text"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                            value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                    </div>
+
+                                    <div class="lg:col-span-4">
+                                        <label class="block text-xs font-bold mb-1">Transaksi#</label>
+                                        <input type="text"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 font-mono"
+                                            value="{{ strtoupper(old('fstockmtno', $pemakaianbarang->fstockmtno ?? '')) }}" disabled>
+                                        <input type="hidden" name="fstockmtno" value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}">
+                                        <input type="hidden" name="fstockmtid" value="{{ $pemakaianbarang->fstockmtid }}">
+                                    </div>
+
+                                    <div class="lg:col-span-4">
+                                        <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                        <input type="date" name="fstockmtdate"
+                                            value="{{ old('fstockmtdate', $pemakaianbarang->fstockmtdate ? (\Carbon\Carbon::parse($pemakaianbarang->fstockmtdate)->format('Y-m-d')) : date('Y-m-d')) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
+                                        @error('fstockmtdate')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="lg:col-span-4">
+                                        <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
+                                        <div class="flex">
+                                            <div class="relative flex-1">
+                                                <select id="warehouseSelectFrom"
+                                                    class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                                    disabled>
+                                                    <option value=""></option>
+                                                    @foreach ($warehouses as $wh)
+                                                        <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                            data-branch="{{ $wh->fbranchcode }}"
+                                                            {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                            {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse warehouse"
+                                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom" value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
+                                            <button type="button"
+                                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
+                                                class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors rounded-r-lg"
+                                                title="Browse Gudang">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        @error('ffrom')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="lg:col-span-8">
+                                        <label class="block text-xs font-bold mb-1">Keterangan</label>
                                     <textarea name="fket" rows="2"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
