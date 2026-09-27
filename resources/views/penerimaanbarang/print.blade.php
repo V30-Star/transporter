@@ -349,7 +349,7 @@
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td>{{ $r->fsatuan ?? ($r->funit ?? '') }}</td>
                         <td style="font-size: 9px;">{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
                     </tr>
@@ -379,7 +379,7 @@
                 {{-- Middle: Tot Qty & Notes --}}
                 <div style="width: 36%; padding: 0 8px;">
                     <div style="font-size: 10px; font-weight: bold;">
-                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, '.', ',') }}
+                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, ',', '.') }}
                     </div>
                     @if(!empty(trim((string)($hdr->fket ?? ''))))
                         <div style="font-size: 9px; margin-top: 3px; color: #333;">
@@ -924,10 +924,10 @@
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</td>
-                        <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, '.', ',') }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
-                        <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, '.', ',') }}</td>
-                        <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format((float)($r->fdiscpersen ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -947,7 +947,7 @@
                     <tr>
                         <td style="padding: 1px 0; white-space: nowrap;">Total Harga</td>
                         <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td style="padding: 1px 0; white-space: nowrap;">Discount</td>
@@ -957,17 +957,17 @@
                     <tr>
                         <td style="padding: 1px 0; white-space: nowrap;">Total Setelah Disc</td>
                         <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td style="padding: 1px 0; white-space: nowrap;">PPN</td>
                         <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famountpajak ?? 0, 2, '.', ',') }}</td>
+                        <td style="text-align: right; padding: 1px 0;">{{ number_format($hdr->famountpajak ?? 0, 2, ',', '.') }}</td>
                     </tr>
                     <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($hdr->famountmt ?? 0, 2, '.', ',') }}</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($hdr->famountmt ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </div>

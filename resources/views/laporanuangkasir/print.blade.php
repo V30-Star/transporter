@@ -137,14 +137,14 @@
                             @forelse ($section['transaksi'] as $trx)
                                 <tr>
                                     <td class="label pl-4">{{ $trx->fpembayaran }} :</td>
-                                    <td>{{ number_format((float) $trx->bayar, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $trx->bayar, 2, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr><td class="label pl-4 text-gray-400">Tidak ada transaksi penjualan</td><td>0.00</td></tr>
                             @endforelse
                             <tr class="sub-total">
                                 <td class="label font-bold">Total Uang :</td>
-                                <td>{{ number_format((float) $section['total_uang'], 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) $section['total_uang'], 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -166,18 +166,18 @@
                             @forelse ($section['pelunasan'] as $p)
                                 <tr>
                                     <td class="label">{{ $p->faccname ?: $p->faccountno }}</td>
-                                    <td>{{ number_format((float) $p->famountrcp, 2, '.', ',') }}</td>
-                                    <td>{{ number_format((float) $p->famountbkk, 2, '.', ',') }}</td>
-                                    <td>{{ number_format((float) $p->famountnet, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountrcp, 2, ',', '.') }}</td>
+                                    <td>{{ number_format((float) $p->famountbkk, 2, ',', '.') }}</td>
+                                    <td>{{ number_format((float) $p->famountnet, 2, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="empty">Tidak ada data pelunasan / pengeluaran kas.</td></tr>
                             @endforelse
                             <tr class="sub-total">
                                 <td class="label font-bold">Total Pelunasan :</td>
-                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }}</td>
-                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }}</td>
-                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['net'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, ',', '.') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, ',', '.') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['net'] ?? 0), 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -195,15 +195,15 @@
                         <tbody>
                             <tr>
                                 <td class="label">Grand Total Pelunasan :</td>
-                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }} | {{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }} | {{ number_format($netPelunasan, 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($section['grand_total_pelunasan']['rcp'] ?? 0), 2, ',', '.') }} | {{ number_format((float) ($section['grand_total_pelunasan']['bkk'] ?? 0), 2, ',', '.') }} | {{ number_format($netPelunasan, 2, ',', '.') }}</td>
                             </tr>
                             <tr>
                                 <td class="label">GT. Penjualan Tunai :</td>
-                                <td>{{ number_format($penjualanTunai, 2, '.', ',') }}</td>
+                                <td>{{ number_format($penjualanTunai, 2, ',', '.') }}</td>
                             </tr>
                             <tr class="grand-total">
                                 <td class="label">Grand Total {{ $section['name'] }} :</td>
-                                <td>{{ number_format($grandTotalCabang, 2, '.', ',') }}</td>
+                                <td>{{ number_format($grandTotalCabang, 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -261,14 +261,14 @@
                             @forelse ($globalSection['transaksi'] as $trx)
                                 <tr>
                                     <td class="label pl-4">{{ $trx->fpembayaran }} :</td>
-                                    <td>{{ number_format((float) $trx->bayar, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $trx->bayar, 2, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr><td class="label pl-4 text-gray-400">Tidak ada transaksi penjualan</td><td>0.00</td></tr>
                             @endforelse
                             <tr class="sub-total">
                                 <td class="label font-bold">Total Uang :</td>
-                                <td>{{ number_format((float) $globalSection['total_uang'], 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) $globalSection['total_uang'], 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -289,18 +289,18 @@
                             @forelse ($globalSection['pelunasan'] as $p)
                                 <tr>
                                     <td class="label">{{ $p->faccname ?: $p->faccountno }}</td>
-                                    <td>{{ number_format((float) $p->famountrcp, 2, '.', ',') }}</td>
-                                    <td>{{ number_format((float) $p->famountbkk, 2, '.', ',') }}</td>
-                                    <td>{{ number_format((float) $p->famountnet, 2, '.', ',') }}</td>
+                                    <td>{{ number_format((float) $p->famountrcp, 2, ',', '.') }}</td>
+                                    <td>{{ number_format((float) $p->famountbkk, 2, ',', '.') }}</td>
+                                    <td>{{ number_format((float) $p->famountnet, 2, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="empty">Tidak ada data pelunasan / pengeluaran kas.</td></tr>
                             @endforelse
                             <tr class="sub-total">
                                 <td class="label font-bold">Total Pelunasan :</td>
-                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }}</td>
-                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }}</td>
-                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['net'] ?? 0), 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, ',', '.') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, ',', '.') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['net'] ?? 0), 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -317,15 +317,15 @@
                         <tbody>
                             <tr>
                                 <td class="label">Grand Total Pelunasan :</td>
-                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, '.', ',') }} | {{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, '.', ',') }} | {{ number_format($netGlobal, 2, '.', ',') }}</td>
+                                <td>{{ number_format((float) ($globalSection['grand_total_pelunasan']['rcp'] ?? 0), 2, ',', '.') }} | {{ number_format((float) ($globalSection['grand_total_pelunasan']['bkk'] ?? 0), 2, ',', '.') }} | {{ number_format($netGlobal, 2, ',', '.') }}</td>
                             </tr>
                             <tr>
                                 <td class="label">GT. Penjualan Tunai :</td>
-                                <td>{{ number_format($penjualanTunaiGlobal, 2, '.', ',') }}</td>
+                                <td>{{ number_format($penjualanTunaiGlobal, 2, ',', '.') }}</td>
                             </tr>
                             <tr class="grand-total">
                                 <td class="label">Grand Total HQ (Akumulasi) :</td>
-                                <td>{{ number_format($grandTotalGlobal, 2, '.', ',') }}</td>
+                                <td>{{ number_format($grandTotalGlobal, 2, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>

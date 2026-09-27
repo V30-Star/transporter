@@ -360,7 +360,7 @@
                         <td class="text-center" style="font-weight: bold; color: {{ $isDebit ? '#1d4ed8' : '#dc2626' }};">
                             {{ $isDebit ? 'D' : 'K' }}
                         </td>
-                        <td class="text-right" style="font-weight: bold;">{{ number_format($amount, 2, '.', ',') }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ number_format($amount, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -398,7 +398,7 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <tr style="font-weight: bold; font-size: 11px;">
                             <td style="text-align: right; padding: 2px 0;">Total (Rp):</td>
-                            <td style="width: 80px; text-align: right; padding: 2px 0;">{{ number_format($totalDebit, 2, '.', ',') }}</td>
+                            <td style="width: 80px; text-align: right; padding: 2px 0;">{{ number_format($totalDebit, 2, ',', '.') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px;">
@@ -930,7 +930,7 @@
                             {{ $isDebit ? 'D' : 'K' }}
                         </td>
                         <td class="text-right">
-                            {{ number_format($amount, 2, '.', ',') }}
+                            {{ number_format($amount, 2, ',', '.') }}
                         </td>
                     </tr>
                 @endforeach
@@ -953,7 +953,7 @@
                     <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Total</td>
                         <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">Rp {{ number_format($totalDebit, 2, '.', ',') }}</td>
+                        <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">Rp {{ number_format($totalDebit, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </div>

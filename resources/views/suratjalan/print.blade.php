@@ -349,7 +349,7 @@
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                        <td class="text-right">{{ number_format((float) $r->fqty, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }}</td>
                         <td>{{ $r->fsatuan ?? '' }}</td>
                         <td style="font-size: 9px;">{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
                     </tr>
@@ -379,7 +379,7 @@
                 {{-- Middle: Tot Qty & Notes --}}
                 <div style="width: 36%; padding: 0 8px;">
                     <div style="font-size: 10px; font-weight: bold;">
-                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, '.', ',') }}
+                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, ',', '.') }}
                     </div>
                     @if(!empty(trim((string)($hdr->fket ?? ''))))
                         <div style="font-size: 9px; margin-top: 3px; color: #333;">
@@ -889,7 +889,7 @@
                     <tr class="item-row">
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>{{ $productDisplayName }}</td>
-                        <td class="text-right">{{ number_format((float) $r->fqty, 2, '.', ',') }} {{ $r->fsatuan ?? '' }}</td>
+                        <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
                         <td>{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
                     </tr>
                 @endforeach

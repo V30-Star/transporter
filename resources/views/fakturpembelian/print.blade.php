@@ -428,7 +428,7 @@
                         <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
                         <td class="text-right" style="width: 18%; color: #000; white-space: nowrap; font-weight: bold;">{{ number_format((float) ($r->fqty ?? 0), (fmod((float) ($r->fqty ?? 0), 1) != 0) ? 2 : 0, ',', '.') }} {{ $r->fsatuan ?? $r->funit ?? '' }}</td>
                         <td class="text-right" style="width: 25%; color: #000; font-weight: bold;">{{ number_format((float) ($r->fprice ?? 0), (fmod((float) ($r->fprice ?? 0), 1) != 0) ? 2 : 0, ',', '.') }}</td>
-                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * $r->fprice)), 0, '.', ',') }}</td>
+                        <td class="text-right" style="width: 30%; color: #000; font-weight: bold;" colspan="3">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * $r->fprice)), 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -467,19 +467,19 @@
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap; width: 60px;">Total</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalHarga, 0, '.', ',') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalHarga, 0, ',', '.') }}</td>
                         </tr>
                         @if($ppnAmount > 0)
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">PPN {{ $ppnPersen }}%</td>
                             <td style="width: 5px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 0, '.', ',') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 0, ',', '.') }}</td>
                         </tr>
                         @endif
                         <tr class="gt" style="font-weight: bold; font-size: 12.5px;">
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">G.Total</td>
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; width: 5px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($displayGrandTotal, 0, '.', ',') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($displayGrandTotal, 0, ',', '.') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px; font-size: 10.5px; font-weight: normal;">
@@ -1075,18 +1075,18 @@
                         <td>
                             <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                         </td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fbiaya ?? 0), 2, '.', ',') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fbiaya ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, ',', '.') }}</td>
                         <td class="text-center">
                             @if (is_numeric($r->fdiscpersen))
-                                {{ (float)$r->fdiscpersen == (int)$r->fdiscpersen ? (int)$r->fdiscpersen : number_format((float)$r->fdiscpersen, 2, '.', ',') }}
+                                {{ (float)$r->fdiscpersen == (int)$r->fdiscpersen ? (int)$r->fdiscpersen : number_format((float)$r->fdiscpersen, 2, ',', '.') }}
                             @else
                                 {{ $r->fdiscpersen ?: '0' }}
                             @endif
                         </td>
-                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -1107,22 +1107,22 @@
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">{{ "Total Harga" }}</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalHarga, 2, '.', ',') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalHarga, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">{{ "Total DPP" }}</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalDPP, 2, '.', ',') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($displayTotalDPP, 2, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">PPN {{ $ppnPersen }}%</td>
                             <td style="width: 10px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 2, '.', ',') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($ppnAmount, 2, ',', '.') }}</td>
                         </tr>
                         <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                             <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">{{ "Grand Total" }}</td>
                             <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($displayGrandTotal, 2, '.', ',') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($displayGrandTotal, 2, ',', '.') }}</td>
                         </tr>
                     </table>
                 </div>

@@ -264,7 +264,7 @@
                         @endif
 
                         @if ($showPrice && $label['price'] > 0)
-                            <div class="item-price">Rp {{ number_format($label['price'], 0, '.', ',') }}</div>
+                            <div class="item-price">Rp {{ number_format($label['price'], 0, ',', '.') }}</div>
                         @endif
                     </div>
                 @endforeach
