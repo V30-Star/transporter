@@ -354,7 +354,7 @@
                         <tr class="item-block-pair-2">
                             <td></td>
                             <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                             <td>{{ $r->fsatuan ?? '-' }}</td>
                         </tr>
                     @endforeach
@@ -377,7 +377,7 @@
                         <tr class="item-block-pair-2">
                             <td></td>
                             <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                             <td>{{ $r->fsatuan ?? '-' }}</td>
                         </tr>
                     @endforeach
@@ -407,7 +407,7 @@
                 {{-- Middle: Tot Qty --}}
                 <div style="width: 36%; padding: 0 8px;">
                     <div style="font-size: 10px; font-weight: bold;">
-                        Tot. Qty Bahan: {{ number_format((float) $bahanBaku->sum('fqty'), 2, ',', '.') }}
+                        Tot. Qty Bahan: {{ number_format((float) $bahanBaku->sum('fqty'), 2, '.', ',') }}
                     </div>
                 </div>
 
@@ -937,7 +937,7 @@
                             <td>
                                 <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                             </td>
-                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                             <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                         </tr>
                     @endforeach
@@ -956,7 +956,7 @@
                             <td>
                                 <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                             </td>
-                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                             <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                         </tr>
                     @endforeach

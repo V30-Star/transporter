@@ -30,7 +30,7 @@
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-bold text-gray-700">Biaya/Charge (%)</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    {{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, ',', '.') }}%
+                    {{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, '.', ',') }}%
                 </div>
             </div>
 

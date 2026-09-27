@@ -34,7 +34,7 @@
                 {{-- Biaya/Charge (%) --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Biaya/Charge (%)</label>
-                    <input type="text" value="{{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, ',', '.') }}%"
+                    <input type="text" value="{{ number_format((float) ($typePembayaran->fnumvalue ?? 0), 2, '.', ',') }}%"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                         readonly>
                 </div>

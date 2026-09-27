@@ -160,7 +160,7 @@
             in_array('createTr_poh', $permissions, true);
         $fmtQty = function ($value) {
             $num = (float) ($value ?? 0);
-            return number_format($num, 2, ',', '.');
+            return number_format($num, 2, '.', ',');
         };
         $currentSupplierCode = trim((string) old('fsupplier', $tr_poh->fsupplier ?? ''));
         $currentSupplierName = trim((string) old('fsuppliername', $tr_poh->supplier->fsuppliername ?? $tr_poh->fsuppliername ?? ''));
@@ -350,7 +350,7 @@
                                 <label class="block text-xs font-bold mb-1">Rate</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ number_format($tr_poh->frate ?? 0, 2, ',', '.') }}" disabled>
+                                    value="{{ number_format($tr_poh->frate ?? 0, 2, '.', ',') }}" disabled>
                             </div>
                         </div>
 
@@ -431,19 +431,19 @@
                                                 <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded">{{ $it['frefdtno'] ?: '-' }}</div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['fqty'], 2, ',', '.') }}</div>
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['fqty'], 2, '.', ',') }}</div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['fprice'], 2, ',', '.') }}</div>
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['fprice'], 2, '.', ',') }}</div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right">{{ $it['fdisc'] }}</div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['ftotal'], 2, ',', '.') }}</div>
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['ftotal'], 2, '.', ',') }}</div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['ftotal'] * ($tr_poh->frate ?? 1), 2, ',', '.') }}</div>
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($it['ftotal'] * ($tr_poh->frate ?? 1), 2, '.', ',') }}</div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -458,7 +458,7 @@
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Harga</span>
                                         <span
-                                            class="font-bold text-gray-900">{{ number_format($tr_poh->famountponet ?? 0, 2, ',', '.') }}</span>
+                                            class="font-bold text-gray-900">{{ number_format($tr_poh->famountponet ?? 0, 2, '.', ',') }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <!-- Checkbox -->
@@ -479,7 +479,7 @@
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
                                         <span
-                                            class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, ',', '.') }}</span>
+                                            class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, '.', ',') }}</span>
                                     </div>
 
                                     <div class="border-t my-1"></div>
@@ -491,13 +491,13 @@
                                                 class="text-xs font-normal text-gray-500">({{ $tr_poh->fcurrency ?? 'IDR' }})</span>
                                         </span>
                                         <span
-                                            class="font-extrabold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, ',', '.') }}</span>
+                                            class="font-extrabold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, '.', ',') }}</span>
                                     </div>
 
                                     <div class="flex items-center justify-between text-base">
                                         <span class="font-extrabold text-gray-900">Grand Total (RP)</span>
                                         <span
-                                            class="font-extrabold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, ',', '.') }}</span>
+                                            class="font-extrabold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, '.', ',') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1741,7 +1741,7 @@
             fmtCurr(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1749,7 +1749,7 @@
             rupiah(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1762,8 +1762,8 @@
             },
             formatQtyValue(value) {
                 const num = Number(value);
-                if (!Number.isFinite(num)) return '0,00';
-                return num.toLocaleString('id-ID', {
+                if (!Number.isFinite(num)) return '0.00';
+                return num.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });

@@ -80,7 +80,7 @@
                     { data: 'ftagihandate' },
                     { data: 'invoice_refs' },
                     { data: 'fcustomername' },
-                    { data: 'famounttagihan', className: 'text-right', render: data => Number(data || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }) },
+                    { data: 'famounttagihan', className: 'text-right', render: data => Number(data || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) },
                     { data: 'fnote' },
                     { data: 'actions', orderable: false, searchable: false, className: 'text-right' }
                 ],

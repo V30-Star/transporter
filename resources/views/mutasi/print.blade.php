@@ -375,10 +375,10 @@
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                         <td>{{ $r->fsatuan ?? '' }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? 0), 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -409,7 +409,7 @@
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total Qty</td>
                             <td style="width: 4px; text-align: center; padding: 1px 0;">:</td>
-                            <td style="text-align: right; padding: 1px 0;">{{ number_format($totalMutasiQty, 2, ',', '.') }}</td>
+                            <td style="text-align: right; padding: 1px 0;">{{ number_format($totalMutasiQty, 2, '.', ',') }}</td>
                         </tr>
                     </table>
                 </div>
@@ -420,7 +420,7 @@
                         <tr>
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">Total</td>
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; width: 4px; text-align: center; padding: 1.5px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($totalMutasiPrice, 2, ',', '.') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right; padding: 1.5px 0;">{{ number_format($totalMutasiPrice, 2, '.', ',') }}</td>
                         </tr>
                     </table>
                     <div style="margin-top: 3px; text-align: left; white-space: nowrap;">
@@ -976,7 +976,7 @@
                         <td>
                             <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                         </td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                     </tr>
                 @endforeach

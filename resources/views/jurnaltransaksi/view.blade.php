@@ -81,10 +81,10 @@
                 </div>
                 <div class="text-base font-semibold flex gap-6">
                     <span>Total Debit:
-                        <strong class="text-lg text-blue-700">{{ number_format($totalDebit, 2, ',', '.') }}</strong>
+                        <strong class="text-lg text-blue-700">{{ number_format($totalDebit, 2, '.', ',') }}</strong>
                     </span>
                     <span>Total Kredit:
-                        <strong class="text-lg text-green-700">{{ number_format($totalKredit, 2, ',', '.') }}</strong>
+                        <strong class="text-lg text-green-700">{{ number_format($totalKredit, 2, '.', ',') }}</strong>
                     </span>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                                         <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['faccountnote'] ?: '-' }}</div>
                                     </td>
                                     <td class="p-2 text-right">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</div>
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format((float) ($item['famount'] ?? 0), 2, '.', ',') }}</div>
                                     </td>
                                 </tr>
                             @empty

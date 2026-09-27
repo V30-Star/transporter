@@ -532,7 +532,7 @@
                     className: 'text-right dt-body-right',
                     render: function(data, type) {
                         if (type === 'display' || type === 'filter') {
-                            return Number(data || 0).toLocaleString('id-ID', {
+                            return Number(data || 0).toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });

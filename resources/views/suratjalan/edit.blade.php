@@ -1543,7 +1543,7 @@
                 if (!isFinite(v)) return '-';
 
                 // Jika angka adalah bulat, hilangkan desimal
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1551,8 +1551,8 @@
 
             formatQtyValue(value) {
                 const num = Number(value);
-                if (!Number.isFinite(num)) return '0,00';
-                return num.toLocaleString('id-ID', {
+                if (!Number.isFinite(num)) return '0.00';
+                return num.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1561,7 +1561,7 @@
             rupiah(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });

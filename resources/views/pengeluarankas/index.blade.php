@@ -61,7 +61,7 @@
                         </td>
                         <td class="border px-2 py-1 text-right whitespace-nowrap"
                             data-order="{{ (float) $record->payment_amount }}">
-                            Rp {{ number_format((float) $record->payment_amount, 2, ',', '.') }}
+                            Rp {{ number_format((float) $record->payment_amount, 2, '.', ',') }}
                         </td>
                         <td class="border px-2 py-1 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5 flex-nowrap">

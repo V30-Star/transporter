@@ -32,7 +32,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="border px-2 py-1 text-center font-mono text-xs">{{ $item->fmasternum ?? '-' }}</td>
                             <td class="border px-2 py-1 font-semibold">{{ $item->fmastername }}</td>
-                            <td class="border px-2 py-1 text-right font-mono text-xs">{{ number_format((float) ($item->fnumvalue ?? 0), 2, ',', '.') }}%</td>
+                            <td class="border px-2 py-1 text-right font-mono text-xs">{{ number_format((float) ($item->fnumvalue ?? 0), 2, '.', ',') }}%</td>
                             <td class="border px-2 py-1">
                                 @if ($item->account)
                                     <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded mr-1">{{ $item->account->faccount }}</span>

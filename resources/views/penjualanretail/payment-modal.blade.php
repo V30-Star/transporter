@@ -77,7 +77,7 @@
                     </div>
                     <div class="relative flex-1">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-semibold text-sm">Rp</span>
-                        <input type="text" id="modal_biaya_charge_nominal" value="0,00" disabled
+                        <input type="text" id="modal_biaya_charge_nominal" value="0.00" disabled
                             class="w-full pl-10 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-right font-semibold text-gray-600 cursor-not-allowed text-sm">
                     </div>
                 </div>
@@ -104,7 +104,7 @@
                 <div class="col-span-8">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 font-bold text-base">Rp</span>
-                        <input type="text" id="modal_total_bayar" value="0,00"
+                        <input type="text" id="modal_total_bayar" value="0.00"
                             class="w-full pl-10 pr-3 py-2 border-2 border-emerald-500 rounded-xl text-right font-black text-xl text-emerald-700 bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-600">
                     </div>
                 </div>
@@ -146,8 +146,8 @@
 
         function formatRetailMoney(val) {
             const num = Number(val || 0);
-            if (!Number.isFinite(num)) return '0,00';
-            return num.toLocaleString('id-ID', {
+            if (!Number.isFinite(num)) return '0.00';
+            return num.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
@@ -250,7 +250,7 @@
                 persenEl.value = persenVal > 0 ? (Number.isInteger(persenVal) ? persenVal.toString() : persenVal.toString().replace('.', ',')) : '0';
             }
             const biayaNominalEl = document.getElementById('modal_biaya_charge_nominal');
-            if (biayaNominalEl) biayaNominalEl.value = '0,00';
+            if (biayaNominalEl) biayaNominalEl.value = '0.00';
 
             const curPaymentName = form.querySelector('[name="fpembayaran"]')?.value?.trim();
             const paySelect = document.getElementById('modal_payment_type');

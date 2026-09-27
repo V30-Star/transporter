@@ -120,7 +120,7 @@
                             width: '12%',
                             render: function(data) {
                                 if (data == null) return '-';
-                                return Number(data).toLocaleString('id-ID', {
+                                return Number(data).toLocaleString('en-US', {
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 2
                                 });

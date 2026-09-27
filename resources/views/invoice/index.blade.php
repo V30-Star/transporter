@@ -460,7 +460,7 @@
                     data: 'famountso',
                     name: 'famountso',
                     render: function(data) {
-                        return new Intl.NumberFormat('id-ID', {
+                        return new Intl.NumberFormat('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }).format(data ?? 0);
@@ -470,7 +470,7 @@
                     data: 'famountremain',
                     name: 'famountremain',
                     render: function(data) {
-                        return new Intl.NumberFormat('id-ID', {
+                        return new Intl.NumberFormat('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }).format(data ?? 0);

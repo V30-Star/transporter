@@ -127,7 +127,7 @@ window.trPohSummaryMethods = {
     fmtCurr(n) {
         const v = Number(n || 0);
         if (!isFinite(v)) return '-';
-        return v.toLocaleString('id-ID', {
+        return v.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
@@ -135,7 +135,7 @@ window.trPohSummaryMethods = {
     rupiah(n) {
         const v = Number(n || 0);
         if (!isFinite(v)) return '-';
-        return v.toLocaleString('id-ID', {
+        return v.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });

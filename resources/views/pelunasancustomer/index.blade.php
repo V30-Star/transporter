@@ -63,7 +63,7 @@
                         <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-2">{{ $record->invoice_summary }}</td>
                         <td class="border px-2 py-2">{{ $record->customer_summary }}</td>
-                        <td class="border px-2 py-2 text-right">{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</td>
+                        <td class="border px-2 py-2 text-right">{{ number_format((float) $record->payment_amount, 2, '.', ',') }}</td>
                         <td class="border px-2 py-2">{{ $record->fuserid ?: '-' }}</td>
                         <td class="border px-2 py-2 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5 flex-nowrap">

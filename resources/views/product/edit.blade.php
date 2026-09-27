@@ -886,7 +886,7 @@
 
                                 {{-- Input tanpa border agar menyatu dengan container --}}
                                 <input type="text" name="fminstock" id="fminstock" readonly
-                                    value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
+                                    value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, '.', ',') }}"
                                     class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
 
                                 {{-- Garis vertikal (border-l) dan teks satuan --}}
@@ -1716,7 +1716,7 @@
                                         <div
                                             class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:ring-1 focus-within:ring-blue-400 @error('fminstock') border-red-500 @enderror">
                                             <input type="text" name="fminstock" id="fminstock"
-                                                value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
+                                                value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, '.', ',') }}"
                                                 class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm">
                                             <span
                                                 class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase"></span>

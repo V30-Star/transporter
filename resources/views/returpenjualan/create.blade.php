@@ -2147,7 +2147,7 @@
                 const v = Number(n);
                 if (!isFinite(v)) return '-';
 
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -2156,7 +2156,7 @@
             formatQtyValue(value) {
                 const num = Number(value);
                 if (!Number.isFinite(num)) return '0';
-                return num.toLocaleString('id-ID', {
+                return num.toLocaleString('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 2
                 });
@@ -2183,7 +2183,7 @@
             rupiah(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -3431,7 +3431,7 @@
                 fqtyInput: '0',
                 fterima: 0,
                 fprice: 0,
-                fpriceInput: '0,00',
+                fpriceInput: '0.00',
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',

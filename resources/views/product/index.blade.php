@@ -357,10 +357,10 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fsodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
-                                                x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                                x-text="Number(item.fprice).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
-                                                x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
+                                                x-text="Number(item.fqty).toLocaleString('en-US', { minimumFractionDigits: 0 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="item.fsatuan"></td>
@@ -400,7 +400,7 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fwhname"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
-                                                x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                                x-text="(Number(item.fsaldo) || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fsatuan"></td>
@@ -440,10 +440,10 @@
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900"
                                                 x-text="item.fstockmtdate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
-                                                x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                                x-text="Number(item.fprice).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
-                                                x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
+                                                x-text="Number(item.fqty).toLocaleString('en-US', { minimumFractionDigits: 0 })">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right"
                                                 x-text="item.fsatuan"></td>
@@ -478,7 +478,7 @@
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fpodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsuppliername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsatuan || '-'"></td>
                                         </tr>
                                     </template>
@@ -510,7 +510,7 @@
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsodate"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fcustomername || '-'"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-slate-900 text-right" x-text="Number(item.fqty).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
                                             <td class="px-3 py-2 whitespace-nowrap text-slate-900" x-text="item.fsalesman || '-'"></td>
                                         </tr>
                                     </template>
@@ -616,9 +616,9 @@
 
                 formatNumber(value, digits = 2) {
                     const number = Number(value ?? 0);
-                    if (!Number.isFinite(number)) return '0,00';
+                    if (!Number.isFinite(number)) return '0.00';
 
-                    return number.toLocaleString('id-ID', {
+                    return number.toLocaleString('en-US', {
                         minimumFractionDigits: digits,
                         maximumFractionDigits: digits
                     });
@@ -763,8 +763,8 @@
                     searchable: true,
                     render: function(value) {
                         const num = Number(value ?? 0);
-                        if (!Number.isFinite(num)) return '0,00';
-                        return num.toLocaleString('id-ID', {
+                        if (!Number.isFinite(num)) return '0.00';
+                        return num.toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         });
@@ -780,8 +780,8 @@
                     searchable: false,
                     render: function(value) {
                         const num = Number(value ?? 0);
-                        if (!Number.isFinite(num)) return '0,00';
-                        return num.toLocaleString('id-ID', {
+                        if (!Number.isFinite(num)) return '0.00';
+                        return num.toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         });

@@ -183,13 +183,13 @@
                                             <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded">{{ $row['fsodate'] }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famountbil'], 2, ',', '.') }}</div>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famountbil'], 2, '.', ',') }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['fongkos'], 2, ',', '.') }}</div>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['fongkos'], 2, '.', ',') }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famount'], 2, ',', '.') }}</div>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famount'], 2, '.', ',') }}</div>
                                             <input type="hidden" name="famount[{{ $index }}]" value="{{ $row['famount'] }}" class="row-amount">
                                         </td>
                                         @if (!$isReadOnly)
@@ -272,7 +272,7 @@
                                 <div class="flex items-center justify-between text-base">
                                     <span class="font-extrabold text-gray-900">Total Tagihan</span>
                                     <span id="total-tagihan-value" class="font-extrabold text-blue-700 text-lg">
-                                        {{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}
+                                        {{ number_format($header->famounttagihan ?? 0, 2, '.', ',') }}
                                     </span>
                                 </div>
                             </div>
@@ -658,7 +658,7 @@
                     }));
                     this.closeNotaModal();
                 },
-                money(value) { return Number(value || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+                money(value) { return Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                 formatDate(value) {
                     if (!value) return '';
                     const date = new Date(value);
@@ -674,7 +674,7 @@
             const isReadOnly = @json($isReadOnly);
 
             function formatMoney(value) {
-                return Number(value || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
 
             function formatDate(value) {

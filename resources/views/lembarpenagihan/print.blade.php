@@ -354,9 +354,9 @@
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td></td>
-                        <td class="text-right">{{ number_format($r->famountbil ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($r->fongkos ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right" style="font-weight: bold;">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ number_format($r->famount ?? 0, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, '.', ',') }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ number_format($r->famount ?? 0, 2, '.', ',') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -394,7 +394,7 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <tr style="font-weight: bold; font-size: 11px;">
                             <td style="text-align: right; padding: 2px 0;">Total Tagihan:</td>
-                            <td style="width: 80px; text-align: right; padding: 2px 0;">{{ number_format($famounttagihan, 2, ',', '.') }}</td>
+                            <td style="width: 80px; text-align: right; padding: 2px 0;">{{ number_format($famounttagihan, 2, '.', ',') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px;">
@@ -973,9 +973,9 @@
                         <td class="text-center row-no">{{ $i + 1 }}</td>
                         <td>{{ $r->frefsono ?? '-' }} ({{ $r->frefcode ?? '-' }})</td>
                         <td>{{ $r->fsodate ? \Carbon\Carbon::parse($r->fsodate)->locale('id')->translatedFormat('d F Y') : '-' }}</td>
-                        <td class="text-right">{{ number_format($r->famountbil ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($r->fongkos ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->famountbil ?? 0, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->fongkos ?? 0, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, '.', ',') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -1001,7 +1001,7 @@
                         <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                             <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Total Tagihan</td>
                             <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($famounttagihan, 2, ',', '.') }}</td>
+                            <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($famounttagihan, 2, '.', ',') }}</td>
                         </tr>
                     </table>
                 </div>

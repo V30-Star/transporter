@@ -1566,7 +1566,7 @@ function renderQueue() {
 
     queueItems.forEach(function(item, idx) {
         totalLabels += item.qty;
-        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('id-ID');
+        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US');
 
         tbody.append(`
             <tr>
@@ -1672,7 +1672,7 @@ function updatePreview() {
                 ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${companyName}</div>` : ''}
                 ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${sampleItem.fprdname}</div>` : ''}
                 ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
-                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0;">Rp ${Number(sampleItem.price).toLocaleString('id-ID')}</div>` : ''}
+                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0;">Rp ${Number(sampleItem.price).toLocaleString('en-US')}</div>` : ''}
             </div>
         `;
         container.append(labelHtml);
@@ -1917,7 +1917,7 @@ function renderModalProducts(items) {
     }
 
     items.forEach(function(item) {
-        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('id-ID');
+        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US');
         tbody.append(`
             <tr style="cursor: pointer;" onclick="toggleModalRowCheckbox(this, event)">
                 <td style="text-align: center;" onclick="event.stopPropagation()">
@@ -1926,7 +1926,7 @@ function renderModalProducts(items) {
                 <td style="font-family: monospace; font-weight: bold; color: var(--app-text);">${item.fprdcode}</td>
                 <td style="font-family: monospace; color: var(--app-text-muted);">${item.fbarcode || '-'}</td>
                 <td style="font-weight: 600; color: var(--app-text);">${item.fprdname}</td>
-                <td style="text-align: right; font-family: monospace; color: var(--app-text);">${Number(item.stock || 0).toLocaleString('id-ID')}</td>
+                <td style="text-align: right; font-family: monospace; color: var(--app-text);">${Number(item.stock || 0).toLocaleString('en-US')}</td>
                 <td style="text-align: right; font-family: monospace; font-weight: bold; color: var(--app-text);">${formattedPrice}</td>
             </tr>
         `);

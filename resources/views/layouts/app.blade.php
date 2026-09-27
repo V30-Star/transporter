@@ -723,6 +723,16 @@
     @endphp
     @stack('scripts')
     <script>
+        document.addEventListener('submit', (event) => {
+            event.target.querySelectorAll('input[type="text"][name], input:not([type])[name]').forEach((input) => {
+                const value = input.value.trim();
+                if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(value)) {
+                    input.value = value.replace(/,/g, '');
+                }
+            });
+        }, true);
+    </script>
+    <script>
         (() => {
             const defaultToastOptions = {
                 showConfirmButton: false,
@@ -2923,4 +2933,3 @@
 </body>
 
 </html>
-

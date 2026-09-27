@@ -520,9 +520,13 @@ class MutasiController extends Controller
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
+        $productSub = Product::query()
+            ->selectRaw('TRIM(fprdcode) as fprdcode, MIN(fprdname) as fprdname, MIN(fspecification) as fspecification, MIN(fminstock) as fminstock')
+            ->groupByRaw('TRIM(fprdcode)');
+
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', function ($j) {
-                $j->on(DB::raw('TRIM(p.fprdcode)'), '=', DB::raw('TRIM(trstockdt.fprdcode)'));
+            ->leftJoinSub($productSub, 'p', function ($j) {
+                $j->on('p.fprdcode', '=', DB::raw('TRIM(trstockdt.fprdcode)'));
             })
             ->where('trstockdt.fstockmtno', $hdr->fstockmtno)
             ->orderBy('trstockdt.fstockdtid')
@@ -1519,13 +1523,20 @@ class MutasiController extends Controller
             'famountpo' => (float) ($mutasi->famountpo ?? 0),
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
+            'showMutasiPrices' => strtoupper(trim((string) DB::table('setini')->value('finitinvretail'))) === 'THE',
             'action' => 'delete',
         ]);
     }
 
     private function appendMutasiDetailProductJoin($query): void
     {
-        $query->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
+        $productSub = Product::query()
+            ->selectRaw('TRIM(fprdcode) as fprdcode, MIN(fprdname) as fprdname')
+            ->groupByRaw('TRIM(fprdcode)');
+
+        $query->leftJoinSub($productSub, 'msprd', function ($join) {
+                $join->on('msprd.fprdcode', '=', DB::raw('TRIM(trstockdt.fprdcode)'));
+            })
             ->select(
                 'trstockdt.*',
                 'msprd.fprdname',

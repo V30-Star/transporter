@@ -893,8 +893,8 @@
 
                 fmtCurr(n) {
                     const value = Number(n || 0);
-                    if (!Number.isFinite(value)) return '0,00';
-                    return value.toLocaleString('id-ID', {
+                    if (!Number.isFinite(value)) return '0.00';
+                    return value.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });

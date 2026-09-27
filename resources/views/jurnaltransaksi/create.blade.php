@@ -419,8 +419,8 @@
 
                 fmt(n) {
                     const v = Number(n);
-                    if (!isFinite(v) || n === '' || n === null) return '0,00';
-                    return v.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    if (!isFinite(v) || n === '' || n === null) return '0.00';
+                    return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
                 parseDecimal(value) {
@@ -441,7 +441,7 @@
                 },
 
                 formatDecimalInput(value) {
-                    return this.parseDecimal(value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return this.parseDecimal(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
                 normalizeAmount(row) {
@@ -706,7 +706,7 @@
                 },
 
                 emptyRow() {
-                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, ftypesubaccount: 'S', fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
+                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, ftypesubaccount: 'S', fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0.00', frate: 1 };
                 },
 
                 normalizeRow(row = {}, index = 0) {
@@ -780,7 +780,7 @@
                     faccountnote: '', // keterangan baris
                     frefno: '', // referensi nomor
                     famount: 0, // jumlah
-                    famountInput: '0,00', // tampilan jumlah
+                    famountInput: '0.00', // tampilan jumlah
                     frate: 1, // rate (default 1)
                 };
             }

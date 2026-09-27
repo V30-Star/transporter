@@ -351,7 +351,7 @@
                     <tr class="item-row item-row-sub">
                         <td></td>
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                         <td>{{ $r->fsatuan ?? '' }}</td>
                         <td style="font-size: 9px;">{{ !empty(trim((string) ($r->fketdt ?? ''))) ? $r->fketdt : '-' }}</td>
                     </tr>
@@ -381,7 +381,7 @@
                 {{-- Middle: Tot Qty --}}
                 <div style="width: 36%; padding: 0 8px;">
                     <div style="font-size: 10px; font-weight: bold;">
-                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, ',', '.') }}
+                        Tot. Qty: {{ number_format((float) $dt->sum('fqty'), 2, '.', ',') }}
                     </div>
                 </div>
 
@@ -962,11 +962,11 @@
                         <td>
                             <div style="white-space: pre-line;">{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                         </td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, '.', ',') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                         @if($isMasuk)
-                            <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
-                            <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? (($r->fqty ?? 0) * ($r->fprice ?? 0))), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? (($r->fqty ?? 0) * ($r->fprice ?? 0))), 2, '.', ',') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? (($r->fqty ?? 0) * ($r->fprice ?? 0))), 2, '.', ',') }}</td>
                         @endif
                     </tr>
                 @endforeach
@@ -989,7 +989,7 @@
                             <tr style="font-weight: bold; color: var(--blue); font-size: 13px;">
                                 <td style="border-top: 1px solid #000; border-bottom: 3px double #000; padding: 4px 0; white-space: nowrap;">Grand Total</td>
                                 <td style="border-top: 1px solid #000; border-bottom: 3px double #000; width: 10px; text-align: center; padding: 4px 0;">:</td>
-                                <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($displayGrandTotal, 2, ',', '.') }}</td>
+                                <td style="border-top: 1px solid #000; border-bottom: 3px double #000; text-align: right; padding: 4px 0;">{{ number_format($displayGrandTotal, 2, '.', ',') }}</td>
                             </tr>
                         </table>
                     </div>

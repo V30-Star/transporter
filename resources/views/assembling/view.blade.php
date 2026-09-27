@@ -402,7 +402,7 @@
                                     if (n === null || n === undefined || n === '') return '-';
                                     const v = Number(n);
                                     if (!isFinite(v)) return '-';
-                                    return v.toLocaleString('id-ID', {
+                                    return v.toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     });
@@ -411,7 +411,7 @@
                                 rupiah(n) {
                                     const v = Number(n || 0);
                                     if (!isFinite(v)) return '-';
-                                    return v.toLocaleString('id-ID', {
+                                    return v.toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     });
@@ -909,9 +909,9 @@
 
         //             // Jika angka adalah bulat, hilangkan desimal
         //             if (Number.isInteger(v)) {
-        //                 return v.toLocaleString('id-ID');
+        //                 return v.toLocaleString('en-US');
         //             } else {
-        //                 return v.toLocaleString('id-ID', {
+        //                 return v.toLocaleString('en-US', {
         //                     minimumFractionDigits: 2,
         //                     maximumFractionDigits: 2
         //                 });
@@ -921,7 +921,7 @@
         //         rupiah(n) {
         //             const v = Number(n || 0);
         //             if (!isFinite(v)) return 'Rp -';
-        //             return 'Rp ' + v.toLocaleString('id-ID', {
+        //             return 'Rp ' + v.toLocaleString('en-US', {
         //                 minimumFractionDigits: 2,
         //                 maximumFractionDigits: 2
         //             });

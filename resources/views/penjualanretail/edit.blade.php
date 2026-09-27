@@ -234,7 +234,7 @@
                 'ref_price' => (float) (old('fref_price', [])[$index] ?? $price),
                 'maxprice' => (float) (old('fmaxprice', [])[$index] ?? $price),
                 'source_price' => (float) (old('fsource_price', [])[$index] ?? $price),
-                'fpriceInput' => number_format($price, 2, ',', '.'),
+                'fpriceInput' => number_format($price, 2, '.', ','),
                 'fdisc' => $oldInvoiceDiscs[$index] ?? 0,
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
@@ -1660,10 +1660,10 @@
                     title: @json('Limit Piutang Terlampaui'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('en-US')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('en-US')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('en-US')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('en-US')}</strong></div>
                             <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
@@ -1701,7 +1701,7 @@
 
             if (overdueCheck.enabled && overdueCheck.has_overdue) {
                 const overdueHtml = (overdueCheck.items || []).slice(0, 5).map((item) => `
-                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('id-ID')}</li>
+                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('en-US')}</li>
                 `).join('');
 
                 const confirmed = await Swal.fire({
@@ -1910,7 +1910,7 @@
                 const v = Number(n);
                 if (!isFinite(v)) return '-';
 
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1919,7 +1919,7 @@
             rupiah(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
+                return v.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -3079,10 +3079,10 @@
                 fnoacak: '',
                 frefnoacak: '',
                 fqty: 0,
-                fqtyInput: '0,00',
+                fqtyInput: '0.00',
                 maxqty: 0,
                 fprice: 0,
-                fpriceInput: '0,00',
+                fpriceInput: '0.00',
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
