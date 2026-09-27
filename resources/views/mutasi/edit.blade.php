@@ -723,7 +723,7 @@
         @else
             <form action="{{ route('mutasi.update', $mutasi->fstockmtid) }}" method="POST"
                 data-form-draft="true" data-draft-key="mutasi:edit:{{ $mutasi->fstockmtid }}"
-                @submit="onSubmit($event)">
+                @submit.prevent="window.mutasiEditItemsState?.onSubmit($event)">
                 @csrf
                 @method('PATCH')
 
@@ -1958,6 +1958,7 @@
             },
 
             init() {
+                window.mutasiEditItemsState = this;
                 this.savedItems = (Array.isArray(this.savedItems) ? this.savedItems : []).map(item => {
                     const row = {
                         ...this.createRow(),
