@@ -1077,8 +1077,8 @@
                         </td>
                         <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format((float) ($r->fbiaya ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? ($r->fqty * ($r->fprice - ($r->fprice * (float)($r->fdiscpersen ?? 0) / 100) + ($r->fbiaya ?? 0)))), 2, ',', '.') }}</td>
                         <td class="text-center">
                             @if (is_numeric($r->fdiscpersen))
                                 {{ (float)$r->fdiscpersen == (int)$r->fdiscpersen ? (int)$r->fdiscpersen : number_format((float)$r->fdiscpersen, 2, ',', '.') }}

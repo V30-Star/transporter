@@ -377,8 +377,8 @@
                         <td style="font-family: monospace; font-size: 9px;">{{ $r->fprdcode ?? ($r->product_code ?? '-') }}</td>
                         <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td>{{ $r->fsatuan ?? '' }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format((float) ($r->ftotprice ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -1163,7 +1163,7 @@
                         <td>
                             <div>{{ !empty(trim((string) ($r->fdesc ?? ''))) ? $r->fdesc : (format_product_name($r->product_name ?? '', $r->fspecification ?? $r->product_specification ?? '') ?: '-') }}</div>
                         </td>
-                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->fqty ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($r->fsalesnet ?? $r->fprice ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>

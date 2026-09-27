@@ -965,7 +965,7 @@
                         <td class="text-right">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                         @if($isMasuk)
-                            <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? (($r->fqty ?? 0) * ($r->fprice ?? 0))), 2, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format((float) ($r->fprice ?? 0), 2, ',', '.') }}</td>
                             <td class="text-right">{{ number_format((float) ($r->ftotprice ?? $r->famount ?? (($r->fqty ?? 0) * ($r->fprice ?? 0))), 2, ',', '.') }}</td>
                         @endif
                     </tr>
