@@ -844,7 +844,7 @@
                 @else
                     <form action="{{ route('assembling.update', $assembling->fstockmtid) }}" method="POST"
                         data-form-draft="true"
-                        data-draft-key="assembling:edit:{{ $assembling->fstockmtid }}" @submit="onSubmit($event)"
+                        data-draft-key="assembling:edit:{{ $assembling->fstockmtid }}" @submit.prevent="window.assemblingEditItemsState?.onSubmit($event)"
                         x-data="{ showNoItems: false }">
                         @csrf
                         @method('PATCH')
@@ -1519,6 +1519,7 @@
                                     },
 
                                     init() {
+                                        window.assemblingEditItemsState = this;
                                         if (this.action === 'view' || this.action === 'delete') {
                                             this.savedItems = (this.savedItems || []).filter(row => this.rowHasContent(row));
                                         } else {
