@@ -140,11 +140,12 @@
             margin-right: {{ $gapX }}mm;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 0;
             align-items: center;
             text-align: center;
             overflow: hidden;
-            padding: {{ $labelHeight <= 18 ? '0.3mm 0.6mm' : '0.6mm 0.8mm' }};
+            padding: {{ $labelHeight <= 21 ? '0.2mm 0.5mm' : '0.6mm 0.8mm' }};
             line-height: 1.05;
             box-sizing: border-box;
         }
@@ -171,26 +172,26 @@
             font-weight: bold;
             color: #000;
             display: -webkit-box;
-            -webkit-line-clamp: {{ $labelHeight <= 18 ? 1 : 2 }};
+            -webkit-line-clamp: {{ $labelHeight <= 21 ? 1 : 2 }};
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
             word-break: break-word;
             line-height: 1.05;
-            margin: 0.5px 0;
+            margin: 0;
             flex-shrink: 0;
         }
 
         .item-barcode {
             width: 100%;
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             min-height: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            margin: 0.5px 0;
+            margin: 0;
         }
 
         .item-barcode svg {
@@ -202,7 +203,7 @@
 
         .item-price {
             font-size: {{ $fontSize * 0.95 }}pt;
-            font-weight: 900;
+            font-weight: 400;
             color: #000;
             letter-spacing: -0.2px;
             white-space: nowrap;
@@ -252,7 +253,7 @@
                                     jsbarcode-text="{{ $label['barcode'] ?: $label['code'] }}"
                                     jsbarcode-displayvalue="true"
                                     jsbarcode-width="1.1"
-                                    jsbarcode-height="{{ $labelHeight <= 18 ? min(16, (int)$barcodeHeight) : $barcodeHeight }}"
+                                    jsbarcode-height="{{ $labelHeight <= 21 ? min(18, (int)$barcodeHeight) : $barcodeHeight }}"
                                     jsbarcode-font="Arial"
                                     jsbarcode-fontoptions="bold"
                                     jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
