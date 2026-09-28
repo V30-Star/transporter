@@ -469,14 +469,14 @@
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
                                                 <option value="{{ $wh->fwhcode }}"
-                                                    {{ old('ffrom', $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                    {{ old('ffrom', $returpenjualan->fwhcode ?? $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhname }} ({{ $wh->fwhcode }})
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
-                                        value="{{ old('ffrom', $returpenjualan->ffrom) }}">
+                                        value="{{ old('ffrom', $returpenjualan->fwhcode ?? $returpenjualan->ffrom) }}">
                                 </div>
                                 @error('ffrom')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -966,7 +966,7 @@
                                                 <option value=""></option>
                                                 @foreach ($warehouses as $wh)
                                                     <option value="{{ $wh->fwhcode }}"
-                                                        {{ old('ffrom', $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                        {{ old('ffrom', $returpenjualan->fwhcode ?? $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                         {{ $wh->fwhname }} ({{ $wh->fwhcode }})
                                                     </option>
                                                 @endforeach
@@ -976,7 +976,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                                            value="{{ old('ffrom', $returpenjualan->ffrom ?? '') }}">
+                                            value="{{ old('ffrom', $returpenjualan->fwhcode ?? $returpenjualan->ffrom ?? '') }}">
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                                 class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
