@@ -638,7 +638,7 @@ class SalesOrderController extends Controller
 
         $query = SalesOrderHeader::query()
             ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
-            ->leftJoin('mscabang', 'trsomt.fbranchcode', '=', 'mscabang.fcabangid')
+            ->leftJoin('mscabang', 'trsomt.fbranchcode', '=', 'mscabang.fcabangkode')
             ->select(
                 'trsomt.ftrsomtid',
                 'trsomt.fsono',
@@ -1748,369 +1748,369 @@ class SalesOrderController extends Controller
     {
         try {
             $shouldSendApprovalNotification = false;
-        $canContinueToSuratJalan = $this->canContinueToSuratJalan();
-        // 1. VALIDATION (Sama seperti store)
-        $request->validate([
-            'fsono' => ['nullable', 'string', 'max:25'],
-            'fsodate' => ['required', 'date'],
-            'fkirimdate' => ['nullable', 'date'],
-            'fcustno' => ['required', 'string', 'max:20'],
-            'fsalesman' => ['nullable', 'string', 'max:20'],
-            'fincludeppn' => ['nullable'],
-            'fket' => ['nullable', 'string', 'max:300'],
-            'frefpo' => ['nullable', 'string', 'max:100'],
-            'falamatkirim' => ['nullable', 'string', 'max:300'],
-            'fbranchcode' => ['nullable', 'string', 'max:2'],
-            'ftempohr' => ['nullable', 'string', 'max:3'],
+            $canContinueToSuratJalan = $this->canContinueToSuratJalan();
+            // 1. VALIDATION (Sama seperti store)
+            $request->validate([
+                'fsono' => ['nullable', 'string', 'max:25'],
+                'fsodate' => ['required', 'date'],
+                'fkirimdate' => ['nullable', 'date'],
+                'fcustno' => ['required', 'string', 'max:20'],
+                'fsalesman' => ['nullable', 'string', 'max:20'],
+                'fincludeppn' => ['nullable'],
+                'fket' => ['nullable', 'string', 'max:300'],
+                'frefpo' => ['nullable', 'string', 'max:100'],
+                'falamatkirim' => ['nullable', 'string', 'max:300'],
+                'fbranchcode' => ['nullable', 'string', 'max:2'],
+                'ftempohr' => ['nullable', 'string', 'max:3'],
 
-            'fprdcode' => ['required', 'array', 'min:1'],
-            'fprdcode.*' => ['required', 'string', 'max:50'],
+                'fprdcode' => ['required', 'array', 'min:1'],
+                'fprdcode.*' => ['required', 'string', 'max:50'],
 
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:20'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:20'],
 
-            'fitemname' => ['nullable', 'array'],
-            'fitemname.*' => ['nullable', 'string', 'max:200'],
+                'fitemname' => ['nullable', 'array'],
+                'fitemname.*' => ['nullable', 'string', 'max:200'],
 
-            'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
-            'fapplyppn' => ['nullable'],
-            'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => ['numeric', 'min:0'],
+                'fapplyppn' => ['nullable'],
+                'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
-            'fprice' => ['nullable', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
+                'fprice' => ['nullable', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
 
-            'fdisc' => ['nullable', 'array'],
-            'fdisc.*' => ['nullable'], // Support "10+2"
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib dipilih.',
-            'fprdcode.required' => 'Minimal harus ada 1 item.',
-            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
-            'fprice.*.min' => 'Harga item tidak boleh minus.',
-            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
-            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
-        ]);
-
-        // 2. LOAD HEADER
-        $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
-        if (! $header) {
-            return abort(404, 'Sales Order tidak ada.');
-        }
-        $this->ensureBranchAccess($header->fbranchcode);
-        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', $message);
-        }
-
-        if ($message = $this->getUsageLockMessage((object) $header)) {
-            return redirect()->route('salesorder.index')->with('error', $message);
-        }
-
-        $userLogin = auth('sysuser')->user() ?? auth()->user();
-        $userName = $userLogin->fname ?? 'admin';
-        $userIdLog = $userLogin->fuserid ?? 'ADMIN';
-
-        // 3. HEADER VALUES
-        $fsodate = Carbon::parse($request->fsodate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
-        $resolvedSalesmanCode = $this->resolveSalesmanCode(
-            $request->input('fsalesman'),
-            $request->input('filter_salesman_id')
-        );
-        $fincludeppn = 0; // PPN Sales Order selalu Exclude (0)
-        $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? '1' : '0';
-        $fppnpersen = (float) $request->input('fppnpersen', $this->getDefaultPpnTarif());
-        $fclose = $request->input('fclose') ? '1' : '0';
-        $userid = $userName;
-        $now = now();
-        $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
-
-        // 4. DETAIL ARRAYS
-        $itemCodes = $request->input('fprdcode', []);
-        $itemNames = $request->input('fitemname', []);
-        $satuans = $request->input('fsatuan', []);
-        $qtys = $request->input('fqty', []);
-        $prices = $request->input('fprice', []);
-        $discs = $request->input('fdisc', []);
-        $descs = $request->input('fdesc', []);
-        $fnoacaks = $request->input('fnoacak', []);
-        $frefnoacaks = $request->input('frefnoacak', []);
-
-        // 5. BUILD DETAIL ROWS
-        $rowsSodt = [];
-        $totalGross = 0.0;
-        $totalDisc = 0.0;
-        $usedNoAcaks = [];
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $itemCodes))));
-        $prodMeta = DB::table('msprd')
-            ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
-            ->keyBy('fprdcode');
-        $rowCount = max(
-            count($itemCodes),
-            count($satuans),
-            count($qtys),
-            count($prices),
-            count($discs),
-            count($descs),
-            count($itemNames)
-        );
-
-        for ($i = 0; $i < $rowCount; $i++) {
-            $itemCode = trim($itemCodes[$i] ?? '');
-            $itemName = trim((string) ($itemNames[$i] ?? ''));
-            $satuan = trim((string) ($satuans[$i] ?? ''));
-            $qty = (float) ($qtys[$i] ?? 0);
-            $price = (float) ($prices[$i] ?? 0);
-            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
-            $desc = (string) ($descs[$i] ?? '');
-
-            if (empty($itemCode) || $qty <= 0) {
-                continue;
-            }
-
-            $produk = $prodMeta[$itemCode] ?? null;
-            if ($satuan === '' && $produk) {
-                $satuan = trim((string) ($produk->fsatuankecil ?? ''));
-            }
-
-            $qtyKecil = $qty;
-            if (
-                $produk
-                && $satuan !== ''
-                && $satuan === trim((string) ($produk->fsatuanbesar ?? ''))
-                && (float) ($produk->fqtykecil ?? 0) > 0
-            ) {
-                $qtyKecil = $qty * (float) $produk->fqtykecil;
-            } elseif (
-                $produk
-                && $satuan !== ''
-                && $satuan === trim((string) ($produk->fsatuanbesar2 ?? ''))
-                && (float) ($produk->fqtykecil2 ?? 0) > 0
-            ) {
-                $qtyKecil = $qty * (float) $produk->fqtykecil2;
-            }
-
-            $discPersen = $this->parseDiscount($discRaw);
-            $subtotal = $qty * $price;
-            $discount = $subtotal * ($discPersen / 100);
-            $amount = $subtotal - $discount;
-
-            $totalGross += $subtotal;
-            $totalDisc += $discount;
-
-            $rowsSodt[] = [
-                'fsono' => $header->fsono,
-                'fprdcode' => $itemCode,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'fsatuan' => mb_substr($satuan, 0, 20),
-                'fdesc' => $desc,
-                'fqty' => $qty,
-                'fprice' => $price,
-                'fpricenet' => $amount,
-                'fdiscpersen' => $discRaw,
-                'fdiscount' => round($discount, 2),
-                'famount' => round($amount, 2),
-                'fqtykecil' => $qtyKecil,
-                'fqtyremain' => $qtyKecil,
-            ];
-        }
-
-        $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
-
-        if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
-            return $stockResponse;
-        }
-
-        // 6. CALCULATE TOTALS
-        $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
-        $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
-        $totalDisc += $headerDiscountAmount;
-        $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
-
-        if ($fapplyppn === '1') {
-            if ($fincludeppn === '1') {
-                $grandTotal = $amountNet;
-                $ppnAmount = $grandTotal * ($fppnpersen / 100);
-                $amountNet = $grandTotal - $ppnAmount;
-            } else {
-                $ppnAmount = $amountNet * ($fppnpersen / 100);
-                $grandTotal = $amountNet + $ppnAmount;
-            }
-        } else {
-            $ppnAmount = 0;
-            $fppnpersen = 0;
-            $grandTotal = $amountNet;
-        }
-        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal, $header->fuseracc ?? null, (int) ($header->fapproval ?? 0), $header->fdateapproved ?? null);
-        $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
-
-        // 7. TRANSACTION
-        DB::transaction(function () use (
-            $request,
-            $ftrsomtid,
-            $header,
-            $fsodate,
-            $fincludeppn,
-            $fclose,
-            $userid,
-            $userIdLog,
-            $now,
-            $rowsSodt,
-            $totalGross,
-            $totalDisc,
-            $amountNet,
-            $grandTotal,
-            $ppnAmount,
-            $fapplyppn,
-            $fppnpersen,
-            $headerDiscPercent,
-            $resolvedSalesmanCode,
-            $creditApproval
-        ) {
-            $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
-
-            // Update Header Utama
-            DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
-                'fsodate'        => $fsodate,
-                'fbranchcode'    => mb_substr($request->input('fbranchcode', ''), 0, 2),
-                'fcustno'        => mb_substr($request->input('fcustno', ''), 0, 20),
-                'fsalesman'      => $resolvedSalesmanCode,
-                'ftempohr'       => mb_substr($request->input('ftempohr', '0'), 0, 3),
-                'frefpo'         => mb_substr($request->input('frefpo', ''), 0, 100),
-                'fincludeppn'    => $fincludeppn,
-                'fclose'         => $fclose,
-                'fket'           => mb_substr($request->input('fket', ''), 0, 300),
-                'fketinternal'   => mb_substr($request->input('fketinternal', ''), 0, 300),
-                'falamatkirim'   => mb_substr($request->input('falamatkirim', ''), 0, 300),
-                'fuserupdate'    => mb_substr($userid, 0, 10),
-                'fuserapproved'  => $creditApproval['fuseracc'],
-                'fdateapproved'  => $creditApproval['fdateapproved'],
-                'fdatetime'      => $now,
-                'fapplyppn'      => $fapplyppn,
-                'fppnpersen'     => $fppnpersen,
-                'famountgross'   => round($totalGross, 2),
-                'fdiscount'      => round($totalDisc, 2),
-                'fdiscpersen'    => round($headerDiscPercent, 2),
-                'famountsonet'   => round($amountNet, 2),
-                'famountpajak'   => round($ppnAmount, 2),
-                'famountso'      => round($grandTotal, 2),
-                'fneedacc'       => $creditApproval['fneedacc'],
-                'fuseracc'       => $creditApproval['fuseracc'],
-                'fapproval'      => $creditApproval['fapproval'],
+                'fdisc' => ['nullable', 'array'],
+                'fdisc.*' => ['nullable'], // Support "10+2"
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'fsodate.required' => 'Tanggal SO wajib diisi.',
+                'fcustno.required' => 'Customer wajib dipilih.',
+                'fprdcode.required' => 'Minimal harus ada 1 item.',
+                'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+                'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
             ]);
 
-            $updatedHeader = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
+            // 2. LOAD HEADER
+            $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
+            if (! $header) {
+                return abort(404, 'Sales Order tidak ada.');
+            }
+            $this->ensureBranchAccess($header->fbranchcode);
+            if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
+                return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', $message);
+            }
 
-            // 1. INSERT Log Header (Update)
-            DB::table('log_trsomt')->insert([
-                'ftrxlogid'        => $trxLogId,
-                'ftrsomtid'       => $updatedHeader->ftrsomtid,
-                'fbranchcode'      => $updatedHeader->fbranchcode,
-                'fsono'            => $updatedHeader->fsono,
-                'fsodate'          => $updatedHeader->fsodate,
-                'fcustno'          => $updatedHeader->fcustno,
-                'fsalesman'        => $updatedHeader->fsalesman,
-                'fdiscpersen'      => $updatedHeader->fdiscpersen,
-                'fdiscount'        => $updatedHeader->fdiscount,
-                'famountgross'     => $updatedHeader->famountgross,
-                'famountsonet'     => $updatedHeader->famountsonet,
-                'famountpajak'     => $updatedHeader->famountpajak,
-                'famountso'        => $updatedHeader->famountso,
-                'fket'             => $updatedHeader->fket,
-                'falamatkirim'     => $updatedHeader->falamatkirim,
-                'fprdout'          => $updatedHeader->fprdout,
-                'fdatetime'        => $updatedHeader->fdatetime,
-                'fclose'           => $updatedHeader->fclose,
-                'frefpo'           => $updatedHeader->frefpo,
-                'fincludeppn'      => $updatedHeader->fincludeppn,
-                'fuseracc'         => $updatedHeader->fuseracc,
-                'fneedacc'         => $updatedHeader->fneedacc,
-                'ftempohr'         => $updatedHeader->ftempohr,
-                'fprint'           => $updatedHeader->fprint,
-                'fketinternal'     => $updatedHeader->fketinternal,
-                'fppnpersen'       => $updatedHeader->fppnpersen,
-                'fapplyppn'        => $updatedHeader->fapplyppn,
-                'fapproval'        => $updatedHeader->fapproval,
-                'fusercreate'      => $updatedHeader->fusercreate,
-                'fuserupdate'      => $updatedHeader->fuserupdate,
-                'fuserapproved'    => $updatedHeader->fuserapproved,
-                'fdateapproved'    => $updatedHeader->fdateapproved,
-                'feditmode'        => 'U',
-                'fuseridlog'       => $userIdLog,
-                'fdatetimelog'     => $now,
-            ]);
+            if ($message = $this->getUsageLockMessage((object) $header)) {
+                return redirect()->route('salesorder.index')->with('error', $message);
+            }
 
-            // Hapus detail lama dan masukkan yang baru
-            DB::table('trsodt')->where('fsono', $header->fsono)->delete();
+            $userLogin = auth('sysuser')->user() ?? auth()->user();
+            $userName = $userLogin->fname ?? 'admin';
+            $userIdLog = $userLogin->fuserid ?? 'ADMIN';
 
-            if (! empty($rowsSodt)) {
-                foreach ($rowsSodt as $row) {
-                    $insertedSodtid = DB::table('trsodt')->insertGetId($row, 'ftrsodtid');
-                    $sodtObj = DB::table('trsodt')->where('ftrsodtid', $insertedSodtid)->first();
+            // 3. HEADER VALUES
+            $fsodate = Carbon::parse($request->fsodate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
+            $resolvedSalesmanCode = $this->resolveSalesmanCode(
+                $request->input('fsalesman'),
+                $request->input('filter_salesman_id')
+            );
+            $fincludeppn = 0; // PPN Sales Order selalu Exclude (0)
+            $fapplyppn = $request->boolean('fapplyppn') || $request->input('fapplyppn') == '1' || $request->input('fincludeppn') == '1' ? '1' : '0';
+            $fppnpersen = (float) $request->input('fppnpersen', $this->getDefaultPpnTarif());
+            $fclose = $request->input('fclose') ? '1' : '0';
+            $userid = $userName;
+            $now = now();
+            $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
 
-                    // 2. INSERT Log Detail (Update)
-                    DB::table('log_trsodt')->insert([
-                        'ftrxlogid'    => $trxLogId,
-                        'ftrsodtid'    => $sodtObj->ftrsodtid,
-                        'fsono'        => $sodtObj->fsono,
-                        'fprdcode'     => $sodtObj->fprdcode,
-                        'fqty'         => $sodtObj->fqty,
-                        'fprice'       => $sodtObj->fprice,
-                        'fdiscpersen'  => $sodtObj->fdiscpersen,
-                        'fdiscount'    => $sodtObj->fdiscount,
-                        'famount'      => $sodtObj->famount,
-                        'fsatuan'      => $sodtObj->fsatuan,
-                        'fdesc'        => $sodtObj->fdesc,
-                        'fpricenet'    => $sodtObj->fpricenet,
-                        'fqtyremain'   => $sodtObj->fqtyremain,
-                        'fqtykecil'    => $sodtObj->fqtykecil,
-                        'fnoacak'      => $sodtObj->fnoacak,
-                        'feditmode'    => 'U',
-                        'fuseridlog'   => $userIdLog,
-                        'fdatetimelog' => $now,
-                    ]);
+            // 4. DETAIL ARRAYS
+            $itemCodes = $request->input('fprdcode', []);
+            $itemNames = $request->input('fitemname', []);
+            $satuans = $request->input('fsatuan', []);
+            $qtys = $request->input('fqty', []);
+            $prices = $request->input('fprice', []);
+            $discs = $request->input('fdisc', []);
+            $descs = $request->input('fdesc', []);
+            $fnoacaks = $request->input('fnoacak', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
+
+            // 5. BUILD DETAIL ROWS
+            $rowsSodt = [];
+            $totalGross = 0.0;
+            $totalDisc = 0.0;
+            $usedNoAcaks = [];
+            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $itemCodes))));
+            $prodMeta = DB::table('msprd')
+                ->whereIn('fprdcode', $uniqueCodes)
+                ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
+                ->keyBy('fprdcode');
+            $rowCount = max(
+                count($itemCodes),
+                count($satuans),
+                count($qtys),
+                count($prices),
+                count($discs),
+                count($descs),
+                count($itemNames)
+            );
+
+            for ($i = 0; $i < $rowCount; $i++) {
+                $itemCode = trim($itemCodes[$i] ?? '');
+                $itemName = trim((string) ($itemNames[$i] ?? ''));
+                $satuan = trim((string) ($satuans[$i] ?? ''));
+                $qty = (float) ($qtys[$i] ?? 0);
+                $price = (float) ($prices[$i] ?? 0);
+                $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+                $desc = (string) ($descs[$i] ?? '');
+
+                if (empty($itemCode) || $qty <= 0) {
+                    continue;
                 }
+
+                $produk = $prodMeta[$itemCode] ?? null;
+                if ($satuan === '' && $produk) {
+                    $satuan = trim((string) ($produk->fsatuankecil ?? ''));
+                }
+
+                $qtyKecil = $qty;
+                if (
+                    $produk
+                    && $satuan !== ''
+                    && $satuan === trim((string) ($produk->fsatuanbesar ?? ''))
+                    && (float) ($produk->fqtykecil ?? 0) > 0
+                ) {
+                    $qtyKecil = $qty * (float) $produk->fqtykecil;
+                } elseif (
+                    $produk
+                    && $satuan !== ''
+                    && $satuan === trim((string) ($produk->fsatuanbesar2 ?? ''))
+                    && (float) ($produk->fqtykecil2 ?? 0) > 0
+                ) {
+                    $qtyKecil = $qty * (float) $produk->fqtykecil2;
+                }
+
+                $discPersen = $this->parseDiscount($discRaw);
+                $subtotal = $qty * $price;
+                $discount = $subtotal * ($discPersen / 100);
+                $amount = $subtotal - $discount;
+
+                $totalGross += $subtotal;
+                $totalDisc += $discount;
+
+                $rowsSodt[] = [
+                    'fsono' => $header->fsono,
+                    'fprdcode' => $itemCode,
+                    'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                    'fsatuan' => mb_substr($satuan, 0, 20),
+                    'fdesc' => $desc,
+                    'fqty' => $qty,
+                    'fprice' => $price,
+                    'fpricenet' => $amount,
+                    'fdiscpersen' => $discRaw,
+                    'fdiscount' => round($discount, 2),
+                    'famount' => round($amount, 2),
+                    'fqtykecil' => $qtyKecil,
+                    'fqtyremain' => $qtyKecil,
+                ];
             }
-        });
 
-        $message = "Sales Order {$header->fsono} berhasil diupdate";
-        $isApprovedSo = (int) ($header->fapproval ?? 0) === 1 || (int) ($creditApproval['fapproval'] ?? 0) === 1;
-        $suratJalanUrl = (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue)
-            ? null
-            : route('suratjalan.create', ['sales_order_id' => $ftrsomtid]);
+            $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
 
-        $successPrompt = $isApprovedSo ? [
-            'type' => 'salesorder_edit',
-            'redirect_url' => route('salesorder.print', $header->fsono),
-            'suratjalan_url' => $suratJalanUrl,
-        ] : ($suratJalanUrl ? [
-            'type' => 'salesorder_create_suratjalan',
-            'redirect_url' => $suratJalanUrl,
-        ] : null);
+            if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
+                return $stockResponse;
+            }
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => $message,
-                'redirect_url' => route('salesorder.index'),
-                'success_prompt' => $successPrompt,
-            ]);
-        }
+            // 6. CALCULATE TOTALS
+            $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
+            $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
+            $totalDisc += $headerDiscountAmount;
+            $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
 
-        $redirect = redirect()
-            ->route('salesorder.index')
-            ->with('success', $message);
+            if ($fapplyppn === '1') {
+                if ($fincludeppn === '1') {
+                    $grandTotal = $amountNet;
+                    $ppnAmount = $grandTotal * ($fppnpersen / 100);
+                    $amountNet = $grandTotal - $ppnAmount;
+                } else {
+                    $ppnAmount = $amountNet * ($fppnpersen / 100);
+                    $grandTotal = $amountNet + $ppnAmount;
+                }
+            } else {
+                $ppnAmount = 0;
+                $fppnpersen = 0;
+                $grandTotal = $amountNet;
+            }
+            $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal, $header->fuseracc ?? null, (int) ($header->fapproval ?? 0), $header->fdateapproved ?? null);
+            $requiresApprovalBeforeContinue = $creditApproval['needs_approval'] && ! $creditApproval['is_approved'];
 
-        if ($successPrompt) {
-            $redirect->with('success_prompt', $successPrompt);
-        }
+            // 7. TRANSACTION
+            DB::transaction(function () use (
+                $request,
+                $ftrsomtid,
+                $header,
+                $fsodate,
+                $fincludeppn,
+                $fclose,
+                $userid,
+                $userIdLog,
+                $now,
+                $rowsSodt,
+                $totalGross,
+                $totalDisc,
+                $amountNet,
+                $grandTotal,
+                $ppnAmount,
+                $fapplyppn,
+                $fppnpersen,
+                $headerDiscPercent,
+                $resolvedSalesmanCode,
+                $creditApproval
+            ) {
+                $trxLogId = 'LOG' . $now->format('YmdHis') . rand(100, 999);
 
-        return $redirect;
+                // Update Header Utama
+                DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
+                    'fsodate'        => $fsodate,
+                    'fbranchcode'    => mb_substr($request->input('fbranchcode', ''), 0, 2),
+                    'fcustno'        => mb_substr($request->input('fcustno', ''), 0, 20),
+                    'fsalesman'      => $resolvedSalesmanCode,
+                    'ftempohr'       => mb_substr($request->input('ftempohr', '0'), 0, 3),
+                    'frefpo'         => mb_substr($request->input('frefpo', ''), 0, 100),
+                    'fincludeppn'    => $fincludeppn,
+                    'fclose'         => $fclose,
+                    'fket'           => mb_substr($request->input('fket', ''), 0, 300),
+                    'fketinternal'   => mb_substr($request->input('fketinternal', ''), 0, 300),
+                    'falamatkirim'   => mb_substr($request->input('falamatkirim', ''), 0, 300),
+                    'fuserupdate'    => mb_substr($userid, 0, 10),
+                    'fuserapproved'  => $creditApproval['fuseracc'],
+                    'fdateapproved'  => $creditApproval['fdateapproved'],
+                    'fdatetime'      => $now,
+                    'fapplyppn'      => $fapplyppn,
+                    'fppnpersen'     => $fppnpersen,
+                    'famountgross'   => round($totalGross, 2),
+                    'fdiscount'      => round($totalDisc, 2),
+                    'fdiscpersen'    => round($headerDiscPercent, 2),
+                    'famountsonet'   => round($amountNet, 2),
+                    'famountpajak'   => round($ppnAmount, 2),
+                    'famountso'      => round($grandTotal, 2),
+                    'fneedacc'       => $creditApproval['fneedacc'],
+                    'fuseracc'       => $creditApproval['fuseracc'],
+                    'fapproval'      => $creditApproval['fapproval'],
+                ]);
+
+                $updatedHeader = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
+
+                // 1. INSERT Log Header (Update)
+                DB::table('log_trsomt')->insert([
+                    'ftrxlogid'        => $trxLogId,
+                    'ftrsomtid'       => $updatedHeader->ftrsomtid,
+                    'fbranchcode'      => $updatedHeader->fbranchcode,
+                    'fsono'            => $updatedHeader->fsono,
+                    'fsodate'          => $updatedHeader->fsodate,
+                    'fcustno'          => $updatedHeader->fcustno,
+                    'fsalesman'        => $updatedHeader->fsalesman,
+                    'fdiscpersen'      => $updatedHeader->fdiscpersen,
+                    'fdiscount'        => $updatedHeader->fdiscount,
+                    'famountgross'     => $updatedHeader->famountgross,
+                    'famountsonet'     => $updatedHeader->famountsonet,
+                    'famountpajak'     => $updatedHeader->famountpajak,
+                    'famountso'        => $updatedHeader->famountso,
+                    'fket'             => $updatedHeader->fket,
+                    'falamatkirim'     => $updatedHeader->falamatkirim,
+                    'fprdout'          => $updatedHeader->fprdout,
+                    'fdatetime'        => $updatedHeader->fdatetime,
+                    'fclose'           => $updatedHeader->fclose,
+                    'frefpo'           => $updatedHeader->frefpo,
+                    'fincludeppn'      => $updatedHeader->fincludeppn,
+                    'fuseracc'         => $updatedHeader->fuseracc,
+                    'fneedacc'         => $updatedHeader->fneedacc,
+                    'ftempohr'         => $updatedHeader->ftempohr,
+                    'fprint'           => $updatedHeader->fprint,
+                    'fketinternal'     => $updatedHeader->fketinternal,
+                    'fppnpersen'       => $updatedHeader->fppnpersen,
+                    'fapplyppn'        => $updatedHeader->fapplyppn,
+                    'fapproval'        => $updatedHeader->fapproval,
+                    'fusercreate'      => $updatedHeader->fusercreate,
+                    'fuserupdate'      => $updatedHeader->fuserupdate,
+                    'fuserapproved'    => $updatedHeader->fuserapproved,
+                    'fdateapproved'    => $updatedHeader->fdateapproved,
+                    'feditmode'        => 'U',
+                    'fuseridlog'       => $userIdLog,
+                    'fdatetimelog'     => $now,
+                ]);
+
+                // Hapus detail lama dan masukkan yang baru
+                DB::table('trsodt')->where('fsono', $header->fsono)->delete();
+
+                if (! empty($rowsSodt)) {
+                    foreach ($rowsSodt as $row) {
+                        $insertedSodtid = DB::table('trsodt')->insertGetId($row, 'ftrsodtid');
+                        $sodtObj = DB::table('trsodt')->where('ftrsodtid', $insertedSodtid)->first();
+
+                        // 2. INSERT Log Detail (Update)
+                        DB::table('log_trsodt')->insert([
+                            'ftrxlogid'    => $trxLogId,
+                            'ftrsodtid'    => $sodtObj->ftrsodtid,
+                            'fsono'        => $sodtObj->fsono,
+                            'fprdcode'     => $sodtObj->fprdcode,
+                            'fqty'         => $sodtObj->fqty,
+                            'fprice'       => $sodtObj->fprice,
+                            'fdiscpersen'  => $sodtObj->fdiscpersen,
+                            'fdiscount'    => $sodtObj->fdiscount,
+                            'famount'      => $sodtObj->famount,
+                            'fsatuan'      => $sodtObj->fsatuan,
+                            'fdesc'        => $sodtObj->fdesc,
+                            'fpricenet'    => $sodtObj->fpricenet,
+                            'fqtyremain'   => $sodtObj->fqtyremain,
+                            'fqtykecil'    => $sodtObj->fqtykecil,
+                            'fnoacak'      => $sodtObj->fnoacak,
+                            'feditmode'    => 'U',
+                            'fuseridlog'   => $userIdLog,
+                            'fdatetimelog' => $now,
+                        ]);
+                    }
+                }
+            });
+
+            $message = "Sales Order {$header->fsono} berhasil diupdate";
+            $isApprovedSo = (int) ($header->fapproval ?? 0) === 1 || (int) ($creditApproval['fapproval'] ?? 0) === 1;
+            $suratJalanUrl = (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue)
+                ? null
+                : route('suratjalan.create', ['sales_order_id' => $ftrsomtid]);
+
+            $successPrompt = $isApprovedSo ? [
+                'type' => 'salesorder_edit',
+                'redirect_url' => route('salesorder.print', $header->fsono),
+                'suratjalan_url' => $suratJalanUrl,
+            ] : ($suratJalanUrl ? [
+                'type' => 'salesorder_create_suratjalan',
+                'redirect_url' => $suratJalanUrl,
+            ] : null);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect_url' => route('salesorder.index'),
+                    'success_prompt' => $successPrompt,
+                ]);
+            }
+
+            $redirect = redirect()
+                ->route('salesorder.index')
+                ->with('success', $message);
+
+            if ($successPrompt) {
+                $redirect->with('success_prompt', $successPrompt);
+            }
+
+            return $redirect;
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
 
