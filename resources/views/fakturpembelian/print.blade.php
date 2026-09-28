@@ -1333,6 +1333,7 @@
                 s.sheet.querySelectorAll('.page-counter').forEach(el => {
                     el.innerText = `Hal : ${pageNum} / ${totalPages}`;
                 });
+            });
 
             // Re-index all rows globally 1..N
             let globalRow = 1;
