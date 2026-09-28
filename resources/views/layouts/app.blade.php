@@ -2311,6 +2311,13 @@
                 return `${draftPrefix}${window.location.pathname}:${action}`;
             }
 
+            function draftExcludedFields(form) {
+                return new Set((form.dataset.draftExcludeFields || '')
+                    .split(',')
+                    .map((name) => name.trim())
+                    .filter(Boolean));
+            }
+
             function readPendingKeys() {
                 try {
                     const raw = sessionStorage.getItem(pendingSubmitKey);
@@ -2379,9 +2386,10 @@
 
             function serializeForm(form) {
                 const data = {};
+                const excludedFields = draftExcludedFields(form);
 
                 form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {
-                    if (!field.name || field.disabled || field.type === 'file' || field.name === '_token') {
+                    if (!field.name || excludedFields.has(field.name) || field.disabled || field.type === 'file' || field.name === '_token') {
                         return;
                     }
 
@@ -2674,12 +2682,13 @@
 
             function restoreForm(form, savedDraft) {
                 const data = savedDraft && typeof savedDraft === 'object' ? savedDraft.values : null;
+                const excludedFields = draftExcludedFields(form);
                 if (!data || typeof data !== 'object') {
                     return;
                 }
 
                 form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {
-                    if (!field.name || !(field.name in data) || field.type === 'file' || field.name ===
+                    if (!field.name || excludedFields.has(field.name) || !(field.name in data) || field.type === 'file' || field.name ===
                         '_token') {
                         return;
                     }

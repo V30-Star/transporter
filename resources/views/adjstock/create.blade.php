@@ -340,7 +340,7 @@
                                 <div class="flex">
                                     <div class="relative flex-1" for="accountSelect">
                                         <select id="accountSelect"
-                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                             class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($accounts as $account)
@@ -375,7 +375,7 @@
                                 <div class="flex">
                                     <div class="relative flex-1" for="warehouseSelect">
                                         <select id="warehouseSelect"
-                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                             class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)

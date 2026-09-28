@@ -245,7 +245,7 @@
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
@@ -288,7 +288,7 @@
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                         class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)

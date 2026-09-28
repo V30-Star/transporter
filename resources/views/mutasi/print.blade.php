@@ -390,7 +390,7 @@
             
             <div class="summary-container">
                 {{-- Left: Signatures --}}
-                <div style="width: 32%;">
+                <div style="width: 40%;">
                     <table class="sign-table">
                         <tr>
                             <td>Dibuat Oleh</td>
@@ -404,7 +404,7 @@
                 </div>
 
                 {{-- Middle: Tot Qty --}}
-                <div style="width: 32%; padding: 0 8px;">
+                <div style="width: 26%; padding: 0 8px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
                         <tr>
                             <td style="padding: 1px 0; white-space: nowrap;">Total Qty</td>
@@ -415,7 +415,7 @@
                 </div>
 
                 {{-- Right: Total & Metadata --}}
-                <div style="width: 36%;" class="meta-right">
+                <div style="width: 34%;" class="meta-right">
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-weight: bold;">
                         <tr>
                             <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1.5px 0; white-space: nowrap;">Total</td>

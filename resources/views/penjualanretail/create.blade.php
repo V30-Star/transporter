@@ -250,6 +250,7 @@
     @endif
     <div>
         <form id="invoiceForm" action="{{ route('penjualanretail.store') }}" method="POST" data-form-draft="true"
+            data-draft-exclude-fields="fcustno,fsalesman"
             data-draft-key="penjualanretail:create" data-tranmtid="" x-data="{ showNoItems: false }"
             x-on:submit.prevent="window.validateAndSubmitInvoiceForm($el)">
             @csrf
@@ -353,7 +354,7 @@
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
@@ -371,7 +372,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                    value="{{ old('fcustno') }}">
+                                    value="{{ old('fcustno', $filterSupplierId) }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                     class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
@@ -414,7 +415,7 @@
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
@@ -429,7 +430,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                    value="{{ old('fsalesman') }}">
+                                    value="{{ old('fsalesman', $filterSalesmanId) }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                     class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"

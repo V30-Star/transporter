@@ -313,7 +313,7 @@
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelectFrom"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                         class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer border-gray-200"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)

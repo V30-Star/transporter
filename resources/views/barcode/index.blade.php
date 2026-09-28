@@ -184,11 +184,11 @@
                         <div class="bp-dim-row pt-2.5 mt-2.5 border-t border-[var(--app-border)]">
                             <div class="bp-dim-col">
                                 <label class="bp-label">Tinggi Barcode (px)</label>
-                                <input type="number" min="15" max="80" name="barcode_height" id="barcodeHeight" value="16" class="bp-input font-mono">
+                                <input type="number" min="15" max="80" name="barcode_height" id="barcodeHeight" value="24" class="bp-input font-mono">
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Ukuran Font (pt)</label>
-                                <input type="number" step="0.5" min="6" max="14" name="font_size" id="fontSize" value="7" class="bp-input font-mono">
+                                <input type="number" step="0.5" min="6" max="14" name="font_size" id="fontSize" value="8.5" class="bp-input font-mono">
                             </div>
                         </div>
                     </div>
@@ -1298,9 +1298,9 @@ let recentSettingsList = @json($recentSettings ?? []);
 
 // Preset definitions
 const presets = {
-    '33x15_3col': { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 16, fontS: 7 },
+    '33x15_3col': { width: 33, height: 15, cols: 3, gapX: 2, barcodeH: 24, fontS: 8.5 },
     '35x20_2col': { width: 35, height: 20, cols: 2, gapX: 2, barcodeH: 18, fontS: 7.5 },
-    '33x15_2col': { width: 33, height: 15, cols: 2, gapX: 2, barcodeH: 16, fontS: 7 },
+    '33x15_2col': { width: 33, height: 15, cols: 2, gapX: 2, barcodeH: 24, fontS: 8.5 },
     '40x30_1col': { width: 40, height: 30, cols: 1, gapX: 0, barcodeH: 28, fontS: 8 },
     '50x20_1col': { width: 50, height: 20, cols: 1, gapX: 0, barcodeH: 22, fontS: 8 },
     '50x30_1col': { width: 50, height: 30, cols: 1, gapX: 0, barcodeH: 30, fontS: 8.5 },
