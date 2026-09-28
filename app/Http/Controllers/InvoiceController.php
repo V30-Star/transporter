@@ -4085,8 +4085,7 @@ class InvoiceController extends Controller
                     ->where('d.fdk', 'K')
                     ->selectRaw('COALESCE(SUM(d.famount_rp), 0) as total')
                     ->value('total');
-                $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                $isTunai = $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
                 $amountRemain = $isTunai ? 0 : max($grandTotal - ($paidAmount + $journalPaidAmount), 0);
                 $amountRemainRp = $isTunai ? 0 : max(($grandTotal * $frate) - ($paidAmountRp + $journalPaidAmountRp), 0);
 
