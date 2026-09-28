@@ -3791,6 +3791,8 @@
                     } else if (source === 'SRJ') {
                         docNo = (header?.fstockmtno || '').trim();
                     }
+                    const invoiceNo = (header?.fsono || header?.fdisplayref || src.frefpr || src.fnouref || docNo || '')
+                        .toString().trim();
 
                     const row = {
                         uid: cryptoRandom(),
@@ -3803,9 +3805,9 @@
                         frefcode: source,
                         frefpr: (src.frefpr ?? header?.fsono ?? header?.fdisplayref ?? docNo ?? '')
                             .toString().trim(),
-                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? docNo : ((
-                            src.frefso || '').toString().trim())),
-                        frefsrj: source === 'SRJ' ? docNo : ((src.frefsrj || '').toString().trim()),
+                        frefso: source === 'SRJ' ? '' : (source === 'INV' ? invoiceNo : ((source === 'SO') ? docNo : ((
+                            src.frefso || '').toString().trim()))),
+                        frefsrj: source === 'SRJ' ? docNo : '',
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 

@@ -2831,10 +2831,12 @@
                     const documentNo = (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))
                         .toString()
                         .trim();
-                    const referenceNo = (src.frefpr ?? header?.fsono ?? header?.fdisplayref ?? documentNo ??
-                            '')
+                    const invoiceNo = (header?.fsono ?? header?.fdisplayref ?? src.frefpr ?? src.fnouref ?? documentNo)
                         .toString()
                         .trim();
+                    const referenceNo = (source === 'INV' ? invoiceNo : (src.frefpr ?? header?.fsono ?? header?.fdisplayref ?? documentNo ??
+                            '')
+                        .toString().trim());
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: itemcode,
@@ -2846,10 +2848,9 @@
                         frefpr: referenceNo,
                         frefcode: source,
 
-                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? (header
-                            ?.fsono ?? '') : ((src.frefso ?? '').toString().trim())),
-                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '')
-                            .toString().trim()),
+                        frefso: source === 'SRJ' ? '' : (source === 'INV' ? invoiceNo : ((source === 'SO') ? (header
+                            ?.fsono ?? '') : ((src.frefso ?? '').toString().trim()))),
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
