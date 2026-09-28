@@ -232,13 +232,13 @@
                                 @enderror
                             </div>
 
-                            {{-- Fax --}}
+                            {{-- No.WA --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Fax</label>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">No.WA</label>
                                 <input type="text" name="ffax" id="ffax"
                                     value="{{ old('ffax', $customer->ffax) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ffax') border-red-400 @enderror"
-                                    placeholder="Masukkan Nomor Fax">
+                                    placeholder="Masukkan Nomor WA">
                                 @error('ffax')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror

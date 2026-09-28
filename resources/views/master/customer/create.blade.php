@@ -367,9 +367,9 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Fax</label>
+                        <label class="block text-sm font-medium">No.WA</label>
                         <input type="text" class="w-full border rounded px-3 py-2 @error('ffax') is-invalid @enderror"
-                            name="ffax" id="ffax" placeholder="Masukkan Nomor Fax" value="{{ old('ffax') }}">
+                            name="ffax" id="ffax" placeholder="Masukkan Nomor WA" value="{{ old('ffax') }}">
                         @error('ffax')
                             <div class="invalid-feedback">
                                 {{ $message }}

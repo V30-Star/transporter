@@ -374,10 +374,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Fax</label>
+                        <label class="block text-sm font-medium">No.WA</label>
                         <input type="number" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('ffax') is-invalid @enderror"
-                            name="ffax" id="ffax" placeholder="Masukkan Nomor Fax"
+                            name="ffax" id="ffax" placeholder="Masukkan Nomor WA"
                             value="{{ old('ffax', $customer->ffax) }}">
                         @error('ffax')
                             <div class="invalid-feedback">
