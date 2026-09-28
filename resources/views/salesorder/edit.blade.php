@@ -246,7 +246,7 @@
                 ->values()
                 ->all();
     @endphp
-    @if ($usageLocked && !$isView)
+    @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
@@ -257,7 +257,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ 'Sales Order' }} {{ $isDelete ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
+                            {{ 'Sales Order' }} {{ $isDelete ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit/Dihapus' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5 whitespace-pre-line">{{ $usageLockMessage }}</p>
                     </div>

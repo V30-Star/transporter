@@ -1564,7 +1564,7 @@ class SalesOrderController extends Controller
         $this->ensureBranchAccess($salesorder->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
+            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
         }
 
         if (! $salesorder->customer) {
@@ -1577,7 +1577,7 @@ class SalesOrderController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('salesorder.edit', $salesorder->ftrsomtid)
+                ->route('salesorder.view', $salesorder->ftrsomtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1682,6 +1682,8 @@ class SalesOrderController extends Controller
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($salesorder->fbranchcode ?? null);
 
+        $usageLockMessage = $this->getUsageLockMessage($salesorder);
+
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
@@ -1735,6 +1737,8 @@ class SalesOrderController extends Controller
             'famountso' => (float) ($salesorder->famountso ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => ! empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'view',
             'canApproval' => $this->canApproveCreditLimit(),
         ]);
@@ -2156,7 +2160,7 @@ class SalesOrderController extends Controller
         }])->findOrFail($ftrsomtid);
 
         if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-            return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
+            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
         }
 
         if (! $salesorder->customer) {
@@ -2169,7 +2173,7 @@ class SalesOrderController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('salesorder.edit', $salesorder->ftrsomtid)
+                ->route('salesorder.view', $salesorder->ftrsomtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -2267,11 +2271,11 @@ class SalesOrderController extends Controller
             $this->ensureBranchAccess($salesorder->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
-                return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
+                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($salesorder)) {
-                return redirect()->route('salesorder.edit', $salesorder->ftrsomtid)->with('error', $message);
+                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             $userLogin = auth('sysuser')->user() ?? auth()->user();
@@ -2365,7 +2369,7 @@ class SalesOrderController extends Controller
                     'message' => 'Sales Order belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
                 ], 500);
             }
-            return redirect()->route('salesorder.edit', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
+            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
         }
     }
 
