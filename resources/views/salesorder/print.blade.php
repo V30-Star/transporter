@@ -1327,6 +1327,7 @@
                 const cell = tr.querySelector('.row-no');
                 if (cell) cell.innerText = globalRow++;
             });
+            });
         }
 
         // Run pagination on load
