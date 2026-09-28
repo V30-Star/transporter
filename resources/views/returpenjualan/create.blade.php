@@ -2043,6 +2043,8 @@
                 const isUM = String(it.fitemcode || '').toUpperCase().trim() === 'UM';
                 if (isUM) {
                     val = it.frefsrj || it.frefdtno || it.frefpr || it.fnouref || '';
+                } else if (it.frefcode === 'INV') {
+                    val = it.frefpr || it.frefso || it.fnouref || it.frefsrj || it.frefdtno || '';
                 } else {
                     val = it.frefsrj || it.frefso || it.frefpr || it.fnouref || '';
                     if (!val && ['INV', 'SRJ', 'SO', 'UM'].includes(it.frefcode)) {
