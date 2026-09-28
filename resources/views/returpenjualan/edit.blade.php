@@ -3752,6 +3752,7 @@
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
+                    const sourcePrice = Number(src.fprice ?? src.fharga ?? 0);
                     const meta = this.productMeta(itemcode);
                     const qtyAvail = (src.fqtyremain !== undefined && src.fqtyremain !== null && Number(src.fqtyremain) > 0)
                         ? Number(src.fqtyremain)
@@ -3809,10 +3810,11 @@
                         srj_qty: source === 'SRJ' ? refQty : 0,
                         fsono_qty: source === 'SO' ? refQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
-                        fprice: Number(src.fprice ?? src.fharga ?? 0),
-                        ref_price: Number(src.fprice ?? src.fharga ?? 0),
-                        maxprice: Number(src.fprice ?? src.fharga ?? 0),
-                        source_price: Number(src.fprice ?? src.fharga ?? 0),
+                        fprice: sourcePrice,
+                        fpriceInput: this.fmt(sourcePrice),
+                        ref_price: sourcePrice,
+                        maxprice: sourcePrice,
+                        source_price: sourcePrice,
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
@@ -3833,6 +3835,8 @@
                     };
 
                     this.hydrateRowFromMeta(row, this.productMeta(itemcode));
+                    row.fprice = sourcePrice;
+                    row.fpriceInput = this.fmt(sourcePrice);
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;

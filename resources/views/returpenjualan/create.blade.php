@@ -2815,6 +2815,7 @@
                 items.forEach(src => {
                     const sourceUnit = (src.fsatuan ?? '').toString().trim();
                     const itemcode = (src.fitemcode ?? '').toString().trim();
+                    const sourcePrice = Number(src.fprice ?? src.fharga ?? 0);
                     const meta = this.productMeta(itemcode);
                     const qtyAvail = (src.fqtyremain !== undefined && src.fqtyremain !== null && Number(src.fqtyremain) > 0)
                         ? Number(src.fqtyremain)
@@ -2855,10 +2856,11 @@
                         fsono_qty: source === 'SO' ? refQty : 0,
                         fqty: displayQty > 0 ? displayQty : 1,
                         fterima: Number(src.fterima ?? 0),
-                        fprice: Number(src.fprice ?? src.fharga ?? 0),
-                        ref_price: Number(src.fprice ?? src.fharga ?? 0),
-                        maxprice: Number(src.fprice ?? src.fharga ?? 0),
-                        source_price: Number(src.fprice ?? src.fharga ?? 0),
+                        fprice: sourcePrice,
+                        fpriceInput: this.fmt(sourcePrice),
+                        ref_price: sourcePrice,
+                        maxprice: sourcePrice,
+                        source_price: sourcePrice,
                         fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
@@ -2879,6 +2881,8 @@
                     };
 
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    row.fprice = sourcePrice;
+                    row.fpriceInput = this.fmt(sourcePrice);
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
