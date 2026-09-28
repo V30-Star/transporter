@@ -4187,7 +4187,9 @@ class InvoiceController extends Controller
                     'ftunai'           => $isTunai ? 1 : 0,
                     'fwhcode'          => mb_substr(trim((string) $request->input('fwhcode', '')), 0, 10) ?: null,
                     'fjatuhtempo'      => $fjatuhtempo,
-                    'fpembayaran'      => $request->has('fpembayaran') ? ($fpembayaran ? mb_substr($fpembayaran, 0, 30) : null) : ($header->fpembayaran ?? null),
+                    'fpembayaran'      => $this->getRoutePrefix() === 'penjualanretail' && ! $isTunai
+                        ? null
+                        : ($request->has('fpembayaran') ? ($fpembayaran ? mb_substr($fpembayaran, 0, 30) : null) : ($header->fpembayaran ?? null)),
                     'fongkosangkut'    => (float) $request->input('fongkosangkut', 0),
                 ];
 
