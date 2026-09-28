@@ -1496,6 +1496,8 @@ class InvoiceController extends Controller
                 'account.faccname',
             ]);
 
+        $isRetail = $this->getRoutePrefix() === 'penjualanretail';
+
         return view($this->getViewPrefix() . '.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
@@ -1509,8 +1511,8 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'defaultPpnTarif' => $this->getDefaultPpnTarif(),
             'priceFlags' => $this->invoicePriceFlags(),
-            'filterSupplierId' => $request->query('filter_supplier_id'),
-            'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'filterSupplierId' => $request->query('filter_supplier_id', $isRetail ? session('penjualanretail.last_customer') : null),
+            'filterSalesmanId' => $request->query('filter_salesman_id', $isRetail ? session('penjualanretail.last_salesman') : null),
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
@@ -2723,6 +2725,18 @@ class InvoiceController extends Controller
                     $cashAccount
                 );
             });
+
+            if ($this->getRoutePrefix() === 'penjualanretail') {
+                $customerCode = trim((string) $request->input('fcustno', ''));
+                $salesmanCode = trim((string) $request->input('fsalesman', ''));
+
+                $customerCode !== ''
+                    ? $request->session()->put('penjualanretail.last_customer', $customerCode)
+                    : $request->session()->forget('penjualanretail.last_customer');
+                $salesmanCode !== ''
+                    ? $request->session()->put('penjualanretail.last_salesman', $salesmanCode)
+                    : $request->session()->forget('penjualanretail.last_salesman');
+            }
 
             $suratjalanUrl = ($fprdoutVal === '0' && $this->canCreateSuratJalan())
                 ? route('suratjalan.create', ['invoice_id' => $ftranmtid])
