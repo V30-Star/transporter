@@ -1774,10 +1774,18 @@ class PenerimaanBarangController extends Controller
             $this->ensureBranchAccess($penerimaanbarang->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('penerimaanbarang.edit', $penerimaanbarang->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($penerimaanbarang)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('penerimaanbarang.index')->with('error', $message);
             }
 

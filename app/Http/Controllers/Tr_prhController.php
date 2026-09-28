@@ -959,10 +959,18 @@ class Tr_prhController extends Controller
             $this->ensureBranchAccess($tr_prh->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('tr_prh.edit', $tr_prh->fprhid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($tr_prh)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('tr_prh.index')->with('error', $message);
             }
 
@@ -1029,8 +1037,21 @@ class Tr_prhController extends Controller
                 $tr_prh->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Permintaan pembelian berhasil dihapus.',
+                    'redirect_url' => route('tr_prh.index'),
+                ]);
+            }
+
             return redirect()->route('tr_prh.index')->with('success', 'Permintaan pembelian berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Permintaan pembelian belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
+
             return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Permintaan pembelian belum bisa dihapus. Coba lagi.');
         }
     }

@@ -1641,9 +1641,17 @@ class AssemblingController extends Controller
         try {
             $assembling = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('assembling.edit', $assembling->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($assembling)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('assembling.index')->with('error', $message);
             }
             $oldRows = DB::table('trstockdt')

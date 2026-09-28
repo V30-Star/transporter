@@ -3524,10 +3524,18 @@ class FakturpembelianController extends Controller
             $this->ensureBranchAccess($fakturpembelian->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($fakturpembelian)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('fakturpembelian.index')->with('error', $message);
             }
 

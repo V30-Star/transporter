@@ -1608,9 +1608,17 @@ class AdjstockController extends Controller
         try {
             $adjstock = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stok ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('adjstock.edit', $adjstock->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($adjstock)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('adjstock.index')->with('error', $message);
             }
 

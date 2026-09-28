@@ -4547,6 +4547,10 @@ class InvoiceController extends Controller
             $this->ensureBranchAccess($invoice->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
             }
 

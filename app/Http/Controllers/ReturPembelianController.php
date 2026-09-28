@@ -2295,9 +2295,17 @@ class ReturPembelianController extends Controller
             $returpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             $this->ensureBranchAccess($returpembelian->fbranchcode);
             if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('returpembelian.edit', $returpembelian->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($returpembelian)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }
 

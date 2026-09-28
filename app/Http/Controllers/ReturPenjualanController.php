@@ -3699,9 +3699,17 @@ class ReturPenjualanController extends Controller
             $returHeader = Tranmt::findOrFail($ftranmtid);
             $this->ensureBranchAccess($returHeader->fbranchcode);
             if ($message = $this->getPostedPeriodLockMessage($returHeader->fsodate, 'Retur ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('returpenjualan.index')->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($returHeader)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('returpenjualan.index')->with('error', $message);
             }
             $stockMtNo = (string) $returHeader->fsono;

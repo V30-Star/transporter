@@ -1596,9 +1596,17 @@ class PemakaianbarangController extends Controller
         try {
             $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
             if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($pemakaianbarang)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('pemakaianbarang.index')->with('error', $message);
             }
 

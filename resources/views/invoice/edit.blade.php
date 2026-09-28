@@ -2190,7 +2190,15 @@
                             _method: 'DELETE'
                         })
                     })
-                    .then(response => response.json())
+                    .then(async response => {
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Gagal menghapus data.');
+                        }
+
+                        return data;
+                    })
                     .then(data => {
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
@@ -2203,7 +2211,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Gagal menghapus data.', false);
+                        showToast(error.message || 'Gagal menghapus data.', false);
                     });
             }
         </script>

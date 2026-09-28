@@ -2244,10 +2244,18 @@ class Tr_pohController extends Controller
             $this->ensureBranchAccess($tr_poh->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($tr_poh)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('tr_poh.index')->with('error', $message);
             }
 
@@ -2339,9 +2347,22 @@ class Tr_pohController extends Controller
                 $tr_poh->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Order pembelian berhasil dihapus.',
+                    'redirect_url' => route('tr_poh.index'),
+                ]);
+            }
+
             return redirect()->route('tr_poh.index')
                 ->with('success', 'Order pembelian berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Order pembelian belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
+
             return redirect()->back()->with('error', 'Order pembelian belum bisa dihapus. Coba lagi.');
         }
     }

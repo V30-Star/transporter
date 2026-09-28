@@ -1563,11 +1563,19 @@ class MutasiController extends Controller
             if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
                 DB::rollBack();
 
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('mutasi.edit', $fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid))) {
                 DB::rollBack();
+
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
 
                 return redirect()->route('mutasi.index')->with('error', $message);
             }

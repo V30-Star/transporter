@@ -2271,10 +2271,18 @@ class SalesOrderController extends Controller
             $this->ensureBranchAccess($salesorder->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($salesorder)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
