@@ -2375,6 +2375,22 @@ class SuratJalanController extends Controller
             ];
         }
 
+        if ($exceptStockMtNo !== null && trim($exceptStockMtNo) !== '') {
+            $currentUsage = DB::table('trstockdt')
+                ->where('fstockmtno', trim($exceptStockMtNo))
+                ->whereNotNull('frefso')
+                ->selectRaw("TRIM(frefso) as ref_doc, TRIM(fprdcode) as product_code, COALESCE(frefnoacak::text, '') as ref_noacak, SUM(COALESCE(fqtykecil, 0)) as qty_kecil")
+                ->groupByRaw("TRIM(frefso), TRIM(fprdcode), COALESCE(frefnoacak::text, '')")
+                ->get();
+
+            foreach ($currentUsage as $row) {
+                $key = $this->buildSoReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+                if (isset($stats[$key])) {
+                    $stats[$key]['remain_qty_kecil'] += (float) ($row->qty_kecil ?? 0);
+                }
+            }
+        }
+
         return $stats;
     }
 
