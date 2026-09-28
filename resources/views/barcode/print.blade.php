@@ -168,7 +168,7 @@
         }
 
         .item-name {
-            font-size: {{ $fontSize * 0.85 }}pt;
+            font-size: {{ $fontSize * 1.05 }}pt;
             font-weight: bold;
             color: #000;
             display: -webkit-box;
@@ -202,7 +202,7 @@
         }
 
         .item-price {
-            font-size: {{ $fontSize * 0.95 }}pt;
+            font-size: {{ $fontSize * 1.1 }}pt;
             font-weight: 400;
             color: #000;
             letter-spacing: -0.2px;
@@ -253,7 +253,7 @@
                                     jsbarcode-text="{{ $label['barcode'] ?: $label['code'] }}"
                                     jsbarcode-displayvalue="true"
                                     jsbarcode-width="1.1"
-                                    jsbarcode-height="{{ $labelHeight <= 21 ? min(18, (int)$barcodeHeight) : $barcodeHeight }}"
+                                     jsbarcode-height="{{ $labelHeight <= 21 ? min(24, (int)$barcodeHeight) : $barcodeHeight }}"
                                     jsbarcode-font="Arial"
                                     jsbarcode-fontoptions="bold"
                                     jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
