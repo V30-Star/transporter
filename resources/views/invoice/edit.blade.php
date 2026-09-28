@@ -1092,7 +1092,7 @@
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($customers as $customer)
@@ -1166,7 +1166,7 @@
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
+                                                class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($salesmans as $salesman)

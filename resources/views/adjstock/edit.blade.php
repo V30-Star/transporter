@@ -604,7 +604,7 @@
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="accountSelect"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed appearance-none"
+                                         class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer appearance-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
@@ -640,7 +640,7 @@
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
-                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed appearance-none"
+                                         class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-white text-gray-700 cursor-pointer appearance-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
