@@ -203,7 +203,7 @@
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                     const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));

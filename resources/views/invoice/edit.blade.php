@@ -296,7 +296,7 @@
             </div>
         </div>
     @endif
-    <div>
+    <div x-data="{ showNoItems: false }">
         @if ($action === 'delete')
             {{-- ─── CARD 1: Identitas (Delete/View) ──────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -512,11 +512,14 @@
                                 }
 
                                 // Event listeners
-                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+                                const fsodateEl = document.getElementById('fsodate');
+                                if (fsodateEl) {
+                                    fsodateEl.addEventListener('change', calculateDueDate);
+                                    document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                                if (!@json(old('fjatuhtempo') !== null)) {
-                                    calculateDueDate();
+                                    if (!@json(old('fjatuhtempo') !== null)) {
+                                        calculateDueDate();
+                                    }
                                 }
                             });
                         </script>
@@ -4118,7 +4121,7 @@
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
 
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                     const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));

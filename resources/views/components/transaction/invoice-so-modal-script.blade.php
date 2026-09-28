@@ -223,7 +223,7 @@
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                 const keyOf = (src) =>
-                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 

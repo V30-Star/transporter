@@ -2736,6 +2736,7 @@
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
+                    row.fqtyInput = this.fmt(row.fqty);
                     row.fpriceInput = this.fmt(row.fprice);
                     const nextRow = {
                         ...this.createRow(),
