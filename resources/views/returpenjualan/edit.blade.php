@@ -1151,11 +1151,12 @@
                                                         <template x-if="action !== 'view'">
                                                             <input type="text" inputmode="decimal"
                                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                                :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                                :id="'price_row_' + i" :value="it.fpriceInput || fmt(it.fprice)"
+                                                                x-init="it.fpriceInput = it.fpriceInput || fmt(it.fprice); $el.value = it.fpriceInput"
                                                                 :disabled="isPriceDisabled(it)"
                                                                 @focus="focusPriceInput(it); $event.target.select()"
-                                                                @input="onPriceInput(it); onRowUpdated(i)"
-                                                                @blur="blurPriceInput(it); onRowUpdated(i)"
+                                                                @input="it.fpriceInput = $event.target.value; onPriceInput(it); onRowUpdated(i)"
+                                                                @blur="it.fpriceInput = $event.target.value; blurPriceInput(it); onRowUpdated(i)"
                                                                 @keydown.enter.prevent="onRowUpdated(i)">
                                                         </template>
                                                     </td>
@@ -3650,7 +3651,8 @@
             isSRJRow(row) {
                 if (!row) return false;
                 if (String(row.fitemcode || '').toUpperCase().trim() === 'UM') return false;
-                return row.frefcode === 'SRJ' || String(row.frefsrj ?? '').trim() !== '';
+                return row.frefcode === 'SRJ' ||
+                    (row.frefcode !== 'INV' && String(row.frefsrj ?? '').trim() !== '');
             },
 
             ensureMinimumRows() {
@@ -3850,6 +3852,9 @@
                         ...row,
                         uid: cryptoRandom(),
                     };
+                    nextRow.fprice = sourcePrice;
+                    nextRow.fpriceInput = this.fmt(sourcePrice);
+                    this.recalc(nextRow);
                     nextRow.fqtyInput = this.formatQtyValue(nextRow.fqty ?? 0);
                     nextRow.fpriceInput = this.fmt(nextRow.fprice);
                     this.savedItems.push(nextRow);
