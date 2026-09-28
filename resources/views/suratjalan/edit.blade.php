@@ -339,10 +339,7 @@
                                                      <span class="ml-1.5 text-sm text-gray-700">Auto</span>
                                                  </label>
                                              </div>
-                                            <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
-                                                Gudang harus diisi dahulu sebelum Simpan.
-                                            </p>
-                                        </div>
+                                         </div>
 
                                         <div>
                                             <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Tanggal</label>
@@ -1410,21 +1407,10 @@
                 document.getElementById('deleteModal').classList.add('hidden');
             }
 
-            function closeToast() {
-                document.getElementById('toast').classList.add('hidden');
-            }
-
             function showToast(message, isSuccess = true) {
-                const toast = document.getElementById('toast');
-                const toastContent = document.getElementById('toastContent');
-                const toastMessage = document.getElementById('toastMessage');
-
-                toastMessage.textContent = message;
-                toastContent.className = isSuccess ?
-                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
-                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
-
-                toast.classList.remove('hidden');
+                window.showAppInfoAlert(isSuccess ? 'Berhasil' : 'Gagal', message, {
+                    confirmButtonText: 'Tutup'
+                });
             }
 
             function confirmDelete() {
@@ -1446,7 +1432,15 @@
                             _method: 'DELETE'
                         })
                     })
-                    .then(response => response.json())
+                    .then(async response => {
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Terjadi kesalahan saat hapus data.');
+                        }
+
+                        return data;
+                    })
                     .then(data => {
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus.', true);
@@ -1459,7 +1453,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat hapus data.', false);
+                        showToast(error.message || 'Terjadi kesalahan saat hapus data.', false);
                     });
             }
         </script>

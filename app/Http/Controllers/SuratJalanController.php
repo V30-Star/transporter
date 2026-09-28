@@ -2084,6 +2084,10 @@ class SuratJalanController extends Controller
             $this->ensureBranchAccess($suratjalan->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('suratjalan.edit', $suratjalan->fstockmtid)->with('error', $message);
             }
 
@@ -2095,6 +2099,10 @@ class SuratJalanController extends Controller
                 ->all();
 
             if ($message = $this->getUsageLockMessage($suratjalan)) {
+                if (request()->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
                 return redirect()->route('suratjalan.index')->with('error', $message);
             }
 
