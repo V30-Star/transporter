@@ -489,7 +489,7 @@
                     </tr>
                     <tr>
                         <td style="width: 27%; color: #000; text-align: left !important; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ $r->fprdcode ?? '-' }}</td>
-                        <td class="text-right" style="width: 18%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ number_format($r->fqty ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right" style="width: 18%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ number_format($r->fqty ?? 0, 0, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
                         <td class="text-right" style="width: 25%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;">{{ number_format($r->fprice ?? 0, 0, ',', '.') }}</td>
                         <td class="text-right" style="width: 30%; color: #000; font-weight: bold; padding: 1.5px 2px; line-height: 1.15;" colspan="3">{{ number_format($r->famount ?? 0, 0, ',', '.') }}</td>
                     </tr>
