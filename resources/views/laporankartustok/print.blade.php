@@ -160,19 +160,19 @@
             line-height: 1.2;
         }
 
-        .rekap-mutasi { grid-column: 5 / 7; }
+        .rekap-mutasi { grid-column: 5 / 7; padding-left: 15mm; }
         .rekap-saldo-akhir { grid-column: 7; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
-        .rekap-masuk { grid-column: 5; grid-row: 2; text-align: center; }
-        .rekap-keluar { grid-column: 6; grid-row: 2; text-align: center; }
+        .rekap-masuk { grid-column: 5; grid-row: 2; text-align: right; }
+        .rekap-keluar { grid-column: 6; grid-row: 2; text-align: right; }
         .rekap-col-1 { grid-column: 1; justify-content: center; text-align: center; }
         .rekap-col-2 { grid-column: 2; justify-content: flex-start; text-align: left; }
         .rekap-col-3 { grid-column: 3; justify-content: flex-start; text-align: left; }
         .rekap-col-satuan { grid-column: 4; grid-row: 1 / span 2; justify-content: flex-start; text-align: left; }
 
-        .detail-mutasi { grid-column: 7 / 9; }
+        .detail-mutasi { grid-column: 7 / 9; padding-left: 13mm; }
         .detail-saldo-akhir { grid-column: 9; grid-row: 1 / span 2; justify-content: flex-end; text-align: right; }
-        .detail-masuk { grid-column: 7; grid-row: 2; text-align: center; }
-        .detail-keluar { grid-column: 8; grid-row: 2; text-align: center; }
+        .detail-masuk { grid-column: 7; grid-row: 2; text-align: right; }
+        .detail-keluar { grid-column: 8; grid-row: 2; text-align: right; }
         .detail-col-1 { grid-column: 1; justify-content: flex-start; text-align: left; }
         .detail-col-2 { grid-column: 2; justify-content: center; text-align: center; }
         .detail-col-3 { grid-column: 3; justify-content: center; text-align: center; }
