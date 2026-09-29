@@ -192,10 +192,24 @@ class MutasiController extends Controller
                     'wt.fwhcode as to_warehouse_name',
                 ]);
 
+            $mutationNumbers = $records->pluck('fstockmtno')->filter()->values()->all();
+            $usageMap = empty($mutationNumbers) ? collect() : DB::table('trstockdt')
+                ->where(function ($query) use ($mutationNumbers) {
+                    $query->whereIn('frefdtno', $mutationNumbers)->orWhereIn('frefso', $mutationNumbers);
+                })
+                ->where('fstockmtcode', '<>', 'MUT')
+                ->select('frefdtno', 'frefso', 'fstockmtno')
+                ->get()
+                ->flatMap(fn ($item) => collect([$item->frefdtno, $item->frefso])->filter()->map(fn ($reference) => [$reference, $item->fstockmtno]))
+                ->groupBy(fn ($item) => $item[0])
+                ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
+
             // Format Data (Tombol dibuat di sini)
-            $data = $records->map(function ($row) {
+            $data = $records->map(function ($row) use ($usageMap) {
 
                 $actions = '';
+                $usageReferences = $usageMap->get($row->fstockmtno, []);
+                $usageJson = e(json_encode($usageReferences));
 
                 // --- Tombol view ---
                 // if ($canView) {
@@ -212,7 +226,9 @@ class MutasiController extends Controller
                 // if ($canEdit) {
                 // Asumsi route edit Anda: mutasi.edit
                 $editUrl = route('mutasi.edit', $row->fstockmtid);
-                $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                $actions .= $usageReferences
+                    ? '<button type="button" data-usage="' . $usageJson . '" onclick="showMutasiUsageLocked(JSON.parse(this.dataset.usage), \'edit\')" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">Edit</button>'
+                    : ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> Edit
@@ -223,7 +239,9 @@ class MutasiController extends Controller
                 // if ($canDelete) {
                 // Asumsi route destroy Anda: mutasi.destroy
                 $deleteUrl = route('mutasi.delete', $row->fstockmtid);
-                $actions .= '<a href="' . $deleteUrl . '">
+                $actions .= $usageReferences
+                    ? '<button type="button" data-usage="' . $usageJson . '" onclick="showMutasiUsageLocked(JSON.parse(this.dataset.usage), \'delete\')" class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">Hapus</button>'
+                    : '<a href="' . $deleteUrl . '">
                 <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -244,6 +262,8 @@ class MutasiController extends Controller
                     'fket' => trim((string) ($row->fket ?? '')),
                     'fusercreate' => trim((string) ($row->fusercreate ?? '')),
                     'actions' => $actions,
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -976,7 +996,7 @@ class MutasiController extends Controller
             ->filter(fn($wh) => trim((string) ($wh->fbranchcode ?? '')) === $fromWarehouseBranch)
             ->values();
 
-        $usageLockMessage = $this->getUsageLockMessage($mutasi);
+        $usageLockMessage = $this->getUsageLockMessage($mutasi, 'edit');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -1126,7 +1146,7 @@ class MutasiController extends Controller
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Mutasi ini')) {
                 return redirect()->route('mutasi.edit', $header->fstockmtid)->with('error', $message);
             }
-            if ($message = $this->getUsageLockMessage($header)) {
+            if ($message = $this->getUsageLockMessage($header, 'edit')) {
                 return redirect()->route('mutasi.index')->with('error', $message);
             }
 
@@ -1446,7 +1466,7 @@ class MutasiController extends Controller
             ->filter(fn($wh) => trim((string) ($wh->fbranchcode ?? '')) === $fromWarehouseBranch)
             ->values();
 
-        $usageLockMessage = $this->getUsageLockMessage($mutasi);
+        $usageLockMessage = $this->getUsageLockMessage($mutasi, 'delete');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -1570,7 +1590,7 @@ class MutasiController extends Controller
                 return redirect()->route('mutasi.edit', $fstockmtid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid))) {
+            if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid), 'delete')) {
                 DB::rollBack();
 
                 if (request()->expectsJson()) {
@@ -1718,7 +1738,7 @@ class MutasiController extends Controller
         }
     }
 
-    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header, string $action = 'edit'): ?string
     {
         $usedBy = DB::table('trstockdt')
             ->where('fstockmtno', '<>', $header->fstockmtno)
@@ -1735,7 +1755,10 @@ class MutasiController extends Controller
             return null;
         }
 
-        return 'Mutasi stock ' . $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Mutasi stok sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function buildMutasiReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string

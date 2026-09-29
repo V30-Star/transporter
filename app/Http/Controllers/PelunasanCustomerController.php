@@ -35,6 +35,8 @@ class PelunasanCustomerController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.fgiromundur',
+                'trkasmt.fstatusgiro',
                 DB::raw("
                     COALESCE(
                         NULLIF(concat_ws(' - ', trkasmt.faccountheader, acc.faccname), ''),
@@ -67,6 +69,8 @@ class PelunasanCustomerController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.fgiromundur',
+                'trkasmt.fstatusgiro',
                 'trkasmt.famountpay',
                 'trkasmt.faccountheader',
                 'acc.faccname'
@@ -74,6 +78,16 @@ class PelunasanCustomerController extends Controller
             ->orderByDesc('trkasmt.fkasmtdate')
             ->orderByDesc('trkasmt.fkasmtid')
             ->get();
+
+        $records = $records->map(function ($record) {
+            $record->is_giro_locked = (string) ($record->fgiromundur ?? '0') === '1'
+                && (string) ($record->fstatusgiro ?? '0') === '1';
+            $record->giro_lock_message = $record->is_giro_locked
+                ? "Pelunasan customer ini tidak boleh diedit atau dihapus\nGiro mundur sudah cair"
+                : null;
+
+            return $record;
+        });
 
         return view('pelunasancustomer.index', [
             'records' => $records,
@@ -112,7 +126,7 @@ class PelunasanCustomerController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'edit')) {
             return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
         }
 
@@ -131,7 +145,7 @@ class PelunasanCustomerController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'delete')) {
             return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
         }
 
@@ -509,7 +523,7 @@ class PelunasanCustomerController extends Controller
         try {
             $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'edit')) {
             return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
         }
         $isGiroMundur = $request->boolean('fgiromundur');
@@ -817,7 +831,7 @@ class PelunasanCustomerController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'delete')) {
             return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
         }
 

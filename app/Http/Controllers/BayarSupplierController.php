@@ -31,6 +31,8 @@ class BayarSupplierController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.fgiromundur',
+                'trkasmt.fstatusgiro',
                 DB::raw("COALESCE(NULLIF(concat_ws(' - ', trkasmt.faccountheader, acc.faccname), ''), '-') as account_summary"),
                 DB::raw("COALESCE(string_agg(DISTINCT NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), '')), '-') as pbl_summary"),
                 DB::raw("COALESCE(NULLIF(TRIM(trkasmt.fwhom), ''), '-') as supplier_name"),
@@ -42,6 +44,8 @@ class BayarSupplierController extends Controller
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fuserid',
+                'trkasmt.fgiromundur',
+                'trkasmt.fstatusgiro',
                 'trkasmt.fwhom',
                 'trkasmt.famountpay',
                 'trkasmt.faccountheader',
@@ -50,6 +54,16 @@ class BayarSupplierController extends Controller
             ->orderByDesc('trkasmt.fkasmtdate')
             ->orderByDesc('trkasmt.fkasmtid')
             ->get();
+
+        $records = $records->map(function ($record) {
+            $record->is_giro_locked = (string) ($record->fgiromundur ?? '0') === '1'
+                && (string) ($record->fstatusgiro ?? '0') === '1';
+            $record->giro_lock_message = $record->is_giro_locked
+                ? "Bayar supplier ini tidak boleh diedit atau dihapus\nGiro mundur sudah cair"
+                : null;
+
+            return $record;
+        });
 
         return view('bayarsupplier.index', [
             'records' => $records,
@@ -88,7 +102,7 @@ class BayarSupplierController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'edit')) {
             return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
         }
 
@@ -107,7 +121,7 @@ class BayarSupplierController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'delete')) {
             return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
         }
 
@@ -457,7 +471,7 @@ class BayarSupplierController extends Controller
         try {
             $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'edit')) {
             return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
         }
         $isGiroMundur = $request->boolean('fgiromundur');
@@ -821,7 +835,7 @@ class BayarSupplierController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
-        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'delete')) {
             return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
         }
 

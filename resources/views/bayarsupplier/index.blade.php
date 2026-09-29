@@ -72,14 +72,30 @@
                                     class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                     <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ 'View' }}
                                 </a>
-                                <a href="{{ route('bayarsupplier.edit', $record->fkasmtno) }}"
+                                @if ($record->is_giro_locked)
+                                    <button type="button"
+                                        onclick='showBayarSupplierLocked(@json($record->giro_lock_message), "edit")'
+                                        class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ 'Edit' }}
+                                    </button>
+                                @else
+                                    <a href="{{ route('bayarsupplier.edit', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                     <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ 'Edit' }}
-                                </a>
-                                <a href="{{ route('bayarsupplier.delete', $record->fkasmtno) }}"
+                                    </a>
+                                @endif
+                                @if ($record->is_giro_locked)
+                                    <button type="button"
+                                        onclick='showBayarSupplierLocked(@json($record->giro_lock_message), "delete")'
+                                        class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                        <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ 'Hapus' }}
+                                    </button>
+                                @else
+                                    <a href="{{ route('bayarsupplier.delete', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                     <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ 'Hapus' }}
-                                </a>
+                                    </a>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -136,6 +152,16 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
+        window.showBayarSupplierLocked = function(message, action) {
+            const actionText = action === 'delete' ? 'dihapus' : 'diedit';
+            const text = String(message || `Bayar supplier ini tidak boleh ${actionText}`);
+            if (typeof window.showAppWarningAlert === 'function') {
+                window.showAppWarningAlert('Warning', text);
+                return;
+            }
+            alert(text);
+        };
+
         $(function() {
             const filterState = {
                 year: '',

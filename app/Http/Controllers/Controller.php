@@ -242,10 +242,12 @@ abstract class Controller
         return "Information\n{$subject} tidak dapat di-Edit/Delete.\nPeriode (" . Carbon::parse($date)->format('d-m-Y') . ") sudah di posting !!!";
     }
 
-    protected function getClearedGiroLockMessage($header, string $subject = 'Transaksi ini'): ?string
+    protected function getClearedGiroLockMessage($header, string $subject = 'Transaksi ini', string $action = 'edit'): ?string
     {
         if ((string) ($header->fgiromundur ?? '0') === '1' && (string) ($header->fstatusgiro ?? '0') === '1') {
-            return "Information\n{$subject} tidak dapat di-Edit/Delete.\nGiro mundur sudah cair !!!";
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+
+        return "{$subject} tidak boleh {$actionText}\nGiro mundur sudah cair";
         }
 
         return null;
