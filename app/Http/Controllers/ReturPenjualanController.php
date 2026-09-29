@@ -1814,7 +1814,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => 'REJ',
+                'frefcode' => $isUM ? 'UM' : ($refSrjDoc !== '' ? 'SRJ' : ($refSoDoc !== '' ? 'INV' : '')),
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1980,7 +1980,6 @@ class ReturPenjualanController extends Controller
 
                 foreach ($detailRows as &$row) {
                     $row['fsono'] = $fsono;
-                    $row['frefcode'] = 'REJ';
                 }
                 unset($row);
 
@@ -3178,7 +3177,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => 'REJ',
+                'frefcode' => $isUM ? 'UM' : ($refSrjDoc !== '' ? 'SRJ' : ($refSoDoc !== '' ? 'INV' : '')),
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
