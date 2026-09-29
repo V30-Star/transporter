@@ -41,8 +41,11 @@
                         </label>
                         <input type="text" name="fmastername" id="fmastername"
                             value="{{ old('fmastername', $typePembayaran->fmastername) }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmastername') border-red-400 @enderror"
-                            maxlength="50" placeholder="cth. TUNAI, TRANSFER BCA, QRIS" autofocus>
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmastername') border-red-400 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : '' }}"
+                            maxlength="50" placeholder="cth. TUNAI, TRANSFER BCA, QRIS" {{ !empty($isTransactionLocked) ? 'readonly' : 'autofocus' }}>
+                        @if (!empty($isTransactionLocked))
+                            <p class="text-[11px] text-amber-600 mt-1 font-medium">Nama type pembayaran dikunci karena sudah dipakai di transaksi.</p>
+                        @endif
                         @error('fmastername')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror

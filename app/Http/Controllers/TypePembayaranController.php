@@ -128,8 +128,9 @@ class TypePembayaranController extends Controller
 
         $typePembayaran = TypePembayaran::where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
         $accounts = $this->getKasbankAccounts();
+        $isTransactionLocked = $this->hasUsage($typePembayaran);
 
-        return view('typepembayaran.edit', compact('typePembayaran', 'accounts'));
+        return view('typepembayaran.edit', compact('typePembayaran', 'accounts', 'isTransactionLocked'));
     }
 
     public function view($id)
@@ -158,6 +159,13 @@ class TypePembayaranController extends Controller
             'fmastername' => strtoupper(trim((string) $request->fmastername)),
             'fnote1' => trim((string) ($request->fnote1 ?? $request->faccount)),
         ]);
+
+        if ($this->hasUsage($typePembayaran)) {
+            if ($request->fmastername !== strtoupper(trim((string) $typePembayaran->fmastername))) {
+                return redirect()->back()->withInput()->withErrors(['fmastername' => 'Nama Type Pembayaran tidak bisa diubah karena sudah dipakai di transaksi.']);
+            }
+            $request->merge(['fmastername' => $typePembayaran->fmastername]);
+        }
 
         $validated = $request->validate([
             'ftblcode' => 'required|string',
@@ -200,6 +208,12 @@ class TypePembayaranController extends Controller
 
         $typePembayaran = TypePembayaran::with('account')->where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
 
+        if ($this->hasUsage($typePembayaran)) {
+            return redirect()
+                ->route('typepembayaran.index')
+                ->with('error', 'Type Pembayaran ' . $typePembayaran->fmastername . ' tidak bisa dihapus. Sudah dipakai di transaksi.');
+        }
+
         return view('typepembayaran.delete', compact('typePembayaran'));
     }
 
@@ -220,6 +234,17 @@ class TypePembayaranController extends Controller
 
         try {
             $typePembayaran = TypePembayaran::where('ftblcode', 'TYPEBAYAR')->findOrFail($id);
+
+            if ($this->hasUsage($typePembayaran)) {
+                $message = 'Type Pembayaran ' . $typePembayaran->fmastername . ' tidak bisa dihapus. Sudah dipakai di transaksi.';
+
+                if (request()->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->route('typepembayaran.index')->with('error', $message);
+            }
+
             $typePembayaran->delete();
 
             if (request()->expectsJson()) {
@@ -245,5 +270,13 @@ class TypePembayaranController extends Controller
                 ->route('typepembayaran.index')
                 ->with('error', 'Gagal menghapus Type Pembayaran: ' . $e->getMessage());
         }
+    }
+
+    /** Type pembayaran dipakai faktur (tranmt.fpembayaran menyimpan nama type). */
+    private function hasUsage(TypePembayaran $typePembayaran): bool
+    {
+        $name = strtoupper(trim((string) $typePembayaran->fmastername));
+
+        return $name !== '' && DB::table('tranmt')->whereRaw('UPPER(TRIM(fpembayaran)) = ?', [$name])->exists();
     }
 }

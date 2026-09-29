@@ -29,8 +29,11 @@
                             </label>
                             <input type="text" name="fmerekcode" id="fmerekcode"
                                 value="{{ old('fmerekcode', $merek->fmerekcode) }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmerekcode') border-red-400 @enderror"
-                                maxlength="10" placeholder="cth. MRK-001">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fmerekcode') border-red-400 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : '' }}"
+                                maxlength="10" placeholder="cth. MRK-001" {{ !empty($isTransactionLocked) ? 'readonly' : '' }}>
+                            @if (!empty($isTransactionLocked))
+                                <p class="text-[11px] text-amber-600 mt-1 font-medium">Kode merek dikunci karena sudah direferensi di produk.</p>
+                            @endif
                             @error('fmerekcode')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror

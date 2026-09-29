@@ -94,6 +94,7 @@ class SatuanController extends Controller
 
         return view('satuan.edit', [
             'satuan' => $satuan,
+            'isTransactionLocked' => $this->hasUsage($satuan),
             'action' => 'edit',
         ]);
     }
@@ -118,6 +119,14 @@ class SatuanController extends Controller
         }
 
         try {
+            $existing = Satuan::findOrFail($fsatuanid);
+            if ($this->hasUsage($existing)) {
+                if (strtoupper(trim((string) $request->input('fsatuancode', $existing->fsatuancode))) !== strtoupper(trim((string) $existing->fsatuancode))) {
+                    return redirect()->back()->withInput()->withErrors(['fsatuancode' => 'Kode satuan tidak bisa diubah karena sudah direferensi di produk atau transaksi.']);
+                }
+                $request->merge(['fsatuancode' => $existing->fsatuancode]);
+            }
+
             $validated = $request->validate(
                 [
                     'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
@@ -183,6 +192,12 @@ class SatuanController extends Controller
 
         $satuan = Satuan::findOrFail($fsatuanid);
 
+        if ($this->hasUsage($satuan)) {
+            return redirect()
+                ->route('satuan.index')
+                ->with('error', 'Satuan ' . $satuan->fsatuancode . ' tidak bisa dihapus. Sudah direferensi di produk atau transaksi.');
+        }
+
         return view('satuan.delete', [
             'satuan' => $satuan,
         ]);
@@ -206,14 +221,10 @@ class SatuanController extends Controller
         try {
             $satuan = Satuan::findOrFail($fsatuanid);
 
-            if (\Illuminate\Support\Facades\DB::table('msprd')
-                ->where('fsatuankecil', $satuan->fsatuancode)
-                ->orWhere('fsatuanbesar', $satuan->fsatuancode)
-                ->exists()
-            ) {
+            if ($this->hasUsage($satuan)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Satuan tidak bisa dihapus. Sudah direferensi di produk.',
+                    'message' => 'Satuan tidak bisa dihapus. Sudah direferensi di produk atau transaksi.',
                 ], 422);
             }
 
@@ -247,5 +258,33 @@ class SatuanController extends Controller
                 'message' => 'Satuan belum bisa dihapus. Coba lagi.',
             ], 500);
         }
+    }
+
+    /** Satuan dipakai di produk (3 kolom satuan) atau di detail transaksi (fsatuan). */
+    private function hasUsage(Satuan $satuan): bool
+    {
+        $code = strtoupper(trim((string) $satuan->fsatuancode));
+        if ($code === '') {
+            return false;
+        }
+
+        $columns = [
+            'msprd' => ['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'],
+            'trstockdt' => ['fsatuan'],
+            'trandt' => ['fsatuan'],
+            'trsodt' => ['fsatuan'],
+            'tr_pod' => ['fsatuan'],
+            'tr_prd' => ['fsatuan'],
+        ];
+
+        foreach ($columns as $table => $tableColumns) {
+            foreach ($tableColumns as $column) {
+                if (\Illuminate\Support\Facades\DB::table($table)->whereRaw("UPPER(TRIM(CAST({$column} AS TEXT))) = ?", [$code])->exists()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

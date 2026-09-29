@@ -79,6 +79,7 @@ class SubaccountController extends Controller
 
         return view('subaccount.edit', [
             'subaccount' => $subaccount,
+            'isTransactionLocked' => $this->isUsedInTransaction($subaccount),
             'action' => 'edit',
         ]);
     }
@@ -95,6 +96,14 @@ class SubaccountController extends Controller
     public function update(Request $request, $fsubaccountid)
     {
         try {
+            $existing = Subaccount::findOrFail($fsubaccountid);
+            if ($this->isUsedInTransaction($existing)) {
+                if (strtoupper(trim((string) $request->input('fsubaccountcode', $existing->fsubaccountcode))) !== strtoupper(trim((string) $existing->fsubaccountcode))) {
+                    return redirect()->back()->withInput()->withErrors(['fsubaccountcode' => 'Kode subaccount tidak bisa diubah karena sudah direferensi di transaksi.']);
+                }
+                $request->merge(['fsubaccountcode' => $existing->fsubaccountcode]);
+            }
+
             $validated = $request->validate(
                 [
                     'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",

@@ -91,6 +91,7 @@ class CurrencyController extends Controller
 
         return view('currency.edit', [
             'currency' => $currency,
+            'isTransactionLocked' => $this->hasUsage($currency),
             'action' => 'edit',
         ]);
     }
@@ -115,6 +116,14 @@ class CurrencyController extends Controller
         }
 
         try {
+            $existing = Currency::findOrFail($fcurrid);
+            if ($this->hasUsage($existing)) {
+                if (strtoupper(trim((string) $request->input('fcurrcode', $existing->fcurrcode))) !== strtoupper(trim((string) $existing->fcurrcode))) {
+                    return redirect()->back()->withInput()->withErrors(['fcurrcode' => 'Kode currency tidak bisa diubah karena sudah direferensi di transaksi.']);
+                }
+                $request->merge(['fcurrcode' => $existing->fcurrcode]);
+            }
+
             $request->merge([
                 'fcurrname' => strtoupper($request->fcurrname),
                 'fcurrcode' => strtoupper($request->fcurrcode),
@@ -187,6 +196,12 @@ class CurrencyController extends Controller
 
         $currency = Currency::findOrFail($fcurrid);
 
+        if ($this->hasUsage($currency)) {
+            return redirect()
+                ->route('currency.index')
+                ->with('error', 'Currency ' . $currency->fcurrcode . ' tidak bisa dihapus. Sudah direferensi.');
+        }
+
         return view('currency.delete', [
             'currency' => $currency,
         ]);
@@ -249,26 +264,25 @@ class CurrencyController extends Controller
 
     private function hasUsage(Currency $currency): bool
     {
-        $currencyId = $currency->fcurrid;
         $currencyCode = strtoupper(trim((string) $currency->fcurrcode));
-
-        if (! empty($currencyId) && DB::table('tr_poh')->where('fcurrency', $currencyId)->exists()) {
-            return true;
-        }
 
         if ($currencyCode === '') {
             return false;
         }
 
+        // semua tabel ini menyimpan KODE currency (bukan id)
         $codeReferencedTables = [
+            'tr_poh' => 'fcurrency',
             'trstockmt' => 'fcurrency',
             'tranmt' => 'fcurrency',
+            'trsisadp_pembelian' => 'fcurrency',
             'account' => 'fcurrency',
             'mscustomer' => 'fcurr',
+            'mssupplier' => 'fcurr',
         ];
 
         foreach ($codeReferencedTables as $table => $column) {
-            if (DB::table($table)->where($column, $currencyCode)->exists()) {
+            if (DB::table($table)->whereRaw("UPPER(TRIM(CAST({$column} AS TEXT))) = ?", [$currencyCode])->exists()) {
                 return true;
             }
         }

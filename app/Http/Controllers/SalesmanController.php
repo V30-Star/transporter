@@ -312,7 +312,15 @@ class SalesmanController extends Controller
 
     private function hasTransactionUsage(Salesman $salesman): bool
     {
-        return DB::table('mscustomer')->where('fsalesman', $salesman->fsalesmanid)->exists();
+        $code = strtoupper(trim((string) $salesman->fsalesmancode));
+
+        return DB::table('mscustomer')->where('fsalesman', $salesman->fsalesmanid)->exists()
+            || DB::table('sysuser')->whereRaw('CAST(fsalesman AS TEXT) = ?', [(string) $salesman->fsalesmanid])->exists()
+            || ($code !== '' && (
+                DB::table('trsomt')->whereRaw('UPPER(TRIM(CAST(fsalesman AS TEXT))) = ?', [$code])->exists()
+                || DB::table('tranmt')->whereRaw('UPPER(TRIM(CAST(fsalesman AS TEXT))) = ?', [$code])->exists()
+                || DB::table('trstockmt')->whereRaw('UPPER(TRIM(CAST(fsalesman AS TEXT))) = ?', [$code])->exists()
+            ));
     }
 
     private function getUsageLockMessage(Salesman $salesman): ?string

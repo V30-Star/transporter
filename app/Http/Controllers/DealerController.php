@@ -99,6 +99,7 @@ class DealerController extends Controller
 
         return view('dealer.edit', [
             'dealer' => $dealer,
+            'isTransactionLocked' => $this->hasUsage($dealer),
             'action' => 'edit',
         ]);
     }
@@ -123,6 +124,14 @@ class DealerController extends Controller
         }
 
         try {
+            $existing = Dealer::findOrFail($fdealerid);
+            if ($this->hasUsage($existing)) {
+                if (strtoupper(trim((string) $request->input('fdealercode', $existing->fdealercode))) !== strtoupper(trim((string) $existing->fdealercode))) {
+                    return redirect()->back()->withInput()->withErrors(['fdealercode' => 'Kode dealer tidak bisa diubah karena sudah direferensi di produk.']);
+                }
+                $request->merge(['fdealercode' => $existing->fdealercode]);
+            }
+
             $request->merge([
                 'fdealercode' => strtoupper($request->fdealercode),
             ]);
@@ -192,6 +201,12 @@ class DealerController extends Controller
 
         $dealer = Dealer::findOrFail($fdealerid);
 
+        if ($this->hasUsage($dealer)) {
+            return redirect()
+                ->route('dealer.index')
+                ->with('error', 'Dealer ' . $dealer->fdealername . ' tidak bisa dihapus. Sudah direferensi di produk.');
+        }
+
         return view('dealer.delete', [
             'dealer' => $dealer,
         ]);
@@ -214,6 +229,14 @@ class DealerController extends Controller
 
         try {
             $dealer = Dealer::findOrFail($fdealerid);
+
+            if ($this->hasUsage($dealer)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dealer tidak bisa dihapus. Sudah direferensi di produk.',
+                ], 422);
+            }
+
             $userLogin = auth('sysuser')->user();
 
             DB::table('logdealer')->insert([
@@ -243,6 +266,14 @@ class DealerController extends Controller
                 'message' => 'Dealer belum bisa dihapus. Coba lagi.',
             ], 500);
         }
+    }
+
+    /** Dealer dipakai produk (msprd.fdealer menyimpan kode dealer). */
+    private function hasUsage(Dealer $dealer): bool
+    {
+        $code = strtoupper(trim((string) $dealer->fdealercode));
+
+        return $code !== '' && DB::table('msprd')->whereRaw('UPPER(TRIM(fdealer)) = ?', [$code])->exists();
     }
 
     public function browse(Request $request)

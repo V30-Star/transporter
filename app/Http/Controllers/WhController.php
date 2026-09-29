@@ -400,7 +400,8 @@ class WhController extends Controller
         }
 
         return DB::table('trstockmt')->where('ffrom', $warehouseCode)->exists()
-            || DB::table('trstockmt')->where('fto', $warehouseCode)->exists();
+            || DB::table('trstockmt')->where('fto', $warehouseCode)->exists()
+            || DB::table('tranmt')->whereRaw('TRIM(fwhcode) = ?', [$warehouseCode])->exists();
     }
 
     private function getUsageLockMessage(Wh $gudang): ?string

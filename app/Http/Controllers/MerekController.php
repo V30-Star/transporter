@@ -100,6 +100,7 @@ class MerekController extends Controller
 
         return view('merek.edit', [
             'merek' => $merek,
+            'isTransactionLocked' => $this->hasUsage($merek),
             'action' => 'edit',
         ]);
     }
@@ -124,6 +125,14 @@ class MerekController extends Controller
         }
 
         try {
+            $existing = Merek::findOrFail($fmerekid);
+            if ($this->hasUsage($existing)) {
+                if (strtoupper(trim((string) $request->input('fmerekcode', $existing->fmerekcode))) !== strtoupper(trim((string) $existing->fmerekcode))) {
+                    return redirect()->back()->withInput()->withErrors(['fmerekcode' => 'Kode merek tidak bisa diubah karena sudah direferensi di produk.']);
+                }
+                $request->merge(['fmerekcode' => $existing->fmerekcode]);
+            }
+
             $request->merge([
                 'fmerekcode' => strtoupper($request->fmerekcode),
             ]);
@@ -215,7 +224,7 @@ class MerekController extends Controller
         try {
             $merek = Merek::findOrFail($fmerekid);
 
-            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekcode)->exists()) {
+            if ($this->hasUsage($merek)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Merek tidak bisa dihapus. Sudah direferensi di produk.',
@@ -298,5 +307,13 @@ class MerekController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    /** Merek dipakai produk (msprd.fmerek menyimpan kode merek). */
+    private function hasUsage(Merek $merek): bool
+    {
+        $code = strtoupper(trim((string) $merek->fmerekcode));
+
+        return $code !== '' && \Illuminate\Support\Facades\DB::table('msprd')->whereRaw('UPPER(TRIM(fmerek)) = ?', [$code])->exists();
     }
 }

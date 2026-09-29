@@ -88,6 +88,7 @@ class GroupcustomerController extends Controller
 
         return view('groupcustomer.edit', [
             'groupcustomer' => $groupcustomer,
+            'isTransactionLocked' => $this->hasUsage($groupcustomer),
             'action' => 'edit',
         ]);
     }
@@ -112,6 +113,14 @@ class GroupcustomerController extends Controller
         }
 
         try {
+            $existing = Groupcustomer::findOrFail($fgroupid);
+            if ($this->hasUsage($existing)) {
+                if (strtoupper(trim((string) $request->input('fgroupcode', $existing->fgroupcode))) !== strtoupper(trim((string) $existing->fgroupcode))) {
+                    return redirect()->back()->withInput()->withErrors(['fgroupcode' => 'Kode group tidak bisa diubah karena sudah direferensi di customer.']);
+                }
+                $request->merge(['fgroupcode' => $existing->fgroupcode]);
+            }
+
             $request->merge([
                 'fgroupcode' => strtoupper($request->fgroupcode),
             ]);
@@ -200,7 +209,7 @@ class GroupcustomerController extends Controller
         try {
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists()) {
+            if ($this->hasUsage($groupcustomer)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Group customer tidak bisa dihapus. Sudah direferensi di customer.',
@@ -237,5 +246,11 @@ class GroupcustomerController extends Controller
                 'message' => 'Group customer belum bisa dihapus. Coba lagi.',
             ], 500);
         }
+    }
+
+    /** Group customer dipakai customer (mscustomer.fgroup menyimpan id group). */
+    private function hasUsage(Groupcustomer $groupcustomer): bool
+    {
+        return \Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists();
     }
 }
