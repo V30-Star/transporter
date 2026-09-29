@@ -181,7 +181,11 @@ class AdjstockController extends Controller
                 ]);
 
             // Format Data - HANYA RETURN DATA MENTAH
-            $data = $records->map(function ($row) {
+            $usageMap = $this->getUsageReferencesMap($records->pluck('fstockmtno')->filter()->values()->all());
+
+            $data = $records->map(function ($row) use ($usageMap) {
+                $usageReferences = $usageMap->get($row->fstockmtno, []);
+
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fcabang' => $row->fbranchcode,
@@ -193,6 +197,8 @@ class AdjstockController extends Controller
                     'fgudang' => trim((string) ($row->fwhname ?? '')),
                     'fket' => trim((string) ($row->fket ?? '')),
                     'fapproval' => trim((string) ($row->fapproval ?? '')),
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -1753,6 +1759,25 @@ class AdjstockController extends Controller
             }
             return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Adjustment stock belum bisa dihapus. Coba lagi.');
         }
+    }
+
+    /** Dokumen stok lain yang mereferensi tiap nomor. Query sama dengan getUsageLockMessage, tapi per halaman. */
+    private function getUsageReferencesMap(array $numbers)
+    {
+        if (empty($numbers)) {
+            return collect();
+        }
+
+        return DB::table('trstockdt')
+            ->where(fn ($query) => $query->whereIn('frefdtno', $numbers)->orWhereIn('frefso', $numbers))
+            ->select('frefdtno', 'frefso', 'fstockmtno')
+            ->get()
+            ->flatMap(fn ($item) => collect([$item->frefdtno, $item->frefso])
+                ->filter()->unique()
+                ->reject(fn ($reference) => $reference === $item->fstockmtno)
+                ->map(fn ($reference) => [$reference, $item->fstockmtno]))
+            ->groupBy(0)
+            ->map(fn ($items) => $items->pluck(1)->unique()->sort()->values()->all());
     }
 
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string

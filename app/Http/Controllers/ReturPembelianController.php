@@ -223,7 +223,9 @@ class ReturPembelianController extends Controller
                 })
                 ->select('frefdtno', 'frefso', 'fstockmtno')
                 ->get()
-                ->flatMap(fn ($item) => collect([$item->frefdtno, $item->frefso])->filter()->map(fn ($reference) => [$reference, $item->fstockmtno]))
+                ->flatMap(fn ($item) => collect([$item->frefdtno, $item->frefso])->filter()
+                    ->reject(fn ($reference) => $reference === $item->fstockmtno)
+                    ->map(fn ($reference) => [$reference, $item->fstockmtno]))
                 ->groupBy(fn ($item) => $item[0])
                 ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
 

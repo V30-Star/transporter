@@ -575,7 +575,11 @@ class SalesOrderController extends Controller
                 ->take($length)
                 ->get();
 
-            $data = $records->map(function ($row) {
+            $usageMap = $this->getUsageReferencesMap($records->pluck('fsono')->filter()->values()->all());
+
+            $data = $records->map(function ($row) use ($usageMap) {
+                $usageReferences = $usageMap->get($row->fsono, []);
+
                 return [
                     'ftrsomtid' => $row->ftrsomtid,
                     'fbranchcode' => $row->fbranchcode,
@@ -608,6 +612,8 @@ class SalesOrderController extends Controller
                     'ftempohr' => $row->ftempohr,
                     'fprint' => $row->fprint,
                     'fapproval' => $row->fapproval,
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -2576,6 +2582,42 @@ class SalesOrderController extends Controller
         }
 
         return "SO ini tidak boleh diedit/delete.\n    Sudah direferensi di :\n" . implode("\n", $formattedLines);
+    }
+
+    /** Referensi SO per nomor: SRJ, Faktur, Retur. Query sama dengan getUsageLockMessage, tapi per halaman. */
+    private function getUsageReferencesMap(array $soNumbers)
+    {
+        if (empty($soNumbers)) {
+            return collect();
+        }
+
+        $srj = DB::table('trstockdt as dt')
+            ->join('trstockmt as mt', 'mt.fstockmtno', '=', 'dt.fstockmtno')
+            ->where('mt.fstockmtcode', 'SRJ')
+            ->whereIn('dt.frefso', $soNumbers)
+            ->select('dt.frefso', 'mt.fstockmtno as ref')
+            ->distinct()
+            ->get();
+
+        $codeInit = strtoupper(trim((string) DB::table('setini')->value('finitinvoice')) ?: 'INV');
+        $salesDocs = DB::table('trandt as dt')
+            ->join('tranmt as mt', 'mt.fsono', '=', 'dt.fsono')
+            ->whereIn('dt.frefso', $soNumbers)
+            ->select('dt.frefso', 'mt.fsono as ref')
+            ->distinct()
+            ->get()
+            ->filter(function ($item) use ($codeInit) {
+                $no = strtoupper((string) $item->ref);
+                return str_starts_with($no, $codeInit . '.') || str_starts_with($no, $codeInit . '/')
+                    || str_starts_with($no, 'INV.') || str_starts_with($no, 'INV/')
+                    || preg_match('/^(REJ|RUJ)\./i', $no);
+            });
+
+        return $srj->concat($salesDocs)
+            ->groupBy('frefso')
+            ->map(fn ($items) => $items->pluck('ref')
+                ->map(fn ($no) => $this->formatDisplayTransactionNumber((string) $no, false))
+                ->unique()->sort()->values()->all());
     }
 
     private function resolveSalesmanCode($primaryValue, $fallbackValue = null): ?string

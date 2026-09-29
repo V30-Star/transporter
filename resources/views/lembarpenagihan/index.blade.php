@@ -57,6 +57,17 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
+        window.showTagihanUsageLocked = function(references, action) {
+            const actionText = action === 'delete' ? 'dihapus' : 'diedit';
+            const lines = (Array.isArray(references) ? references : []).map((reference, index) => `${index + 1}. ${reference}`).join('\n');
+            const message = `Lembar penagihan sudah direferensikan\n${lines}\nTidak boleh ${actionText}`;
+            if (typeof window.showAppWarningAlert === 'function') {
+                window.showAppWarningAlert('Warning', message, { confirmButtonText: 'Tutup' });
+                return;
+            }
+            alert(message);
+        };
+
         document.addEventListener('alpine:init', () => {
             Alpine.store('tagihanStore', {
                 showCreateLimitModal: @js(session('create_limit_exceeded', false)),

@@ -452,6 +452,20 @@
                 window.showAppInfoAlert('INFORMATION', message);
             };
 
+            window.showSoUsageLocked = function(references, action) {
+                const actionText = action === 'delete' ? 'dihapus' : 'diedit';
+                const list = Array.isArray(references) ? references : [];
+                const lines = list.map((reference, index) => `${index + 1}. ${reference}`).join('\n');
+                const message = `Sales Order sudah direferensikan\n${lines}\nTidak boleh ${actionText}`;
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Warning', message, {
+                        confirmButtonText: 'Tutup'
+                    });
+                    return;
+                }
+                alert(message);
+            };
+
             // 1. Definisi Kolom
             // 1. Definisi Kolom
             const columns = [{
@@ -536,7 +550,14 @@
                         }
 
                         if (canEdit) {
-                            if (editBlocked) {
+                            if (row.has_usage_reference) {
+                                html += `<button type="button" data-usage='${JSON.stringify(row.usage_references || []).replace(/'/g, '&#39;')}' onclick="showSoUsageLocked(JSON.parse(this.getAttribute('data-usage')), 'edit')" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                {{ 'Edit' }}
+                            </button>`;
+                            } else if (editBlocked) {
                                 html += `<button type="button" onclick="showSoApprovalLocked()" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -553,7 +574,14 @@
                             }
                         }
 
-                        if (canDelete) {
+                        if (canDelete && row.has_usage_reference) {
+                            html += `<button type="button" data-usage='${JSON.stringify(row.usage_references || []).replace(/'/g, '&#39;')}' onclick="showSoUsageLocked(JSON.parse(this.getAttribute('data-usage')), 'delete')" class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                {{ 'Hapus' }}
+                            </button>`;
+                        } else if (canDelete) {
                             let deleteUrl = '{{ route('salesorder.index') }}/' + data + '/delete';
                             html += `<a href="${deleteUrl}">
                                 <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">

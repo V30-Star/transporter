@@ -1057,7 +1057,7 @@ class JurnalTransaksiController extends Controller
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($jurnaltransaksi->fbranchcode ?? null);
         if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
-            return redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
+            return redirect()->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
         }
         $selectedSupplierCode = null;
 
@@ -1249,7 +1249,7 @@ class JurnalTransaksiController extends Controller
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fjurnaldate, 'Jurnal ini')) {
-            return redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($header->fjurnaltype))->with('error', $message);
+            return redirect()->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($header->fjurnaltype))->with('error', $message);
         }
 
         $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
@@ -1520,7 +1520,7 @@ class JurnalTransaksiController extends Controller
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($jurnaltransaksi->fbranchcode ?? null);
         if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
-            return redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
+            return redirect()->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
         }
         $selectedSupplierCode = null;
 
@@ -1597,7 +1597,7 @@ class JurnalTransaksiController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
+                return redirect()->route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
             }
 
             DB::transaction(function () use ($fstockmtid) {

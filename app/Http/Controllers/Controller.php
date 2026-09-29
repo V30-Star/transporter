@@ -253,6 +253,24 @@ abstract class Controller
         return null;
     }
 
+    /** fsudahtagih = '1' jika faktur ada di Lembar Penagihan dan sudah lunas, selain itu '0'. */
+    protected function syncSudahTagih(array $fsonos): void
+    {
+        $fsonos = array_values(array_unique(array_filter(array_map(fn ($no) => trim((string) $no), $fsonos))));
+        if (empty($fsonos)) {
+            return;
+        }
+
+        $inTagihan = DB::table('trtagihandt')->whereIn('frefsono', $fsonos)->pluck('frefsono')
+            ->map(fn ($no) => trim((string) $no))->flip();
+
+        foreach (DB::table('tranmt')->whereIn('fsono', $fsonos)->get(['fsono', 'famountremain']) as $invoice) {
+            $lunas = $invoice->famountremain !== null && (float) $invoice->famountremain == 0.0;
+            DB::table('tranmt')->where('fsono', $invoice->fsono)
+                ->update(['fsudahtagih' => ($lunas && $inTagihan->has(trim((string) $invoice->fsono))) ? '1' : '0']);
+        }
+    }
+
     protected function stockMinusAllowsForce(): bool
     {
         return stock_boleh_minus();

@@ -299,8 +299,11 @@ class SuratJalanController extends Controller
                     DB::raw("COALESCE(so_refs.so_refs, '') as so_refs"),
                 ]);
 
-            $data = $records->map(function ($row) {
+            $usageMap = $this->getUsageReferencesMap($records->pluck('fstockmtno')->filter()->values()->all());
+
+            $data = $records->map(function ($row) use ($usageMap) {
                 $warehouseCode = trim((string) ($row->ffrom ?? ''));
+                $usageReferences = $usageMap->get($row->fstockmtno, []);
 
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -313,6 +316,8 @@ class SuratJalanController extends Controller
                     'fgudang' => $warehouseCode,
                     'fcustomername' => (string) ($row->customer_name ?? ''),
                     'fusercreate' => (string) ($row->fusercreate ?? ''),
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -2269,6 +2274,26 @@ class SuratJalanController extends Controller
             })
             ->orderBy('ftrsodtid')
             ->first(['ftrsodtid', 'fsatuan', 'fqty', 'fqtykecil']);
+    }
+
+    /** Referensi SRJ per nomor: Faktur, Retur. Query sama dengan getUsageLockMessage, tapi per halaman. */
+    private function getUsageReferencesMap(array $srjNumbers)
+    {
+        if (empty($srjNumbers)) {
+            return collect();
+        }
+
+        return DB::table('trandt as dt')
+            ->join('tranmt as mt', 'mt.fsono', '=', 'dt.fsono')
+            ->whereIn('dt.frefsrj', $srjNumbers)
+            ->select('dt.frefsrj', 'mt.fsono as ref')
+            ->distinct()
+            ->get()
+            ->filter(fn ($item) => $this->isInvoiceReferenceDoc((string) $item->ref) || preg_match('/^(REJ|RUJ)\./i', (string) $item->ref))
+            ->groupBy('frefsrj')
+            ->map(fn ($items) => $items->pluck('ref')
+                ->map(fn ($no) => $this->formatDisplayTransactionNumber((string) $no, false))
+                ->unique()->sort()->values()->all());
     }
 
     private function isInvoiceReferenceDoc(string $docNo): bool

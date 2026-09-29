@@ -294,6 +294,17 @@
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
 
     <script>
+        window.showAssemblingUsageLocked = function(references, action) {
+            const actionText = action === 'delete' ? 'dihapus' : 'diedit';
+            const lines = (Array.isArray(references) ? references : []).map((reference, index) => `${index + 1}. ${reference}`).join('\n');
+            const message = `Assembling sudah direferensikan\n${lines}\nTidak boleh ${actionText}`;
+            if (typeof window.showAppWarningAlert === 'function') {
+                window.showAppWarningAlert('Warning', message);
+                return;
+            }
+            alert(message);
+        };
+
         $(function() {
             // Ambil dari Blade untuk menentukan jumlah kolom
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};

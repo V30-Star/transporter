@@ -56,6 +56,8 @@ class LembarPenagihanController extends Controller
                 ->take((int) $request->input('length', 10))
                 ->get();
 
+            $usageMap = $this->getUsageReferencesMap($records->pluck('ftagihanno')->map(fn ($no) => trim((string) $no))->filter()->values()->all());
+
             return response()->json([
                 'draw' => (int) $request->input('draw'),
                 'recordsTotal' => $totalRecords,
@@ -69,10 +71,13 @@ class LembarPenagihanController extends Controller
                     'fcustomername' => trim((string) $row->fcustomername),
                     'famounttagihan' => (float) $row->famounttagihan,
                     'fnote' => trim((string) $row->fnote),
+                    'usage_references' => $usageMap->get(trim((string) $row->ftagihanno), []),
+                    'has_usage_reference' => ! empty($usageMap->get(trim((string) $row->ftagihanno), [])),
                     'actions' => view('lembarpenagihan.partials.actions', [
                         'row' => $row,
                         'canEdit' => $canEdit,
                         'canDelete' => $canDelete,
+                        'usageReferences' => $usageMap->get(trim((string) $row->ftagihanno), []),
                     ])->render(),
                 ]),
             ]);
@@ -232,6 +237,7 @@ class LembarPenagihanController extends Controller
                 'fprint' => 0,
             ]);
             $this->replaceDetails($tagihanNo, $data, $userId);
+            $this->syncSudahTagih($data['frefsono'] ?? []);
         });
 
         if (request()->expectsJson()) {
@@ -253,8 +259,56 @@ class LembarPenagihanController extends Controller
             ]);
     }
 
+    /** Faktur berflag fsudahtagih='1' (sudah di LP dan lunas) di tiap LP. */
+    private function getUsageReferencesMap(array $tagihanNos)
+    {
+        if (empty($tagihanNos)) {
+            return collect();
+        }
+
+        return DB::table('trtagihandt as d')
+            ->join('tranmt as i', 'i.fsono', '=', 'd.frefsono')
+            ->whereIn('d.ftagihanno', $tagihanNos)
+            ->where('i.fsudahtagih', '1')
+            ->select('d.ftagihanno', 'i.fsono')
+            ->distinct()
+            ->get()
+            ->groupBy(fn ($row) => trim((string) $row->ftagihanno))
+            ->map(fn ($items) => $items->pluck('fsono')->map(fn ($no) => trim((string) $no))->unique()->sort()->values()->all());
+    }
+
+    private function getUsageLockMessage(string $tagihanNo, string $action = 'edit'): ?string
+    {
+        $references = $this->getUsageReferencesMap([$tagihanNo])->get($tagihanNo, []);
+        if (empty($references)) {
+            return null;
+        }
+
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $lines = collect($references)->map(fn ($ref, $i) => ($i + 1) . '. ' . $ref)->implode("\n");
+
+        return "Lembar penagihan sudah direferensikan\n{$lines}\nTidak boleh {$actionText}";
+    }
+
+    private function usageLockResponse(int $id, string $action)
+    {
+        $tagihanNo = trim((string) DB::table('trtagihanmt')->where('ftagihanid', $id)->value('ftagihanno'));
+        $message = $this->getUsageLockMessage($tagihanNo, $action);
+        if (! $message) {
+            return null;
+        }
+
+        return request()->expectsJson()
+            ? response()->json(['message' => $message], 422)
+            : redirect()->route('lembarpenagihan.index')->with('error', $message);
+    }
+
     public function edit(int $id)
     {
+        if ($locked = $this->usageLockResponse($id, 'edit')) {
+            return $locked;
+        }
+
         return view('lembarpenagihan.edit', $this->formData($id, 'edit'));
     }
 
@@ -265,12 +319,20 @@ class LembarPenagihanController extends Controller
 
     public function delete(int $id)
     {
+        if ($locked = $this->usageLockResponse($id, 'delete')) {
+            return $locked;
+        }
+
         return view('lembarpenagihan.delete', $this->formData($id, 'delete'));
     }
 
     public function update(Request $request, int $id)
     {
         try {
+            if ($locked = $this->usageLockResponse($id, 'edit')) {
+                return $locked;
+            }
+
             $data = $this->validatedData($request, $id);
         $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
         $tagihanNo = trim((string) $header->ftagihanno);
@@ -336,10 +398,12 @@ class LembarPenagihanController extends Controller
             ]);
 
             // 3. Delete Detail Lama
+            $oldRefs = DB::table('trtagihandt')->where('ftagihanno', $tagihanNo)->pluck('frefsono')->all();
             DB::table('trtagihandt')->where('ftagihanno', $tagihanNo)->delete();
 
             // 4. Insert Detail Baru & Log Detail
             $this->replaceDetailsWithLog($tagihanNo, $data, $userId, $trxLogId, 'U', $userIdLog, $now);
+            $this->syncSudahTagih(array_merge($oldRefs, $data['frefsono'] ?? []));
         });
 
         $successMessage = "Lembar penagihan {$tagihanNo} berhasil diupdate.";
@@ -385,7 +449,11 @@ class LembarPenagihanController extends Controller
 
     public function destroy(int $id)
     {
-        $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
+        if ($locked = $this->usageLockResponse($id, 'delete')) {
+            return $locked;
+        }
+
+        $header =$this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();
         $userIdLog = $userLogin->fuserid ?? $userLogin->fsysuserid ?? 'SYSTEM';
@@ -435,6 +503,7 @@ class LembarPenagihanController extends Controller
             // 3. Delete Detail & Header
             DB::table('trtagihandt')->where('ftagihanno', $header->ftagihanno)->delete();
             DB::table('trtagihanmt')->where('ftagihanid', $id)->delete();
+            $this->syncSudahTagih($details->pluck('frefsono')->all());
         });
 
         if (request()->expectsJson()) {

@@ -969,6 +969,8 @@ class PelunasanCustomerController extends Controller
                 ->where('fsono', $fsono)
                 ->update(['famountremain' => $newRemain]);
         }
+
+        $this->syncSudahTagih($refNos);
     }
 
     private function filterEmptyDetailRows(array $details): array
