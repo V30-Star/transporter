@@ -119,17 +119,31 @@ class LaporanKartuStokController extends Controller
 
     private function movementTotalSubquery(string $whcode, Request $request, ?string $dateFrom, ?string $dateTo, string $direction)
     {
-        $query = $this->movementBaseQuery($whcode, $request, $direction)
-            ->selectRaw('d.fprdcode, SUM(COALESCE(d.fqtykecil, d.fqty, 0)) as qty')
-            ->groupBy('d.fprdcode');
+        $qty = 'COALESCE(d.fqtykecil, d.fqty, 0)';
+        $stock = $this->applyMovementDates(
+            $this->movementBaseQuery($whcode, $request, $direction)->selectRaw("d.fprdcode, {$qty} as qty"),
+            'm.fstockmtdate', $dateFrom, $dateTo
+        );
 
+        if ($direction === 'out') {
+            // faktur retail/cash (tanpa Surat Jalan) mengurangi stok langsung
+            $stock->unionAll($this->applyMovementDates(
+                $this->retailBaseQuery($whcode, $request)->selectRaw("d.fprdcode, {$qty} as qty"),
+                'm.fsodate', $dateFrom, $dateTo
+            ));
+        }
+
+        return DB::query()->fromSub($stock, 'mv')->selectRaw('fprdcode, SUM(qty) as qty')->groupBy('fprdcode');
+    }
+
+    private function applyMovementDates($query, string $col, ?string $dateFrom, ?string $dateTo)
+    {
         if (! empty($dateFrom) && ! empty($dateTo)) {
-            $query->where('m.fstockmtdate', '>=', $dateFrom)
-                ->where('m.fstockmtdate', '<=', $dateTo . ' 23:59:59');
+            $query->where($col, '>=', $dateFrom)->where($col, '<=', $dateTo . ' 23:59:59');
         } elseif (! empty($dateTo)) {
-            $query->where('m.fstockmtdate', '<', $dateTo);
+            $query->where($col, '<', $dateTo);
         } elseif (! empty($dateFrom)) {
-            $query->where('m.fstockmtdate', '>=', $dateFrom);
+            $query->where($col, '>=', $dateFrom);
         }
 
         return $query;
@@ -237,12 +251,21 @@ class LaporanKartuStokController extends Controller
         $out = $this->movementDetailQuery($whcode, $request, $dateFrom, $dateTo, 'out')
             ->selectRaw("d.fprdcode, p.fprdname, p.fspecification, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.fstockmtid, m.fstockmtno as fstockmt, m.fstockmtcode, m.fstockmtdate as fstockdate, m.frefno, COALESCE(s.fsuppliername, c.fcustomername, m.fsupplier, m.fket, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
 
+        // faktur retail/cash (tanpa Surat Jalan): keluar langsung dari gudang faktur
+        $retail = $this->retailBaseQuery($whcode, $request)
+            ->where('m.fsodate', '>=', $dateFrom)
+            ->where('m.fsodate', '<=', $dateTo . ' 23:59:59')
+            ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
+            ->selectRaw("d.fprdcode, p.fprdname, p.fspecification, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, COALESCE(CAST(NULLIF(p.fqtykecil::text,'') AS NUMERIC), 1) as qtykecil, COALESCE(CAST(NULLIF(p.fqtykecil2::text,'') AS NUMERIC), 1) as qtykecil2, m.ftranmtid as fstockmtid, m.fsono as fstockmt, 'INV' as fstockmtcode, m.fsodate as fstockdate, '' as frefno, COALESCE(c.fcustomername, m.fcustno, '') as fsuppliername, COALESCE(NULLIF(TRIM(p.fsatuanbesar2), ''), NULLIF(TRIM(p.fsatuanbesar), ''), p.fsatuankecil) as fsatuan, 0 as qtymasukkecil, COALESCE(d.fqtykecil,d.fqty,0) as qtykeluarkecil");
+
         $inSql = $in->toSql();
         $outSql = $out->toSql();
+        $retailSql = $retail->toSql();
 
-        return DB::table(DB::raw("({$inSql} UNION ALL {$outSql}) as u"))
+        return DB::table(DB::raw("({$inSql} UNION ALL {$outSql} UNION ALL {$retailSql}) as u"))
             ->mergeBindings($in)
             ->mergeBindings($out)
+            ->mergeBindings($retail)
             ->orderBy('fprdcode')
             ->orderBy('fstockdate');
     }
@@ -293,14 +316,44 @@ class LaporanKartuStokController extends Controller
                 $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['BUY', 'TER', 'REJ', 'RUJ'])->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->whereIn('m.fstockmtcode', ['MUT', 'PRD'])->where('m.fto', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'CAB')->where('m.ftrancode', 'M')->where('m.fto', $whcode))
-                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'M')->where('m.ffrom', $whcode));
+                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'M')->where('m.ffrom', $whcode))
+                    // Assembling: barang jadi masuk (gudang disimpan di ffrom, fto kosong)
+                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'LHP')->where('d.fcode', 'J')->where('m.ffrom', $whcode));
             });
         } else {
             $query->where(function ($q) use ($whcode) {
                 $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['SRJ', 'PBR', 'REB', 'RUB', 'MUT'])->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'CAB')->where('m.ftrancode', 'K')->where('m.ffrom', $whcode))
-                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'K')->where('m.ffrom', $whcode));
+                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'K')->where('m.ffrom', $whcode))
+                    // Assembling: bahan baku keluar
+                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'LHP')->where('d.fcode', 'B')->where('m.ffrom', $whcode));
             });
+        }
+
+        $this->applyProductFilters($query, $request, 'p');
+
+        return $query;
+    }
+
+    /** Faktur retail/cash: baris faktur tanpa referensi Surat Jalan mengurangi stok gudang faktur. */
+    private function retailBaseQuery(string $whcode, Request $request)
+    {
+        $query = DB::table('tranmt as m')
+            ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
+            ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
+            ->where('m.ftrcode', 'INV')
+            ->where('m.fgrosir', '0')
+            ->whereRaw("COALESCE(TRIM(d.frefsrj), '') = ''")
+            ->whereRaw('TRIM(m.fwhcode) = ?', [$whcode])
+            ->where('p.ftype', 'Produk')
+            ->whereNotIn('p.fprdcode', ['UM', 'AWAL'])
+            ->whereNotIn('d.fprdcode', ['UM', 'AWAL']);
+
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
+
+        $branches = array_values(array_filter((array) $request->input('branch_codes', [])));
+        if ($branches !== []) {
+            $query->whereIn('m.fbranchcode', $branches);
         }
 
         $this->applyProductFilters($query, $request, 'p');
