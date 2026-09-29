@@ -281,7 +281,33 @@ class ReturPenjualanController extends Controller
                 ->take($length)
                 ->get();
 
-            $data = $records->map(function ($row) {
+            $allFsono = $records->pluck('fsono')->filter()->all();
+            $allVariants = [];
+            foreach ($allFsono as $no) {
+                $no = trim((string) $no);
+                $allVariants[] = $no;
+                $allVariants[] = str_replace('.', '/', $no);
+                $allVariants[] = str_replace('/', '.', $no);
+            }
+            $allVariants = array_values(array_unique(array_filter($allVariants)));
+
+            $pelunasanMap = empty($allVariants) ? collect() : DB::table('trkasdt')
+                ->where('ftrancode', 'RCP')
+                ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+                ->whereIn(DB::raw("TRIM(COALESCE(frefno, ''))"), $allVariants)
+                ->select('frefno', 'fkasmtno')
+                ->get()
+                ->groupBy(function ($item) {
+                    return str_replace(['/', '.'], '', trim((string) $item->frefno));
+                })
+                ->map(function ($items) {
+                    return $items->pluck('fkasmtno')->filter()->unique()->values()->implode(', ');
+                });
+
+            $data = $records->map(function ($row) use ($pelunasanMap) {
+                $normalizedFsono = str_replace(['/', '.'], '', trim((string) ($row->fsono ?? '')));
+                $pelunasanNo = (string) ($pelunasanMap->get($normalizedFsono, ''));
+
                 return [
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => $row->fbranchcode,
@@ -298,6 +324,8 @@ class ReturPenjualanController extends Controller
                     'fket' => $row->fket ?? '',
                     'fusercreate' => $row->fuserid ?? '',
                     'fclose' => $row->fclose ?? '0',
+                    'fpelunasan' => $pelunasanNo,
+                    'has_pelunasan' => $pelunasanNo !== '',
                 ];
             });
 
@@ -2545,7 +2573,7 @@ class ReturPenjualanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpenjualan.edit', $returpenjualan->ftranmtid)
+                ->route('returpenjualan.index')
                 ->with('error', $usageLockMessage);
         }
 
@@ -3601,7 +3629,7 @@ class ReturPenjualanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpenjualan.edit', $returpenjualan->ftranmtid)
+                ->route('returpenjualan.index')
                 ->with('error', $usageLockMessage);
         }
 
@@ -3976,6 +4004,31 @@ class ReturPenjualanController extends Controller
 
     private function getUsageLockMessage($header): ?string
     {
+        $fsono = trim((string) ($header->fsono ?? ''));
+        if ($fsono === '') {
+            return null;
+        }
+
+        $variants = array_values(array_unique([
+            $fsono,
+            str_replace('.', '/', $fsono),
+            str_replace('/', '.', $fsono),
+        ]));
+
+        $pelunasanList = DB::table('trkasdt')
+            ->where('ftrancode', 'RCP')
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->whereIn(DB::raw('TRIM(COALESCE(frefno, \'\'))'), $variants)
+            ->pluck('fkasmtno')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (! empty($pelunasanList)) {
+            return 'Retur ini sudah ada Pelunasan (' . implode(', ', $pelunasanList) . ")\nTidak boleh diedit atau dihapus";
+        }
+
         return null;
     }
 
