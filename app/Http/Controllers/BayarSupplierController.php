@@ -103,7 +103,7 @@ class BayarSupplierController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'edit')) {
-            return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('bayarsupplier.index')->with('error', $message);
         }
 
         return view('bayarsupplier.edit', $this->formViewData($header, [
@@ -122,7 +122,7 @@ class BayarSupplierController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'delete')) {
-            return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('bayarsupplier.index')->with('error', $message);
         }
 
         return view('bayarsupplier.delete', $this->formViewData($header, [
@@ -472,7 +472,7 @@ class BayarSupplierController extends Controller
             $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'edit')) {
-            return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('bayarsupplier.index')->with('error', $message);
         }
         $isGiroMundur = $request->boolean('fgiromundur');
         $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
@@ -836,7 +836,7 @@ class BayarSupplierController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini', 'delete')) {
-            return redirect()->route('bayarsupplier.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('bayarsupplier.index')->with('error', $message);
         }
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();

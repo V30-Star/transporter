@@ -382,9 +382,14 @@ class FakturpembelianController extends Controller
                 ->groupBy(fn ($item) => $item[0])
                 ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
 
-            $data = $records->map(function ($row) use ($usageMap) {
+            $paymentMap = $this->getPaymentReferencesMap($invoiceNumbers);
+
+            $data = $records->map(function ($row) use ($usageMap, $paymentMap) {
                 $warehouseCode = trim((string) ($row->ffrom ?? ''));
-                $usageReferences = $usageMap->get($row->fstockmtno, []);
+                $usageReferences = array_values(array_unique(array_merge(
+                    $usageMap->get($row->fstockmtno, []),
+                    $paymentMap->get(trim((string) $row->fstockmtno), [])
+                )));
 
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -3425,7 +3430,7 @@ class FakturpembelianController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
             return redirect()
-                ->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)
+                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -3543,7 +3548,7 @@ class FakturpembelianController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)->with('error', $message);
+                return redirect()->route('fakturpembelian.view', $fakturpembelian->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($fakturpembelian, 'delete')) {
@@ -3715,6 +3720,8 @@ class FakturpembelianController extends Controller
             ->distinct()
             ->orderBy('fstockmtno')
             ->pluck('fstockmtno');
+
+        $usedBy = $usedBy->merge($this->getPaymentReferencesMap([$header->fstockmtno])->get(trim((string) $header->fstockmtno), []))->unique()->values();
 
         if ($usedBy->isEmpty()) {
             return null;

@@ -1796,7 +1796,7 @@ class PenerimaanBarangController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('penerimaanbarang.edit', $penerimaanbarang->fstockmtid)->with('error', $message);
+                return redirect()->route('penerimaanbarang.view', $penerimaanbarang->fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($penerimaanbarang, 'delete')) {

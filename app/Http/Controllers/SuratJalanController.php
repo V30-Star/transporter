@@ -1256,7 +1256,7 @@ class SuratJalanController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
             return redirect()
-                ->route('suratjalan.edit', $suratjalan->fstockmtid)
+                ->route('suratjalan.index')
                 ->with('error', $message);
         }
 
@@ -1267,7 +1267,7 @@ class SuratJalanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('suratjalan.edit', $suratjalan->fstockmtid)
+                ->route('suratjalan.index')
                 ->with('error', $usageLockMessage);
         }
         $soReferenceStats = $this->getSoReferenceStats(
@@ -1533,7 +1533,7 @@ class SuratJalanController extends Controller
             $this->ensureBranchAccess($header->fbranchcode);
 
             if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
-                return redirect()->route('suratjalan.edit', $header->fstockmtid)->with('error', $message);
+                return redirect()->route('suratjalan.index')->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($header)) {
@@ -1991,7 +1991,7 @@ class SuratJalanController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
             return redirect()
-                ->route('suratjalan.edit', $suratjalan->fstockmtid)
+                ->route('suratjalan.index')
                 ->with('error', $message);
         }
 
@@ -2002,7 +2002,7 @@ class SuratJalanController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('suratjalan.edit', $suratjalan->fstockmtid)
+                ->route('suratjalan.index')
                 ->with('error', $usageLockMessage);
         }
         $soReferenceStats = $this->getSoReferenceStats(
@@ -2093,7 +2093,7 @@ class SuratJalanController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('suratjalan.edit', $suratjalan->fstockmtid)->with('error', $message);
+                return redirect()->route('suratjalan.index')->with('error', $message);
             }
 
             $invoiceReferenceDocs = DB::table('trstockdt')

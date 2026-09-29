@@ -982,7 +982,7 @@ class Tr_prhController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('tr_prh.edit', $tr_prh->fprhid)->with('error', $message);
+                return redirect()->route('tr_prh.view', $tr_prh->fprhid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($tr_prh, 'delete')) {

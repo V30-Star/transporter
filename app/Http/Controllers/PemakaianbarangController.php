@@ -1514,7 +1514,7 @@ class PemakaianbarangController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
             return redirect()
-                ->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($pemakaianbarang->fbranchcode ?? null);
@@ -1523,7 +1523,7 @@ class PemakaianbarangController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1621,7 +1621,7 @@ class PemakaianbarangController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('pemakaianbarang.edit', $pemakaianbarang->fstockmtid)->with('error', $message);
+                return redirect()->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($pemakaianbarang, 'delete')) {
                 if (request()->expectsJson()) {

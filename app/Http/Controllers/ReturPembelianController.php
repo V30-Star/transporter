@@ -229,10 +229,15 @@ class ReturPembelianController extends Controller
                 ->groupBy(fn ($item) => $item[0])
                 ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
 
+            $paymentMap = $this->getPaymentReferencesMap($returnNumbers);
+
             // Format Data dengan Actions Column
-            $data = $records->map(function ($row) use ($usageMap) {
+            $data = $records->map(function ($row) use ($usageMap, $paymentMap) {
                 $actions = '';
-                $usageReferences = $usageMap->get($row->fstockmtno, []);
+                $usageReferences = array_values(array_unique(array_merge(
+                    $usageMap->get($row->fstockmtno, []),
+                    $paymentMap->get(trim((string) $row->fstockmtno), [])
+                )));
                 $usageJson = e(json_encode($usageReferences));
 
                 // if ($showActionsColumn) {
@@ -2205,7 +2210,7 @@ class ReturPembelianController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
             return redirect()
-                ->route('returpembelian.edit', $returpembelian->fstockmtid)
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
                 ->with('error', $message);
         }
 
@@ -2213,7 +2218,7 @@ class ReturPembelianController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('returpembelian.edit', $returpembelian->fstockmtid)
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -2320,7 +2325,7 @@ class ReturPembelianController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('returpembelian.edit', $returpembelian->fstockmtid)->with('error', $message);
+                return redirect()->route('returpembelian.view', $returpembelian->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($returpembelian, 'delete')) {
                 if (request()->expectsJson()) {
@@ -2464,6 +2469,8 @@ class ReturPembelianController extends Controller
             ->distinct()
             ->orderBy('fstockmtno')
             ->pluck('fstockmtno');
+
+        $usedBy = $usedBy->merge($this->getPaymentReferencesMap([$header->fstockmtno])->get(trim((string) $header->fstockmtno), []))->unique()->values();
 
         if ($usedBy->isEmpty()) {
             return null;

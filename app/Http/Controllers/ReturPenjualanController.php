@@ -2568,7 +2568,7 @@ class ReturPenjualanController extends Controller
         $this->ensureBranchAccess($returpenjualan->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {
@@ -2737,7 +2737,7 @@ class ReturPenjualanController extends Controller
         }])->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {
@@ -2902,7 +2902,7 @@ class ReturPenjualanController extends Controller
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
-            return redirect()->route('returpenjualan.edit', $ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header, 'edit')) {
@@ -3624,7 +3624,7 @@ class ReturPenjualanController extends Controller
         }])->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
-            return redirect()->route('returpenjualan.edit', $returpenjualan->ftranmtid)->with('error', $message);
+            return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         if (! $returpenjualan->customer) {

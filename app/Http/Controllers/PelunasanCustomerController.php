@@ -127,7 +127,7 @@ class PelunasanCustomerController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'edit')) {
-            return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('pelunasancustomer.index')->with('error', $message);
         }
 
         return view('pelunasancustomer.edit', $this->formViewData($header, [
@@ -146,7 +146,7 @@ class PelunasanCustomerController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'delete')) {
-            return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('pelunasancustomer.index')->with('error', $message);
         }
 
         return view('pelunasancustomer.delete', $this->formViewData($header, [
@@ -524,7 +524,7 @@ class PelunasanCustomerController extends Controller
             $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'edit')) {
-            return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('pelunasancustomer.index')->with('error', $message);
         }
         $isGiroMundur = $request->boolean('fgiromundur');
         $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
@@ -832,7 +832,7 @@ class PelunasanCustomerController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini', 'delete')) {
-            return redirect()->route('pelunasancustomer.edit', $header->fkasmtno)->with('error', $message);
+            return redirect()->route('pelunasancustomer.index')->with('error', $message);
         }
 
         $userLogin = auth('sysuser')->user() ?? auth()->user();

@@ -1528,7 +1528,7 @@ class AdjstockController extends Controller
 
         if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stok ini')) {
             return redirect()
-                ->route('adjstock.edit', $adjstock->fstockmtid)
+                ->route('adjstock.view', $adjstock->fstockmtid)
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($adjstock->fbranchcode ?? null);
@@ -1537,7 +1537,7 @@ class AdjstockController extends Controller
 
         if (! empty($usageLockMessage)) {
             return redirect()
-                ->route('adjstock.edit', $adjstock->fstockmtid)
+                ->route('adjstock.view', $adjstock->fstockmtid)
                 ->with('error', $usageLockMessage);
         }
 
@@ -1618,7 +1618,7 @@ class AdjstockController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('adjstock.edit', $adjstock->fstockmtid)->with('error', $message);
+                return redirect()->route('adjstock.view', $adjstock->fstockmtid)->with('error', $message);
             }
             if ($message = $this->getUsageLockMessage($adjstock)) {
                 if (request()->expectsJson()) {

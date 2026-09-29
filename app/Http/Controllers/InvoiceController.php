@@ -3265,7 +3265,7 @@ class InvoiceController extends Controller
         $this->ensureBranchAccess($invoice->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
@@ -3605,7 +3605,7 @@ class InvoiceController extends Controller
         $this->ensureBranchAccess($header->fbranchcode);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header, 'edit')) {
@@ -4431,7 +4431,7 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
-            return redirect()->route($this->getRoutePrefix() . '.edit', $invoice->ftranmtid)->with('error', $message);
+            return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
         }
 
         // if ($message = $this->getApprovalLockMessage($invoice)) {
@@ -4575,7 +4575,7 @@ class InvoiceController extends Controller
                     return response()->json(['message' => $message], 422);
                 }
 
-                return redirect()->route('invoice.edit', $invoice->ftranmtid)->with('error', $message);
+                return redirect()->route($this->getRoutePrefix() . '.index')->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage($invoice, 'delete')) {

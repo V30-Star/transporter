@@ -271,6 +271,25 @@ abstract class Controller
         }
     }
 
+    /** Voucher Bayar Supplier (PAY) yang memakai faktur/retur pembelian, per nomor. */
+    protected function getPaymentReferencesMap(array $refNos)
+    {
+        $refNos = array_values(array_unique(array_filter(array_map(fn ($no) => trim((string) $no), $refNos))));
+        if (empty($refNos)) {
+            return collect();
+        }
+
+        return DB::table('trkasdt')
+            ->where('ftrancode', 'PAY')
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->whereIn(DB::raw("TRIM(COALESCE(frefno, ''))"), $refNos)
+            ->selectRaw('TRIM(frefno) as frefno, fkasmtno')
+            ->distinct()
+            ->get()
+            ->groupBy(fn ($row) => trim((string) $row->frefno))
+            ->map(fn ($items) => $items->pluck('fkasmtno')->map(fn ($no) => trim((string) $no))->unique()->sort()->values()->all());
+    }
+
     protected function stockMinusAllowsForce(): bool
     {
         return stock_boleh_minus();
