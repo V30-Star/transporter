@@ -876,7 +876,7 @@
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
                 barcode: @json(trim((string) ($p->fbarcode ?? ''))),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                units: @json(product_units_default_first($p)),
                 stock: @json($p->fminstock ?? 0)
             },
         @endforeach

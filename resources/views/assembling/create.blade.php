@@ -1049,7 +1049,7 @@
             @foreach ($products as $p)
                 "{{ $p->fprdcode }}": {
                     name: @json($p->fprdname),
-                    units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                    units: @json(product_units_default_first($p)),
                     stock: @json($p->fminstock ?? 0)
                 },
             @endforeach

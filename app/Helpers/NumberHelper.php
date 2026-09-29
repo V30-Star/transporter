@@ -62,6 +62,29 @@ if (!function_exists('stock_boleh_minus')) {
   }
 }
 
+if (!function_exists('product_units_default_first')) {
+  /** Satuan produk dengan satuan default (msprd.fsatuandefault: 1=kecil, 2=besar, 3=besar2) di urutan pertama. */
+  function product_units_default_first($product): array
+  {
+    $units = [
+      trim((string) ($product->fsatuankecil ?? '')),
+      trim((string) ($product->fsatuanbesar ?? '')),
+      trim((string) ($product->fsatuanbesar2 ?? '')),
+    ];
+    $key = trim((string) ($product->fsatuandefault ?? ''));
+    $default = $units[((int) $key) - 1] ?? '';
+    if ($default === '' && $key !== '') { // nilai berupa nama satuan, bukan 1/2/3
+      foreach ($units as $unit) {
+        if ($unit !== '' && strcasecmp($unit, $key) === 0) {
+          $default = $unit;
+        }
+      }
+    }
+
+    return array_values(array_unique(array_filter([$default, ...$units])));
+  }
+}
+
 if (!function_exists('terbilang')) {
   function terbilang($number)
   {

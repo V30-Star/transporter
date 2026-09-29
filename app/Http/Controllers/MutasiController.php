@@ -625,6 +625,7 @@ class MutasiController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fsatuandefault',
             'fminstock'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
@@ -1040,6 +1041,7 @@ class MutasiController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fsatuandefault',
             'fminstock'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
@@ -1510,6 +1512,7 @@ class MutasiController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fsatuandefault',
             'fminstock'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
