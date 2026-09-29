@@ -307,6 +307,12 @@ class ReturPenjualanController extends Controller
             $data = $records->map(function ($row) use ($pelunasanMap) {
                 $normalizedFsono = str_replace(['/', '.'], '', trim((string) ($row->fsono ?? '')));
                 $pelunasanNo = (string) ($pelunasanMap->get($normalizedFsono, ''));
+                $usageReferences = collect([$pelunasanNo])
+                    ->flatMap(fn ($value) => array_map('trim', explode(',', $value)))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -326,6 +332,8 @@ class ReturPenjualanController extends Controller
                     'fclose' => $row->fclose ?? '0',
                     'fpelunasan' => $pelunasanNo,
                     'has_pelunasan' => $pelunasanNo !== '',
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -2569,7 +2577,7 @@ class ReturPenjualanController extends Controller
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpenjualan->fbranchcode ?? null);
 
-        $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+        $usageLockMessage = $this->getUsageLockMessage($returpenjualan, 'edit');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -2897,7 +2905,7 @@ class ReturPenjualanController extends Controller
             return redirect()->route('returpenjualan.edit', $ftranmtid)->with('error', $message);
         }
 
-        if ($message = $this->getUsageLockMessage((object) $header)) {
+        if ($message = $this->getUsageLockMessage((object) $header, 'edit')) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
@@ -3625,7 +3633,7 @@ class ReturPenjualanController extends Controller
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpenjualan->fbranchcode ?? null);
 
-        $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+        $usageLockMessage = $this->getUsageLockMessage($returpenjualan, 'delete');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -3735,7 +3743,7 @@ class ReturPenjualanController extends Controller
 
                 return redirect()->route('returpenjualan.index')->with('error', $message);
             }
-            if ($message = $this->getUsageLockMessage($returHeader)) {
+            if ($message = $this->getUsageLockMessage($returHeader, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -3769,7 +3777,7 @@ class ReturPenjualanController extends Controller
                     throw new \RuntimeException($message);
                 }
 
-                if ($message = $this->getUsageLockMessage($returpenjualan)) {
+                if ($message = $this->getUsageLockMessage($returpenjualan, 'delete')) {
                     throw new \RuntimeException($message);
                 }
 
@@ -4002,7 +4010,7 @@ class ReturPenjualanController extends Controller
         }
     }
 
-    private function getUsageLockMessage($header): ?string
+    private function getUsageLockMessage($header, string $action = 'edit'): ?string
     {
         $fsono = trim((string) ($header->fsono ?? ''));
         if ($fsono === '') {
@@ -4015,7 +4023,7 @@ class ReturPenjualanController extends Controller
             str_replace('/', '.', $fsono),
         ]));
 
-        $pelunasanList = DB::table('trkasdt')
+        $references = DB::table('trkasdt')
             ->where('ftrancode', 'RCP')
             ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
             ->whereIn(DB::raw('TRIM(COALESCE(frefno, \'\'))'), $variants)
@@ -4023,10 +4031,17 @@ class ReturPenjualanController extends Controller
             ->filter()
             ->unique()
             ->values()
-            ->all();
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
 
-        if (! empty($pelunasanList)) {
-            return 'Retur ini sudah ada Pelunasan (' . implode(', ', $pelunasanList) . ")\nTidak boleh diedit atau dihapus";
+        if ($references->isNotEmpty()) {
+            $referenceLines = $references->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+            $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+
+            return "Retur ini sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
         }
 
         return null;

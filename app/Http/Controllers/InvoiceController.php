@@ -963,6 +963,12 @@ class InvoiceController extends Controller
                 $normFsono = str_replace(['/', '.'], '', trim((string) ($row->fsono ?? '')));
                 $pelunasanNo = (string) ($pelunasanMap->get($normFsono, ''));
                 $returNo = (string) ($returMap->get($normFsono, ''));
+                $usageReferences = collect([$pelunasanNo, $returNo])
+                    ->flatMap(fn ($value) => array_map('trim', explode(',', $value)))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -987,6 +993,8 @@ class InvoiceController extends Controller
                     'has_pelunasan' => $pelunasanNo !== '',
                     'fretur' => $returNo,
                     'has_retur' => $returNo !== '',
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -4729,37 +4737,32 @@ class InvoiceController extends Controller
 
     protected function getUsageLockMessage($header, string $action = 'edit'): ?string
     {
-        $pelunasanList = $this->getPelunasanNumbers($header);
-        if (! empty($pelunasanList)) {
-            $pelunasanStr = implode(', ', $pelunasanList);
-            $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'didelete' : 'diedit';
-
-            return "Nota ini sudah ada Pelunasan ({$pelunasanStr})\nTidak boleh {$actionText}";
+        $invoiceNo = trim((string) ($header->fsono ?? ''));
+        if ($invoiceNo === '') {
+            return null;
         }
 
-        $invoiceNo = trim((string) ($header->fsono ?? ''));
-        if ($invoiceNo !== '') {
-            $returList = DB::table('tranmt as r')
+        $references = collect($this->getPelunasanNumbers($header));
+        $references = $references->merge(
+            DB::table('tranmt as r')
                 ->join('trandt as d', 'd.fsono', '=', 'r.fsono')
                 ->where('r.ftrcode', 'REJ')
-                ->where(function ($query) use ($invoiceNo) {
-                    $query->whereRaw("TRIM(COALESCE(d.frefso, '')) = ?", [$invoiceNo]);
-                })
+                ->whereRaw("TRIM(COALESCE(d.frefso, '')) = ?", [$invoiceNo])
                 ->pluck('r.fsono')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+        )
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
 
-            if (! empty($returList)) {
-                $returStr = implode(', ', $returList);
-                $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'dihapus' : 'diedit';
-
-                return "Nota ini sudah memiliki Retur ({$returStr})\nTidak boleh {$actionText}";
-            }
+        if ($references->isEmpty()) {
+            return null;
         }
 
-        return null;
+        $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'dihapus' : 'diedit';
+        $referenceLines = $references->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Faktur ini sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function createInvoiceJournalEntries(
