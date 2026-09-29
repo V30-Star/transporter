@@ -938,7 +938,20 @@ class InvoiceController extends Controller
                     return $items->pluck('fkasmtno')->filter()->unique()->values()->implode(', ');
                 });
 
-            $data = $records->map(function ($row) use ($pelunasanMap) {
+            $returMap = empty($allVariants) ? collect() : DB::table('tranmt as r')
+                ->join('trandt as d', 'd.fsono', '=', 'r.fsono')
+                ->where('r.ftrcode', 'REJ')
+                ->whereIn(DB::raw("TRIM(COALESCE(d.frefso, ''))"), $allVariants)
+                ->selectRaw("TRIM(COALESCE(d.frefso, '')) as frefso, r.fsono")
+                ->get()
+                ->groupBy(function ($item) {
+                    return str_replace(['/', '.'], '', trim((string) $item->frefso));
+                })
+                ->map(function ($items) {
+                    return $items->pluck('fsono')->filter()->unique()->values()->implode(', ');
+                });
+
+            $data = $records->map(function ($row) use ($pelunasanMap, $returMap) {
                 $soRefs = trim((string) ($row->so_refs ?? ''));
                 $srjRefs = trim((string) ($row->srj_refs ?? ''));
                 $refs = collect([$soRefs, $srjRefs])
@@ -949,6 +962,7 @@ class InvoiceController extends Controller
 
                 $normFsono = str_replace(['/', '.'], '', trim((string) ($row->fsono ?? '')));
                 $pelunasanNo = (string) ($pelunasanMap->get($normFsono, ''));
+                $returNo = (string) ($returMap->get($normFsono, ''));
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -971,6 +985,8 @@ class InvoiceController extends Controller
                     'fapproval' => trim((string) ($row->fapproval ?? '')),
                     'fpelunasan' => $pelunasanNo,
                     'has_pelunasan' => $pelunasanNo !== '',
+                    'fretur' => $returNo,
+                    'has_retur' => $returNo !== '',
                 ];
             });
 
@@ -3562,8 +3578,8 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => ! empty($this->getUsageLockMessage($invoice, 'edit')),
-            'usageLockMessage' => $this->getUsageLockMessage($invoice, 'edit'),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
             'action' => 'view',
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
@@ -4719,6 +4735,28 @@ class InvoiceController extends Controller
             $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'didelete' : 'diedit';
 
             return "Nota ini sudah ada Pelunasan ({$pelunasanStr})\nTidak boleh {$actionText}";
+        }
+
+        $invoiceNo = trim((string) ($header->fsono ?? ''));
+        if ($invoiceNo !== '') {
+            $returList = DB::table('tranmt as r')
+                ->join('trandt as d', 'd.fsono', '=', 'r.fsono')
+                ->where('r.ftrcode', 'REJ')
+                ->where(function ($query) use ($invoiceNo) {
+                    $query->whereRaw("TRIM(COALESCE(d.frefso, '')) = ?", [$invoiceNo]);
+                })
+                ->pluck('r.fsono')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (! empty($returList)) {
+                $returStr = implode(', ', $returList);
+                $actionText = in_array(strtolower($action), ['delete', 'destroy', 'hapus'], true) ? 'dihapus' : 'diedit';
+
+                return "Nota ini sudah memiliki Retur ({$returStr})\nTidak boleh {$actionText}";
+            }
         }
 
         return null;

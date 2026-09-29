@@ -1543,7 +1543,7 @@ class ReturPenjualanController extends Controller
         // FREFCODE & REFERENCES
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
-        $frefsrj = $request->input('frefsrj', []);
+        $frefsrj = (array) $request->input('frefsrj', []);
         $frefdtno = $request->input('frefdtno', []);
         $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
@@ -2915,7 +2915,7 @@ class ReturPenjualanController extends Controller
 
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
-        $frefsrj = $request->input('frefsrj', []);
+        $frefsrj = (array) $request->input('frefsrj', []);
         $frefdtno = $request->input('frefdtno', []);
         $frefpr = $request->input('frefpr', []);
         $this->sanitizeReturReferences($frefso, $frefsrj);
