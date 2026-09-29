@@ -323,6 +323,17 @@
         $(function() {
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
+            window.showReturPembelianUsageLocked = function(references, action) {
+                const actionText = action === 'delete' ? 'dihapus' : 'diedit';
+                const lines = (Array.isArray(references) ? references : []).map((reference, index) => `${index + 1}. ${reference}`).join('\n');
+                const message = `Retur pembelian sudah direferensikan\n${lines}\nTidak boleh ${actionText}`;
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Warning', message);
+                    return;
+                }
+                alert(message);
+            };
+
             // 1. Definisi Kolom - HARUS SELALU ADA 4 KOLOM (sesuai dengan <th> di HTML)
             const columns = [{
                     data: 'fbranchcode',

@@ -216,9 +216,22 @@ class ReturPembelianController extends Controller
                     'supplier.fsuppliername as supplier_name',
                 ]);
 
+            $returnNumbers = $records->pluck('fstockmtno')->filter()->values()->all();
+            $usageMap = empty($returnNumbers) ? collect() : DB::table('trstockdt')
+                ->where(function ($query) use ($returnNumbers) {
+                    $query->whereIn('frefdtno', $returnNumbers)->orWhereIn('frefso', $returnNumbers);
+                })
+                ->select('frefdtno', 'frefso', 'fstockmtno')
+                ->get()
+                ->flatMap(fn ($item) => collect([$item->frefdtno, $item->frefso])->filter()->map(fn ($reference) => [$reference, $item->fstockmtno]))
+                ->groupBy(fn ($item) => $item[0])
+                ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
+
             // Format Data dengan Actions Column
-            $data = $records->map(function ($row) {
+            $data = $records->map(function ($row) use ($usageMap) {
                 $actions = '';
+                $usageReferences = $usageMap->get($row->fstockmtno, []);
+                $usageJson = e(json_encode($usageReferences));
 
                 // if ($showActionsColumn) {
                 $actions = '<div class="flex gap-2">';
@@ -236,7 +249,9 @@ class ReturPembelianController extends Controller
 
                 // Edit Button
                 // if ($canEdit) {
-                $actions .= '<a href="' . route('returpembelian.edit', $row->fstockmtid) . '" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                $actions .= $usageReferences
+                    ? '<button type="button" data-usage="' . $usageJson . '" onclick="showReturPembelianUsageLocked(JSON.parse(this.dataset.usage), \'edit\')" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">Edit</button>'
+                    : '<a href="' . route('returpembelian.edit', $row->fstockmtid) . '" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
               <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
@@ -247,7 +262,9 @@ class ReturPembelianController extends Controller
                 // Delete Button
                 // if ($canDelete) {
                 $deleteUrl = route('returpembelian.delete', $row->fstockmtid);
-                $actions .= '<a href="' . $deleteUrl . '">
+                $actions .= $usageReferences
+                    ? '<button type="button" data-usage="' . $usageJson . '" onclick="showReturPembelianUsageLocked(JSON.parse(this.dataset.usage), \'delete\')" class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">Hapus</button>'
+                    : '<a href="' . $deleteUrl . '">
                 <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -274,6 +291,8 @@ class ReturPembelianController extends Controller
                     'fsuppliername' => (string) ($row->supplier_name ?? ''),
                     'famountmt' => number_format((float) ($row->famountmt ?? 0), 2, ',', '.'),
                     'actions' => $actions,
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -1437,7 +1456,7 @@ class ReturPembelianController extends Controller
                 ->with('error', $message);
         }
 
-        $usageLockMessage = $this->getUsageLockMessage($returpembelian);
+        $usageLockMessage = $this->getUsageLockMessage($returpembelian, 'edit');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -1741,7 +1760,7 @@ class ReturPembelianController extends Controller
                 }
                 return redirect()->route('returpembelian.edit', $header->fstockmtid)->with('error', $message);
             }
-            if ($message = $this->getUsageLockMessage($header)) {
+            if ($message = $this->getUsageLockMessage($header, 'edit')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -2188,7 +2207,7 @@ class ReturPembelianController extends Controller
                 ->with('error', $message);
         }
 
-        $usageLockMessage = $this->getUsageLockMessage($returpembelian);
+        $usageLockMessage = $this->getUsageLockMessage($returpembelian, 'delete');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -2301,7 +2320,7 @@ class ReturPembelianController extends Controller
 
                 return redirect()->route('returpembelian.edit', $returpembelian->fstockmtid)->with('error', $message);
             }
-            if ($message = $this->getUsageLockMessage($returpembelian)) {
+            if ($message = $this->getUsageLockMessage($returpembelian, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -2431,7 +2450,7 @@ class ReturPembelianController extends Controller
         }
     }
 
-    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header, string $action = 'edit'): ?string
     {
         $usedBy = DB::table('trstockdt')
             ->where('fstockmtno', '<>', $header->fstockmtno)
@@ -2448,7 +2467,10 @@ class ReturPembelianController extends Controller
             return null;
         }
 
-        return 'Retur pembelian ' . (string) $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Retur pembelian sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string

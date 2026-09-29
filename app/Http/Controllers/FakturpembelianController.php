@@ -370,8 +370,21 @@ class FakturpembelianController extends Controller
                     'refdt.frefdtno_summary',
                 ]);
 
-            $data = $records->map(function ($row) {
+            $invoiceNumbers = $records->pluck('fstockmtno')->filter()->values()->all();
+            $usageMap = empty($invoiceNumbers) ? collect() : DB::table('trstockmt')
+                ->whereIn('fstockmtcode', ['REB', 'RUB'])
+                ->where(function ($query) use ($invoiceNumbers) {
+                    $query->whereIn('frefno', $invoiceNumbers)->orWhereIn('frefpo', $invoiceNumbers);
+                })
+                ->select('frefno', 'frefpo', 'fstockmtno')
+                ->get()
+                ->flatMap(fn ($item) => collect([$item->frefno, $item->frefpo])->filter()->map(fn ($reference) => [$reference, $item->fstockmtno]))
+                ->groupBy(fn ($item) => $item[0])
+                ->map(fn ($items) => $items->pluck(1)->unique()->values()->all());
+
+            $data = $records->map(function ($row) use ($usageMap) {
                 $warehouseCode = trim((string) ($row->ffrom ?? ''));
+                $usageReferences = $usageMap->get($row->fstockmtno, []);
 
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -388,6 +401,8 @@ class FakturpembelianController extends Controller
                     'freferensi' => trim((string) ($row->frefdtno_summary ?? '')),
                     'fusercreate' => trim((string) ($row->fusercreate ?? '')),
                     'famountmt' => (float) ($row->famountmt ?? 0),
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -2450,7 +2465,7 @@ class FakturpembelianController extends Controller
         $biayaGlobal = (float) $savedItems->sum(function ($item) {
             return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
         });
-        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian);
+        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian, 'edit');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -2622,7 +2637,7 @@ class FakturpembelianController extends Controller
         $biayaGlobal = (float) $savedItems->sum(function ($item) {
             return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
         });
-        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian);
+        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian, 'edit');
 
         if (! empty($usageLockMessage)) {
             return redirect()
@@ -2650,8 +2665,8 @@ class FakturpembelianController extends Controller
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'isUsageLocked' => ! empty($this->getUsageLockMessage($fakturpembelian)),
-            'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
             'action' => 'view',
             'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
@@ -2768,7 +2783,7 @@ class FakturpembelianController extends Controller
                 return redirect()->route('fakturpembelian.edit', $header->fstockmtid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($header)) {
+            if ($message = $this->getUsageLockMessage($header, 'edit')) {
                 return redirect()->route('fakturpembelian.index')->with('error', $message);
             }
 
@@ -3531,7 +3546,7 @@ class FakturpembelianController extends Controller
                 return redirect()->route('fakturpembelian.edit', $fakturpembelian->fstockmtid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($fakturpembelian)) {
+            if ($message = $this->getUsageLockMessage($fakturpembelian, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -3688,7 +3703,7 @@ class FakturpembelianController extends Controller
         }
     }
 
-    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header, string $action = 'edit'): ?string
     {
         $usedBy = DB::table('trstockmt')
             ->whereIn('fstockmtcode', ['REB', 'RUB'])
@@ -3705,7 +3720,10 @@ class FakturpembelianController extends Controller
             return null;
         }
 
-        return 'Faktur pembelian ' . (string) $header->fstockmtno . ' sudah dipakai retur pembelian: ' . $usedBy->implode(', ') . '.';
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Faktur pembelian sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function normalizeDiscountInput($discInput): string

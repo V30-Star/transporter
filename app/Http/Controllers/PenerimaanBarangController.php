@@ -150,8 +150,23 @@ class PenerimaanBarangController extends Controller
                 ->groupBy('fstockmtno')
                 ->get()
                 ->pluck('frefpo', 'fstockmtno');
+            $detailIds = DB::table('trstockdt')->whereIn('fstockmtno', $stockMtNos)->pluck('fstockdtid')->map(fn ($id) => (int) $id)->filter()->all();
+            $usageMap = empty($detailIds) ? collect() : DB::table('trstockdt')
+                ->where('fstockmtcode', 'BUY')
+                ->whereIn('frefdtid', $detailIds)
+                ->select('frefdtid', 'fstockmtno')
+                ->distinct()
+                ->get()
+                ->groupBy('frefdtid')
+                ->map(fn ($items) => $items->pluck('fstockmtno')->filter()->unique()->values()->all());
+            $detailMap = DB::table('trstockdt')->whereIn('fstockmtno', $stockMtNos)->get()->groupBy('fstockmtno');
 
-            $data = $records->map(fn($row) => [
+            $data = $records->map(function ($row) use ($usageMap, $detailMap) {
+                $usageReferences = $detailMap->get($row->fstockmtno, collect())
+                    ->flatMap(fn ($detail) => $usageMap->get((int) $detail->fstockdtid, []))
+                    ->unique()->values()->all();
+
+                return [
                 'fstockmtid' => $row->fstockmtid,
                 'fbranchcode' => $row->fbranchcode,
                 'fstockmtno' => $row->fstockmtno,
@@ -163,8 +178,11 @@ class PenerimaanBarangController extends Controller
                 'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
                 'frefpo' => $trstockdts[$row->fstockmtno] ?? '-',
                 'famountmt' => 'Rp ' . number_format((float) $row->famountmt, 0, ',', '.'),
-                'fusercreate' => $row->fusercreate ?? '-',
-            ]);
+                 'fusercreate' => $row->fusercreate ?? '-',
+                 'usage_references' => $usageReferences,
+                 'has_usage_reference' => ! empty($usageReferences),
+                ];
+            });
 
             return response()->json([
                 'draw' => intval($request->input('draw')),
@@ -1251,7 +1269,7 @@ class PenerimaanBarangController extends Controller
         }
 
         ['fcabang' => $selectedBranchName, 'fbranchcode' => $selectedBranchCode] = $this->resolveBranchContext($penerimaanbarang->fbranchcode ?? null);
-        $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
+         $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang, $action);
 
         if (in_array($action, ['edit', 'delete'], true) && ! empty($usageLockMessage)) {
             return redirect()
@@ -1403,7 +1421,7 @@ class PenerimaanBarangController extends Controller
             return redirect()->route('penerimaanbarang.edit', $header->fstockmtid)->with('error', $message);
         }
 
-        if ($message = $this->getUsageLockMessage($header)) {
+        if ($message = $this->getUsageLockMessage($header, 'edit')) {
             return redirect()->route('penerimaanbarang.index')->with('error', $message);
         }
 
@@ -1781,7 +1799,7 @@ class PenerimaanBarangController extends Controller
                 return redirect()->route('penerimaanbarang.edit', $penerimaanbarang->fstockmtid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($penerimaanbarang)) {
+            if ($message = $this->getUsageLockMessage($penerimaanbarang, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -1990,7 +2008,7 @@ class PenerimaanBarangController extends Controller
         return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
     }
 
-    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header, string $action = 'edit'): ?string
     {
         $detailIds = DB::table('trstockdt')
             ->where('fstockmtno', $header->fstockmtno)
@@ -2015,7 +2033,10 @@ class PenerimaanBarangController extends Controller
             return null;
         }
 
-        return "Information\nPenerimaan ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Penerimaan barang sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function syncGoodsReceiptJournalEntries(

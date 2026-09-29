@@ -216,8 +216,19 @@ class Tr_pohController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)->take($length)->get();
 
+            $poNumbers = $records->pluck('fpono')->filter()->values()->all();
+            $usageMap = empty($poNumbers) ? collect() : DB::table('trstockdt')
+                ->whereIn('frefdtno', $poNumbers)
+                ->select('frefdtno', 'fstockmtno')
+                ->distinct()
+                ->get()
+                ->groupBy('frefdtno')
+                ->map(fn ($items) => $items->pluck('fstockmtno')->filter()->unique()->values()->all());
+
             // Format Data
-            $data = $records->map(function ($row) {
+            $data = $records->map(function ($row) use ($usageMap) {
+                $usageReferences = $usageMap->get($row->fpono, []);
+
                 return [
                     'fpono' => $row->fpono,
                     'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 0) === 0 && (int) ($row->fincludeppn ?? 0) === 0),
@@ -237,6 +248,8 @@ class Tr_pohController extends Controller
                     'famountpo' => $row->famountpo,
                     'fcurrency' => $row->fcurrency,
                     'fcurrname' => $row->fcurrname,
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -1374,7 +1387,7 @@ class Tr_pohController extends Controller
         if ($blockedByTerima) {
             return redirect()
                 ->route('tr_poh.view', $tr_poh->fpohid)
-                ->with('error', $this->getUsageLockMessage($tr_poh));
+                ->with('error', $this->getUsageLockMessage($tr_poh, 'edit'));
         }
 
         // Lookup currency berdasarkan fcurrency (currency code) di tr_poh
@@ -1476,7 +1489,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'existingTerima' => $existingTerima,
             'blockedByTerima' => $blockedByTerima,
-            'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
+            'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh, 'edit') : null,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
             'displayFpono' => $this->formatDisplayTransactionNumber($tr_poh->fpono ?? null, (int) ($tr_poh->fapplyppn ?? 0) === 0 && (int) ($tr_poh->fincludeppn ?? 0) === 0),
@@ -1614,7 +1627,7 @@ class Tr_pohController extends Controller
             && $request->has('fclose')
             && trim((string) ($header->fprdin ?? '')) !== '1';
 
-        if ($message = $this->getUsageLockMessage($header)) {
+        if ($message = $this->getUsageLockMessage($header, 'edit')) {
             if (! $canClosePo) {
                 return redirect()->route('tr_poh.index')->with('error', $message);
             }
@@ -2160,7 +2173,7 @@ class Tr_pohController extends Controller
         if ($blockedByTerima) {
             return redirect()
                 ->route('tr_poh.view', $tr_poh->fpohid)
-                ->with('error', $this->getUsageLockMessage($tr_poh));
+                ->with('error', $this->getUsageLockMessage($tr_poh, 'delete'));
         }
 
         // Lookup currency berdasarkan fcurrency (currency code) di tr_poh
@@ -2221,7 +2234,7 @@ class Tr_pohController extends Controller
             'fbranchcode' => $fbranchcode,
             'existingTerima' => $existingTerima,
             'blockedByTerima' => $blockedByTerima,
-            'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
+            'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh, 'delete') : null,
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
@@ -2251,7 +2264,7 @@ class Tr_pohController extends Controller
                 return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($tr_poh)) {
+            if ($message = $this->getUsageLockMessage($tr_poh, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -2420,7 +2433,7 @@ class Tr_pohController extends Controller
             ->groupBy(DB::raw('CAST(d.frefdtid AS BIGINT)'));
     }
 
-    private function getUsageLockMessage(Tr_poh $header): ?string
+    private function getUsageLockMessage(Tr_poh $header, string $action = 'edit'): ?string
     {
         $usedBy = DB::table('trstockdt')
             ->where('frefdtno', $header->fpono)
@@ -2433,7 +2446,10 @@ class Tr_pohController extends Controller
             return null;
         }
 
-        return "Information\nOrder ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Order ini sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function validateUniqueReferenceUsage(array $rowsPod, ?string $exceptPono = null): ?string
