@@ -352,12 +352,12 @@
                         <td></td>
                         <td style="font-size: 9px; color: #444;">
                             @if(!empty($row->fdiscount) && (float)$row->fdiscount > 0)
-                                Disc: {{ number_format((float) $row->fdiscount, 2, ',', '.') }}
+                                Disc: {{ number_format((float) $row->fdiscount, 0, ',', '.') }}
                             @endif
                         </td>
-                        <td class="text-right" style="font-weight: bold;">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-right" style="font-weight: bold;">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ number_format((float) ($row->nilai_nota ?? 0), 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->sisa_piutang ?? 0), 0, ',', '.') }}</td>
+                        <td class="text-right" style="font-weight: bold;">{{ number_format((float) ($row->fkasdtvalue ?? 0), 0, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr class="item-row">
@@ -379,7 +379,7 @@
 
             <div class="summary-container">
                 {{-- Left: Signatures --}}
-                <div style="width: 28%;">
+                <div style="width: 40%;">
                     <table class="sign-table">
                         <tr>
                             <td>Dibuat Oleh</td>
@@ -392,32 +392,24 @@
                     </table>
                 </div>
 
-                {{-- Middle: Terbilang --}}
-                <div style="width: 32%; padding: 0 6px;">
-                    <div style="font-size: 9px; color: #333; font-style: italic;">
-                        Terbilang:<br>
-                        <strong># {{ strtoupper(terbilang($totalBayarAkhir ?? 0)) }} RUPIAH #</strong>
-                    </div>
-                </div>
-
                 {{-- Right: Totals --}}
-                <div style="width: 40%; text-align: right;">
+                <div style="width: 40%; margin-left: auto; text-align: right;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         @if($adminBank != 0)
                             <tr>
                                 <td style="text-align: right; padding: 1px 0;">Admin Bank:</td>
-                                <td style="width: 70px; text-align: right; padding: 1px 0;">{{ number_format($adminBank, 2, ',', '.') }}</td>
+                                <td style="width: 70px; text-align: right; padding: 1px 0;">{{ number_format($adminBank, 0, ',', '.') }}</td>
                             </tr>
                         @endif
                         @if($adjustment != 0)
                             <tr>
                                 <td style="text-align: right; padding: 1px 0;">Selisih/Adjust:</td>
-                                <td style="width: 70px; text-align: right; padding: 1px 0;">{{ number_format($adjustment, 2, ',', '.') }}</td>
+                                <td style="width: 70px; text-align: right; padding: 1px 0;">{{ number_format($adjustment, 0, ',', '.') }}</td>
                             </tr>
                         @endif
                         <tr style="font-weight: bold; font-size: 11px;">
                             <td style="text-align: right; padding: 2px 0; border-top: 1px solid #000;">Total Bayar:</td>
-                            <td style="width: 70px; text-align: right; padding: 2px 0; border-top: 1px solid #000;">{{ number_format($totalBayarAkhir, 2, ',', '.') }}</td>
+                            <td style="width: 70px; text-align: right; padding: 2px 0; border-top: 1px solid #000;">{{ number_format($totalBayarAkhir, 0, ',', '.') }}</td>
                         </tr>
                     </table>
                     <div class="meta-right" style="margin-top: 3px;">
