@@ -195,7 +195,24 @@ class Tr_prhController extends Controller
                 'tr_prh.fcreatedat'
             ]);
 
-            $data = $records->map(function ($record) {
+            $prVariants = $records->flatMap(function ($record) {
+                $prno = trim((string) ($record->fprno ?? ''));
+
+                return [$prno, str_replace('.', '/', $prno), str_replace('/', '.', $prno)];
+            })->filter()->unique()->values()->all();
+            $usageMap = empty($prVariants) ? collect() : DB::table('tr_pod as pod')
+                ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
+                ->whereIn(DB::raw("TRIM(COALESCE(pod.frefdtno, ''))"), $prVariants)
+                ->select('pod.frefdtno', 'poh.fpono')
+                ->distinct()
+                ->get()
+                ->groupBy(fn ($item) => str_replace(['/', '.'], '', trim((string) $item->frefdtno)))
+                ->map(fn ($items) => $items->pluck('fpono')->filter()->unique()->values()->all());
+
+            $data = $records->map(function ($record) use ($usageMap) {
+                $normalizedPrno = str_replace(['/', '.'], '', trim((string) ($record->fprno ?? '')));
+                $usageReferences = $usageMap->get($normalizedPrno, []);
+
                 return [
                     'fprno' => $record->fprno,
                     'fbranchcode' => $record->fbranchcode,
@@ -211,6 +228,8 @@ class Tr_prhController extends Controller
                     'fprhid' => $record->fprhid,
                     'fcreatedat' => $record->fcreatedat,
                     'DT_RowId' => 'row_'.$record->fprhid,
+                    'usage_references' => $usageReferences,
+                    'has_usage_reference' => ! empty($usageReferences),
                 ];
             });
 
@@ -541,7 +560,7 @@ class Tr_prhController extends Controller
             'savedItems' => $pageData['savedItems'],
             'blockedByPO' => $pageData['blockedByPO'],
             'existingPO' => $pageData['existingPO'],
-            'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh) : null,
+            'usageLockMessage' => null,
             'action' => 'view',
             'canApproval' => $this->canApprovePurchaseRequest(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
@@ -563,7 +582,7 @@ class Tr_prhController extends Controller
         if ($pageData['blockedByPO']) {
             return redirect()
                 ->route('tr_prh.view', $tr_prh->fprhid)
-                ->with('error', $this->getUsageLockMessage($tr_prh));
+                ->with('error', $this->getUsageLockMessage($tr_prh, 'edit'));
         }
 
         return view('tr_prh.edit', [
@@ -577,7 +596,7 @@ class Tr_prhController extends Controller
             'savedItems' => $pageData['savedItems'],
             'blockedByPO' => $pageData['blockedByPO'],
             'existingPO' => $pageData['existingPO'],
-            'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh) : null,
+            'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh, 'edit') : null,
             'action' => 'edit',
             'canApproval' => $this->canApprovePurchaseRequest(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
@@ -601,7 +620,7 @@ class Tr_prhController extends Controller
             && $hasReference
             && trim((string) ($header->fprdin ?? '')) === '0';
 
-        if ($message = $this->getUsageLockMessage($header)) {
+        if ($message = $this->getUsageLockMessage($header, 'edit')) {
             if ($canCloseReferencedPr) {
                 $message = null;
             }
@@ -932,7 +951,7 @@ class Tr_prhController extends Controller
         if ($pageData['blockedByPO']) {
             return redirect()
                 ->route('tr_prh.view', $tr_prh->fprhid)
-                ->with('error', $this->getUsageLockMessage($tr_prh));
+                ->with('error', $this->getUsageLockMessage($tr_prh, 'delete'));
         }
 
         return view('tr_prh.edit', [
@@ -946,7 +965,7 @@ class Tr_prhController extends Controller
             'savedItems' => $pageData['savedItems'],
             'existingPO' => $pageData['existingPO'],
             'blockedByPO' => $pageData['blockedByPO'],
-            'usageLockMessage' => $this->getUsageLockMessage($tr_prh),
+            'usageLockMessage' => $this->getUsageLockMessage($tr_prh, 'delete'),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'delete',
         ]);
@@ -966,7 +985,7 @@ class Tr_prhController extends Controller
                 return redirect()->route('tr_prh.edit', $tr_prh->fprhid)->with('error', $message);
             }
 
-            if ($message = $this->getUsageLockMessage($tr_prh)) {
+            if ($message = $this->getUsageLockMessage($tr_prh, 'delete')) {
                 if (request()->expectsJson()) {
                     return response()->json(['message' => $message], 422);
                 }
@@ -1056,7 +1075,7 @@ class Tr_prhController extends Controller
         }
     }
 
-    private function getUsageLockMessage(Tr_prh $header): ?string
+    private function getUsageLockMessage(Tr_prh $header, string $action = 'edit'): ?string
     {
         $usedBy = DB::table('tr_pod as pod')
             ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
@@ -1070,7 +1089,10 @@ class Tr_prhController extends Controller
             return null;
         }
 
-        return "Information\nPermintaan ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
+        $actionText = $action === 'delete' ? 'dihapus' : 'diedit';
+        $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
+
+        return "Permintaan ini sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
     }
 
     private function validateStoreRequest(Request $request): void
