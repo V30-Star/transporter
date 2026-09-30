@@ -3358,6 +3358,7 @@ class FakturpembelianController extends Controller
                 );
             });
 
+            $isApproved = (int) ($header->fapproval ?? 0) === 1;
             $successMessage = "Faktur pembelian {$fstockmtno} berhasil diupdate.";
             $successPrompt = $isApproved ? [
                 'type' => 'fakturpembelian_edit',
