@@ -3000,7 +3000,7 @@ class FakturpembelianController extends Controller
                 return back()->withInput()->with('error', $umPriceValidation);
             }
 
-            if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($codes, $refdtnos, $qtys, (string) $request->input('fsupplier'), $fakturpembelian->fstockmtno)) {
+            if ($umQtyValidation = $this->validateAdvancePaymentQtyAgainstReference($codes, $refdtnos, $qtys, (string) $request->input('fsupplier'), $header->fstockmtno)) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $umQtyValidation], 422);
                 }
