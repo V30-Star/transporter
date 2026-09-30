@@ -99,7 +99,7 @@
         .info-col-label {
             font-weight: 600;
             color: #334155;
-            width: 85px;
+            width: 100px;
         }
 
         .wh-header-title {
@@ -572,6 +572,11 @@
                                 <td>:</td>
                                 <td>{{ $productRange }}</td>
                             </tr>
+                            <tr>
+                                <td class="info-col-label">Status Stok</td>
+                                <td>:</td>
+                                <td>{{ $stockStatusText }}</td>
+                            </tr>
                         </table>
                     </div>
                     {{-- Kanan --}}
@@ -583,12 +588,7 @@
                                 <td style="font-weight: bold;">{{ $period }}</td>
                             </tr>
                             <tr>
-                                <td class="info-col-label">Status Stok</td>
-                                <td>:</td>
-                                <td>{{ $stockStatusText }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Tanggal</td>
+                                <td class="info-col-label">Tanggal Cetak</td>
                                 <td>:</td>
                                 <td>{{ date('d-m-Y') }}</td>
                             </tr>
@@ -783,6 +783,11 @@
                                         <td>:</td>
                                         <td>{{ $productRange }}</td>
                                     </tr>
+                                    <tr>
+                                        <td class="info-col-label">Status Stok</td>
+                                        <td>:</td>
+                                        <td>{{ $stockStatusText }}</td>
+                                    </tr>
                                 </table>
                             </div>
                             <div style="flex: 1; padding-left: 5px;">
@@ -793,12 +798,7 @@
                                         <td>{{ $period }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="info-col-label">Status Stok</td>
-                                        <td>:</td>
-                                        <td>{{ $stockStatusText }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="info-col-label">Tanggal</td>
+                                        <td class="info-col-label">Tanggal Cetak</td>
                                         <td>:</td>
                                         <td>{{ date('d-m-Y') }}</td>
                                     </tr>
