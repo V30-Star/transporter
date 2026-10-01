@@ -225,61 +225,6 @@
             {{-- ==================== PANEL KANAN: PILIH PRODUK & ANTREAN CETAK (LEBAR PENUH) ==================== --}}
             <div class="bp-main-pane">
 
-                {{-- CARD: PILIH & TAMBAH PRODUK --}}
-                <div class="bp-card">
-                    <div class="bp-card-header">
-                        <div class="flex items-center gap-2">
-                            <div class="bp-icon-circle text-blue-600 bg-blue-50 dark:bg-blue-950/40">
-                                <i class="fa-solid fa-cart-plus"></i>
-                            </div>
-                            <div>
-                                <span class="bp-card-title">Cari & Tambah Produk</span>
-                                <span class="bp-card-hint">Pilih produk dari database untuk dimasukkan ke antrean cetak</span>
-                            </div>
-                        </div>
-
-                        <button type="button" id="btnOpenBrowseModal" class="bp-btn-browse">
-                            <i class="fa-solid fa-table-list"></i>
-                            <span>Browse Daftar Produk</span>
-                        </button>
-                    </div>
-
-                    <div class="bp-card-body space-y-3">
-                        {{-- Baris 1: Pencarian Produk (Full Width) --}}
-                        <div>
-                            <label class="bp-label">Ketik Nama Produk, Kode Produk, atau Barcode:</label>
-                            <div class="w-full">
-                                <select id="productSearchSelect" class="w-full" style="width: 100%;">
-                                    <option value="">Ketik untuk mencari produk...</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Nama Produk yang tampil di label (bisa diubah) --}}
-                        <div>
-                            <label class="bp-label">Nama Produk (tampil di label):</label>
-                            <input type="text" id="labelNameInput" class="bp-input" placeholder="Otomatis terisi setelah memilih produk">
-                        </div>
-
-                        {{-- Baris 2: Qty Stiker & Tombol Tambah --}}
-                        <div class="bp-add-action-row">
-                            <div class="flex items-center gap-3">
-                                <label class="bp-label mb-0" style="font-size: 13px; font-weight: 700;">Jumlah Stiker (Qty):</label>
-                                <div class="bp-stepper bp-stepper-lg">
-                                    <button type="button" onclick="stepQtyInput(-1)" title="Kurangi 1">-</button>
-                                    <input type="number" id="productAddQty" value="1" min="1" max="9999" class="font-mono font-bold">
-                                    <button type="button" onclick="stepQtyInput(1)" title="Tambah 1">+</button>
-                                </div>
-                            </div>
-
-                            <button type="button" id="btnAddProduct" class="bp-btn-primary">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Tambah ke Antrean</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- CARD: DAFTAR ANTREAN LABEL --}}
                 <div class="bp-card">
                     <div class="bp-card-header">
@@ -294,6 +239,11 @@
                         </div>
 
                         <div class="flex items-center gap-3">
+                            <button type="button" id="btnOpenBrowseModal" class="bp-btn-browse">
+                                <i class="fa-solid fa-table-list"></i>
+                                <span>Browse Daftar Produk</span>
+                            </button>
+
                             <div class="bp-bulk-qty-wrap">
                                 <span class="label">Set Semua Qty:</span>
                                 <input type="number" id="bulkQtyInput" value="5" min="1" max="999" class="bp-bulk-input font-mono font-bold">
@@ -317,7 +267,7 @@
                                     <th>Nama Produk</th>
                                     <th style="width: 125px; text-align: right;">Harga Jual</th>
                                     <th style="width: 175px; text-align: center;">Jumlah Label</th>
-                                    <th style="width: 55px; text-align: center;">Aksi</th>
+                                    <th style="width: 95px; text-align: center;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="queueTableBody">
@@ -327,7 +277,7 @@
                                             <i class="fa-solid fa-tags"></i>
                                         </div>
                                         <div class="title">Antrean Masih Kosong</div>
-                                        <div class="subtitle">Gunakan form pencarian di atas atau klik "Browse Daftar Produk" untuk memilih barang.</div>
+                                        <div class="subtitle">Klik "Browse Daftar Produk" untuk memilih barang.</div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1297,7 +1247,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
 let queueItems = [];
-let selectedSearchData = null;
 let currentZoom = 1;
 let modalProductList = [];
 let recentSettingsList = @json($recentSettings ?? []);
@@ -1399,65 +1348,6 @@ $(document).ready(function() {
     // Load recent settings on ready
     renderRecentSettings();
 
-    // Select2 Product Search
-    $('#productSearchSelect').select2({
-        width: '100%',
-        ajax: {
-            url: '{{ route('barcode.search-products') }}',
-            dataType: 'json',
-            delay: 200,
-            data: function (params) {
-                return { q: params.term || '', limit: 30 };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.map(function(item) {
-                        return {
-                            id: item.id,
-                            text: item.fprdcode + ' - ' + item.fprdname + (item.fbarcode ? ' [' + item.fbarcode + ']' : ''),
-                            product: item
-                        };
-                    })
-                };
-            },
-            cache: true
-        },
-        placeholder: 'Ketik nama, kode, atau barcode...',
-        minimumInputLength: 1
-    }).on('select2:select', function(e) {
-        selectedSearchData = e.params.data.product;
-        $('#labelNameInput').val(selectedSearchData.fprdname || '');
-        $('#productAddQty').focus();
-    });
-
-    // Add Product to Queue
-    $('#btnAddProduct').on('click', function() {
-        if (!selectedSearchData) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Pilih Produk',
-                text: 'Silakan pilih produk terlebih dahulu.',
-                confirmButtonColor: '#2563eb'
-            });
-            return;
-        }
-
-        const qty = parseInt($('#productAddQty').val(), 10) || 1;
-        const labelName = $('#labelNameInput').val().trim() || selectedSearchData.fprdname;
-        addItemToQueue(selectedSearchData, qty);
-        const queued = queueItems.find(it => it.fprdcode === selectedSearchData.fprdcode);
-        if (queued && queued.fprdname !== labelName) {
-            queued.fprdname = labelName;
-            renderQueue();
-        }
-
-        // Reset
-        $('#labelNameInput').val('');
-        $('#productSearchSelect').val(null).trigger('change');
-        $('#productAddQty').val(1);
-        selectedSearchData = null;
-    });
-
     // Clear Queue
     $('#btnClearQueue').on('click', function() {
         if (queueItems.length === 0) return;
@@ -1530,20 +1420,43 @@ function addItemToQueue(product, qty) {
     renderQueue();
 }
 
-// Stepper for Qty Input
-function stepQtyInput(delta) {
-    const el = $('#productAddQty');
-    let val = (parseInt(el.val(), 10) || 1) + delta;
-    if (val < 1) val = 1;
-    el.val(val);
-}
-
 // Table Stepper for Rows
 function stepRowQty(idx, delta) {
     if (queueItems[idx]) {
         queueItems[idx].qty = Math.max(1, queueItems[idx].qty + delta);
         renderQueue();
     }
+}
+
+// Edit Nama Produk & Jumlah Label
+function editRow(idx) {
+    const item = queueItems[idx];
+    if (!item) return;
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+    Swal.fire({
+        title: 'Edit Label',
+        html: `
+            <div style="text-align: left; font-size: 13px;">
+                <label style="font-weight: 700;">Nama Produk (tampil di label)</label>
+                <input id="editNameInput" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${esc(item.fprdname)}">
+                <label style="font-weight: 700;">Jumlah Label</label>
+                <input id="editQtyInput" type="number" min="1" max="9999" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${item.qty}">
+            </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#2563eb',
+        preConfirm: () => ({
+            name: document.getElementById('editNameInput').value.trim(),
+            qty: Math.max(1, parseInt(document.getElementById('editQtyInput').value, 10) || 1)
+        })
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        if (result.value.name) item.fprdname = result.value.name;
+        item.qty = result.value.qty;
+        renderQueue();
+    });
 }
 
 // Remove Item
@@ -1565,7 +1478,7 @@ function renderQueue() {
                         <i class="fa-solid fa-tags"></i>
                     </div>
                     <div class="title">Antrean Masih Kosong</div>
-                    <div class="subtitle">Gunakan form pencarian di atas atau klik "Browse Daftar Produk" untuk memilih barang.</div>
+                    <div class="subtitle">Klik "Browse Daftar Produk" untuk memilih barang.</div>
                 </td>
             </tr>
         `);
@@ -1605,7 +1518,10 @@ function renderQueue() {
                         <button type="button" onclick="stepRowQty(${idx}, 1)" style="width: 36px; font-size: 16px;">+</button>
                     </div>
                 </td>
-                <td style="text-align: center;">
+                <td style="text-align: center; white-space: nowrap;">
+                    <button type="button" onclick="editRow(${idx})" class="bp-btn-browse" style="font-size: 13px; padding: 6px 9px;" title="Edit Nama & Jumlah">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                     <button type="button" onclick="removeRow(${idx})" class="bp-btn-clear" style="font-size: 13px;" title="Hapus">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
