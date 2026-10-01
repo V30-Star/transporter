@@ -1168,7 +1168,7 @@
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),
 
-            includePPN: false,
+            includePPN: @json(count(old()) > 0 ? old('fapplyppn') !== null : default_auto_ppn()),
             fapplyppn: false,
 
             get ppnIncluded() {

@@ -995,7 +995,7 @@
             selectedCurrId: '{{ old('fcurrencyid', '') }}',
             selectedCurrCode: '{{ old('fcurrency', 'IDR') }}',
             rateValue: {{ old('frate', 1) }},
-            includePPN: false,
+            includePPN: @json(count(old()) > 0 ? old('fapplyppn') !== null : default_auto_ppn()),
             ppnMode: 0,
             ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             rows: [],

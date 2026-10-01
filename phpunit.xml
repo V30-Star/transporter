@@ -11,6 +11,10 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!-- Test HTTP terhadap DB live (di-rollback). Tidak ikut run default; jalankan dengan opsi testsuite LiveHttp (lihat tests/Http/README.md) -->
+        <testsuite name="LiveHttp">
+            <directory suffix="Test.php">tests/Http</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

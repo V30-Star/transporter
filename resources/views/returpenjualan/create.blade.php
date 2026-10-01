@@ -2110,7 +2110,7 @@
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
-            includePPN: @json(old('fincludeppn', $tr_poh->fincludeppn ?? 0) == '1'),
+            includePPN: @json(count(old()) > 0 ? old('fincludeppn') == '1' : (isset($tr_poh->fincludeppn) ? $tr_poh->fincludeppn == '1' : default_auto_ppn())),
             fapplyppn: 0,
 
             get ppnIncluded() {

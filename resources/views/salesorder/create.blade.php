@@ -901,7 +901,7 @@
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
-            includePPN: false,
+            includePPN: @json(count(old()) > 0 ? old('fapplyppn') !== null : default_auto_ppn()),
             ppnMode: 0, // 0: Exclude, 1: Include
             ppnRate: @json((float) ($defaultPpnTarif ?? 11)),
             showWarningModal: false,

@@ -196,7 +196,7 @@
         </div>
     @endif
     @php
-        $includePPN = old('fapplyppn', 0);
+        $includePPN = count(old()) > 0 ? old('fapplyppn', 0) : (default_auto_ppn() ? 1 : 0);
         $ppnMode = old('fincludeppn', 0);
         $ppnRate = old('ppn_rate', $defaultPpnTarif ?? 11);
         $currentType = old('ftypebuy', '0');

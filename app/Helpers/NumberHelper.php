@@ -60,6 +60,19 @@ if (!function_exists('stock_boleh_minus')) {
 
     return $allow;
   }
+
+  /**
+   * set_default 'DefaultAutoPPN' = 1: checkbox PPN tercentang otomatis di halaman create.
+   * Hanya status awal; halaman edit mengikuti data tersimpan.
+   */
+  function default_auto_ppn(): bool
+  {
+    try {
+      return (int) \Illuminate\Support\Facades\DB::table('set_default')->where('fdefaultname', 'DefaultAutoPPN')->value('fdefaultvalue') === 1;
+    } catch (\Throwable $e) {
+      return false;
+    }
+  }
 }
 
 if (!function_exists('product_units_default_first')) {
