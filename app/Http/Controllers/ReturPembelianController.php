@@ -654,7 +654,7 @@ class ReturPembelianController extends Controller
             ->first();
     }
 
-    private function validateQtyAgainstPurchaseReference(array $rowsDt): ?string
+    private function validateQtyAgainstPurchaseReference(array $rowsDt, ?string $exceptStockMtNo = null): ?string
     {
         $refs = collect($rowsDt)->pluck('frefdtno')->map(fn($value) => trim((string) $value))->filter()->unique()->values()->all();
         if (empty($refs)) {
@@ -681,13 +681,25 @@ class ReturPembelianController extends Controller
             $usage[$key] = ($usage[$key] ?? 0) + (float) ($row['fqtykecil'] ?? 0);
         }
 
+        // Retur lain atas faktur & produk yang sama (dokumen yang sedang diedit tidak dihitung).
+        $returnedByOthers = DB::table('trstockdt as d')
+            ->where('d.fstockmtcode', 'REB')
+            ->whereIn(DB::raw('TRIM(d.frefdtno)'), $refs)
+            ->when(! empty($exceptStockMtNo), fn ($q) => $q->where('d.fstockmtno', '<>', $exceptStockMtNo))
+            ->selectRaw('TRIM(d.frefdtno) as refno, TRIM(d.fprdcode) as code, SUM(COALESCE(d.fqtykecil, 0)) as returned_qty')
+            ->groupByRaw('TRIM(d.frefdtno), TRIM(d.fprdcode)')
+            ->get()
+            ->keyBy(fn ($row) => $row->refno . '|' . $row->code);
+
         foreach ($usage as $key => $qtyKecil) {
             $stat = $source->get($key);
-            // ponytail: compares against original BUY source qty per scope; cumulative over-use across docs no longer blocked, restore remain-based check if that becomes required
-            if ((float) $qtyKecil - (float) ($stat->source_qty ?? 0) > 0.000001) {
+            $already = (float) ($returnedByOthers->get($key)->returned_qty ?? 0);
+            $sisa = (float) ($stat->source_qty ?? 0) - $already;
+            if ((float) $qtyKecil - $sisa > 0.000001) {
                 [$refno, $code] = array_pad(explode('|', $key), 2, '');
                 $label = trim((string) ($stat->name ?? $code));
-                return "Jumlah input tidak boleh melebihi qty Faktur Pembelian ({$refno}). Produk {$label}.";
+                $hint = $already > 0 ? " Sudah diretur {$already}." : '';
+                return "Jumlah input tidak boleh melebihi sisa qty Faktur Pembelian ({$refno}). Produk {$label}.{$hint}";
             }
         }
 
@@ -1137,12 +1149,6 @@ class ReturPembelianController extends Controller
 
                 return '';
             };
-
-            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo)) {
-                return back()->withInput()->withErrors([
-                    'detail' => $validationMessage,
-                ]);
-            }
 
             $typeBuy = (int) $request->input('ftypebuy', 0);
 
@@ -1834,12 +1840,6 @@ class ReturPembelianController extends Controller
                 return '';
             };
 
-            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo, $header->fstockmtno)) {
-                return back()->withInput()->withErrors([
-                    'detail' => $validationMessage,
-                ]);
-            }
-
             $typeBuy = (int) $request->input('ftypebuy', $header->ftypebuy ?? 0);
 
             // BUILD DETAIL ROWS
@@ -1925,7 +1925,7 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
-            if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt)) {
+            if ($validationMessage = $this->validateQtyAgainstPurchaseReference($rowsDt, $header->fstockmtno)) {
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
@@ -2484,43 +2484,6 @@ class ReturPembelianController extends Controller
         $referenceLines = $usedBy->values()->map(fn ($reference, $index) => ($index + 1) . '. ' . $reference)->implode("\n");
 
         return "Retur pembelian sudah direferensikan\n{$referenceLines}\nTidak boleh {$actionText}";
-    }
-
-    private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
-    {
-        $references = collect([$frefno, $frefpo])
-            ->map(fn($value) => trim((string) ($value ?? '')))
-            ->filter(fn($value) => $value !== '')
-            ->unique()
-            ->values();
-
-        if ($references->isEmpty()) {
-            return null;
-        }
-
-        foreach ($references as $referenceNo) {
-            $query = DB::table('trstockmt')
-                ->whereIn('fstockmtcode', ['REB', 'RUB'])
-                ->where(function ($inner) use ($referenceNo) {
-                    $inner->whereRaw('TRIM(COALESCE(frefno, \'\')) = ?', [$referenceNo])
-                        ->orWhereRaw('TRIM(COALESCE(frefpo, \'\')) = ?', [$referenceNo]);
-                });
-
-            if (! empty($exceptStockMtNo)) {
-                $query->where('fstockmtno', '<>', $exceptStockMtNo);
-            }
-
-            $existing = $query
-                ->orderBy('fstockmtno')
-                ->select('fstockmtno')
-                ->first();
-
-            if ($existing) {
-                return 'No. referensi ' . strtoupper((string) $referenceNo) . ' sudah ada di transaksi ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
-            }
-        }
-
-        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

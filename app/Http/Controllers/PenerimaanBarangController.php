@@ -2055,6 +2055,13 @@ class PenerimaanBarangController extends Controller
         // --- Lookup accounts from set_account table ---
         $accountPersediaan = DB::table('set_account')->where('faccount_name', 'PEMBELIAN')->value('faccount');
         $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount');
+        $accountPpnMasukan = $ppnAmount > 0
+            ? trim((string) DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount'))
+            : '';
+
+        if ($ppnAmount > 0 && $accountPpnMasukan === '') {
+            throw new \RuntimeException('Account PPNBELI belum diatur di set_account.');
+        }
 
         $fjurnaltype  = 'TER';
         $hasPpn = (string) ($hdr->fapplyppn ?? '0') === '1' || (string) ($hdr->fincludeppn ?? '0') === '1';
@@ -2130,6 +2137,27 @@ class PenerimaanBarangController extends Controller
                 'fdatetime'    => $now,
             ],
         ];
+
+        if ($ppnAmount > 0) {
+            // PPN masukan (debit) supaya jurnal seimbang: persediaan + PPN = penerimaan belum ditagih.
+            array_splice($jurnalDt, 1, 0, [[
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 2,
+                'faccount'     => $accountPpnMasukan,
+                'fdk'          => 'D',
+                'fsubaccount'  => $fsupplier,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1,
+                'famount'      => round($ppnAmount, 2),
+                'famount_rp'   => round($ppnAmount, 2),
+                'faccountnote' => 'PPN Masukan',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
+            ]]);
+        }
 
         DB::table('jurnaldt')->insert($jurnalDt);
     }

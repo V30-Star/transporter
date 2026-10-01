@@ -972,7 +972,7 @@ class FakturpembelianController extends Controller
                         ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fpodid', $ids)
-                ->selectRaw('d.fpodid as detail_id, COALESCE(d.fqtykecil, 0) as remain_kecil')
+                ->selectRaw('d.fpodid as detail_id, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
                 ->map(fn($value) => (float) $value)
                 ->all();
@@ -990,7 +990,7 @@ class FakturpembelianController extends Controller
                         ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fstockdtid', $ids)
-                ->selectRaw('d.fstockdtid as detail_id, COALESCE(d.fqtykecil, 0) as remain_kecil')
+                ->selectRaw('d.fstockdtid as detail_id, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
                 ->map(fn($value) => (float) $value)
                 ->all();
@@ -1140,8 +1140,8 @@ class FakturpembelianController extends Controller
             $sat = trim((string) ($satuans[$i] ?? ''));
             $needKecil = $this->qtySourceUnitToKecil($product, $sat, $qty);
             $sourceKey = $sourceType . ':' . $detailId;
-            // ponytail: compares against original source qty per scope; cumulative over-use across docs no longer blocked, restore remain_qty_kecil compare + except-current usage if that becomes required
-            $availableKecil = $remainKecil;
+            // Sisa = qty sumber - pemakaian dokumen lain; pemakaian dokumen yang sedang diedit dikembalikan (extra).
+            $availableKecil = $remainKecil + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
             if ($needKecil > $availableKecil + $tolerance) {
                 $available = $this->qtyKecilToSourceUnit((object) [
                     'fsatuan' => $sat,
@@ -3721,6 +3721,16 @@ class FakturpembelianController extends Controller
             ->distinct()
             ->orderBy('fstockmtno')
             ->pluck('fstockmtno');
+
+        // Retur yang merujuk faktur ini hanya lewat baris detail (header referensi kosong) juga mengunci faktur.
+        $usedBy = $usedBy->merge(
+            DB::table('trstockdt')
+                ->where('fstockmtcode', 'REB')
+                ->whereRaw('TRIM(frefdtno) = ?', [trim((string) $header->fstockmtno)])
+                ->distinct()
+                ->orderBy('fstockmtno')
+                ->pluck('fstockmtno')
+        );
 
         $usedBy = $usedBy->merge($this->getPaymentReferencesMap([$header->fstockmtno])->get(trim((string) $header->fstockmtno), []))->unique()->values();
 
