@@ -46,11 +46,11 @@
                     <div class="bp-card-header">
                         <div class="bp-step-badge">1</div>
                         <span class="bp-card-title">Ukuran Kertas Stiker</span>
-                        <span class="bp-pill-tag">Dinamis</span>
+                        <span class="bp-pill-tag">Kertas: 80 × 20 mm (2 kolom)</span>
                     </div>
 
                     <div class="bp-card-body">
-                        {{-- Recent Setting Section --}}
+                        {{-- Recent Setting dinonaktifkan karena ukuran stiker dikunci
                         <div id="recentSettingSection" class="bp-recent-section" style="display: none;">
                             <div class="bp-recent-header">
                                 <span class="bp-recent-title">
@@ -63,7 +63,9 @@
                             </div>
                             <div id="recentChipsList" class="bp-recent-chips"></div>
                         </div>
+                        --}}
 
+                        {{-- Preset ukuran dinonaktifkan, ukuran ditetapkan 80x20 mm (2 kolom x 39 mm + gap 2 mm)
                         <div class="bp-form-group">
                             <label class="bp-label">Pilih Preset Ukuran Stiker Fisik</label>
                             <div class="bp-preset-grid">
@@ -101,38 +103,39 @@
                                 </button>
                             </div>
                         </div>
+                        --}}
 
                         {{-- Input Dimensi Dinamis (4 Kolom Rapi 1 Baris) --}}
                         <div class="bp-dim-row-4">
                             <div class="bp-dim-col">
                                 <label class="bp-label">Lebar (mm)</label>
                                 <div class="bp-input-unit">
-                                    <input type="number" step="0.5" min="10" max="250" name="label_width" id="labelWidth" value="33" class="bp-input font-mono">
+                                    <input type="number" step="0.5" min="10" max="250" name="label_width" id="labelWidth" value="39" readonly class="bp-input font-mono bg-gray-100 cursor-not-allowed">
                                     <span class="unit">mm</span>
                                 </div>
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Tinggi (mm)</label>
                                 <div class="bp-input-unit">
-                                    <input type="number" step="0.5" min="8" max="250" name="label_height" id="labelHeight" value="15" class="bp-input font-mono">
+                                    <input type="number" step="0.5" min="8" max="250" name="label_height" id="labelHeight" value="18" readonly class="bp-input font-mono bg-gray-100 cursor-not-allowed">
                                     <span class="unit">mm</span>
                                 </div>
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Kolom</label>
-                                <input type="number" min="1" max="5" name="columns" id="labelColumns" value="3" class="bp-input font-mono">
+                                <input type="number" min="1" max="5" name="columns" id="labelColumns" value="2" readonly class="bp-input font-mono bg-gray-100 cursor-not-allowed">
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Gap X (mm)</label>
                                 <div class="bp-input-unit">
-                                    <input type="number" step="0.5" min="0" max="20" name="gap_x" id="gapX" value="2" class="bp-input font-mono">
+                                    <input type="number" step="0.5" min="0" max="20" name="gap_x" id="gapX" value="2" readonly class="bp-input font-mono bg-gray-100 cursor-not-allowed">
                                     <span class="unit">mm</span>
                                 </div>
                             </div>
                             <div class="bp-dim-col">
                                 <label class="bp-label">Gap Y (mm)</label>
                                 <div class="bp-input-unit">
-                                    <input type="number" step="0.5" min="0" max="20" name="gap_y" id="gapY" value="0" class="bp-input font-mono">
+                                    <input type="number" step="0.5" min="0" max="20" name="gap_y" id="gapY" value="2" readonly class="bp-input font-mono bg-gray-100 cursor-not-allowed">
                                     <span class="unit">mm</span>
                                 </div>
                             </div>
