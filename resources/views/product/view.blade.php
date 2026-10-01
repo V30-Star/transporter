@@ -306,12 +306,6 @@
                                         <span class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2"></span>
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="field-label">HPP Satuan 2</label>
-                                    <input type="text" disabled id="fhpp2"
-                                        value="{{ $product->fhpp2 ?? 0 }}"
-                                        class="autonumeric field-input yellow text-right">
-                                </div>
                             </div>
                         </div>
 
@@ -341,12 +335,6 @@
                                             class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm">
                                         <span class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase"></span>
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="field-label">HPP Satuan 3</label>
-                                    <input type="text" disabled id="fhpp3"
-                                        value="{{ $product->fhpp3 ?? 0 }}"
-                                        class="autonumeric field-input purple text-right">
                                 </div>
                             </div>
                         </div>

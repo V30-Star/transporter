@@ -696,11 +696,6 @@
                                         <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div>
-                                    <label class="field-label">HPP Satuan 2</label>
-                                    <input type="text" name="fhpp2" id="fhpp2"
-                                        class="autonumeric field-input yellow text-right" readonly>
-                                </div>
                             </div>
                         </div>
 
@@ -739,11 +734,6 @@
                                     @error('fqtykecil2')
                                         <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
                                     @enderror
-                                </div>
-                                <div>
-                                    <label class="field-label">HPP Satuan 3</label>
-                                    <input type="text" name="fhpp3" id="fhpp3"
-                                        class="autonumeric field-input purple text-right" readonly>
                                 </div>
                             </div>
                         </div>
@@ -1608,22 +1598,6 @@
                 unformatOnSubmit: true
             });
         }
-
-        function calculateHPPRows() {
-            const anHppKecil = AutoNumeric.getAutoNumericElement('#fhpp');
-            const anQty2 = AutoNumeric.getAutoNumericElement('#fqtykecil');
-            const anQty3 = AutoNumeric.getAutoNumericElement('#fqtykecil2');
-            const anHpp2 = AutoNumeric.getAutoNumericElement('#fhpp2');
-            const anHpp3 = AutoNumeric.getAutoNumericElement('#fhpp3');
-            const valHppKecil = anHppKecil ? anHppKecil.getNumber() : 0;
-            if (anQty2 && anHpp2) anHpp2.set(valHppKecil * anQty2.getNumber());
-            if (anQty3 && anHpp3) anHpp3.set(valHppKecil * anQty3.getNumber());
-        }
-
-        $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:rawValueModified', function() {
-            calculateHPPRows();
-        });
-        setTimeout(calculateHPPRows, 500);
 
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');

@@ -579,13 +579,6 @@
                                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="w-1/6">
-                                        <label class="block text-sm font-bold">HPP Satuan 2</label>
-                                        <input type="text" name="fhpp2" id="fhpp2"
-                                            value="{{ old('fhpp2', $product->fhpp2) }}"
-                                            class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50 font-semibold"
-                                            readonly>
-                                    </div>
                                 </div>
                             </div>
 
@@ -634,13 +627,6 @@
                                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="w-1/6">
-                                        <label class="block text-sm font-bold">HPP Satuan 3</label>
-                                        <input type="text" name="fhpp3" id="fhpp3"
-                                            value="{{ old('fhpp3', $product->fhpp3) }}"
-                                            class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-50 font-semibold"
-                                            readonly>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -659,36 +645,8 @@
 
                                 // Inisialisasi dan simpan instance ke dalam variabel
                                 const anHpp = new AutoNumeric('#fhpp', autoNumericOptions);
-                                const anHpp2 = new AutoNumeric('#fhpp2', autoNumericOptions);
-                                const anHpp3 = new AutoNumeric('#fhpp3', autoNumericOptions);
                                 const anQty2 = new AutoNumeric('#fqtykecil', autoNumericOptions);
                                 const anQty3 = new AutoNumeric('#fqtykecil2', autoNumericOptions);
-
-                                function calculateHPPRows() {
-                                    const valHppKecil = anHpp.getNumber();
-                                    const valQty2 = anQty2.getNumber();
-                                    const valQty3 = anQty3.getNumber();
-
-                                    // Update HPP 2 & 3
-                                    if (valQty2 > 0) {
-                                        anHpp2.set(valHppKecil * valQty2);
-                                    }
-                                    if (valQty3 > 0) {
-                                        anHpp3.set(valHppKecil * valQty3);
-                                    }
-                                }
-
-                                // 2. Event Listener khusus AutoNumeric
-                                // Gunakan event 'autoNumeric:newValue' agar kalkulasi akurat setelah format selesai
-                                $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
-                                    calculateHPPRows();
-                                });
-
-                                // 3. Jalankan kalkulasi pertama kali saat halaman terbuka
-                                // Gunakan sedikit delay agar AutoNumeric selesai memformat nilai awal dari DB
-                                setTimeout(() => {
-                                    calculateHPPRows();
-                                }, 300);
                             });
                         </script>
 
@@ -1373,12 +1331,6 @@
                                                 <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        <div>
-                                            <label class="field-label">HPP Satuan 2</label>
-                                            <input type="text" name="fhpp2" id="fhpp2"
-                                                value="{{ old('fhpp2', $product->fhpp2 ?? 0) }}"
-                                                class="autonumeric field-input yellow text-right" readonly>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -1429,12 +1381,6 @@
                                             @error('fqtykecil2')
                                                 <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
                                             @enderror
-                                        </div>
-                                        <div>
-                                            <label class="field-label">HPP Satuan 3</label>
-                                            <input type="text" name="fhpp3" id="fhpp3"
-                                                value="{{ old('fhpp3', $product->fhpp3 ?? 0) }}"
-                                                class="autonumeric field-input purple text-right" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -2493,28 +2439,9 @@
 
         // Cek apakah elemen HPP Satuan 2 & 3 sudah di-init (bisa double-init jika mode delete)
         // AutoNumeric throws jika sudah diinisialisasi, jadi gunakan try/catch
-        let anHppEdit = null, anHpp2Edit = null, anHpp3Edit = null;
-        let anQty2Edit = null, anQty3Edit = null;
-        try { anHppEdit  = new AutoNumeric('#fhpp', hppOptions);  } catch(e) { anHppEdit  = AutoNumeric.getAutoNumericElement('#fhpp');  }
-        try { anHpp2Edit = new AutoNumeric('#fhpp2', hppOptions); } catch(e) { anHpp2Edit = AutoNumeric.getAutoNumericElement('#fhpp2'); }
-        try { anHpp3Edit = new AutoNumeric('#fhpp3', hppOptions); } catch(e) { anHpp3Edit = AutoNumeric.getAutoNumericElement('#fhpp3'); }
-        try { anQty2Edit = new AutoNumeric('#fqtykecil', hppOptions); } catch(e) { anQty2Edit = AutoNumeric.getAutoNumericElement('#fqtykecil'); }
-        try { anQty3Edit = new AutoNumeric('#fqtykecil2', hppOptions); } catch(e) { anQty3Edit = AutoNumeric.getAutoNumericElement('#fqtykecil2'); }
-
-        function calculateHPPEditMode() {
-            if (!anHppEdit || !anHpp2Edit || !anHpp3Edit) return;
-            const valHppKecil = anHppEdit.getNumber() || 0;
-            const valQty2 = anQty2Edit ? anQty2Edit.getNumber() : 0;
-            const valQty3 = anQty3Edit ? anQty3Edit.getNumber() : 0;
-            if (valQty2 > 0) anHpp2Edit.set(valHppKecil * valQty2);
-            if (valQty3 > 0) anHpp3Edit.set(valHppKecil * valQty3);
-        }
-
-        $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
-            calculateHPPEditMode();
-        });
-
-        setTimeout(() => { calculateHPPEditMode(); }, 400);
+        try { new AutoNumeric('#fhpp', hppOptions); } catch(e) {}
+        try { new AutoNumeric('#fqtykecil', hppOptions); } catch(e) {}
+        try { new AutoNumeric('#fqtykecil2', hppOptions); } catch(e) {}
 
         $(function() {
             const $inp = $("#fprdname");
