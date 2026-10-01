@@ -1555,7 +1555,21 @@ class InvoiceController extends Controller
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
             'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
             'typePembayarans' => $typePembayarans,
+            'autoTunai' => $this->autoTunaiDefault(),
         ]);
+    }
+
+    /** set_default 'DefaultAutoTunai' = 1: checkbox Cash tercentang otomatis di halaman create. */
+    protected function autoTunaiDefault(): bool
+    {
+        return (int) DB::table('set_default')->where('fdefaultname', 'DefaultAutoTunai')->value('fdefaultvalue') === 1;
+    }
+
+    protected function canSellTunai(): bool
+    {
+        $permissions = array_map('strtolower', array_filter(array_map('trim', explode(',', (string) session('user_restricted_permissions', '')))));
+
+        return in_array('bolehpenjualantunai', $permissions, true);
     }
 
     public function productHistory(Request $request)
@@ -2645,7 +2659,10 @@ class InvoiceController extends Controller
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $isRetail = $this->getRoutePrefix() === 'penjualanretail';
-                $isTunai = $isRetail || $request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1);
+                // Retail: checkbox Cash dihormati bagi user ber-BolehPenjualanTunai; tanpa izin itu (checkbox tersembunyi) tetap tunai.
+                $isTunai = $isRetail
+                    ? (! $this->canSellTunai() || $request->boolean('ftunai'))
+                    : ($request->boolean('ftunai') || ((int) $request->input('ftunai', 0) === 1));
                 $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerInsert = [
                     'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
