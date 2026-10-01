@@ -517,7 +517,7 @@ class ProductController extends Controller
             $validationRules = [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
-                'ftype' => 'string',
+                'ftype' => 'required|in:Produk,Jasa',
                 'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',
@@ -779,7 +779,7 @@ class ProductController extends Controller
                     ? 'nullable|string'
                     : ['required', 'string', \Illuminate\Validation\Rule::unique('msprd', 'fprdcode')->ignore($product->fprdid, 'fprdid')],
                 'fprdname' => 'required|string',
-                'ftype' => 'string',
+                'ftype' => 'required|in:Produk,Jasa',
                 'fspecification' => 'nullable|string',
                 'fbarcode' => 'nullable',
                 'fgroupcode' => 'required',

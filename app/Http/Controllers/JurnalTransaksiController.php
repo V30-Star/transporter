@@ -703,7 +703,7 @@ class JurnalTransaksiController extends Controller
         $request->validate([
             // jurnalmt
             'fjurnalno' => ['nullable', 'string', 'max:100'],
-            'fjurnaltype' => ['required', 'string', 'max:10'],
+            'fjurnaltype' => ['required', 'string', 'in:'.self::GENERAL_JOURNAL_TYPE],
             'fjurnaldate' => ['required', 'date'],
             'fjurnalnote' => ['nullable', 'string', 'max:500'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -824,9 +824,13 @@ class JurnalTransaksiController extends Controller
                 ]);
             }
 
-            // Skip baris tidak valid
+            // Baris setengah terisi ditolak, bukan dibuang diam-diam
             if ($faccount === '' || $famount <= 0 || ! in_array($fdk, ['D', 'K'])) {
-                continue;
+                $msg = 'Baris '.($i + 1).' belum lengkap: account, D/K dan jumlah (lebih dari 0) wajib diisi.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->withErrors(['detail' => $msg]);
             }
 
             if ($fdk === 'D') {
@@ -916,6 +920,15 @@ class JurnalTransaksiController extends Controller
         // =========================================================
         // 4) TRANSAKSI DB
         // =========================================================
+        $manualNo = strtoupper(trim((string) $request->input('fjurnalno', '')));
+        if ($manualNo !== '' && DB::table('jurnalmt')->whereRaw('UPPER(TRIM(fjurnalno)) = ?', [$manualNo])->exists()) {
+            $msg = "No. Jurnal {$manualNo} sudah dipakai.";
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return back()->withInput()->withErrors(['fjurnalno' => $msg]);
+        }
+
         $newJurnalMtId = null;
         $fjurnalno = null;
 
@@ -1207,7 +1220,7 @@ class JurnalTransaksiController extends Controller
         try {
             $request->validate([
             'fjurnalno' => ['required', 'string', 'max:100'],
-            'fjurnaltype' => ['required', 'string', 'max:10'],
+            'fjurnaltype' => ['required', 'string', 'in:'.self::GENERAL_JOURNAL_TYPE],
             'fjurnaldate' => ['required', 'date'],
             'fjurnalnote' => ['nullable', 'string', 'max:500'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -1305,7 +1318,11 @@ class JurnalTransaksiController extends Controller
             }
 
             if ($faccount === '' || $famount <= 0 || ! in_array($fdk, ['D', 'K'])) {
-                continue;
+                $msg = 'Baris '.($i + 1).' belum lengkap: account, D/K dan jumlah (lebih dari 0) wajib diisi.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $msg], 422);
+                }
+                return back()->withInput()->withErrors(['detail' => $msg]);
             }
 
             if ($fdk === 'D') {

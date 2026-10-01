@@ -522,6 +522,58 @@ class AssemblingController extends Controller
         ]);
     }
 
+    /**
+     * Tiap baris wajib bahan baku (B) atau barang jadi (J), minimal satu dari masing-masing.
+     * Nilai bahan baku (qty kecil x HPP) dibebankan ke barang jadi, dibagi rata per unit kecil.
+     * Mengembalikan baris yang sudah berharga, atau pesan error.
+     */
+    private function prepareAssemblingRows(array $rowsDt): array|string
+    {
+        foreach ($rowsDt as $row) {
+            if (! in_array($row['fcode'] ?? '', ['B', 'J'], true)) {
+                return 'Tipe item (bahan baku / barang jadi) wajib diisi untuk setiap item.';
+            }
+        }
+
+        $hasBahan = collect($rowsDt)->contains(fn ($r) => $r['fcode'] === 'B');
+        $hasJadi = collect($rowsDt)->contains(fn ($r) => $r['fcode'] === 'J');
+        if (! $hasBahan || ! $hasJadi) {
+            return 'Assembling harus memiliki minimal 1 bahan baku dan 1 barang jadi.';
+        }
+
+        $hpp = DB::table('msprd')
+            ->whereIn('fprdcode', array_column($rowsDt, 'fprdcode'))
+            ->pluck('fhpp', 'fprdcode')
+            ->mapWithKeys(fn ($v, $k) => [trim((string) $k) => (float) $v]);
+
+        $materialCost = 0.0;
+        foreach ($rowsDt as &$row) {
+            if ($row['fcode'] !== 'B') {
+                continue;
+            }
+            $total = round((float) $row['fqtykecil'] * ($hpp[trim((string) $row['fprdcode'])] ?? 0.0), 2);
+            $materialCost += $total;
+            $row['ftotprice'] = $row['ftotprice_rp'] = $total;
+            $row['fprice'] = $row['fprice_rp'] = (float) $row['fqty'] != 0.0 ? $total / (float) $row['fqty'] : 0;
+        }
+        unset($row);
+
+        $goodsQty = (float) collect($rowsDt)->where('fcode', 'J')->sum('fqtykecil');
+        $unitCost = $goodsQty != 0.0 ? $materialCost / $goodsQty : 0.0;
+
+        foreach ($rowsDt as &$row) {
+            if ($row['fcode'] !== 'J') {
+                continue;
+            }
+            $total = round((float) $row['fqtykecil'] * $unitCost, 2);
+            $row['ftotprice'] = $row['ftotprice_rp'] = $total;
+            $row['fprice'] = $row['fprice_rp'] = (float) $row['fqty'] != 0.0 ? $total / (float) $row['fqty'] : 0;
+        }
+        unset($row);
+
+        return $rowsDt;
+    }
+
     public function store(Request $request)
     {
         if ($this->hasReachedDailyCreateLimit()) {
@@ -729,6 +781,15 @@ class AssemblingController extends Controller
         }
 
         $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
+
+        $prepared = $this->prepareAssemblingRows($rowsDt);
+        if (is_string($prepared)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $prepared], 422);
+            }
+            return back()->withInput()->withErrors(['fitemtype' => $prepared]);
+        }
+        $rowsDt = $prepared;
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
             if ($request->expectsJson()) {
@@ -1283,6 +1344,12 @@ class AssemblingController extends Controller
         }
 
         $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
+
+        $prepared = $this->prepareAssemblingRows($rowsDt);
+        if (is_string($prepared)) {
+            return back()->withInput()->withErrors(['fitemtype' => $prepared]);
+        }
+        $rowsDt = $prepared;
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
             return back()->withInput()->withErrors([

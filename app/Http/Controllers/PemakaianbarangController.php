@@ -508,6 +508,28 @@ class PemakaianbarangController extends Controller
         ]);
     }
 
+    /** Account biaya tiap baris wajib diisi dan harus akun detail aktif. */
+    private function expenseAccountError(array $rowsDt): ?string
+    {
+        foreach ($rowsDt as $row) {
+            $account = trim((string) ($row['frefdtno'] ?? ''));
+            if ($account === '') {
+                return 'Account wajib diisi untuk setiap item.';
+            }
+
+            $valid = DB::table('account')
+                ->whereRaw('TRIM(faccount) = ?', [$account])
+                ->where('fend', 1)
+                ->where('fnonactive', '0')
+                ->exists();
+            if (! $valid) {
+                return "Account {$account} tidak valid (harus akun detail yang aktif).";
+            }
+        }
+
+        return null;
+    }
+
     public function store(Request $request)
     {
         if ($this->hasReachedDailyCreateLimit()) {
@@ -703,6 +725,13 @@ class PemakaianbarangController extends Controller
 
         $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
 
+        if ($accountMessage = $this->expenseAccountError($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $accountMessage], 422);
+            }
+            return back()->withInput()->withErrors(['frefdtno' => $accountMessage]);
+        }
+
         if ($stockResponse = $this->validateStockMinusLines(
             $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom),
             $request->boolean('force_save')
@@ -798,6 +827,8 @@ class PemakaianbarangController extends Controller
             unset($r);
 
             DB::table('trstockdt')->insert($rowsDt);
+
+            JurnalPemakaianBarang::create($fstockmtno, $fstockmtdate, (string) $kodeCabang, (string) (Auth::user()->fname ?? 'system'));
         });
 
         // =================================================================
@@ -1271,6 +1302,13 @@ class PemakaianbarangController extends Controller
 
         $this->ensureNoDuplicateDetailCodes(array_column($rowsDt, 'fprdcode'), array_column($rowsDt, 'fnoacak'));
 
+        if ($accountMessage = $this->expenseAccountError($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $accountMessage], 422);
+            }
+            return back()->withInput()->withErrors(['frefdtno' => $accountMessage]);
+        }
+
         if ($stockResponse = $this->validateStockMinusLines(
             $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
             $request->boolean('force_save')
@@ -1426,6 +1464,8 @@ class PemakaianbarangController extends Controller
                 ]);
             }
             unset($r);
+
+            JurnalPemakaianBarang::sync((string) $fstockmtno, $fstockmtdate, (string) $kodeCabang, (string) $userName);
         });
 
         $message = "Pemakaian Barang {$fstockmtno} berhasil diupdate.";
@@ -1734,6 +1774,8 @@ class PemakaianbarangController extends Controller
                 DB::table('trstockdt')
                     ->where('fstockmtno', $pemakaianbarang->fstockmtno)
                     ->delete();
+
+                JurnalPemakaianBarang::delete((string) $pemakaianbarang->fstockmtno);
 
                 $pemakaianbarang->delete();
             });

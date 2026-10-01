@@ -1269,7 +1269,11 @@ class MutasiController extends Controller
             $grandTotal = $subtotal + $ppnAmount;
 
             if ($stockResponse = $this->validateStockMinusLines(
-                $this->buildStockMinusLinesForOutChange($rowsDt, (string) $request->input('ffrom'), $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                array_merge(
+                    $this->buildStockMinusLinesForOutChange($rowsDt, (string) $request->input('ffrom'), $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                    // gudang tujuan: stok yang sudah masuk tidak boleh berkurang di bawah yang sudah terpakai
+                    $this->buildStockMinusLinesFromNetChange($rowsDt, (string) $request->input('fto'), $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->fto)
+                ),
                 $request->boolean('force_save')
             )) {
                 return $stockResponse;

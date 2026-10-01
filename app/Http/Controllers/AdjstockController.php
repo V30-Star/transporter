@@ -624,7 +624,7 @@ class AdjstockController extends Controller
                 ],
                 'fstockmtdate' => ['required', 'date'],
                 'ffrom' => ['required', 'string', 'max:10'],
-                'ftrancode' => ['nullable', 'string', 'max:3'],
+                'ftrancode' => ['required', 'in:M,K'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'fitemcode' => ['required', 'array', 'min:1'],
@@ -781,7 +781,7 @@ class AdjstockController extends Controller
             }
 
             if ($stockResponse = $this->validateStockMinusLines(
-                $this->buildStockMinusLinesForSignedRows($rowsDt, (string) $request->input('ffrom')),
+                $this->buildStockMinusLinesForSignedRows($this->signedAdjustmentRows($rowsDt, $request->input('ftrancode')), (string) $request->input('ffrom')),
                 $request->boolean('force_save')
             )) {
                 return $stockResponse;
@@ -873,6 +873,8 @@ class AdjstockController extends Controller
                 unset($r);
 
                 DB::table('trstockdt')->insert($rowsDt);
+
+                JurnalAdjstock::create($fstockmtno, $headerData['fstockmtdate'], (string) $headerData['fbranchcode'], (string) $headerData['fusercreate']);
 
                 return $fstockmtno;
             });
@@ -1146,7 +1148,7 @@ class AdjstockController extends Controller
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
                 'ffrom' => ['required', 'string', 'max:10'],
-                'ftrancode' => ['nullable', 'string', 'max:3'],
+                'ftrancode' => ['required', 'in:M,K'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'fitemcode' => ['required', 'array', 'min:1'],
@@ -1279,7 +1281,12 @@ class AdjstockController extends Controller
             }
 
             if ($stockResponse = $this->validateStockMinusLines(
-                $this->buildStockMinusLinesForSignedRows($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                $this->buildStockMinusLinesForSignedRows(
+                    $this->signedAdjustmentRows($rowsDt, $ftrancode),
+                    (string) $ffrom,
+                    $this->signedAdjustmentRows($this->fetchStockDetailRows((string) $header->fstockmtno), $header->ftrancode),
+                    (string) $header->ffrom
+                ),
                 $request->boolean('force_save')
             )) {
                 return $stockResponse;
@@ -1451,6 +1458,8 @@ class AdjstockController extends Controller
                     ]);
                 }
                 unset($r);
+
+                JurnalAdjstock::sync((string) $header->fstockmtno, $fstockmtdate, (string) $kodeCabang, (string) $userName);
             });
 
             $message = "Adjustment Stok {$header->fstockmtno} berhasil diupdate.";
@@ -1633,7 +1642,7 @@ class AdjstockController extends Controller
             }
 
             if ($stockResponse = $this->validateStockMinusLines(
-                $this->buildStockMinusLinesForSignedRows([], (string) $adjstock->ffrom, $this->fetchStockDetailRows((string) $adjstock->fstockmtno), (string) $adjstock->ffrom),
+                $this->buildStockMinusLinesForSignedRows([], (string) $adjstock->ffrom, $this->signedAdjustmentRows($this->fetchStockDetailRows((string) $adjstock->fstockmtno), $adjstock->ftrancode), (string) $adjstock->ffrom),
                 request()->boolean('force_save')
             )) {
                 return $stockResponse;
@@ -1744,6 +1753,8 @@ class AdjstockController extends Controller
                     ->where('fstockmtno', $adjstock->fstockmtno)
                     ->delete();
 
+                JurnalAdjstock::delete((string) $adjstock->fstockmtno);
+
                 $adjstock->delete();
             });
 
@@ -1763,6 +1774,18 @@ class AdjstockController extends Controller
             }
             return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Adjustment stock belum bisa dihapus. Coba lagi.');
         }
+    }
+
+    /** Qty kecil bertanda menurut efek ke stok: M (masuk) positif, K (keluar) negatif. */
+    private function signedAdjustmentRows(array $rows, ?string $ftrancode): array
+    {
+        $sign = strtoupper(trim((string) $ftrancode)) === 'K' ? -1 : 1;
+
+        return array_map(function ($row) use ($sign) {
+            $row['fqtykecil'] = $sign * (float) ($row['fqtykecil'] ?? 0);
+
+            return $row;
+        }, $rows);
     }
 
     /** Dokumen stok lain yang mereferensi tiap nomor. Query sama dengan getUsageLockMessage, tapi per halaman. */
