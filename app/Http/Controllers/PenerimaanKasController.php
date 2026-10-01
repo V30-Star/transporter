@@ -907,7 +907,7 @@ class PenerimaanKasController extends Controller
 
         return Account::query()
             ->where('faccount', $accountCode)
-            ->first(['faccid', 'faccount', 'faccname']);
+            ->first(['faccid', 'faccount', 'faccname', 'finitjurnal']);
     }
 
     private function resolveSetAccountCode(string $accountName): ?string

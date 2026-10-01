@@ -170,7 +170,7 @@ class GroupproductController extends Controller
             }
 
             // 2. Selalu INSERT log baru (feditmode = 'U')
-            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+            \Illuminate\Support\Facades\DB::table('loggroupproduct')->insert([
                 'fgroupid'     => $groupproduct->fgroupid,
                 'fgroupcode'   => $groupproduct->fgroupcode,
                 'fgroupname'   => $groupproduct->fgroupname,
@@ -246,7 +246,7 @@ class GroupproductController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+            \Illuminate\Support\Facades\DB::table('loggroupproduct')->insert([
                 'fgroupid'     => $groupproduct->fgroupid,
                 'fgroupcode'   => $groupproduct->fgroupcode,
                 'fgroupname'   => $groupproduct->fgroupname,
