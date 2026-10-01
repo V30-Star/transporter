@@ -255,6 +255,12 @@
                             </div>
                         </div>
 
+                        {{-- Nama Produk yang tampil di label (bisa diubah) --}}
+                        <div>
+                            <label class="bp-label">Nama Produk (tampil di label):</label>
+                            <input type="text" id="labelNameInput" class="bp-input" placeholder="Otomatis terisi setelah memilih produk">
+                        </div>
+
                         {{-- Baris 2: Qty Stiker & Tombol Tambah --}}
                         <div class="bp-add-action-row">
                             <div class="flex items-center gap-3">
@@ -1420,6 +1426,7 @@ $(document).ready(function() {
         minimumInputLength: 1
     }).on('select2:select', function(e) {
         selectedSearchData = e.params.data.product;
+        $('#labelNameInput').val(selectedSearchData.fprdname || '');
         $('#productAddQty').focus();
     });
 
@@ -1436,9 +1443,16 @@ $(document).ready(function() {
         }
 
         const qty = parseInt($('#productAddQty').val(), 10) || 1;
+        const labelName = $('#labelNameInput').val().trim() || selectedSearchData.fprdname;
         addItemToQueue(selectedSearchData, qty);
+        const queued = queueItems.find(it => it.fprdcode === selectedSearchData.fprdcode);
+        if (queued && queued.fprdname !== labelName) {
+            queued.fprdname = labelName;
+            renderQueue();
+        }
 
         // Reset
+        $('#labelNameInput').val('');
         $('#productSearchSelect').val(null).trigger('change');
         $('#productAddQty').val(1);
         selectedSearchData = null;
