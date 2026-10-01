@@ -68,12 +68,6 @@ class ProductController extends Controller
         return strtoupper(trim((string) $val)) === 'THE';
     }
 
-    protected function isRetailTas(): bool
-    {
-        $val = DB::table('setini')->value('finitinvretail');
-        return strtoupper(trim((string) $val)) === 'TAS';
-    }
-
     protected function sanitizeNumericInputs(Request $request): void
     {
         $numericFields = [
@@ -653,7 +647,7 @@ class ProductController extends Controller
             }
 
             $user = auth('sysuser')->user();
-            $isApproved = $this->isRetailTas() || ($this->canApproveProduct() && $request->boolean('approve_now'));
+            $isApproved = $this->canApproveProduct() && $request->boolean('approve_now');
 
             if ($isApproved) {
                 $validated['fapproval'] = '1';
@@ -970,7 +964,7 @@ class ProductController extends Controller
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
             $alreadyApproved = \App\Support\ApprovalState::isApprovedRecord($product) || (string) ($product->fapproval ?? '') === '1' || !empty($product->fuserapproved);
-            $justApproved = !$alreadyApproved && ($this->isRetailTas() || ($this->canApproveProduct() && $request->boolean('approve_now')));
+            $justApproved = !$alreadyApproved && $this->canApproveProduct() && $request->boolean('approve_now');
             $isApproved = $alreadyApproved || $justApproved;
             if ($isApproved) {
                 $validated['fapproval'] = '1';
