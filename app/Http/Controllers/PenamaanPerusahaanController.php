@@ -6,13 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PenamaanPerusahaanController extends Controller
 {
     private function checkPasswordMatch(?string $input, ?string $stored): bool
     {
+        // Belum ada password tersimpan: tidak ada password bawaan. Akses dibuka lewat isAuthorized().
         if (empty($stored)) {
-            return $input === 'admin1234';
+            return false;
         }
 
         // 1. Cek Crypt Decrypt (AES-256)
@@ -38,11 +40,21 @@ class PenamaanPerusahaanController extends Controller
         return false;
     }
 
+    /** Sesi sudah diverifikasi, atau memang belum ada password perusahaan yang diatur (pengaturan awal). */
+    private function isAuthorized(): bool
+    {
+        return (bool) session('penamaan_perusahaan_auth', false)
+            || empty(DB::table('setini')->value('fpasswordperusahaan'));
+    }
+
+    private function verifyThrottleKey(Request $request): string
+    {
+        return 'penamaan-verify:' . (auth('sysuser')->id() ?? 'guest') . '|' . $request->ip();
+    }
+
     public function index(Request $request)
     {
-        $isAuth = session('penamaan_perusahaan_auth', false);
-
-        if (!$isAuth) {
+        if (!$this->isAuthorized()) {
             return view('penamaanperusahaan.auth', [
                 'pageTitle' => 'Verifikasi Akses Penamaan Perusahaan',
             ]);
@@ -66,12 +78,22 @@ class PenamaanPerusahaanController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        $throttleKey = $this->verifyThrottleKey($request);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withInput()->with('error', "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik.");
+        }
+
         $stored = DB::table('setini')->value('fpasswordperusahaan');
 
         if (!$this->checkPasswordMatch($request->password, $stored)) {
+            RateLimiter::hit($throttleKey, 300);
+
             return back()->withInput()->with('error', 'Password salah! Akses ditolak.');
         }
 
+        RateLimiter::clear($throttleKey);
         session(['penamaan_perusahaan_auth' => true]);
 
         return redirect()->route('penamaanperusahaan.index')
@@ -80,7 +102,7 @@ class PenamaanPerusahaanController extends Controller
 
     public function update(Request $request)
     {
-        if (!session('penamaan_perusahaan_auth', false)) {
+        if (!$this->isAuthorized()) {
             return redirect()->route('penamaanperusahaan.index')
                 ->with('error', 'Silakan verifikasi password terlebih dahulu.');
         }

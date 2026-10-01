@@ -30,6 +30,12 @@ class EditPeriodeController extends Controller
                 return back()->withInput()->with('error', "Information\nPeriode harus format YYYYMM yang valid.");
             }
 
+            $year = (int) substr($validated['fyrmth'], 0, 4);
+            $maxYear = (int) now()->format('Y') + 1;
+            if ($year < 2000 || $year > $maxYear) {
+                return back()->withInput()->with('error', "Information\nTahun periode harus antara 2000 dan {$maxYear}.");
+            }
+
             DB::table('setini')->update([
                 'fyrmth' => $validated['fyrmth'],
             ]);

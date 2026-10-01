@@ -58,6 +58,23 @@ class SysUserController extends Controller
         return view('sysuser.create', compact('salesman', 'cabangs'));
     }
 
+    /** Cabang wajib diisi dan harus ada di master cabang (mscabang). */
+    private function cabangRules(): array
+    {
+        return [
+            'required',
+            'string',
+            function ($attribute, $value, $fail) {
+                $exists = DB::table('mscabang')
+                    ->whereRaw('LOWER(TRIM(fcabangkode)) = ?', [mb_strtolower(trim((string) $value))])
+                    ->exists();
+                if (! $exists) {
+                    $fail('Cabang tidak valid.');
+                }
+            },
+        ];
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -70,8 +87,8 @@ class SysUserController extends Controller
             'fname' => 'required|string|max:100',
             'password' => 'required|string|min:6|confirmed',
             'fsalesman' => 'nullable',
-            'fuserlevel' => 'string|in:User,Admin',
-            'fcabang' => 'string',
+            'fuserlevel' => 'required|string|in:User,Admin',
+            'fcabang' => $this->cabangRules(),
         ], [
             'fsysuserid.required' => 'User Name / Login wajib diisi.',
             'fsysuserid.unique' => 'User Name / Login sudah ada.',
@@ -139,10 +156,10 @@ class SysUserController extends Controller
                     'regex:/^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/',
                 ],
                 'fname' => 'required|string',
-                'password' => 'nullable|string|confirmed',
+                'password' => 'nullable|string|min:6|confirmed',
                 'fsalesman' => 'nullable',
-                'fuserlevel' => 'string|in:User,Admin',
-                'fcabang' => 'string',
+                'fuserlevel' => 'required|string|in:User,Admin',
+                'fcabang' => $this->cabangRules(),
             ], [
                 'fsysuserid.required' => 'User Name / Login wajib diisi.',
                 'fsysuserid.unique' => 'User Name / Login sudah ada.',
@@ -166,7 +183,6 @@ class SysUserController extends Controller
             $userLogin = auth('sysuser')->user();
             $validated['fcabang'] = $request->fcabang ?? '-';
             $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
-            $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
             $validated['updated_at'] = now();
             $fsalesmanValue = $request->fsalesman;
 

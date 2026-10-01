@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RoleAccess;
 use App\Models\Sysuser;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoleAccessController extends Controller
 {
@@ -23,11 +24,28 @@ class RoleAccessController extends Controller
         return view('roleaccess.index', compact('user', 'roleAccess', 'allUsers'));
     }
 
+    /** Daftar permission = checkbox yang tampil di form roleaccess.index. */
+    private function knownPermissions(): array
+    {
+        static $known = null;
+
+        if ($known === null) {
+            $html = (string) @file_get_contents(resource_path('views/roleaccess/index.blade.php'));
+            preg_match_all('/name="permission\[\]"\s+value="([^"]+)"/', $html, $matches);
+            $known = array_values(array_unique($matches[1]));
+        }
+
+        return $known;
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'fuid' => 'required|exists:sysuser,fuid',
             'permission' => 'nullable|array',
+            'permission.*' => ['string', Rule::in($this->knownPermissions())],
+        ], [
+            'permission.*.in' => 'Permission tidak dikenal.',
         ]);
 
         $user = Sysuser::findOrFail($request->fuid);
