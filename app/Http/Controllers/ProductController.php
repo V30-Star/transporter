@@ -33,6 +33,12 @@ class ProductController extends Controller
         return in_array('approveproduct', $permissions, true);
     }
 
+    /** set_default 'BolehApproveProduk' = 1: produk baru otomatis disetujui. */
+    protected function autoApproveProduct(): bool
+    {
+        return (int) DB::table('set_default')->where('fdefaultname', 'BolehApproveProduk')->value('fdefaultvalue') === 1;
+    }
+
     protected function canViewProductHpp(): bool
     {
         return in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
@@ -501,8 +507,9 @@ class ProductController extends Controller
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
         $canApproval = $this->canApproveProduct();
         $isRetailThe = $this->isRetailThe();
+        $autoApprove = $this->autoApproveProduct();
 
-        return view('product.create', compact('groups', 'merks', 'satuan', 'dealers', 'newProductCode', 'enabledImageNumbers', 'canApproval', 'isRetailThe'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'dealers', 'newProductCode', 'enabledImageNumbers', 'canApproval', 'isRetailThe', 'autoApprove'));
     }
 
     public function store(Request $request)
@@ -647,7 +654,10 @@ class ProductController extends Controller
             }
 
             $user = auth('sysuser')->user();
-            $isApproved = $this->canApproveProduct() && $request->boolean('approve_now');
+            // Auto approve (set_default) berlaku semua user. User ber-approveproduct boleh mematikannya lewat toggle.
+            $isApproved = $this->canApproveProduct() && $request->has('approve_now')
+                ? $request->boolean('approve_now')
+                : $this->autoApproveProduct();
 
             if ($isApproved) {
                 $validated['fapproval'] = '1';

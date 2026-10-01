@@ -1015,7 +1015,7 @@
                                 class="flex items-center gap-2 text-sm font-semibold border rounded-lg px-3 py-2 {{ $canApproval ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed bg-gray-50 text-gray-500' }}">
                                 <span>Approve</span>
                                 <label class="switch" style="margin:0">
-                                    <input type="checkbox" name="approve_now" id="approvalToggle" {{ $canApproval ? '' : 'disabled' }}>
+                                    <input type="checkbox" name="approve_now" id="approvalToggle" {{ $canApproval ? '' : 'disabled' }} {{ ! empty($autoApprove) ? 'checked' : '' }}>
                                     <span class="slider round"></span>
                                 </label>
                             </label>
@@ -2412,6 +2412,9 @@
                     form.submit();
                 } else if (result.isDenied) {
                     if (approveInput) approveInput.value = '0';
+                    // toggle bawaan tercentang (auto approve); matikan agar tidak menimpa pilihan "No"
+                    const toggle = document.getElementById('approvalToggle');
+                    if (toggle) toggle.checked = false;
                     form.dataset.confirmed = 'true';
                     form.submit();
                 }

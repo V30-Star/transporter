@@ -23,12 +23,32 @@ class BukuBesarController extends Controller
 
     public function print(Request $request)
     {
+        $rows = $this->rows($request);
+
         return view('bukubesar.print', [
-            'rows' => $this->rows($request),
+            'rows' => $rows,
+            'grouped' => $rows->groupBy(fn ($row) => trim((string) $row->faccount)),
             'request' => $request,
             'title' => 'Buku Besar',
+            'dateFrom' => $request->input('date_from'),
+            'dateTo' => $request->input('date_to'),
+            'accountText' => $this->filterRangeText($request->input('account_from'), $request->input('account_to')),
+            'branchText' => collect((array) $request->input('branch_codes'))->filter()->implode(', ') ?: 'Semua',
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
+    }
+
+    private function filterRangeText($from, $to): string
+    {
+        $from = trim((string) $from);
+        $to = trim((string) $to);
+
+        return match (true) {
+            $from !== '' && $to !== '' => "{$from} s/d {$to}",
+            $from !== '' => "{$from} s/d ...",
+            $to !== '' => "... s/d {$to}",
+            default => 'Semua',
+        };
     }
 
     private function rows(Request $request)

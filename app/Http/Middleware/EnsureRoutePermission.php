@@ -68,6 +68,7 @@ class EnsureRoutePermission
         'listingpr' => 'printListingPermintaanPembelian',
         'listingpo' => 'printListingOrderPembelian',
         'listingpenerimaanbarang' => 'printListingPenerimaanBarang',
+        'listingpenerimaan' => 'printListingPenerimaanBarang',
         'listingfakturpembelian' => 'printListingFakturPembelian',
         'listingreturpembelian' => 'printListingReturPembelian',
         'listinghutangdagang' => 'printListingHutangDagang',
@@ -95,6 +96,10 @@ class EnsureRoutePermission
         'reportingproduct' => 'printLaporanProduk',
         'listingso' => 'printListingSalesOrder',
         'listingsobelum' => 'printSoBelumTerkirim',
+        // laporan lama: memakai permission listing padanannya
+        'reportingpr' => 'printListingPermintaanPembelian',
+        'reportingpenerimaanbarang' => 'printListingPenerimaanBarang',
+        'reportingfakturpembelian' => 'printListingFakturPembelian',
     ];
 
     private const ACTIONS = [
@@ -197,6 +202,10 @@ class EnsureRoutePermission
                 $permissionAction . 'BayarSupplier',
                 $permissionAction . 'PenerimaanKas',
             ];
+        }
+
+        if ($module === 'reportingkas') {
+            return [str_starts_with($action, 'pengeluaran') ? 'printListingPengeluaranKasBank' : 'printListingPenerimaanKasBank'];
         }
 
         if (isset(self::REPORT_PRINTS[$module])) {
