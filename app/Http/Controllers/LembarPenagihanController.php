@@ -679,6 +679,38 @@ class LembarPenagihanController extends Controller
 
     private function validatedData(Request $request, ?int $ignoreId = null): array
     {
+        $data = $this->validatedFields($request, $ignoreId);
+
+        // Nota harus ada, milik customer yang dipilih, dan tidak boleh dobel dalam satu lembar.
+        $refs = collect($data['frefsono'])->map(fn ($v) => trim((string) $v));
+        $customerByRef = DB::table('tranmt')
+            ->whereIn('ftrcode', ['INV', 'REJ', 'RUJ'])
+            ->whereIn(DB::raw('TRIM(fsono)'), $refs->all())
+            ->get(['fsono', 'fcustno'])
+            ->mapWithKeys(fn ($r) => [trim((string) $r->fsono) => trim((string) $r->fcustno)]);
+
+        $errors = [];
+        $seen = [];
+        foreach ($refs as $i => $ref) {
+            if (! $customerByRef->has($ref)) {
+                $errors["frefsono.$i"] = "Nota {$ref} tidak ditemukan.";
+            } elseif ($customerByRef->get($ref) !== trim((string) $data['fcustno'])) {
+                $errors["frefsono.$i"] = "Nota {$ref} bukan milik customer yang dipilih.";
+            } elseif (isset($seen[strtoupper($ref)])) {
+                $errors["frefsono.$i"] = "Nota {$ref} tidak boleh dobel dalam satu lembar penagihan.";
+            }
+            $seen[strtoupper($ref)] = true;
+        }
+
+        if ($errors) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+
+        return $data;
+    }
+
+    private function validatedFields(Request $request, ?int $ignoreId = null): array
+    {
         return $request->validate([
             'ftagihanno' => [
                 'nullable',

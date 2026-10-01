@@ -311,7 +311,15 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => ['required'],
+            'faccountheader' => [
+                'required',
+                function ($attribute, $value, $fail) use ($isGiroMundur) {
+                    $allowed = $this->resolveHeaderAccounts()->pluck('faccount')->map(fn($v) => trim((string) $v));
+                    if (! $isGiroMundur && ! $allowed->contains(trim((string) $value))) {
+                        $fail('Cash / bank account tidak valid.');
+                    }
+                },
+            ],
             'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
@@ -379,7 +387,6 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateUniqueReferenceRows($detailRows);
-        $this->validateReferencesNotAlreadyUsed($detailRows);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
@@ -545,7 +552,15 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => ['required'],
+            'faccountheader' => [
+                'required',
+                function ($attribute, $value, $fail) use ($isGiroMundur) {
+                    $allowed = $this->resolveHeaderAccounts()->pluck('faccount')->map(fn($v) => trim((string) $v));
+                    if (! $isGiroMundur && ! $allowed->contains(trim((string) $value))) {
+                        $fail('Cash / bank account tidak valid.');
+                    }
+                },
+            ],
             'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($header->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
@@ -613,7 +628,6 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateUniqueReferenceRows($detailRows);
-        $this->validateReferencesNotAlreadyUsed($detailRows, $header);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
@@ -1157,43 +1171,6 @@ class PelunasanCustomerController extends Controller
             }
 
             $seen[$key] = true;
-        }
-    }
-
-    private function validateReferencesNotAlreadyUsed(Collection $detailRows, ?Trkasmt $exceptHeader = null): void
-    {
-        $refNos = $detailRows
-            ->pluck('frefno')
-            ->map(fn($value) => trim((string) $value))
-            ->filter()
-            ->unique()
-            ->values();
-
-        if ($refNos->isEmpty()) {
-            return;
-        }
-
-        $usedRefs = Trkasdt::query()
-            ->where('ftrancode', self::TRAN_CODE)
-            ->whereIn('frefno', $refNos)
-            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
-            ->when($exceptHeader, fn($query) => $query->where('fkasmtid', '!=', $exceptHeader->fkasmtid))
-            ->pluck('frefno')
-            ->map(fn($value) => strtoupper(trim((string) $value)))
-            ->flip();
-
-        if ($usedRefs->isEmpty()) {
-            return;
-        }
-
-        foreach ($detailRows as $index => $row) {
-            $refNo = trim((string) ($row['frefno'] ?? ''));
-
-            if ($refNo !== '' && $usedRefs->has(strtoupper($refNo))) {
-                throw ValidationException::withMessages([
-                    "details.{$index}.frefno" => "No. nota {$refNo} sudah pernah dibuat Pelunasan Customer.",
-                ]);
-            }
         }
     }
 

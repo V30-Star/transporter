@@ -88,6 +88,11 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            // Barang yang menagih surat jalan sudah keluar gudang lewat surat jalan: tidak perlu cek stok lagi.
+            if (trim((string) ($row['frefsrj'] ?? '')) !== '') {
+                continue;
+            }
+
             $needs[$code] = ($needs[$code] ?? 0) + $qtyKecil;
         }
 
@@ -97,13 +102,23 @@ class InvoiceController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_keys($needs))
-            ->get(['fprdcode', 'fprdname', 'fminstock'])
+            ->get(['fprdcode', 'fprdname'])
             ->keyBy('fprdcode');
+
+        // Saldo kartu stok (prdwh, dijaga trigger dari trstockdt). Penjualan retail memotong stok dari gudang yang dipilih;
+        // faktur lain dicek terhadap total semua gudang.
+        $whcode = trim((string) request()->input('fwhcode', ''));
+        $saldoByProduct = DB::table('prdwh')
+            ->whereIn('fprdcode', array_keys($needs))
+            ->when($whcode !== '' && $this->getRoutePrefix() === 'penjualanretail', fn ($q) => $q->whereRaw('TRIM(fwhcode) = ?', [$whcode]))
+            ->groupByRaw('TRIM(fprdcode)')
+            ->selectRaw('TRIM(fprdcode) as fprdcode, SUM(COALESCE(fsaldo, 0)) as saldo')
+            ->pluck('saldo', 'fprdcode');
 
         $shortages = [];
         foreach ($needs as $code => $required) {
             $product = $products->get($code);
-            $available = (float) ($product->fminstock ?? 0);
+            $available = (float) ($saldoByProduct->get($code) ?? 0);
 
             if ($available + 0.000001 >= $required) {
                 continue;
@@ -2663,12 +2678,15 @@ class InvoiceController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
-                    'fgrosir' => (int) $request->input('fgrosir', 0),
+                    // fgrosir = 0 hanya untuk penjualan retail: trigger DB memotong stok saat faktur dibuat.
+                    // Faktur biasa (grosir) mengeluarkan barang lewat Surat Jalan, jadi tidak boleh memotong stok lagi.
+                    'fgrosir' => $this->getRoutePrefix() === 'penjualanretail' ? 0 : 1,
                     'fbranchcode' => $request->fbranchcode,
                     'ftrcode' => 'INV',
                     'fprdout' => $fprdoutVal,
-                    'fneedacc' => '0',
-                    'fuseracc' => mb_substr($userid, 0, 30),
+                    // Persetujuan batas kredit: catat penyetuju bila faktur memang butuh persetujuan.
+                    'fneedacc' => ($creditApproval['fuseracc'] ?? '0') !== '0' ? '1' : '0',
+                    'fuseracc' => ($creditApproval['fuseracc'] ?? '0') !== '0' ? $creditApproval['fuseracc'] : mb_substr($userid, 0, 30),
                     'fapproval' => $this->getRoutePrefix() === 'penjualanretail' ? 1 : ($isApproved ? 1 : 0),
                     'fuserapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? (Auth::user()->fname ?? $userid ?? 'system') : null,
                     'fdateapproved' => ($this->getRoutePrefix() === 'penjualanretail' || $isApproved) ? $now : null,
@@ -4201,10 +4219,10 @@ class InvoiceController extends Controller
                     'fppnpersen'       => $ppnPersen,
                     'fbranchcode'      => $request->fbranchcode,
                     'ftypesales'       => (int) $request->input('ftypesales', 0),
-                    'fgrosir'          => (int) $request->input('fgrosir', 0),
+                    'fgrosir'          => $this->getRoutePrefix() === 'penjualanretail' ? 0 : 1,
                     'fprdout'          => $fprdoutVal,
-                    'fneedacc'         => '0',
-                    'fuseracc'         => mb_substr($userid, 0, 30),
+                    'fneedacc'         => ($creditApproval['fuseracc'] ?? '0') !== '0' ? '1' : '0',
+                    'fuseracc'         => ($creditApproval['fuseracc'] ?? '0') !== '0' ? $creditApproval['fuseracc'] : mb_substr($userid, 0, 30),
                     'fapproval'        => $this->getRoutePrefix() === 'penjualanretail' ? 1 : ($headerRefNo !== '' ? 1 : 0),
                     'fuserapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fuserapproved ?: (Auth::user()->fname ?? $userid ?? 'system')) : $header->fuserapproved,
                     'fdateapproved'    => $this->getRoutePrefix() === 'penjualanretail' ? ($header->fdateapproved ?: $now) : $header->fdateapproved,

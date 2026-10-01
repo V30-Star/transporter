@@ -1846,12 +1846,12 @@ class ReturPenjualanController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
-        // if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
-        //     if ($request->expectsJson()) {
-        //         return response()->json(['message' => $validationMessage], 422);
-        //     }
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
+        if ($validationMessage = $this->validateReturnedQtyDoesNotExceedSource($soUsageByReference, $srjUsageByReference)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
+            return back()->withInput()->with('error', $validationMessage);
+        }
 
         // KALKULASI TOTAL
         $fapplyppn = '0'; // 0: Exclude
@@ -2139,6 +2139,52 @@ class ReturPenjualanController extends Controller
                 'fqtysisa_ref' => $this->convertQtyKecilToUnit($remainQty, (string) ($row->fsatuan ?? ''), $row),
             ];
         })->all();
+    }
+
+    /**
+     * Total retur atas satu faktur/SRJ per produk tidak boleh melebihi qty sumbernya.
+     * Retur lain atas dokumen & produk yang sama ikut dihitung; dokumen yang sedang diedit dikecualikan.
+     */
+    private function validateReturnedQtyDoesNotExceedSource(array $soUsageByReference, array $srjUsageByReference, ?string $exceptFsono = null): ?string
+    {
+        $checks = [
+            ['label' => 'Faktur', 'usage' => $soUsageByReference, 'refColumn' => 'frefso'],
+            ['label' => 'SRJ', 'usage' => $srjUsageByReference, 'refColumn' => 'frefsrj'],
+        ];
+
+        foreach ($checks as $check) {
+            // Gabungkan per dokumen|produk (nomor acak referensi tidak selalu tersimpan di baris retur).
+            $requested = [];
+            foreach ($check['usage'] as $key => $qtyKecil) {
+                [$doc, $product] = array_pad(explode('|', (string) $key), 3, '');
+                $k = trim($doc) . '|' . trim($product);
+                $requested[$k] = ($requested[$k] ?? 0) + (float) $qtyKecil;
+            }
+
+            foreach ($requested as $k => $needKecil) {
+                [$doc, $product] = explode('|', $k, 2);
+
+                $sourceQty = $check['label'] === 'Faktur'
+                    ? (float) DB::table('trandt')->whereRaw('TRIM(fsono) = ?', [$doc])->whereRaw('TRIM(fprdcode) = ?', [$product])->sum('fqtykecil')
+                    : (float) DB::table('trstockdt')->whereRaw('TRIM(fstockmtno) = ?', [$doc])->whereRaw('TRIM(fprdcode) = ?', [$product])->sum('fqtykecil');
+
+                $returnedByOthers = (float) DB::table('trandt as r')
+                    ->join('tranmt as h', 'h.fsono', '=', 'r.fsono')
+                    ->where('h.ftrcode', 'REJ')
+                    ->whereRaw('TRIM(r.' . $check['refColumn'] . ') = ?', [$doc])
+                    ->whereRaw('TRIM(r.fprdcode) = ?', [$product])
+                    ->when(! empty($exceptFsono), fn ($q) => $q->where('r.fsono', '<>', $exceptFsono))
+                    ->sum('r.fqtykecil');
+
+                if ($needKecil - ($sourceQty - $returnedByOthers) > 0.000001) {
+                    $hint = $returnedByOthers > 0 ? ' Sudah diretur ' . rtrim(rtrim(number_format($returnedByOthers, 4, '.', ''), '0'), '.') . '.' : '';
+
+                    return "Jumlah retur tidak boleh melebihi sisa qty {$check['label']} ({$doc}). Produk {$product}.{$hint}";
+                }
+            }
+        }
+
+        return null;
     }
 
     private function validateReferenceUsage(array $soUsageByReference, array $srjUsageByReference, ?string $exceptFsono = null): ?string
@@ -3203,16 +3249,16 @@ class ReturPenjualanController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
-        // if ($validationMessage = $this->validateReferenceUsage(
-        //     $soUsageByReference,
-        //     $srjUsageByReference,
-        //     $header->fsono
-        // )) {
-        //     if ($request->expectsJson()) {
-        //         return response()->json(['message' => $validationMessage], 422);
-        //     }
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
+        if ($validationMessage = $this->validateReturnedQtyDoesNotExceedSource(
+            $soUsageByReference,
+            $srjUsageByReference,
+            $header->fsono
+        )) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $validationMessage], 422);
+            }
+            return back()->withInput()->with('error', $validationMessage);
+        }
 
         // 5. KALKULASI TOTAL
         $fapplyppn = '0';

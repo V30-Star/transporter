@@ -1249,6 +1249,15 @@ class SalesOrderController extends Controller
             ];
         }
 
+        if (empty($rowsSodt)) {
+            $message = 'Minimal harus ada 1 item dengan qty lebih dari 0.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withInput()->withErrors(['detail' => $message]);
+        }
+
         $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
 
         if ($stockResponse = $this->validateSalesOrderStockLines($rowsSodt, $request->boolean('force_save'))) {
@@ -1311,8 +1320,8 @@ class SalesOrderController extends Controller
                     if ($rawBranch !== null) {
                         $needle = trim((string) $rawBranch);
                         $kodeCabang = (strlen($needle) <= 2) ? $needle : (DB::table('mscabang')
-                            ->whereRaw('LOWER(fcabangcode)=LOWER(?)', [$needle])
-                            ->value('fcabangcode') ?: 'NA');
+                            ->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])
+                            ->value('fcabangkode') ?: 'NA');
                     }
 
                     $yy = $fsodate->format('y');
@@ -1475,13 +1484,20 @@ class SalesOrderController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_keys($needs))
-            ->get(['fprdcode', 'fprdname', 'fminstock'])
+            ->get(['fprdcode', 'fprdname'])
             ->keyBy('fprdcode');
+
+        // Saldo kartu stok (prdwh, dijaga trigger dari trstockdt) dijumlah semua gudang; SO belum memilih gudang.
+        $saldoByProduct = DB::table('prdwh')
+            ->whereIn('fprdcode', array_keys($needs))
+            ->groupByRaw('TRIM(fprdcode)')
+            ->selectRaw('TRIM(fprdcode) as fprdcode, SUM(COALESCE(fsaldo, 0)) as saldo')
+            ->pluck('saldo', 'fprdcode');
 
         $shortages = [];
         foreach ($needs as $code => $required) {
             $product = $products->get($code);
-            $available = (float) ($product->fminstock ?? 0);
+            $available = (float) ($saldoByProduct->get($code) ?? 0);
 
             if ($available + 0.000001 >= $required) {
                 continue;
@@ -1925,6 +1941,15 @@ class SalesOrderController extends Controller
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
                 ];
+            }
+
+            if (empty($rowsSodt)) {
+                $message = 'Minimal harus ada 1 item dengan qty lebih dari 0.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 422);
+                }
+
+                return back()->withInput()->withErrors(['detail' => $message]);
             }
 
             $this->ensureNoDuplicateDetailCodes(array_column($rowsSodt, 'fprdcode'), array_column($rowsSodt, 'fnoacak'));
