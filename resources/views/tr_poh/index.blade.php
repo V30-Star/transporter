@@ -459,7 +459,7 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-center whitespace-nowrap',
-                    render: function(data) {
+                    render: function(data, type, row) {
                         let html = '<div class="flex items-center justify-center gap-1.5 flex-nowrap">';
 
                         if (canView) {

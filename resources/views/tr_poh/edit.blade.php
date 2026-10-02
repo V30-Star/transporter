@@ -567,7 +567,7 @@
                                 <x-heroicon-o-arrow-left class="w-6 h-6" />
                                 Kembali
                             </button>
-                            @if ($canPrint)
+                            @if ($canPrint && ! $isDelete)
                                 @php
                                     $isApproved = (int) ($tr_poh->fapproval ?? 0) === 1;
                                     $isPrinted = ! can_print_again() && (int) ($tr_poh->fprint ?? 0) === 1;
