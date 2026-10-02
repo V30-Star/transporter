@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class BarcodeController extends Controller
 {
+    /** Sama dengan batas di dialog Edit Label (max 9999). */
+    private const MAX_LABELS_PER_ITEM = 9999;
+
     private function checkAccess()
     {
         $rawPermissions = session('user_restricted_permissions');
@@ -115,7 +118,7 @@ class BarcodeController extends Controller
 
         $labels = [];
         foreach ($rawItems as $item) {
-            $qty = max(1, (int) ($item['qty'] ?? 1));
+            $qty = min(self::MAX_LABELS_PER_ITEM, max(1, (int) ($item['qty'] ?? 1)));
             $barcode = !empty(trim((string) ($item['fbarcode'] ?? ''))) 
                 ? trim((string) $item['fbarcode']) 
                 : trim((string) ($item['fprdcode'] ?? ''));

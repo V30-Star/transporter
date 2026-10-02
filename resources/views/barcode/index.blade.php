@@ -1404,6 +1404,16 @@ $(document).ready(function() {
     updatePreview();
 });
 
+// Escape teks (nama produk, kode, dll.) sebelum disisipkan ke HTML
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Add Item Helper
 function addItemToQueue(product, qty) {
     const existingIndex = queueItems.findIndex(it => it.fprdcode === product.fprdcode);
@@ -1431,7 +1441,7 @@ function stepRowQty(idx, delta) {
     }
 }
 
-// Edit Nama Produk & Jumlah Label
+// Edit Nama Produk, Harga & Jumlah Label
 function editRow(idx) {
     const item = queueItems[idx];
     if (!item) return;
@@ -1443,6 +1453,8 @@ function editRow(idx) {
             <div style="text-align: left; font-size: 13px;">
                 <label style="font-weight: 700;">Nama Produk (tampil di label)</label>
                 <input id="editNameInput" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${esc(item.fprdname)}">
+                <label style="font-weight: 700;">Harga (tampil di label)</label>
+                <input id="editPriceInput" type="number" min="0" step="any" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${Number(item.price) || 0}">
                 <label style="font-weight: 700;">Jumlah Label</label>
                 <input id="editQtyInput" type="number" min="1" max="9999" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${item.qty}">
             </div>`,
@@ -1452,11 +1464,13 @@ function editRow(idx) {
         confirmButtonColor: '#2563eb',
         preConfirm: () => ({
             name: document.getElementById('editNameInput').value.trim(),
+            price: parseFloat(document.getElementById('editPriceInput').value),
             qty: Math.max(1, parseInt(document.getElementById('editQtyInput').value, 10) || 1)
         })
     }).then(result => {
         if (!result.isConfirmed) return;
         if (result.value.name) item.fprdname = result.value.name;
+        if (Number.isFinite(result.value.price) && result.value.price >= 0) item.price = result.value.price;
         item.qty = result.value.qty;
         renderQueue();
     });
@@ -1503,13 +1517,13 @@ function renderQueue() {
                 <td style="text-align: center; color: var(--app-text-muted); font-size: 11px;">${idx + 1}</td>
                 <td>
                     <div style="font-family: monospace; font-size: 12px; font-weight: 800; color: var(--app-text); line-height: 1.3;">
-                        <i class="fa-solid fa-barcode text-blue-500 mr-1"></i>${item.fbarcode || item.fprdcode}
+                        <i class="fa-solid fa-barcode text-blue-500 mr-1"></i>${escapeHtml(item.fbarcode || item.fprdcode)}
                     </div>
-                    <div style="font-family: monospace; font-size: 11px; color: var(--app-text-muted);">${item.fprdcode}</div>
+                    <div style="font-family: monospace; font-size: 11px; color: var(--app-text-muted);">${escapeHtml(item.fprdcode)}</div>
                 </td>
                 <td>
-                    <div style="font-weight: 700; font-size: 12.5px; color: var(--app-text); line-height: 1.3;">${item.fprdname}</div>
-                    ${item.satuan ? `<span style="font-size: 10px; color: var(--app-text-muted);">Satuan: ${item.satuan}</span>` : ''}
+                    <div style="font-weight: 700; font-size: 12.5px; color: var(--app-text); line-height: 1.3;">${escapeHtml(item.fprdname)}</div>
+                    ${item.satuan ? `<span style="font-size: 10px; color: var(--app-text-muted);">Satuan: ${escapeHtml(item.satuan)}</span>` : ''}
                 </td>
                 <td style="text-align: right; font-family: monospace; font-weight: 800; font-size: 12.5px; color: var(--app-text);">
                     ${formattedPrice}
@@ -1522,7 +1536,7 @@ function renderQueue() {
                     </div>
                 </td>
                 <td style="text-align: center; white-space: nowrap;">
-                    <button type="button" onclick="editRow(${idx})" class="bp-btn-browse" style="font-size: 13px; padding: 6px 9px;" title="Edit Nama & Jumlah">
+                    <button type="button" onclick="editRow(${idx})" class="bp-btn-browse" style="font-size: 13px; padding: 6px 9px;" title="Edit Nama, Harga & Jumlah">
                         <i class="fa-solid fa-pen"></i>
                     </button>
                     <button type="button" onclick="removeRow(${idx})" class="bp-btn-clear" style="font-size: 13px;" title="Hapus">
@@ -1602,8 +1616,8 @@ function updatePreview() {
         const svgId = `prevBarcodeSvg_${c}`;
         const labelHtml = `
             <div style="width: ${cardWidthPx}px; height: ${cardHeightPx}px; box-sizing: border-box; background: #ffffff; border: 1px solid #94a3b8; border-radius: 2px; padding: ${padY}px ${padX}px; display: flex; flex-direction: column; justify-content: center; gap: 0; align-items: center; text-align: center; overflow: hidden; flex-shrink: 0; font-family: Arial, sans-serif;">
-                ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${companyName}</div>` : ''}
-                ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${sampleItem.fprdname}</div>` : ''}
+                ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${escapeHtml(companyName)}</div>` : ''}
+                ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${escapeHtml(sampleItem.fprdname)}</div>` : ''}
                 ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
                 ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0;">Rp ${Number(sampleItem.price).toLocaleString('en-US')}</div>` : ''}
             </div>
@@ -1856,9 +1870,9 @@ function renderModalProducts(items) {
                 <td style="text-align: center;" onclick="event.stopPropagation()">
                     <input type="checkbox" value="${item.id}" class="modal-product-chk bp-chk">
                 </td>
-                <td style="font-family: monospace; font-weight: bold; color: var(--app-text);">${item.fprdcode}</td>
-                <td style="font-family: monospace; color: var(--app-text-muted);">${item.fbarcode || '-'}</td>
-                <td style="font-weight: 600; color: var(--app-text);">${item.fprdname}</td>
+                <td style="font-family: monospace; font-weight: bold; color: var(--app-text);">${escapeHtml(item.fprdcode)}</td>
+                <td style="font-family: monospace; color: var(--app-text-muted);">${escapeHtml(item.fbarcode || '-')}</td>
+                <td style="font-weight: 600; color: var(--app-text);">${escapeHtml(item.fprdname)}</td>
                 <td style="text-align: right; font-family: monospace; color: var(--app-text);">${Number(item.stock || 0).toLocaleString('en-US')}</td>
                 <td style="text-align: right; font-family: monospace; font-weight: bold; color: var(--app-text);">${formattedPrice}</td>
             </tr>
