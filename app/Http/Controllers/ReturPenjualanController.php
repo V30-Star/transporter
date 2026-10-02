@@ -372,6 +372,7 @@ class ReturPenjualanController extends Controller
                 'mt.frefno',
                 'mt.fsodate',
                 'mt.fcustno',
+                'mt.fwhcode',
                 'cust.fcustomername'
             );
         $query->where(function ($q) {
@@ -763,6 +764,7 @@ class ReturPenjualanController extends Controller
                 'fdisplayref' => trim((string) ($header->fsono ?? '')),
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
                 'fcustomername' => trim((string) ($header->fcustomername ?? '')),
+                'fwhcode' => trim((string) ($header->fwhcode ?? '')),
                 'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
             ],
             'items' => $items->map(function ($item) use ($header) {
@@ -1517,7 +1519,7 @@ class ReturPenjualanController extends Controller
                 ],
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
-                'ffrom' => ['required', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:30', $this->invoiceWarehouseRule($request)],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
                 'fqty' => ['required', 'array'],
@@ -2884,6 +2886,24 @@ class ReturPenjualanController extends Controller
         ]);
     }
 
+    /** Retur dari faktur (INV) wajib memakai gudang faktur asal, agar Kartu Stok konsisten. */
+    private function invoiceWarehouseRule(Request $request): \Closure
+    {
+        return function ($attribute, $value, $fail) use ($request) {
+            if (strtoupper(trim((string) $request->input('frefcode_global'))) !== 'INV') {
+                return;
+            }
+            $invoiceNo = trim((string) $request->input('frefso_header'));
+            if ($invoiceNo === '') {
+                return;
+            }
+            $invoiceWh = trim((string) DB::table('tranmt')->whereRaw('TRIM(fsono) = ?', [$invoiceNo])->value('fwhcode'));
+            if ($invoiceWh !== '' && strcasecmp($invoiceWh, trim((string) $value)) !== 0) {
+                $fail("Gudang retur harus sama dengan gudang faktur {$invoiceNo} ({$invoiceWh}).");
+            }
+        };
+    }
+
     public function update(Request $request, $ftranmtid)
     {
         $allowNegativeStockQty = stock_boleh_minus();
@@ -2891,7 +2911,7 @@ class ReturPenjualanController extends Controller
             $request->validate([
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
-                'ffrom' => ['required', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10', $this->invoiceWarehouseRule($request)],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['required', 'string', 'max:30'],
                 'fqty' => ['required', 'array'],

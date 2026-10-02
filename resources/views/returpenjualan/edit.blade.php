@@ -1301,6 +1301,14 @@
                                             inputRefSrj.value = ''; // Reset yang lain
                                             setHeaderReferenceDisplay(header.fdisplayref ?? header.fsono ?? header.frefno ?? '');
 
+                                        // Gudang retur = gudang faktur asal (dikunci agar kartu stok konsisten)
+                                        const whCode = (header.fwhcode ?? '').toString().trim();
+                                        if (whCode && typeof window.applyTransactionWarehouseSelection === 'function') {
+                                            window.applyTransactionWarehouseSelection({ fwhcode: whCode });
+                                            document.querySelectorAll('[aria-label="Browse Gudang"], button[title="Browse Gudang"]')
+                                                .forEach(el => el.style.pointerEvents = 'none');
+                                        }
+
                                             // Auto-fill customer dari faktur
                                             autoFillCustomer(
                                                 header.fcustno ?? header.fcustomercode ?? '',
@@ -1315,6 +1323,10 @@
                                             inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
                                             inputRefSo.value = ''; // Reset yang lain
                                             setHeaderReferenceDisplay(header.fdisplayref ?? header.fstockmtno ?? header.fsono ?? '');
+
+                                        // Sumber SRJ: gudang bebas dipilih lagi
+                                        document.querySelectorAll('[aria-label="Browse Gudang"], button[title="Browse Gudang"]')
+                                            .forEach(el => el.style.pointerEvents = '');
 
                                             // Auto-fill customer dari SRJ (fsupplier = customer code)
                                             autoFillCustomer(
