@@ -3343,14 +3343,6 @@
                                 }
                             },
                             {
-                                data: 'frefpo',
-                                name: 'frefpo',
-                                className: 'font-mono text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
                                 data: null,
                                 orderable: false,
                                 searchable: false,
