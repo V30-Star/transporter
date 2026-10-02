@@ -99,6 +99,7 @@ class BarcodeHttpTest extends LiveDbTestCase
         $this->assertStringContainsString('function escapeHtml', $html);
         $this->assertStringContainsString('${escapeHtml(item.fprdname)}', $html, 'Nama produk di tabel antrean harus di-escape.');
         $this->assertStringContainsString('editPriceInput', $html, 'Dialog Edit Label harus punya kolom harga.');
+        $this->assertStringNotContainsString('editQtyInput', $html, 'Dialog Edit Label tidak punya kolom Jumlah Label.');
     }
 
     public function test_direct_print_by_product_code(): void

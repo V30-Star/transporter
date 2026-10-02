@@ -1441,7 +1441,7 @@ function stepRowQty(idx, delta) {
     }
 }
 
-// Edit Nama Produk, Harga & Jumlah Label
+// Edit Nama Produk & Harga (jumlah label diubah lewat stepper/kolom qty di baris antrean)
 function editRow(idx) {
     const item = queueItems[idx];
     if (!item) return;
@@ -1454,9 +1454,7 @@ function editRow(idx) {
                 <label style="font-weight: 700;">Nama Produk (tampil di label)</label>
                 <input id="editNameInput" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${esc(item.fprdname)}">
                 <label style="font-weight: 700;">Harga (tampil di label)</label>
-                <input id="editPriceInput" type="number" min="0" step="any" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${Number(item.price) || 0}">
-                <label style="font-weight: 700;">Jumlah Label</label>
-                <input id="editQtyInput" type="number" min="1" max="9999" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${item.qty}">
+                <input id="editPriceInput" type="number" min="0" step="any" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${Number(item.price) || 0}">
             </div>`,
         showCancelButton: true,
         confirmButtonText: 'Simpan',
@@ -1464,14 +1462,12 @@ function editRow(idx) {
         confirmButtonColor: '#2563eb',
         preConfirm: () => ({
             name: document.getElementById('editNameInput').value.trim(),
-            price: parseFloat(document.getElementById('editPriceInput').value),
-            qty: Math.max(1, parseInt(document.getElementById('editQtyInput').value, 10) || 1)
+            price: parseFloat(document.getElementById('editPriceInput').value)
         })
     }).then(result => {
         if (!result.isConfirmed) return;
         if (result.value.name) item.fprdname = result.value.name;
         if (Number.isFinite(result.value.price) && result.value.price >= 0) item.price = result.value.price;
-        item.qty = result.value.qty;
         renderQueue();
     });
 }
@@ -1536,7 +1532,7 @@ function renderQueue() {
                     </div>
                 </td>
                 <td style="text-align: center; white-space: nowrap;">
-                    <button type="button" onclick="editRow(${idx})" class="bp-btn-browse" style="font-size: 13px; padding: 6px 9px;" title="Edit Nama, Harga & Jumlah">
+                    <button type="button" onclick="editRow(${idx})" class="bp-btn-browse" style="font-size: 13px; padding: 6px 9px;" title="Edit Nama & Harga">
                         <i class="fa-solid fa-pen"></i>
                     </button>
                     <button type="button" onclick="removeRow(${idx})" class="bp-btn-clear" style="font-size: 13px;" title="Hapus">
