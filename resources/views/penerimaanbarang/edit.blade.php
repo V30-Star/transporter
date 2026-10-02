@@ -807,7 +807,7 @@
 
                         {{-- Hidden Submit inputs --}}
                         <div class="hidden">
-                            <template x-for="(it, i) in savedItems" :key="'submit-' + (it.uid || i)">
+                            <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
                                 <div>
                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -1769,6 +1769,15 @@
                     return Number.isFinite(num) ? num : 0;
                 },
 
+                // baris kosong tetap tampil; hanya baris valid yang ikut dikirim
+
+                get submitItems() {
+
+                    return this.savedItems.filter((row) => this.isRowSavable(row));
+
+                },
+
+
                 isRowSavable(row) {
                     if (!row) return false;
                     const code = String(row.fitemcode ?? row.fprdcode ?? '').trim();
@@ -1801,9 +1810,6 @@
                         this.closeWarning();
                         return;
                     }
-                    this.savedItems = this.pendingValidRows.map((row) => ({
-                        ...row
-                    }));
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
                     this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
@@ -1955,9 +1961,6 @@
                         this.showNoItems = true;
                         return;
                     }
-                    this.savedItems = validRows.map((row) => ({
-                        ...row
-                    }));
                     this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
                 },
                 createRow(source = {}) {

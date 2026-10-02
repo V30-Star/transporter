@@ -2031,7 +2031,8 @@ class FakturpembelianController extends Controller
                     'ftotprice_rp' => $amount * $frate,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
-                    'fcode' => ($isAdvancePaymentDetail || $sourceType === 'PO') ? 'P' : 'T',
+                    // T = stok sudah dihitung TER (sumber PB/TER); selain itu BUY yang menambah stok (P)
+                    'fcode' => (! $isAdvancePaymentDetail && in_array($sourceType, ['PB', 'TER'], true)) ? 'T' : 'P',
                     'fdesc' => trim((string) ($descs[$i] ?? '')) ?: null,
                     'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
@@ -3093,7 +3094,8 @@ class FakturpembelianController extends Controller
                     'fdatetime' => $now,
                     'fdesc' => $desc ?: null,
                     'fketdt' => $desc ?: null,
-                    'fcode' => ($isAdvancePaymentDetail || $sourceType === 'PO') ? 'P' : 'T',
+                    // T = stok sudah dihitung TER (sumber PB/TER); selain itu BUY yang menambah stok (P)
+                    'fcode' => (! $isAdvancePaymentDetail && in_array($sourceType, ['PB', 'TER'], true)) ? 'T' : 'P',
                     'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',

@@ -313,7 +313,9 @@ class LaporanKartuStokController extends Controller
 
         if ($direction === 'in') {
             $query->where(function ($q) use ($whcode) {
-                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['BUY', 'TER', 'REJ', 'RUJ'])->where('m.ffrom', $whcode))
+                $q->where(fn($qq) => $qq->whereIn('m.fstockmtcode', ['TER', 'REJ', 'RUJ'])->where('m.ffrom', $whcode))
+                    // BUY dari TER (fcode T) tidak menambah stok: sudah dihitung di TER
+                    ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'BUY')->whereRaw("COALESCE(TRIM(d.fcode), '') IN ('', 'P')")->where('m.ffrom', $whcode))
                     ->orWhere(fn($qq) => $qq->whereIn('m.fstockmtcode', ['MUT', 'PRD'])->where('m.fto', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'CAB')->where('m.ftrancode', 'M')->where('m.fto', $whcode))
                     ->orWhere(fn($qq) => $qq->where('m.fstockmtcode', 'ADJ')->where('m.ftrancode', 'M')->where('m.ffrom', $whcode))
