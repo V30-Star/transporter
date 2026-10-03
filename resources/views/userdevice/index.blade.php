@@ -41,7 +41,15 @@
                                 </form>
                             @endif
                             <form method="POST" action="{{ route('userdevice.reject', $d->fdeviceid) }}" class="inline"
-                                onsubmit="return confirm('{{ $d->fstatus === 'approved' ? 'Cabut' : 'Tolak' }} komputer ini?')">
+                                onsubmit="event.preventDefault(); const f = this; Swal.fire({
+                                    title: '{{ $d->fstatus === 'approved' ? 'Cabut' : 'Tolak' }} komputer ini?',
+                                    text: '{{ $d->fsysuserid }}',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc2626',
+                                    confirmButtonText: '{{ $d->fstatus === 'approved' ? 'Ya, Cabut' : 'Ya, Tolak' }}',
+                                    cancelButtonText: 'Batal'
+                                }).then(r => r.isConfirmed && f.submit());">
                                 @csrf
                                 @method('DELETE')
                                 <button class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded">{{ $d->fstatus === 'approved' ? 'Cabut' : 'Tolak' }}</button>
