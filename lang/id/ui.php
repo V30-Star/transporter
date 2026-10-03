@@ -75,7 +75,7 @@ return [
     'select_warehouse_prompt' => 'Pilih gudang yang diinginkan',
     'select_salesman_prompt' => 'Pilih salesman yang diinginkan',
     'select_account_prompt' => 'Pilih account yang diinginkan',
-    'select_purchase_order' => 'Pilih Purchase Order (PO)',
+    'select_purchase_order' => 'Pilih Order Pembelian',
     'select_goods_receipt' => 'Pilih Penerimaan Barang',
     'duplicate_warning' => 'Peringatan Duplikasi',
     'duplicate_item_found' => 'Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.',

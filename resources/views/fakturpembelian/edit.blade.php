@@ -1402,7 +1402,7 @@
                                                     style="height: 600px;">
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
-                                                        <h3 class="text-lg font-bold text-gray-800">Pilih Purchase Order (PO)</h3>
+                                                        <h3 class="text-lg font-bold text-gray-800">Pilih Order Pembelian</h3>
                                                         <button type="button" @click="closeModal()"
                                                             class="h-9 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm transition-colors">Tutup</button>
                                                     </div>
@@ -3864,7 +3864,8 @@
 
                     const self = this;
                     $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
-                        const data = self.table.row($(this).closest('tr')).data();
+                        const data = $(this).closest('table').DataTable().row($(this).closest('tr')).data();
+                        if (!data) return;
                         self.pick(data);
                     });
                 },
@@ -4053,7 +4054,8 @@
 
                     const self = this;
                     $('#pbTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
-                        const data = self.table.row($(this).closest('tr')).data();
+                        const data = $(this).closest('table').DataTable().row($(this).closest('tr')).data();
+                        if (!data) return;
                         self.pick(data);
                     });
                 },

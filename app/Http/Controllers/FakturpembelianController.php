@@ -460,7 +460,20 @@ class FakturpembelianController extends Controller
                 'tr_poh.fpodate',
             ])
             ->where('tr_poh.fprdin', '0')
-            ->where('tr_poh.fapproval', 1);
+            ->where('tr_poh.fapproval', 1)
+            // PO yang seluruh itemnya sudah diterima (TER) / difakturkan (BUY dari PO) tidak ditampilkan
+            ->whereExists(function ($sub) {
+                $sub->selectRaw('1')
+                    ->from('tr_pod as pod')
+                    ->whereRaw('TRIM(pod.fpono) = TRIM(tr_poh.fpono)')
+                    ->whereRaw("COALESCE(pod.fqtykecil, 0) > COALESCE((
+                        SELECT SUM(COALESCE(s.fqtykecil, 0)) FROM trstockdt s
+                        WHERE TRIM(s.frefdtno) = TRIM(pod.fpono)
+                          AND TRIM(s.fprdcode) = TRIM(pod.fprdcode)
+                          AND s.frefnoacak = pod.fnoacak
+                          AND (s.fstockmtcode = 'TER' OR (s.fstockmtcode = 'BUY' AND s.fcode = 'P'))
+                    ), 0)");
+            });
 
         if ($supplierCode !== '') {
             $query->where('tr_poh.fsupplier', $supplierCode);
