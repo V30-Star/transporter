@@ -233,12 +233,12 @@ class ProductController extends Controller
             if ($approval === 'approved') {
                 $query->where(function ($q) {
                     $q->where('msprd.fapproval', '1')
-                      ->orWhere('msprd.fapproval', '2');
+                        ->orWhere('msprd.fapproval', '2');
                 });
             } elseif ($approval === 'unapproved') {
                 $query->where(function ($q) {
                     $q->whereNull('msprd.fapproval')
-                      ->orWhere('msprd.fapproval', '0');
+                        ->orWhere('msprd.fapproval', '0');
                 });
             }
             $totalRecords = Product::count();
@@ -372,7 +372,7 @@ class ProductController extends Controller
             if ($search = $request->input('search')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('fprdcode', 'ILIKE', "%{$search}%")
-                      ->orWhere('fprdname', 'ILIKE', "%{$search}%");
+                        ->orWhere('fprdname', 'ILIKE', "%{$search}%");
                 });
             }
 
@@ -481,17 +481,17 @@ class ProductController extends Controller
     {
         $year = now()->format('y');
         $lastCode = Product::whereRaw('fprdcode ~ ?', ['^' . $year . '[0-9]{4}$'])
-            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM 3 FOR 2) AS INTEGER) DESC')
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM 3 FOR 3) AS INTEGER) DESC')
             ->value('fprdcode');
 
-        $nextNumber = $lastCode ? ((int) substr($lastCode, 2, 2)) + 1 : 1;
+        $nextNumber = $lastCode ? ((int) substr($lastCode, 2, 3)) + 1 : 1;
 
-        if ($nextNumber > 99) {
-            throw new \RuntimeException('Urutan kode produk tahun ini habis (maks 99).');
+        if ($nextNumber > 999) {
+            throw new \RuntimeException('Urutan kode produk tahun ini habis (maks 999).');
         }
 
         do {
-            $code = $year . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_pad((string) random_int(0, 99), 2, '0', STR_PAD_LEFT);
+            $code = $year . str_pad($nextNumber, 3, '0', STR_PAD_LEFT) . random_int(0, 9);
         } while (Product::where('fprdcode', $code)->exists());
 
         return $code;
