@@ -572,6 +572,69 @@
         .dataTables_wrapper .dataTables_length select::-ms-expand {
             display: none;
         }
+
+        /* Responsive tablet/HP: sidebar jadi drawer, header & konten lebih rapat */
+        .app-hamburger,
+        .app-mobile-backdrop {
+            display: none !important;
+        }
+
+        @media (max-width: 1024px) {
+            .app-sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 40;
+            }
+
+            .app-sidebar.is-closed {
+                display: none;
+            }
+
+            .app-mobile-backdrop {
+                display: block !important;
+                position: fixed;
+                inset: 0;
+                z-index: 30;
+                background: rgba(0, 0, 0, 0.5);
+            }
+
+            .app-hamburger {
+                display: inline-flex !important;
+            }
+
+            .app-header {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 0.75rem !important;
+            }
+
+            .app-header h2 {
+                font-size: 1rem;
+            }
+
+            .app-main {
+                padding: 0.75rem !important;
+            }
+        }
+
+        /* HP: grid form 3 kolom jadi 1 kolom, tabel lebih rapat */
+        @media (max-width: 640px) {
+            .app-main form .grid[class~="grid-cols-3"] {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .app-main form .grid[class~="grid-cols-3"] > * {
+                grid-column: auto !important;
+            }
+
+            .app-main table th,
+            .app-main table td {
+                padding: 0.25rem 0.4rem;
+                font-size: 0.75rem;
+            }
+        }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -610,13 +673,21 @@
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 
-        <div :class="openSidebar ? 'w-64' : 'w-16'"
-            class="flex-shrink-0 bg-black text-white shadow-md overflow-y-auto transition-all duration-300">
+        <div x-show="openSidebar" x-cloak @click="openSidebar = false" class="app-mobile-backdrop"></div>
+
+        <div :class="openSidebar ? 'w-64' : 'w-16 is-closed'"
+            class="app-sidebar flex-shrink-0 bg-black text-white shadow-md overflow-y-auto transition-all duration-300">
             <x-sidebar />
         </div>
 
         <div class="flex-1 min-w-0 overflow-auto flex flex-col">
-            <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <header class="app-header bg-white shadow-sm p-4 flex justify-between items-center">
+                <button type="button" class="app-hamburger items-center justify-center w-9 h-9 mr-2 rounded hover:bg-gray-100"
+                    @click="openSidebar = true" aria-label="Buka menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
                 <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
 
                 <div class="flex items-center gap-3 ml-auto">
@@ -699,7 +770,7 @@
                 @endauth
             </header>
 
-            <main class="p-6 flex-1">
+            <main class="app-main p-6 flex-1">
                 @yield('content')
             </main>
         </div>

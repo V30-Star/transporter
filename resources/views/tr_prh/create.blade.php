@@ -553,7 +553,7 @@
             <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                 <div id="supplierTableControls"></div>
             </div>
-            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+            <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
                 <div class="bg-white">
                     <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
                         style="width:100%">
@@ -600,7 +600,7 @@
             <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                 <div id="productTableControls"></div>
             </div>
-            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+            <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
                 <div class="bg-white">
                     <table id="productTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                         <thead class="sticky top-0 z-10">

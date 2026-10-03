@@ -854,7 +854,7 @@
                                 </div>
 
                                 <!-- Table with fixed height and scroll -->
-                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
                                     <div class="bg-white">
                                         <table id="warehouseTable" class="min-w-full text-sm display stripe hover"
                                             style="width:100%">
@@ -914,7 +914,7 @@
                                 </div>
 
                                 <!-- Table with fixed height and scroll -->
-                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
                                     <div class="bg-white">
                                         <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
                                             style="width:100%">
