@@ -211,7 +211,7 @@
             width: 100%;
             line-height: 1;
             flex-shrink: 0;
-            padding-top: 0.5mm;
+            padding-top: 1.5mm;
         }
     </style>
 </head>
