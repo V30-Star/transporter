@@ -110,7 +110,7 @@
         .group-total-row,
         .grand-total-row {
             display: grid;
-            grid-template-columns: 8mm 10mm 26mm 18mm 18mm 12mm 22mm 18mm 18mm 18mm 18mm 18mm 18mm;
+            grid-template-columns: 8mm 10mm 26mm 18mm 18mm 12mm repeat(7, 1fr);
             gap: 1px;
             font-size: 7.5px;
             padding: 2px 6px;
@@ -368,8 +368,6 @@
         .po-totals-panel-wrapper {
             margin-top: 5px;
             width: 100%;
-            border-top: 1px solid #000000;
-            padding-top: 5px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -404,7 +402,7 @@
         .grand-total-row {
             font-weight: bold;
             border-top: 1px solid #000;
-            border-bottom: 2px double #000;
+            border-bottom: 1px solid #000;
             margin-top: 2px;
             padding-top: 4px;
             padding-bottom: 4px;
@@ -518,9 +516,9 @@
                     <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
                         <table class="info-col-table">
                             <tr>
-                                <td class="info-col-label">Customer</td>
+                                <td class="info-col-label">Periode</td>
                                 <td style="width: 8px;">:</td>
-                                <td>{{ $customerText }}</td>
+                                <td style="font-weight: bold;">{{ $period }}</td>
                             </tr>
                             <tr>
                                 <td class="info-col-label">Cabang</td>
@@ -528,9 +526,19 @@
                                 <td>{{ $branchText }}</td>
                             </tr>
                             <tr>
+                                <td class="info-col-label">Customer</td>
+                                <td>:</td>
+                                <td>{{ $customerText }}</td>
+                            </tr>
+                            <tr>
                                 <td class="info-col-label">Salesman</td>
                                 <td>:</td>
                                 <td>{{ $salesmanText }}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-col-label">Jatuh Tempo</td>
+                                <td>:</td>
+                                <td>{{ $dueFmt }}</td>
                             </tr>
                         </table>
                     </div>
@@ -538,18 +546,8 @@
                     <div style="flex: 1; padding-left: 5px;">
                         <table class="info-col-table">
                             <tr>
-                                <td class="info-col-label">Periode</td>
+                                <td class="info-col-label" style="width: 95px;">Tanggal</td>
                                 <td style="width: 8px;">:</td>
-                                <td style="font-weight: bold;">{{ $period }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Jatuh Tempo</td>
-                                <td>:</td>
-                                <td>{{ $dueFmt }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-col-label">Tanggal</td>
-                                <td>:</td>
                                 <td>{{ date('d-m-Y') }}</td>
                             </tr>
                             <tr>
@@ -656,33 +654,16 @@
     {{-- Hidden Totals Panel Container --}}
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
-            <div class="end-of-report-inline">** END OF REPORT **</div>
-            <div class="po-totals-container">
-                <div class="po-total-row">
-                    <span>TOTAL UN DUE</span>
-                    <span>Rp {{ number_format((float) $grand['undue'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL 0-30 HARI</span>
-                    <span>Rp {{ number_format((float) $grand['d30'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL 31-60 HARI</span>
-                    <span>Rp {{ number_format((float) $grand['d60'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL 61-90 HARI</span>
-                    <span>Rp {{ number_format((float) $grand['d90'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL 91-1 TAHUN</span>
-                    <span>Rp {{ number_format((float) $grand['d91'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row grand-total-row">
-                    <span>TOTAL &gt;1 TAHUN</span>
-                    <span>Rp {{ number_format((float) $grand['d1y'], 2, ',', '.') }}</span>
-                </div>
+            <div class="group-total-row grand-total-row">
+                <div style="grid-column: span 7; text-align: right; padding-right: 8px;">TOTAL KESELURUHAN :</div>
+                <div>{{ number_format((float) $grand['undue'], 2, ',', '.') }}</div>
+                <div>{{ number_format((float) $grand['d30'], 2, ',', '.') }}</div>
+                <div>{{ number_format((float) $grand['d60'], 2, ',', '.') }}</div>
+                <div>{{ number_format((float) $grand['d90'], 2, ',', '.') }}</div>
+                <div>{{ number_format((float) $grand['d91'], 2, ',', '.') }}</div>
+                <div>{{ number_format((float) $grand['d1y'], 2, ',', '.') }}</div>
             </div>
+            <div class="end-of-report-inline">** END OF REPORT **</div>
         </div>
     </div>
 
@@ -707,9 +688,9 @@
                             <div style="flex: 1; padding-right: 15px; border-right: 1px solid #000;">
                                 <table class="info-col-table">
                                     <tr>
-                                        <td class="info-col-label">Customer</td>
+                                        <td class="info-col-label">Periode</td>
                                         <td style="width: 8px;">:</td>
-                                        <td>{{ $customerText }}</td>
+                                        <td style="font-weight: bold;">{{ $period }}</td>
                                     </tr>
                                     <tr>
                                         <td class="info-col-label">Cabang</td>
@@ -717,27 +698,27 @@
                                         <td>{{ $branchText }}</td>
                                     </tr>
                                     <tr>
+                                        <td class="info-col-label">Customer</td>
+                                        <td>:</td>
+                                        <td>{{ $customerText }}</td>
+                                    </tr>
+                                    <tr>
                                         <td class="info-col-label">Salesman</td>
                                         <td>:</td>
                                         <td>{{ $salesmanText }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div style="flex: 1; padding-left: 5px;">
-                                <table class="info-col-table">
-                                    <tr>
-                                        <td class="info-col-label">Periode</td>
-                                        <td style="width: 8px;">:</td>
-                                        <td style="font-weight: bold;">{{ $period }}</td>
                                     </tr>
                                     <tr>
                                         <td class="info-col-label">Jatuh Tempo</td>
                                         <td>:</td>
                                         <td>{{ $dueFmt }}</td>
                                     </tr>
+                                </table>
+                            </div>
+                            <div style="flex: 1; padding-left: 5px;">
+                                <table class="info-col-table">
                                     <tr>
                                         <td class="info-col-label">Tanggal</td>
-                                        <td>:</td>
+                                        <td style="width: 8px;">:</td>
                                         <td>{{ date('d-m-Y') }}</td>
                                     </tr>
                                     <tr>
