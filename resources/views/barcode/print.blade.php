@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +42,7 @@
                 z-index: 9999;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
+
             .no-print-bar button {
                 background: #2563eb;
                 color: #ffffff;
@@ -51,9 +53,11 @@
                 cursor: pointer;
                 font-size: 14px;
             }
+
             .no-print-bar button:hover {
                 background: #1d4ed8;
             }
+
             .print-container {
                 margin-top: 60px;
                 display: flex;
@@ -62,11 +66,13 @@
                 padding: 20px;
                 gap: 4px;
             }
+
             .label-row {
                 background: #ffffff;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
                 margin-bottom: {{ $gapY ?: 2 }}mm;
             }
+
             .label-item {
                 outline: 1px dashed #cbd5e1;
             }
@@ -74,7 +80,9 @@
 
         /* Print media styling */
         @media print {
-            html, body {
+
+            html,
+            body {
                 width: {{ $pageWidth }}mm !important;
                 height: auto !important;
                 margin: 0 !important;
@@ -82,20 +90,24 @@
                 background: transparent !important;
                 overflow: hidden !important;
             }
+
             .no-print-bar {
                 display: none !important;
             }
+
             .print-container {
                 margin: 0 !important;
                 padding: 0 !important;
                 display: block !important;
             }
+
             .label-row {
                 width: {{ $pageWidth }}mm !important;
                 height: {{ $labelHeight }}mm !important;
                 max-height: {{ $labelHeight }}mm !important;
                 margin: 0 !important;
-                margin-bottom: {{ $gapY }}mm !important;   /* <-- tambahkan ini, ganti dari 0 */
+                margin-bottom: {{ $gapY }}mm !important;
+                /* <-- tambahkan ini, ganti dari 0 */
                 padding: 0 !important;
                 page-break-after: always !important;
                 break-after: page !important;
@@ -104,10 +116,12 @@
                 overflow: hidden !important;
                 box-sizing: border-box !important;
             }
+
             .label-row:last-child {
                 page-break-after: auto !important;
                 break-after: auto !important;
             }
+
             .label-item {
                 outline: none !important;
             }
@@ -168,8 +182,8 @@
         }
 
         .item-name {
-            font-size: {{ $fontSize * 1.05 }}pt;
-            font-weight: bold;
+            font-size: 7pt;
+            /* font-weight: bold; */
             color: #000;
             display: -webkit-box;
             -webkit-line-clamp: {{ $labelHeight <= 21 ? 1 : 2 }};
@@ -215,11 +229,13 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="no-print-bar">
         <div>
-            <strong>Preview Barcode Label</strong> — {{ $labelWidth }}×{{ $labelHeight }} mm ({{ $columns }} Kolom)
+            <strong>Preview Barcode Label</strong> — {{ $labelWidth }}×{{ $labelHeight }} mm ({{ $columns }}
+            Kolom)
             <span style="font-size: 12px; opacity: 0.8; margin-left: 10px;">
                 (Setel Margin: <strong>None</strong> di dialog printer)
             </span>
@@ -248,24 +264,19 @@
 
                         @if ($showCode)
                             <div class="item-barcode">
-                                <svg class="barcode"
-                                    jsbarcode-format="CODE128"
+                                <svg class="barcode" jsbarcode-format="CODE128"
                                     jsbarcode-value="{{ $label['barcode'] ?: $label['code'] }}"
                                     jsbarcode-text="{{ $label['barcode'] ?: $label['code'] }}"
-                                    jsbarcode-displayvalue="true"
-                                    jsbarcode-width="1.1"
-                                     jsbarcode-height="{{ $labelHeight <= 21 ? min(24, (int)$barcodeHeight) : $barcodeHeight }}"
-                                    jsbarcode-font="Arial"
-                                    jsbarcode-fontoptions="bold"
-                                    jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
-                                    jsbarcode-margin="0"
-                                    jsbarcode-textmargin="1">
+                                    jsbarcode-displayvalue="true" jsbarcode-width="1.1"
+                                    jsbarcode-height="{{ $labelHeight <= 21 ? min(24, (int) $barcodeHeight) : $barcodeHeight }}"
+                                    jsbarcode-font="Arial"                                    jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
+                                    jsbarcode-margin="0" jsbarcode-textmargin="1">
                                 </svg>
                             </div>
                         @endif
 
                         @if ($showPrice && $label['price'] > 0)
-                            <div class="item-price">Rp {{ number_format($label['price'], 0, ',', '.') }}</div>
+                            <div class="item-price">{{ number_format($label['price'], 0, ',', '.') }}</div>
                         @endif
                     </div>
                 @endforeach
@@ -289,4 +300,5 @@
         });
     </script>
 </body>
+
 </html>
