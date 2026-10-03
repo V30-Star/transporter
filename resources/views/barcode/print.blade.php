@@ -156,8 +156,8 @@
             flex-direction: column;
             justify-content: center;
             gap: 0;
-            align-items: center;
-            text-align: center;
+            align-items: flex-start;
+            text-align: left;
             overflow: hidden;
             padding: {{ $labelHeight <= 21 ? '0.2mm 0.5mm' : '0.6mm 0.8mm' }};
             line-height: 1.05;
@@ -202,7 +202,7 @@
             flex: 0 1 auto;
             min-height: 0;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             overflow: hidden;
             margin: 0;
@@ -221,11 +221,24 @@
             color: #000;
             letter-spacing: -0.2px;
             white-space: nowrap;
-            overflow: hidden;
-            width: 100%;
             line-height: 1;
-            flex-shrink: 0;
+        }
+
+        .item-foot {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             padding-top: 1.5mm;
+            flex-shrink: 0;
+        }
+
+        .item-code {
+            font-size: 8px;
+            margin-right: 2mm;
+            white-space: nowrap;
+            line-height: 1;
+            color: #000;
         }
     </style>
 </head>
@@ -267,17 +280,23 @@
                                 <svg class="barcode" jsbarcode-format="CODE128"
                                     jsbarcode-value="{{ $label['barcode'] ?: $label['code'] }}"
                                     jsbarcode-text="{{ $label['barcode'] ?: $label['code'] }}"
-                                    jsbarcode-displayvalue="true" jsbarcode-width="1.1"
+                                    jsbarcode-displayvalue="false" jsbarcode-width="1.1"
                                     jsbarcode-height="{{ $labelHeight <= 21 ? min(24, (int) $barcodeHeight) : $barcodeHeight }}"
-                                    jsbarcode-font="Arial"                                    jsbarcode-fontsize="{{ max(10, min(12, (int) round($fontSize * 1.4))) }}"
-                                    jsbarcode-margin="0" jsbarcode-textmargin="1">
+                                    jsbarcode-margin="0">
                                 </svg>
                             </div>
                         @endif
 
-                        @if ($showPrice && $label['price'] > 0)
-                            <div class="item-price">{{ number_format($label['price'], 0, ',', '.') }}</div>
-                        @endif
+                        <div class="item-foot">
+                            <span class="item-price">
+                                @if ($showPrice && $label['price'] > 0)
+                                    {{ number_format($label['price'], 0, ',', '.') }}{{ $label['priceSuffix'] }}
+                                @endif
+                            </span>
+                            @if ($showCode)
+                                <span class="item-code">{{ $label['barcode'] ?: $label['code'] }}</span>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>

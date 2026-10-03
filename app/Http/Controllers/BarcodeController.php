@@ -133,6 +133,7 @@ class BarcodeController extends Controller
                     'name' => $name,
                     'barcode' => $barcode,
                     'price' => $price,
+                    'priceSuffix' => preg_match('/^\/\d{1,4}$/', (string) ($item['priceSuffix'] ?? '')) ? $item['priceSuffix'] : '',
                 ];
             }
         }

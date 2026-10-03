@@ -1454,7 +1454,7 @@ function editRow(idx) {
                 <label style="font-weight: 700;">Nama Produk (tampil di label)</label>
                 <input id="editNameInput" class="swal2-input" style="width: 100%; margin: 4px 0 12px;" value="${esc(item.fprdname)}">
                 <label style="font-weight: 700;">Harga (tampil di label)</label>
-                <input id="editPriceInput" type="number" min="0" step="any" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${Number(item.price) || 0}">
+                <input id="editPriceInput" type="text" inputmode="decimal" placeholder="10000 atau 10000/6" class="swal2-input" style="width: 100%; margin: 4px 0 0;" value="${(Number(item.price) || 0) + (item.priceSuffix || '')}">
             </div>`,
         showCancelButton: true,
         confirmButtonText: 'Simpan',
@@ -1462,12 +1462,15 @@ function editRow(idx) {
         confirmButtonColor: '#2563eb',
         preConfirm: () => ({
             name: document.getElementById('editNameInput').value.trim(),
-            price: parseFloat(document.getElementById('editPriceInput').value)
+            price: document.getElementById('editPriceInput').value.trim().match(/^(\d+(?:\.\d+)?)\s*(?:\/\s*(\d{1,4}))?$/)
         })
     }).then(result => {
         if (!result.isConfirmed) return;
         if (result.value.name) item.fprdname = result.value.name;
-        if (Number.isFinite(result.value.price) && result.value.price >= 0) item.price = result.value.price;
+        if (result.value.price) {
+            item.price = parseFloat(result.value.price[1]);
+            item.priceSuffix = result.value.price[2] ? '/' + result.value.price[2] : '';
+        }
         renderQueue();
     });
 }
@@ -1506,7 +1509,7 @@ function renderQueue() {
 
     queueItems.forEach(function(item, idx) {
         totalLabels += item.qty;
-        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US');
+        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US') + (item.priceSuffix || '');
 
         tbody.append(`
             <tr>
@@ -1606,16 +1609,18 @@ function updatePreview() {
     const padX = 3;
     const nameClamp = heightMm <= 18 ? 1 : 2;
     const effectiveBarH = heightMm <= 18 ? Math.min(16, barcodeH) : barcodeH;
-    const effectiveFontCode = Math.max(10, Math.min(12, Math.round(fontS * 1.4)));
 
     for (let c = 0; c < columns; c++) {
         const svgId = `prevBarcodeSvg_${c}`;
         const labelHtml = `
-            <div style="width: ${cardWidthPx}px; height: ${cardHeightPx}px; box-sizing: border-box; background: #ffffff; border: 1px solid #94a3b8; border-radius: 2px; padding: ${padY}px ${padX}px; display: flex; flex-direction: column; justify-content: center; gap: 0; align-items: center; text-align: center; overflow: hidden; flex-shrink: 0; font-family: Arial, sans-serif;">
+            <div style="width: ${cardWidthPx}px; height: ${cardHeightPx}px; box-sizing: border-box; background: #ffffff; border: 1px solid #94a3b8; border-radius: 2px; padding: ${padY}px ${padX}px; display: flex; flex-direction: column; justify-content: center; gap: 0; align-items: flex-start; text-align: left; overflow: hidden; flex-shrink: 0; font-family: Arial, sans-serif;">
                 ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${escapeHtml(companyName)}</div>` : ''}
-                ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${escapeHtml(sampleItem.fprdname)}</div>` : ''}
-                ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
-                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0; padding-top: ${Math.round(0.5 * scalePx)}px;">Rp ${Number(sampleItem.price).toLocaleString('en-US')}</div>` : ''}
+                ${showName ? `<div style="font-weight: 400; font-size: 7pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${escapeHtml(sampleItem.fprdname)}</div>` : ''}
+                ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: flex-start; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: baseline; padding-top: ${Math.round(1.5 * scalePx)}px; flex-shrink: 0; line-height: 1; color: #020617;">
+                    <span style="font-size: 8pt; white-space: nowrap;">${showPrice && sampleItem.price > 0 ? Number(sampleItem.price).toLocaleString('en-US') + (sampleItem.priceSuffix || '') : ''}</span>
+                    ${showCode ? `<span style="font-size: 8px; margin-right: ${Math.round(2 * scalePx)}px; white-space: nowrap;">${escapeHtml(sampleItem.fbarcode || sampleItem.fprdcode)}</span>` : ''}
+                </div>
             </div>
         `;
         container.append(labelHtml);
@@ -1626,24 +1631,16 @@ function updatePreview() {
                     format: "CODE128",
                     width: 1.1,
                     height: effectiveBarH,
-                    displayValue: true,
-                    font: "Arial",
-                    fontOptions: "bold",
-                    fontSize: effectiveFontCode,
-                    margin: 0,
-                    textMargin: 1
+                    displayValue: false,
+                    margin: 0
                 });
             } catch (e) {
                 JsBarcode(`#${svgId}`, "12345678", {
                     format: "CODE128",
                     width: 1.1,
                     height: effectiveBarH,
-                    displayValue: true,
-                    font: "Arial",
-                    fontOptions: "bold",
-                    fontSize: effectiveFontCode,
-                    margin: 0,
-                    textMargin: 1
+                    displayValue: false,
+                    margin: 0
                 });
             }
         }
@@ -1860,8 +1857,8 @@ function renderModalProducts(items) {
     }
 
     items.forEach(function(item) {
-        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US');
-        tbody.append(`
+        const formattedPrice = 'Rp ' + Number(item.price).toLocaleString('en-US') + (item.priceSuffix || '');
+tbody.append(`
             <tr style="cursor: pointer;" onclick="toggleModalRowCheckbox(this, event)">
                 <td style="text-align: center;" onclick="event.stopPropagation()">
                     <input type="checkbox" value="${item.id}" class="modal-product-chk bp-chk">
