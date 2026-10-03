@@ -1615,7 +1615,7 @@ function updatePreview() {
                 ${showCompany && companyName ? `<div style="font-weight: 800; text-transform: uppercase; font-size: ${fontS * 0.9}pt; color: #1e293b; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0;">${escapeHtml(companyName)}</div>` : ''}
                 ${showName ? `<div style="font-weight: 800; font-size: ${fontS * 0.85}pt; color: #020617; line-height: 1.05; display: -webkit-box; -webkit-line-clamp: ${nameClamp}; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; width: 100%; margin: 0; flex-shrink: 0;">${escapeHtml(sampleItem.fprdname)}</div>` : ''}
                 ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
-                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0;">Rp ${Number(sampleItem.price).toLocaleString('en-US')}</div>` : ''}
+                ${showPrice && sampleItem.price > 0 ? `<div style="font-weight: 400; font-size: ${fontS * 0.95}pt; color: #020617; line-height: 1; width: 100%; flex-shrink: 0; padding-top: ${Math.round(0.5 * scalePx)}px;">Rp ${Number(sampleItem.price).toLocaleString('en-US')}</div>` : ''}
             </div>
         `;
         container.append(labelHtml);
