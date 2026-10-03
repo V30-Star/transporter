@@ -183,7 +183,7 @@
 
         .item-name {
             font-size: 7pt;
-            /* font-weight: bold; */
+            font-weight: bold;
             color: #000;
             display: -webkit-box;
             -webkit-line-clamp: {{ $labelHeight <= 21 ? 1 : 2 }};
