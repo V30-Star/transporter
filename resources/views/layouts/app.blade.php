@@ -619,6 +619,13 @@
             }
         }
 
+        /* Tablet/HP: tabel detail item tidak diperas, digeser di pembungkusnya */
+        @media (max-width: 1024px) {
+            .app-main table[class*="-detail-table"] {
+                min-width: 860px;
+            }
+        }
+
         /* HP: grid form 3 kolom jadi 1 kolom, tabel lebih rapat */
         @media (max-width: 640px) {
             .app-main form .grid[class~="grid-cols-3"] {
