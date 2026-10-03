@@ -127,7 +127,7 @@ SVG;
 
         // Check if there is an active online session with live heartbeat for this account
         $lastHeartbeat = \Illuminate\Support\Facades\Cache::get("user_heartbeat:{$user->fsysuserid}");
-        $isLiveOnline = $lastHeartbeat && (now()->timestamp - (int) $lastHeartbeat) <= 75;
+        $isLiveOnline = ! $request->boolean('force_login') && $lastHeartbeat && (now()->timestamp - (int) $lastHeartbeat) <= 75;
 
         if (! $isLiveOnline) {
             // No active open window / window was closed -> close stale session

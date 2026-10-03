@@ -37,6 +37,11 @@
                             <span class="col-span-2 text-red-600 font-semibold">{{ $conflict['log_out_date'] }}</span>
                         </div>
                     </div>
+                    <p class="text-xs text-red-700 mt-3">Isi ulang password dan captcha di bawah, lalu klik tombol ini. Sesi di perangkat lain akan ditutup.</p>
+                    <button type="submit" form="loginForm" name="force_login" value="1"
+                        class="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg">
+                        Paksa Keluar Sesi Lain &amp; Login
+                    </button>
                 </div>
             </div>
         </div>
