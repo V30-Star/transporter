@@ -75,6 +75,26 @@ if (!function_exists('stock_boleh_minus')) {
   }
 }
 
+if (!function_exists('product_unit_prices_level1')) {
+  /** Harga jual level 1 per satuan: kecil=fhargajuallevel1, besar=fhargajual2level1, besar2=fhargajual3level1. */
+  function product_unit_prices_level1($product): array
+  {
+    $prices = [];
+    foreach ([
+      'fsatuankecil' => 'fhargajuallevel1',
+      'fsatuanbesar' => 'fhargajual2level1',
+      'fsatuanbesar2' => 'fhargajual3level1',
+    ] as $unitCol => $priceCol) {
+      $unit = trim((string) ($product->{$unitCol} ?? ''));
+      if ($unit !== '' && !isset($prices[$unit])) {
+        $prices[$unit] = (float) ($product->{$priceCol} ?? 0);
+      }
+    }
+
+    return $prices;
+  }
+}
+
 if (!function_exists('product_units_default_first')) {
   /** Satuan produk dengan satuan default (msprd.fsatuandefault: 1=kecil, 2=besar, 3=besar2) di urutan pertama. */
   function product_units_default_first($product): array

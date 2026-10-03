@@ -626,7 +626,10 @@ class MutasiController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fsatuandefault',
-            'fminstock'
+            'fminstock',
+            'fhargajuallevel1',
+            'fhargajual2level1',
+            'fhargajual3level1'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
             ->orderBy('fprdname')
@@ -1042,7 +1045,10 @@ class MutasiController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fsatuandefault',
-            'fminstock'
+            'fminstock',
+            'fhargajuallevel1',
+            'fhargajual2level1',
+            'fhargajual3level1'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
             ->orderBy('fprdname')
@@ -1517,7 +1523,10 @@ class MutasiController extends Controller
             'fsatuanbesar',
             'fsatuanbesar2',
             'fsatuandefault',
-            'fminstock'
+            'fminstock',
+            'fhargajuallevel1',
+            'fhargajual2level1',
+            'fhargajual3level1'
         )
             ->whereRaw("COALESCE(TRIM(CAST(fnonactive AS TEXT)), '0') != '1'")
             ->orderBy('fprdname')

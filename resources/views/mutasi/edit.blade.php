@@ -963,7 +963,7 @@
                                                         <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                             :id="'mutasi_unit_row_' + i"
                                                             x-model="it.fsatuan"
-                                                            @change="onRowUpdated(i)"
+                                                            @change="applyUnitPrice(it); onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowQty(i)">
                                                             <template x-for="(u, uIdx) in it.units" :key="uIdx">
                                                                 <option :value="u" x-text="u"></option>
@@ -1561,6 +1561,7 @@
                 name: @json($p->fprdname),
                 barcode: @json(trim((string) ($p->fbarcode ?? ''))),
                 units: @json(product_units_default_first($p)),
+                prices: @json(product_unit_prices_level1($p)),
                 stock: @json($p->fminstock ?? 0)
             },
         @endforeach
@@ -1726,6 +1727,11 @@
                 return window.PRODUCT_MAP?.[key] || null;
             },
 
+            applyUnitPrice(row) {
+                const p = Number(this.productMeta(row.fitemcode)?.prices?.[row.fsatuan]);
+                if (Number.isFinite(p)) row.fprice = p;
+            },
+
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
@@ -1785,6 +1791,7 @@
 
             onCodeTypedRow(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.applyUnitPrice(row);
                 this.recalc(row);
                 this.onRowUpdated(index);
             },
@@ -1988,6 +1995,7 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        this.applyUnitPrice(row);
                          this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
                     });
