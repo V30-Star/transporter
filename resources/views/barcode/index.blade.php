@@ -1619,7 +1619,7 @@ function updatePreview() {
                 ${showCode ? `<div style="width: 100%; flex: 0 1 auto; min-height: 0; display: flex; justify-content: flex-start; align-items: center; overflow: hidden; margin: 0;"><svg id="${svgId}" style="max-width: 100%; max-height: 100%; height: auto;"></svg></div>` : ''}
                 <div style="width: 100%; display: flex; justify-content: space-between; align-items: baseline; padding-top: ${Math.round(1.5 * scalePx)}px; flex-shrink: 0; line-height: 1; color: #020617;">
                     <span style="font-size: 8pt; white-space: nowrap;">${showPrice && sampleItem.price > 0 ? Number(sampleItem.price).toLocaleString('en-US') + (sampleItem.priceSuffix || '') : ''}</span>
-                    ${showCode ? `<span style="font-size: 8px; margin-right: ${Math.round(2 * scalePx)}px; white-space: nowrap;">${escapeHtml(sampleItem.fbarcode || sampleItem.fprdcode)}</span>` : ''}
+                    ${showCode ? `<span style="font-size: 10px; margin-right: ${Math.round(2 * scalePx)}px; white-space: nowrap;">${escapeHtml(sampleItem.fbarcode || sampleItem.fprdcode)}</span>` : ''}
                 </div>
             </div>
         `;

@@ -234,7 +234,7 @@
         }
 
         .item-code {
-            font-size: 8px;
+            font-size: 10px;
             margin-right: 2mm;
             white-space: nowrap;
             line-height: 1;
