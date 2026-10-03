@@ -480,14 +480,18 @@ class ProductController extends Controller
     private function generateTheProductCode(): string
     {
         $year = now()->format('y');
-        $lastCode = Product::whereRaw('fprdcode ~ ?', ['^' . $year . '[0-9]{6}$'])
-            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM 3 FOR 4) AS INTEGER) DESC')
+        $lastCode = Product::whereRaw('fprdcode ~ ?', ['^' . $year . '[0-9]{4}$'])
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM 3 FOR 2) AS INTEGER) DESC')
             ->value('fprdcode');
 
-        $nextNumber = $lastCode ? ((int) substr($lastCode, 2, 4)) + 1 : 1;
+        $nextNumber = $lastCode ? ((int) substr($lastCode, 2, 2)) + 1 : 1;
+
+        if ($nextNumber > 99) {
+            throw new \RuntimeException('Urutan kode produk tahun ini habis (maks 99).');
+        }
 
         do {
-            $code = $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . str_pad((string) random_int(0, 99), 2, '0', STR_PAD_LEFT);
+            $code = $year . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . str_pad((string) random_int(0, 99), 2, '0', STR_PAD_LEFT);
         } while (Product::where('fprdcode', $code)->exists());
 
         return $code;
