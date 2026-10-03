@@ -202,7 +202,7 @@
         }
 
         .item-price {
-            font-size: {{ $fontSize * 1.1 }}pt;
+            font-size: 8pt;
             font-weight: 400;
             color: #000;
             letter-spacing: -0.2px;
