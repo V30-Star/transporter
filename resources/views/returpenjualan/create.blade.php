@@ -792,6 +792,7 @@
                                 <div x-data="srjFormModal()" class="mt-3">
                                     {{-- Button Trigger --}}
                                     <button type="button" @click="openSrjModal()"
+                                        @unless (in_array('createSuratJalan', array_map('trim', explode(',', session('user_restricted_permissions', ''))), true)) style="display: none;" @endunless
                                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
