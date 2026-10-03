@@ -14,6 +14,18 @@ use OpenSpout\Writer\XLSX\Writer;
 
 class LogUserController extends Controller
 {
+    public function close($id)
+    {
+        $log = LogUser::findOrFail($id);
+        $log->update(['log_out_date' => now()]);
+
+        // Tendang sesi aktif akun ini (EnsureSingleSession menolak token yang hilang)
+        \Illuminate\Support\Facades\Cache::forget("user_active_device_token:{$log->akun}");
+        \Illuminate\Support\Facades\Cache::forget("user_heartbeat:{$log->akun}");
+
+        return back()->with('success', "Sesi {$log->akun} ditutup.");
+    }
+
     public function index(Request $request)
     {
         $dateFrom = $request->input('date_from', now()->subDays(30)->format('Y-m-d'));

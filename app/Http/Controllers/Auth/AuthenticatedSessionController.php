@@ -247,6 +247,12 @@ SVG;
             return response()->noContent();
         }
 
+        // Sesi yang sudah ditutup/ditendang tidak boleh menghidupkan heartbeat lagi
+        $activeToken = \Illuminate\Support\Facades\Cache::get("user_active_device_token:{$account}");
+        if (! $activeToken || $activeToken !== session('session_device_token')) {
+            return response()->noContent();
+        }
+
         \Illuminate\Support\Facades\Cache::put("user_heartbeat:{$account}", now()->timestamp, 90);
 
         return response()->noContent();

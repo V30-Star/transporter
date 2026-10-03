@@ -3,6 +3,9 @@
 
 @section('content')
 <div class="bg-white rounded shadow p-4 space-y-3">
+    @if (session('success'))
+        <div class="bg-green-50 text-green-700 border border-green-200 px-3 py-2 text-xs rounded">{{ session('success') }}</div>
+    @endif
 
     <!-- Compact Stat Summary Badges -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gray-200 text-xs">
@@ -94,6 +97,7 @@
                     <th class="border px-2 py-1.5 text-left">Logout</th>
                     <th class="border px-2 py-1.5 text-left">Durasi</th>
                     <th class="border px-2 py-1.5 text-center">Status</th>
+                    <th class="border px-2 py-1.5 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,10 +136,19 @@
                                 <span class="text-gray-500">Logout</span>
                             @endif
                         </td>
+                        <td class="border px-2 py-1 text-center">
+                            @if ($isOnline && in_array('BOLEHOTORISASIUSER', array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))), true))
+                                <form method="POST" action="{{ route('loguser.close', $log->floguserid) }}"
+                                    onsubmit="return confirm('Tutup sesi {{ $log->akun }}?')">
+                                    @csrf
+                                    <button class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded">Tutup Sesi</button>
+                                </form>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center py-4 text-gray-400">Tidak ada data.</td>
+                        <td colspan="10" class="text-center py-4 text-gray-400">Tidak ada data.</td>
                     </tr>
                 @endforelse
             </tbody>

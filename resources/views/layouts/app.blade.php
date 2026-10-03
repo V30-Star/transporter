@@ -2885,7 +2885,7 @@
 
                 // 1. Send heartbeat every 30 seconds with cross-tab coordination and visibility check
                 const pingHeartbeat = () => {
-                    if (!account || !heartbeatUrl || document.hidden) return;
+                    if (!account || !heartbeatUrl) return;
 
                     const storageKey = 'app_last_heartbeat_' + account;
                     const lastPing = parseInt(localStorage.getItem(storageKey) || '0', 10);

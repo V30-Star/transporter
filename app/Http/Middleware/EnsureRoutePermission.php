@@ -160,6 +160,10 @@ class EnsureRoutePermission
             return ['roleaccess'];
         }
 
+        if ($routeName === 'loguser.close') {
+            return ['BOLEHOTORISASIUSER'];
+        }
+
         if ($module === 'loguser') {
             return ['viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'];
         }
