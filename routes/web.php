@@ -893,6 +893,10 @@ Route::middleware(['auth', EnsureRoutePermission::class])->group(function () {
 
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
 
+        Route::get('/userdevice', [\App\Http\Controllers\UserDeviceController::class, 'index'])->name('userdevice.index');
+        Route::post('/userdevice/{userdevice}/approve', [\App\Http\Controllers\UserDeviceController::class, 'approve'])->name('userdevice.approve');
+        Route::delete('/userdevice/{userdevice}', [\App\Http\Controllers\UserDeviceController::class, 'reject'])->name('userdevice.reject');
+
         Route::get('/loguser', [LogUserController::class, 'index'])->name('loguser.index');
         Route::get('/loguser/print', [LogUserController::class, 'print'])->name('loguser.print');
         Route::get('/loguser/excel', [LogUserController::class, 'exportExcel'])->name('loguser.excel');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\LogUser;
 use App\Models\RoleAccess;
+use App\Models\UserDevice;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,6 +99,25 @@ SVG;
 
         $user = Auth::user();
         $sessionLifetime = (int) config('session.lifetime', 120);
+
+        // Komputer (browser) baru wajib disetujui user ber-permission BOLEHOTORISASIUSER
+        $deviceCookie = $request->cookie('app_device_id') ?: \Illuminate\Support\Str::random(64);
+        $device = UserDevice::firstOrCreate(
+            ['fsysuserid' => $user->fsysuserid, 'ftoken' => hash('sha256', $deviceCookie)],
+            ['fstatus' => 'pending', 'fip' => $request->ip(), 'fuseragent' => substr((string) $request->userAgent(), 0, 255), 'fcreated' => now()]
+        );
+        cookie()->queue(cookie('app_device_id', $deviceCookie, 60 * 24 * 365 * 5, null, null, false, true));
+
+        if ($device->fstatus !== 'approved') {
+            Auth::guard('sysuser')->logout();
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withInput($request->only('fsysuserid'))
+                ->withErrors(['fsysuserid' => 'Komputer ini belum diotorisasi. Minta persetujuan user yang berwenang (Boleh Otorisasi User).']);
+        }
 
         // Auto close stale sessions for this account that exceeded session lifetime
         LogUser::where('akun', $user->fsysuserid)

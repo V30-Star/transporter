@@ -164,6 +164,10 @@ class EnsureRoutePermission
             return ['viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'];
         }
 
+        if ($module === 'userdevice') {
+            return ['BOLEHOTORISASIUSER'];
+        }
+
         if ($module === 'dashboardwewenang') {
             return ['roleaccess', 'viewSysuser'];
         }
