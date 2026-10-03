@@ -121,7 +121,7 @@
                         <td class="border px-2 py-1 font-mono text-gray-600">{{ $log->ip ?? '-' }}</td>
                         <td class="border px-2 py-1 text-gray-600">{{ $log->komp ?? '-' }}</td>
                         <td class="border px-2 py-1 font-mono">
-                            {{ $loginAt ? $loginAt->format('d/m/y H:i') : '-' }}
+                            {{ $loginAt ? $loginAt->locale('id')->isoFormat('dddd') . ', ' . $loginAt->format('d/m/y H:i') : '-' }}
                         </td>
                         <td class="border px-2 py-1 font-mono">
                             {{ $logoutAt ? $logoutAt->format('d/m/y H:i') : '-' }}
