@@ -365,3 +365,11 @@ if (!function_exists('get_last_global_warehouse')) {
       ->value('ffrom');
   }
 }
+
+if (!function_exists('user_has_permission')) {
+  /** Cek wewenang user (session user_restricted_permissions), contoh: user_has_permission('createSuratJalan'). */
+  function user_has_permission(string $permission): bool
+  {
+    return in_array($permission, array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))), true);
+  }
+}

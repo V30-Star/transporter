@@ -220,7 +220,7 @@
 
                     @if (!$isReadOnly)
                         <div class="mt-3 flex gap-2">
-                            <button type="button" @click="openNotaModal()"
+                            <button type="button" @click="openNotaModal()" @unless (user_has_permission('createInvoice')) style="display: none;" @endunless
                                 class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
                                 <x-heroicon-o-plus class="w-4 h-4" />
                                 Add Nota

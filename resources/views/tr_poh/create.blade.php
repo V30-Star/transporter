@@ -538,7 +538,7 @@
                     {{-- Add PR + Panel Totals --}}
                     <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
                         <div class="flex justify-start" x-data="prhFormModal()">
-                            <button type="button" @click="openModal()"
+                            <button type="button" @click="openModal()" @unless (user_has_permission('createTr_prh')) style="display: none;" @endunless
                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm transition-colors">
                                 <x-heroicon-o-plus class="h-4 w-4" />
                                 Add PR

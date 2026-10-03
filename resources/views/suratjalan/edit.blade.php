@@ -951,7 +951,7 @@
                                         {{-- SO --}}
                                         <div x-data="soFormModal()" class="min-w-fit">
                                             <div class="w-full flex justify-start">
-                                                <button type="button" @click="openModal()"
+                                                <button type="button" @click="openModal()" @unless (user_has_permission('createSalesOrder')) style="display: none;" @endunless
                                                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 hover:shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1040,7 +1040,7 @@
 
                                         <div x-data="invoiceFormModal()" class="min-w-fit">
                                             <div class="w-full flex justify-start">
-                                                <button type="button" @click="openModal()"
+                                                <button type="button" @click="openModal()" @unless (user_has_permission('createInvoice')) style="display: none;" @endunless
                                                     class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-white shadow-sm hover:bg-sky-700 active:bg-sky-800 hover:shadow transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-sky-500">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">

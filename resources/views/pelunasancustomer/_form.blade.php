@@ -381,7 +381,7 @@
 
                 <div class="mt-4 flex flex-col md:flex-row items-start justify-between gap-4">
                     <div>
-                        <button type="button" @click="openNotaModal()"
+                        <button type="button" @click="openNotaModal()" @unless (user_has_permission('createInvoice')) style="display: none;" @endunless
                             @disabled($isReadOnly)
                             class="inline-flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm font-medium">
                             <x-heroicon-o-arrow-down-tray class="w-5 h-5" />

@@ -764,7 +764,7 @@
                                 {{-- Container Alpine.js --}}
                                 <div x-data="srjFormModal()" class="mt-3">
                                     {{-- Button Trigger --}}
-                                    <button type="button" @click="openSrjModal()"
+                                    <button type="button" @click="openSrjModal()" @unless (user_has_permission('createSuratJalan')) style="display: none;" @endunless
                                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -874,7 +874,7 @@
                                 <div x-data="soFormModal()" class="mt-3">
                                     <div class="mt-3 flex justify-between items-start gap-4">
                                         <div class="w-full flex justify-start mb-3">
-                                            <button type="button" @click="openModal()"
+                                            <button type="button" @click="openModal()" @unless (user_has_permission('createSalesOrder')) style="display: none;" @endunless
                                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">

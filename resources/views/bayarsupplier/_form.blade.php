@@ -378,7 +378,7 @@
 
                 <div class="mt-4 flex flex-col md:flex-row items-start justify-between gap-4">
                     <div>
-                        <button type="button" @click="openPblModal()" @disabled($isReadOnly)
+                        <button type="button" @click="openPblModal()" @unless (user_has_permission('createFakturPembelian')) style="display: none;" @endunless @disabled($isReadOnly)
                             class="inline-flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm font-medium">
                             <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                             <span>{{ 'Add Faktur' }}</span>

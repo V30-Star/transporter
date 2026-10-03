@@ -1383,7 +1383,7 @@
                                     <div class="flex gap-2">
                                         {{-- Add PO button & modal --}}
                                         <div x-data="poFormModal()">
-                                            <button type="button" @click="openModal()" :disabled="isLocked()"
+                                            <button type="button" @click="openModal()" @unless (user_has_permission('createTr_poh')) style="display: none;" @endunless :disabled="isLocked()"
                                                 :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-emerald-700'"
                                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium text-sm transition-colors focus:outline-none">
                                                 <x-heroicon-o-plus class="h-4 w-4" />
@@ -1446,7 +1446,7 @@
 
                                         {{-- Add PB button & modal --}}
                                         <div x-data="pbFormModal()">
-                                            <button type="button" @click="openModal()" :disabled="isLocked()"
+                                            <button type="button" @click="openModal()" @unless (user_has_permission('createPenerimaanBarang')) style="display: none;" @endunless :disabled="isLocked()"
                                                 :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700'"
                                                 class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium text-sm transition-colors focus:outline-none">
                                                 <x-heroicon-o-plus class="h-4 w-4" />
